@@ -1,0 +1,168 @@
+[
+    {
+        "inputs": [],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "contractAddress",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "bytes32",
+                "name": "hash",
+                "type": "bytes32"
+            }
+        ],
+        "name": "BridgeableContractDeployed",
+        "type": "event"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "contractType",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "chainType",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bool",
+                "name": "openBridge",
+                "type": "bool"
+            },
+            {
+                "internalType": "uint64",
+                "name": "bridgeFee",
+                "type": "uint64"
+            },
+            {
+                "internalType": "address",
+                "name": "originalContractOwner",
+                "type": "address"
+            },
+            {
+                "internalType": "bytes",
+                "name": "initCode",
+                "type": "bytes"
+            }
+        ],
+        "name": "deployBridgeableContract",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getAdmin",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "admin",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getBridgeRegistry",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "bridgeRegistry",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getChainType",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "chainType",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getSecureStorage",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "secureStorage",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "admin",
+                "type": "address"
+            }
+        ],
+        "name": "setAdmin",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "bridgeRegistry",
+                "type": "address"
+            }
+        ],
+        "name": "setBridgeRegistry",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "chainType",
+                "type": "uint256"
+            }
+        ],
+        "name": "setChainType",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "secureStorage",
+                "type": "address"
+            }
+        ],
+        "name": "setSecureStorage",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    }
+]

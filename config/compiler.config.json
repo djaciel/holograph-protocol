@@ -1,0 +1,92 @@
+{
+    "binary": "/usr/local/bin/solc",
+    "configurations": [
+        {
+            "value": "base-path",
+            "toggle": false,
+            "variable": "./contracts"
+        },
+        {
+            "value": "output-dir",
+            "toggle": false,
+            "variable": "./build"
+        },
+        {
+            "value": "pretty-json",
+            "toggle": true
+        },
+        {
+            "value": "metadata-hash",
+            "toggle": false,
+            "variable": "none"
+        },
+        {
+            "value": "overwrite",
+            "toggle": true
+        },
+        {
+            "value": "optimize",
+            "toggle": true
+        },
+        {
+            "value": "optimize-runs",
+            "toggle": false,
+            "variable": "99999"
+        },
+        {
+            "value": "error-codes",
+            "toggle": true
+        },
+        {
+            "value": "ast-compact-json",
+            "toggle": true
+        },
+        {
+            "value": "opcodes",
+            "toggle": true
+        },
+        {
+            "value": "bin",
+            "toggle": true
+        },
+        {
+            "value": "bin-runtime",
+            "toggle": true
+        },
+        {
+            "value": "abi",
+            "toggle": true
+        },
+        {
+            "value": "hashes",
+            "toggle": true
+        },
+        {
+            "value": "userdoc",
+            "toggle": true
+        },
+        {
+            "value": "devdoc",
+            "toggle": true
+        },
+        {
+            "value": "metadata",
+            "toggle": true
+        },
+        {
+            "value": "storage-layout",
+            "toggle": true
+        },
+        {
+            "value": "gas",
+            "toggle": true
+        },
+        {
+            "value": "combined-json",
+            "toggle": false,
+            "variables": [
+                "abi", "asm", "ast", "bin", "bin-runtime", "devdoc", "function-debug", "function-debug-runtime", "generated-sources", "generated-sources-runtime", "hashes", "metadata", "opcodes", "srcmap", "srcmap-runtime", "storage-layout", "userdoc"
+            ]
+        }
+    ]
+}

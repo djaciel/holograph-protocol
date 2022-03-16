@@ -1,0 +1,5 @@
+{
+	"local": "http://localhost:8545",
+	"cxip": "https://rpc.cxip.dev",
+	"live": "https://97a530cec94a42fcb0e5fbaea538f149.eth.rpc.rivet.cloud"
+}
