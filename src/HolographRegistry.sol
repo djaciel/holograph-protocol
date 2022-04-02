@@ -105,70 +105,44 @@ pragma solidity 0.8.11;
 
 import "./abstract/Admin.sol";
 
-contract SecureStorage is Admin {
+/*
+ * @dev This smart contract stores the different source codes that have been prepared and can be used for bridging.
+ * @dev We will store here the layer 1 for ERC721 and ERC1155 smart contracts.
+ * @dev This way it can be super easy to upgrade/update the source code once, and have all smart contracts automatically updated.
+ */
+contract HolographRegistry is Admin {
 
-    /**
-     * @dev Boolean indicating if storage writing is locked. Used to prevent delegated contracts access.
+    /*
+     * @dev Storage slot for saving contract type to contract address references.
      */
-    bool private _locked;
+    mapping(uint256 => address) private _typeAddresses;
 
-    /**
-     * @dev Address of contract owner. This address can run all onlyOwner functions.
+    /*
+     * @dev Constructor is left empty and only the admin address is set.
      */
-    address private _owner;
-
-    modifier unlocked() {
-        require(!_locked, "CXIP: storage locked");
-        _;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == _owner || msg.sender == getAdmin(), "CXIP: unauthorised msg sender");
-        _;
-    }
-
-    modifier nonReentrant() {
-        require(!_locked, "CXIP: storage already locked");
-        _locked = true;
-        _;
-        _locked = false;
-    }
-
     constructor() Admin(false) {
     }
 
-    function getOwner() public view returns (address) {
-        return _owner;
-    }
-
-    function setOwner(address owner) public onlyOwner {
-        _owner = owner;
-    }
-
-    function getSlot(bytes32 slot) public view returns (bytes32 data) {
-        assembly {
-            data := sload(slot)
-        }
-    }
-
-    function setSlot(bytes32 slot, bytes32 data) public unlocked onlyOwner {
-        assembly {
-            sstore(slot, data)
-        }
-    }
-
-    function lock(bool position) public onlyOwner nonReentrant {
-        _locked = position;
-    }
-
-    /**
-     * @notice Transfers ownership of the collection.
-     * @dev Can't be the zero address.
-     * @param newOwner Address of new owner.
+    /*
+     * @dev Returns the contract address for a contract type.
      */
-    function transferOwnership(address newOwner) public onlyOwner unlocked {
-        require(newOwner != address(0), "CXIP: zero address");
-        _owner = newOwner;
+    function getTypeAddress (uint256 contractType) public view returns(address) {
+        return _typeAddresses[contractType];
+    }
+
+    /*
+     * @dev Returns the contract address for a contract type.
+     */
+    function getTypeAddress (bytes32 contractType) public view returns(address) {
+        return _typeAddresses[uint256(contractType)];
+    }
+
+    /*
+     * @dev Sets the contract address for a contract type.
+     */
+    function setTypeAddress (uint256 contractType, address contractAddress) public onlyAdmin {
+        require(_typeAddresses[contractType] == address(0), "CXIP: contract type already set");
+        _typeAddresses[contractType] = contractAddress;
     }
 
 }

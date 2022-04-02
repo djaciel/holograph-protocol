@@ -103,72 +103,55 @@
 
 pragma solidity 0.8.11;
 
-import "./abstract/Admin.sol";
+/// @title Holograph ERC-721 Non-Fungible Token Standard
+/// @dev See https://holograph.network/standard/ERC-721
+///  Note: the ERC-165 identifier for this interface is 0xFFFFFFFF.
+interface HolographedERC721 {
 
-contract SecureStorage is Admin {
+    function init(bytes calldata _data) external;
 
-    /**
-     * @dev Boolean indicating if storage writing is locked. Used to prevent delegated contracts access.
-     */
-    bool private _locked;
 
-    /**
-     * @dev Address of contract owner. This address can run all onlyOwner functions.
-     */
-    address private _owner;
+    // event id = 1
+    function bridgeIn(address _from, address _to, uint256 _tokenId, bytes calldata _data) external returns (bool success);
 
-    modifier unlocked() {
-        require(!_locked, "CXIP: storage locked");
-        _;
-    }
+    // event id = 2
+    function bridgeOut(address _from, address _to, uint256 _tokenId) external returns (bytes memory _data);
 
-    modifier onlyOwner() {
-        require(msg.sender == _owner || msg.sender == getAdmin(), "CXIP: unauthorised msg sender");
-        _;
-    }
 
-    modifier nonReentrant() {
-        require(!_locked, "CXIP: storage already locked");
-        _locked = true;
-        _;
-        _locked = false;
-    }
+    // event id = 3
+    function afterApprove(address _owner, address _to, uint256 _tokenId) external view returns (bool success);
 
-    constructor() Admin(false) {
-    }
+    // event id = 4
+    function beforeApprove(address _owner, address _to, uint256 _tokenId) external view returns (bool success);
 
-    function getOwner() public view returns (address) {
-        return _owner;
-    }
+    // event id = 5
+    function afterApprovalAll(address _to, bool _approved) external view returns (bool success);
 
-    function setOwner(address owner) public onlyOwner {
-        _owner = owner;
-    }
+    // event id = 6
+    function beforeApprovalAll(address _to, bool _approved) external view returns (bool success);
 
-    function getSlot(bytes32 slot) public view returns (bytes32 data) {
-        assembly {
-            data := sload(slot)
-        }
-    }
+    // event id = 7
+    function afterBurn(address _owner, uint256 _tokenId) external view returns (bool success);
 
-    function setSlot(bytes32 slot, bytes32 data) public unlocked onlyOwner {
-        assembly {
-            sstore(slot, data)
-        }
-    }
+    // event id = 8
+    function beforeBurn(address _owner, uint256 _tokenId) external view returns (bool success);
 
-    function lock(bool position) public onlyOwner nonReentrant {
-        _locked = position;
-    }
+    // event id = 9
+    function afterMint() external view returns (bool success);
 
-    /**
-     * @notice Transfers ownership of the collection.
-     * @dev Can't be the zero address.
-     * @param newOwner Address of new owner.
-     */
-    function transferOwnership(address newOwner) public onlyOwner unlocked {
-        require(newOwner != address(0), "CXIP: zero address");
-        _owner = newOwner;
-    }
+    // event id = 10
+    function beforeMint() external view returns (bool success);
+
+    // event id = 11
+    function afterSafeTransfer(address _from, address _to, uint256 _tokenId, bytes calldata _data) external view returns (bool success);
+
+    // event id = 12
+    function beforeSafeTransfer(address _from, address _to, uint256 _tokenId, bytes calldata _data) external view returns (bool success);
+
+    // event id = 13
+    function afterTransfer(address _from, address _to, uint256 _tokenId, bytes calldata _data) external view returns (bool success);
+
+    // event id = 14
+    function beforeTransfer(address _from, address _to, uint256 _tokenId, bytes calldata _data) external view returns (bool success);
 
 }

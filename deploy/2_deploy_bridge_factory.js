@@ -5,7 +5,7 @@ const HDWalletProvider = require ('truffle-hdwallet-provider');
 const Web3 = require ('web3');
 const { NETWORK, GAS, WALLET } = require ('../config/env');
 
-const FACTORY_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts ['BridgeFactory.sol:BridgeFactory'];
+const FACTORY_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts ['HolographBridgeFactory.sol:HolographBridgeFactory'];
 
 const rpc = JSON.parse (fs.readFileSync ('./rpc.json', 'utf8'));
 const provider = new HDWalletProvider (WALLET, rpc[NETWORK]);
@@ -35,11 +35,11 @@ FACTORY.deploy (payload)
     })
     .then (function (newContractInstance) {
         fs.writeFileSync (
-            './data/' + NETWORK + '.BridgeFactory.address',
+            './data/' + NETWORK + '.HolographBridgeFactory.address',
             newContractInstance.options.address
         );
         console.log (
-            'Deployed BridgeFactory Contract : ' + newContractInstance.options.address
+            'Deployed HolographBridgeFactory Contract : ' + newContractInstance.options.address
         );
         newContractInstance.methods
             .setChainType (1)
@@ -47,7 +47,7 @@ FACTORY.deploy (payload)
             .then (function () {
                 console.log ('Chain Type set');
                 newContractInstance.methods
-                    .setBridgeRegistry (fs.readFileSync ('./data/' + NETWORK + '.BridgeRegistry.address', 'utf8').trim ())
+                    .setBridgeRegistry (fs.readFileSync ('./data/' + NETWORK + '.HolographBridgeRegistry.address', 'utf8').trim ())
                     .send (parameter)
                     .then (function () {
                         console.log ('Registry address set');

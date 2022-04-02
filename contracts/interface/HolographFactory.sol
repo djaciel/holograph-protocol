@@ -103,72 +103,26 @@
 
 pragma solidity 0.8.11;
 
-import "./abstract/Admin.sol";
+interface HolographFactory {
 
-contract SecureStorage is Admin {
+    event Deployed(address indexed contractAddress, bytes32 indexed hash);
 
-    /**
-     * @dev Boolean indicating if storage writing is locked. Used to prevent delegated contracts access.
-     */
-    bool private _locked;
+    function getAdmin() external view returns (address admin);
 
-    /**
-     * @dev Address of contract owner. This address can run all onlyOwner functions.
-     */
-    address private _owner;
+    function setAdmin(address admin) external;
 
-    modifier unlocked() {
-        require(!_locked, "CXIP: storage locked");
-        _;
-    }
+    function getChainType() external view returns (uint256 chainType);
 
-    modifier onlyOwner() {
-        require(msg.sender == _owner || msg.sender == getAdmin(), "CXIP: unauthorised msg sender");
-        _;
-    }
+    function setChainType(uint256 chainType) external;
 
-    modifier nonReentrant() {
-        require(!_locked, "CXIP: storage already locked");
-        _locked = true;
-        _;
-        _locked = false;
-    }
+    function getBridgeRegistry() external view returns (address bridgeRegistry);
 
-    constructor() Admin(false) {
-    }
+    function setBridgeRegistry(address bridgeRegistry) external;
 
-    function getOwner() public view returns (address) {
-        return _owner;
-    }
+    function getSecureStorage() external view returns (address secureStorage);
 
-    function setOwner(address owner) public onlyOwner {
-        _owner = owner;
-    }
+    function setSecureStorage(address secureStorage) external;
 
-    function getSlot(bytes32 slot) public view returns (bytes32 data) {
-        assembly {
-            data := sload(slot)
-        }
-    }
-
-    function setSlot(bytes32 slot, bytes32 data) public unlocked onlyOwner {
-        assembly {
-            sstore(slot, data)
-        }
-    }
-
-    function lock(bool position) public onlyOwner nonReentrant {
-        _locked = position;
-    }
-
-    /**
-     * @notice Transfers ownership of the collection.
-     * @dev Can't be the zero address.
-     * @param newOwner Address of new owner.
-     */
-    function transferOwnership(address newOwner) public onlyOwner unlocked {
-        require(newOwner != address(0), "CXIP: zero address");
-        _owner = newOwner;
-    }
+    function deploy(uint256 contractType, uint256 chainType, bool openBridge, uint64 bridgeFee, address originalContractOwner) external;
 
 }

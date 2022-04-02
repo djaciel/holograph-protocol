@@ -103,72 +103,45 @@
 
 pragma solidity 0.8.11;
 
-import "./abstract/Admin.sol";
+import "../abstract/Admin.sol";
 
-contract SecureStorage is Admin {
+contract HolographFactoryProxy is Admin {
 
-    /**
-     * @dev Boolean indicating if storage writing is locked. Used to prevent delegated contracts access.
-     */
-    bool private _locked;
+    constructor() Admin(false) {}
 
-    /**
-     * @dev Address of contract owner. This address can run all onlyOwner functions.
-     */
-    address private _owner;
-
-    modifier unlocked() {
-        require(!_locked, "CXIP: storage locked");
-        _;
-    }
-
-    modifier onlyOwner() {
-        require(msg.sender == _owner || msg.sender == getAdmin(), "CXIP: unauthorised msg sender");
-        _;
-    }
-
-    modifier nonReentrant() {
-        require(!_locked, "CXIP: storage already locked");
-        _locked = true;
-        _;
-        _locked = false;
-    }
-
-    constructor() Admin(false) {
-    }
-
-    function getOwner() public view returns (address) {
-        return _owner;
-    }
-
-    function setOwner(address owner) public onlyOwner {
-        _owner = owner;
-    }
-
-    function getSlot(bytes32 slot) public view returns (bytes32 data) {
+    function getFactory() public view returns (address factory) {
+        // The slot hash has been precomputed for gas optimizaion
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.factory')) - 1);
         assembly {
-            data := sload(slot)
+            factory := sload(/* slot */0x40873c98ec1e021b58a4c3d2335551a22c8705bf1e593aeec50f857d010897c6)
         }
     }
 
-    function setSlot(bytes32 slot, bytes32 data) public unlocked onlyOwner {
+    function setFactory(address factory) public onlyAdmin {
+        // The slot hash has been precomputed for gas optimizaion
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.factory')) - 1);
         assembly {
-            sstore(slot, data)
+            sstore(/* slot */0x40873c98ec1e021b58a4c3d2335551a22c8705bf1e593aeec50f857d010897c6, factory)
         }
     }
 
-    function lock(bool position) public onlyOwner nonReentrant {
-        _locked = position;
+    receive() external payable {
     }
 
-    /**
-     * @notice Transfers ownership of the collection.
-     * @dev Can't be the zero address.
-     * @param newOwner Address of new owner.
-     */
-    function transferOwnership(address newOwner) public onlyOwner unlocked {
-        require(newOwner != address(0), "CXIP: zero address");
-        _owner = newOwner;
+    fallback() external payable {
+        address factory = getFactory();
+        assembly {
+            calldatacopy(0, 0, calldatasize())
+            let result := delegatecall(gas(), factory, 0, calldatasize(), 0, 0)
+            returndatacopy(0, 0, returndatasize())
+            switch result
+            case 0 {
+                revert(0, returndatasize())
+            }
+            default {
+                return(0, returndatasize())
+            }
+        }
     }
 
 }

@@ -40,7 +40,7 @@ const hexify = function (input, prepend) {
 async function main () {
     const wallet = provider.addresses [0];
 
-    const ABI = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts ['BridgeFactory.sol:BridgeFactory'].abi;
+    const ABI = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts ['HolographBridgeFactory.sol:HolographBridgeFactory'].abi;
     const CONTRACT = fs.readFileSync ('./data/' + NETWORK + '.BridgeFactory.address', 'utf8').trim ();
 
     console.log ('CONTRACT', CONTRACT);

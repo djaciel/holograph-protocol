@@ -103,72 +103,56 @@
 
 pragma solidity 0.8.11;
 
-import "./abstract/Admin.sol";
+import "./ERC165.sol";
+import "./ERC721.sol";
+import "./ERC721Enumerable.sol";
+import "./ERC721Metadata.sol";
+import "./ERC721TokenReceiver.sol";
 
-contract SecureStorage is Admin {
+interface ERC721Holograph is ERC165, ERC721, ERC721Enumerable, ERC721Metadata, ERC721TokenReceiver {
 
-    /**
-     * @dev Boolean indicating if storage writing is locked. Used to prevent delegated contracts access.
-     */
-    bool private _locked;
+    function contractURI() external view returns (string memory);
 
-    /**
-     * @dev Address of contract owner. This address can run all onlyOwner functions.
-     */
-    address private _owner;
+    function name() external view returns (string memory);
 
-    modifier unlocked() {
-        require(!_locked, "CXIP: storage locked");
-        _;
-    }
+    function supportsInterface(bytes4 interfaceId) external view returns (bool);
 
-    modifier onlyOwner() {
-        require(msg.sender == _owner || msg.sender == getAdmin(), "CXIP: unauthorised msg sender");
-        _;
-    }
+    function symbol() external view returns (string memory);
 
-    modifier nonReentrant() {
-        require(!_locked, "CXIP: storage already locked");
-        _locked = true;
-        _;
-        _locked = false;
-    }
+    function tokenURI(uint256 tokenId) external view returns (string memory);
 
-    constructor() Admin(false) {
-    }
+    function tokensOfOwner(address wallet) external view returns (uint256[] memory);
 
-    function getOwner() public view returns (address) {
-        return _owner;
-    }
+    function approve(address to, uint256 tokenId) external payable;
 
-    function setOwner(address owner) public onlyOwner {
-        _owner = owner;
-    }
+    function burn(uint256 tokenId) external;
 
-    function getSlot(bytes32 slot) public view returns (bytes32 data) {
-        assembly {
-            data := sload(slot)
-        }
-    }
+    function init(string calldata collectionName, string calldata collectionSymbol, uint16 collectionBps, uint256 eventConfig, bytes calldata data) external;
 
-    function setSlot(bytes32 slot, bytes32 data) public unlocked onlyOwner {
-        assembly {
-            sstore(slot, data)
-        }
-    }
+    function safeTransferFrom(address from, address to, uint256 tokenId) external payable;
 
-    function lock(bool position) public onlyOwner nonReentrant {
-        _locked = position;
-    }
+    function setApprovalForAll(address to, bool approved) external;
 
-    /**
-     * @notice Transfers ownership of the collection.
-     * @dev Can't be the zero address.
-     * @param newOwner Address of new owner.
-     */
-    function transferOwnership(address newOwner) public onlyOwner unlocked {
-        require(newOwner != address(0), "CXIP: zero address");
-        _owner = newOwner;
-    }
+    function sourceBurn(uint256 tokenId) external;
+
+    function sourceMint(address to, uint224 tokenId) external;
+
+    function sourceTransfer(address to, uint256 tokenId) external;
+
+    function transfer(address to, uint256 tokenId) external payable;
+
+    function getApproved(uint256 tokenId) external view returns (address);
+
+    function isApprovedForAll(address wallet, address operator) external view returns (bool);
+
+    function ownerOf(uint256 tokenId) external view returns (address);
+
+    function tokenByIndex(uint256 index) external view returns (uint256);
+
+    function tokenOfOwnerByIndex(address wallet, uint256 index) external view returns (uint256);
+
+    function totalSupply() external view returns (uint256);
+
+    function onERC721Received(address _operator, address _from, uint256 _tokenId, bytes calldata _data) external pure returns (bytes4);
 
 }

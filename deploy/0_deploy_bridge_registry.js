@@ -5,7 +5,7 @@ const HDWalletProvider = require ('truffle-hdwallet-provider');
 const Web3 = require ('web3');
 const { NETWORK, GAS, WALLET } = require ('../config/env');
 
-const FACTORY_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts ['BridgeRegistry.sol:BridgeRegistry'];
+const FACTORY_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts ['HolographBridgeRegistry.sol:HolographBridgeRegistry'];
 
 const rpc = JSON.parse (fs.readFileSync ('./rpc.json', 'utf8'));
 const provider = new HDWalletProvider (WALLET, rpc[NETWORK]);
@@ -35,11 +35,11 @@ FACTORY.deploy (payload)
     })
     .then (function (newContractInstance) {
         fs.writeFileSync (
-            './data/' + NETWORK + '.BridgeRegistry.address',
+            './data/' + NETWORK + '.HolographBridgeRegistry.address',
             newContractInstance.options.address
         );
         console.log (
-            'Deployed BridgeRegistry Contract : ' + newContractInstance.options.address
+            'Deployed HolographBridgeRegistry Contract : ' + newContractInstance.options.address
         );
         process.exit ();
     });

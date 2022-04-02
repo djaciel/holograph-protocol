@@ -104,71 +104,60 @@
 pragma solidity 0.8.11;
 
 import "./abstract/Admin.sol";
+import "./interface/HolographRegistry.sol";
 
-contract SecureStorage is Admin {
+/*
+ * @dev This contract is a binder. It puts together all the variables to make the underlying contracts functional and be bridgeable.
+ */
+contract Holographer is Admin {
 
-    /**
-     * @dev Boolean indicating if storage writing is locked. Used to prevent delegated contracts access.
+    /*
+     * @dev Constructor is left empty and only the admin address is set.
      */
-    bool private _locked;
+    constructor() Admin(true) {
+    }
 
-    /**
-     * @dev Address of contract owner. This address can run all onlyOwner functions.
+    /*
+     * @dev Returns a hardcoded address for the custom secure storage contract deployed in parallel with this contract deployment.
+     * @dev The choice to use this approach was taken to prevent storage slot overrides.
      */
-    address private _owner;
-
-    modifier unlocked() {
-        require(!_locked, "CXIP: storage locked");
-        _;
+    function getSecureStorage() public pure returns (address) {
+        return 0x53656375726553746f7261676541646472657373;
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == _owner || msg.sender == getAdmin(), "CXIP: unauthorised msg sender");
-        _;
+    /*
+     * @dev Returns a hardcoded address for the custom secure storage contract deployed in parallel with this contract deployment.
+     * @dev The choice to use this approach was taken to prevent storage slot overrides.
+     */
+    function getSourceContract() public pure returns (address payable) {
+        return payable(0x20536d617274436F6E7472616374536F75726365);
     }
 
-    modifier nonReentrant() {
-        require(!_locked, "CXIP: storage already locked");
-        _locked = true;
-        _;
-        _locked = false;
+    /*
+     * @dev Purposefully left empty, to prevent running out of gas errors when receiving native token payments.
+     */
+    receive() external payable {
     }
 
-    constructor() Admin(false) {
-    }
-
-    function getOwner() public view returns (address) {
-        return _owner;
-    }
-
-    function setOwner(address owner) public onlyOwner {
-        _owner = owner;
-    }
-
-    function getSlot(bytes32 slot) public view returns (bytes32 data) {
+    /*
+     * @dev Hard-coded registry address and contract type are put inside the fallback to make sure that the contract cannot be modified.
+     * @dev This takes the underlying address source code, runs it, and uses current address for storage.
+     */
+    fallback() external payable {
+        address _target = HolographRegistry(0x20427269646765526567697374727950726f7879)
+            .getTypeAddress(100720653802902414284285709932406411645314037931866031175238873523629937516205);
         assembly {
-            data := sload(slot)
+            calldatacopy(0, 0, calldatasize())
+            let result := delegatecall(gas(), _target, 0, calldatasize(), 0, 0)
+            returndatacopy(0, 0, returndatasize())
+            switch result
+            case 0 {
+                revert(0, returndatasize())
+            }
+            default {
+                return(0, returndatasize())
+            }
         }
-    }
-
-    function setSlot(bytes32 slot, bytes32 data) public unlocked onlyOwner {
-        assembly {
-            sstore(slot, data)
-        }
-    }
-
-    function lock(bool position) public onlyOwner nonReentrant {
-        _locked = position;
-    }
-
-    /**
-     * @notice Transfers ownership of the collection.
-     * @dev Can't be the zero address.
-     * @param newOwner Address of new owner.
-     */
-    function transferOwnership(address newOwner) public onlyOwner unlocked {
-        require(newOwner != address(0), "CXIP: zero address");
-        _owner = newOwner;
     }
 
 }

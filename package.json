@@ -7,7 +7,7 @@
   "main": "index.js",
   "scripts": {
     "abi": "rm -fr ./abi ; mkdir ./abi ; node ./scripts/abi.js",
-    "build": "node ./scripts/build.js",
+    "build": "rm -fr ./contracts ; mkdir ./contracts ; node ./scripts/build.js",
     "build-compile": "rm -fr ./build ; mkdir ./build ; npm run-script build ; npm run-script compile",
     "cleanup": "rm -fr ./build ; mkdir ./build ; rm -fr ./data ; mkdir ./data",
     "compile": "node ./scripts/compile.js",
