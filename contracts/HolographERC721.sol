@@ -313,8 +313,9 @@ contract HolographERC721 is Admin, ERC721Holograph {
 
     /**
      * @dev Allows the bridge to bring in a token from another blockchain.
+     *  Note: function selector 0x2dd69ea4 is bytes4(keccak256("holographBridgeIn(address,address,uint256,bytes)"))
      */
-    function holographBridgeIn(address from, address to, uint256 tokenId, bytes calldata data) external {
+    function holographBridgeIn(address from, address to, uint256 tokenId, bytes calldata data) external returns (bytes4) {
         require(msg.sender == bridge(),  "ERC721: only bridge can call");
         if (_exists(tokenId)) {
             // we transfer token out of bridge contract
@@ -327,18 +328,20 @@ contract HolographERC721 is Admin, ERC721Holograph {
         if (Booleans.get(_eventConfig, 1)) {
             require(SourceERC721().bridgeIn(from, to, tokenId, data));
         }
+        return 0x2dd69ea4;
     }
 
     /**
      * @dev Allows the bridge to take a token out onto another blockchain.
+     *  Note: function selector 0x57aeff0a is bytes4(keccak256("holographBridgeOut(address,address,uint256)"))
      */
-    function holographBridgeOut(address from, address to, uint256 tokenId) external returns (bytes memory data) {
+    function holographBridgeOut(address from, address to, uint256 tokenId) external returns (bytes4, bytes memory data) {
         require(msg.sender == bridge(),  "ERC721: only bridge can call");
         _transferFrom(from, bridge(), tokenId);
         if (Booleans.get(_eventConfig, 2)) {
-            return SourceERC721().bridgeOut(from, to, tokenId);
+            return (0x57aeff0a, SourceERC721().bridgeOut(from, to, tokenId));
         } else {
-            return "";
+            return (0x57aeff0a, "");
         }
     }
 
