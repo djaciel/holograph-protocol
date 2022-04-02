@@ -3,22 +3,22 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "operator",
+                "name": "_operator",
                 "type": "address"
             },
             {
                 "internalType": "address",
-                "name": "from",
+                "name": "_from",
                 "type": "address"
             },
             {
                 "internalType": "uint256",
-                "name": "tokenId",
+                "name": "_tokenId",
                 "type": "uint256"
             },
             {
                 "internalType": "bytes",
-                "name": "data",
+                "name": "_data",
                 "type": "bytes"
             }
         ],
@@ -30,7 +30,7 @@
                 "type": "bytes4"
             }
         ],
-        "stateMutability": "pure",
+        "stateMutability": "nonpayable",
         "type": "function"
     }
 ]

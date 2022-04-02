@@ -1,5 +1,3 @@
-'use strict';
-
 const env = require ('dotenv');
 const path = require ('path');
 

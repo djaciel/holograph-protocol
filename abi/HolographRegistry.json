@@ -39,6 +39,25 @@
     {
         "inputs": [
             {
+                "internalType": "bytes32",
+                "name": "contractType",
+                "type": "bytes32"
+            }
+        ],
+        "name": "getTypeAddress",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "address",
                 "name": "admin",
                 "type": "address"

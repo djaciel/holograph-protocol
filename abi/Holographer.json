@@ -5,12 +5,16 @@
         "type": "constructor"
     },
     {
+        "stateMutability": "payable",
+        "type": "fallback"
+    },
+    {
         "inputs": [],
-        "name": "owner",
+        "name": "getAdmin",
         "outputs": [
             {
                 "internalType": "address",
-                "name": "",
+                "name": "admin",
                 "type": "address"
             }
         ],
@@ -18,14 +22,8 @@
         "type": "function"
     },
     {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "name": "royaltiesProviders",
+        "inputs": [],
+        "name": "getSecureStorage",
         "outputs": [
             {
                 "internalType": "address",
@@ -33,25 +31,37 @@
                 "type": "address"
             }
         ],
-        "stateMutability": "view",
+        "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getSourceContract",
+        "outputs": [
+            {
+                "internalType": "address payable",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "pure",
         "type": "function"
     },
     {
         "inputs": [
             {
                 "internalType": "address",
-                "name": "token",
-                "type": "address"
-            },
-            {
-                "internalType": "address",
-                "name": "provider",
+                "name": "admin",
                 "type": "address"
             }
         ],
-        "name": "setProviderByToken",
+        "name": "setAdmin",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
+    },
+    {
+        "stateMutability": "payable",
+        "type": "receive"
     }
 ]
