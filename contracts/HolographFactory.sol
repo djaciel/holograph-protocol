@@ -124,6 +124,11 @@ contract HolographFactory is Admin {
     constructor() Admin(false) {
     }
 
+    function init(bytes memory _data) external returns (bytes memory) {
+        // we leave this here
+        return _data;
+    }
+
     /*
      * @dev Returns an integer value of the chain type that the factory is currently on.
      * @dev For example:

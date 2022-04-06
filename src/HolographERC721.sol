@@ -104,8 +104,10 @@
 pragma solidity 0.8.11;
 
 import "./abstract/Admin.sol";
+import "./abstract/Owner.sol";
 
 import "./Holographer.sol";
+import "./PA1D.sol";
 import "./SecureStorage.sol";
 
 import "./interface/ERC165.sol";
@@ -125,7 +127,7 @@ import "./library/Strings.sol";
  * @notice A smart contract for minting and managing Holograph Bridgeable ERC721 NFTs.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
-contract HolographERC721 is Admin, ERC721Holograph {
+contract HolographERC721 is Admin, Owner, ERC721Holograph {
 
     /**
      * @dev Configuration for events to trigger for source smart contract.
@@ -192,7 +194,7 @@ contract HolographERC721 is Admin, ERC721Holograph {
      * @notice Constructor is empty and not utilised.
      * @dev To make exact CREATE2 deployment possible, constructor is left empty. We utilize the "init" function instead.
      */
-    constructor() Admin(true) {
+    constructor() Admin(true) Owner(true) {
     }
 
     /**
@@ -729,6 +731,14 @@ contract HolographERC721 is Admin, ERC721Holograph {
     }
 
     /**
+     * @dev Get the bridge contract address.
+     */
+    function royalties() private view returns (address) {
+        return HolographRegistry(0x20427269646765526567697374727950726f7879)
+            .getTypeAddress(0x6E65656420746F206164642062726964676520636F6E74726163742068657265);
+    }
+
+    /**
      * @dev Get the source smart contract.
      */
     function source() private view returns (address) {
@@ -740,7 +750,9 @@ contract HolographERC721 is Admin, ERC721Holograph {
      * @dev Any function call that is not covered here, will automatically be sent over to the source contract.
      */
     fallback() external {
-        address _target = source();
+        // we check if royalties support the function, send there, otherwise revert to source
+        address pa1d = royalties();
+        address _target = PA1D(pa1d).supportsFunction(msg.sig) ? pa1d : source();
         assembly {
             calldatacopy(0, 0, calldatasize())
             let result := delegatecall(gas(), _target, 0, calldatasize(), 0, 0)
