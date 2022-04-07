@@ -33,7 +33,7 @@
 
  DISCLAIMER: U.S Patent Pending
 
- LICENSE: Holograph Limited external License (H-LPL)
+ LICENSE: Holograph Limited Public License (H-LPL)
 
  https://holograph.xyz/licenses/h-lpl/1.0.0
 

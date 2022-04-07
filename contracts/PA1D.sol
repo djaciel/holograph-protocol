@@ -193,12 +193,9 @@ contract PA1D {
      */
     function _getDefaultReceiver() internal view returns (address payable receiver) {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.PA1D.defaultReceiver')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.defaultReceiver')) - 1);
         assembly {
-            receiver := sload(
-                /* slot */
-                0xaee4e97c19ce50ea5345ba9751676d533a3a7b99c3568901208f92f9eea6a7f2
-            )
+            receiver := sload(/* slot */0xfd430e1c7265cc31dbd9a10ce657e68878a41cfe179c80cd68c5edf961516848)
         }
     }
 
@@ -208,13 +205,9 @@ contract PA1D {
      */
     function _setDefaultReceiver(address receiver) internal {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.PA1D.defaultReceiver')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.defaultReceiver')) - 1);
         assembly {
-            sstore(
-                /* slot */
-                0xaee4e97c19ce50ea5345ba9751676d533a3a7b99c3568901208f92f9eea6a7f2,
-                receiver
-            )
+            sstore(/* slot */0xfd430e1c7265cc31dbd9a10ce657e68878a41cfe179c80cd68c5edf961516848, receiver)
         }
     }
 
@@ -224,12 +217,9 @@ contract PA1D {
      */
     function _getDefaultBp() internal view returns (uint256 bp) {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.PA1D.defaultBp')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.defaultBp')) - 1);
         assembly {
-            bp := sload(
-                /* slot */
-                0xfd198c3b406b2320ea9f4a413c7a69a7592dbfc4175b8c252fec24223e68b720
-            )
+            bp := sload(/* slot */0x3ab91e3c2ba71a57537d782545f8feb1d402b604f5e070fa6c3b911fc2f18f75)
         }
     }
 
@@ -239,13 +229,9 @@ contract PA1D {
      */
     function _setDefaultBp(uint256 bp) internal {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.PA1D.defaultBp')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.defaultBp')) - 1);
         assembly {
-            sstore(
-                /* slot */
-                0xfd198c3b406b2320ea9f4a413c7a69a7592dbfc4175b8c252fec24223e68b720,
-                bp
-            )
+            sstore(/* slot */0x3ab91e3c2ba71a57537d782545f8feb1d402b604f5e070fa6c3b911fc2f18f75, bp)
         }
     }
 
@@ -255,7 +241,7 @@ contract PA1D {
      */
     function _getReceiver(uint256 tokenId) internal view returns (address payable receiver) {
         bytes32 slot = bytes32(
-            uint256(keccak256(abi.encodePacked("eip1967.PA1D.receiver", tokenId))) - 1
+            uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.receiver", tokenId))) - 1
         );
         assembly {
             receiver := sload(slot)
@@ -269,7 +255,7 @@ contract PA1D {
      */
     function _setReceiver(uint256 tokenId, address receiver) internal {
         bytes32 slot = bytes32(
-            uint256(keccak256(abi.encodePacked("eip1967.PA1D.receiver", tokenId))) - 1
+            uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.receiver", tokenId))) - 1
         );
         assembly {
             sstore(slot, receiver)
@@ -282,7 +268,7 @@ contract PA1D {
      */
     function _getBp(uint256 tokenId) internal view returns (uint256 bp) {
         bytes32 slot = bytes32(
-            uint256(keccak256(abi.encodePacked("eip1967.PA1D.bp", tokenId))) - 1
+            uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.bp", tokenId))) - 1
         );
         assembly {
             bp := sload(slot)
@@ -296,7 +282,7 @@ contract PA1D {
      */
     function _setBp(uint256 tokenId, uint256 bp) internal {
         bytes32 slot = bytes32(
-            uint256(keccak256(abi.encodePacked("eip1967.PA1D.bp", tokenId))) - 1
+            uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.bp", tokenId))) - 1
         );
         assembly {
             sstore(slot, bp)
@@ -305,8 +291,8 @@ contract PA1D {
 
     function _getPayoutAddresses() internal view returns (address payable[] memory addresses) {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.PA1D.payout.addresses')) - 1);
-        bytes32 slot = 0xda9d0b1bc91e594968e30b896be60318d483303fc3ba08af8ac989d483bdd7ca;
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.payout.addresses')) - 1);
+        bytes32 slot = 0x700a541bc37f227b0d36d34e7b77cc0108bde768297c6f80f448f380387371df;
         uint256 length;
         assembly {
             length := sload(slot)
@@ -324,8 +310,8 @@ contract PA1D {
 
     function _setPayoutAddresses(address payable[] memory addresses) internal {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.PA1D.payout.addresses')) - 1);
-        bytes32 slot = 0xda9d0b1bc91e594968e30b896be60318d483303fc3ba08af8ac989d483bdd7ca;
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.payout.addresses')) - 1);
+        bytes32 slot = 0x700a541bc37f227b0d36d34e7b77cc0108bde768297c6f80f448f380387371df;
         uint256 length = addresses.length;
         assembly {
             sstore(slot, length)
@@ -342,8 +328,8 @@ contract PA1D {
 
     function _getPayoutBps() internal view returns (uint256[] memory bps) {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.PA1D.payout.bps')) - 1);
-        bytes32 slot = 0x7862b872ab9e3483d8176282b22f4ac86ad99c9035b3f794a541d84a66004fa2;
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.payout.bps')) - 1);
+        bytes32 slot = 0x7a62e8104cd2cc2ef6bd3a26bcb71428108fbe0e0ead6a5bfb8676781e2ed28d;
         uint256 length;
         assembly {
             length := sload(slot)
@@ -361,8 +347,8 @@ contract PA1D {
 
     function _setPayoutBps(uint256[] memory bps) internal {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.PA1D.payout.bps')) - 1);
-        bytes32 slot = 0x7862b872ab9e3483d8176282b22f4ac86ad99c9035b3f794a541d84a66004fa2;
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.payout.bps')) - 1);
+        bytes32 slot = 0x7a62e8104cd2cc2ef6bd3a26bcb71428108fbe0e0ead6a5bfb8676781e2ed28d;
         uint256 length = bps.length;
         assembly {
             sstore(slot, length)
@@ -379,7 +365,7 @@ contract PA1D {
 
     function _getTokenAddress(string memory tokenName) internal view returns (address tokenAddress) {
         bytes32 slot = bytes32(
-            uint256(keccak256(abi.encodePacked("eip1967.PA1D.tokenAddress", tokenName))) - 1
+            uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.tokenAddress", tokenName))) - 1
         );
         assembly {
             tokenAddress := sload(slot)
@@ -388,7 +374,7 @@ contract PA1D {
 
     function _setTokenAddress(string memory tokenName, address tokenAddress) internal {
         bytes32 slot = bytes32(
-            uint256(keccak256(abi.encodePacked("eip1967.PA1D.tokenAddress", tokenName))) - 1
+            uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.tokenAddress", tokenName))) - 1
         );
         assembly {
             sstore(slot, tokenAddress)
@@ -725,16 +711,6 @@ contract PA1D {
             bidShares.creator.value = _getBp(tokenId);
         }
         return bidShares;
-    }
-
-    /**
-     * @notice Get the storage slot for given string
-     * @dev Convert a string to a bytes32 storage slot
-     * @param slot The string name of storage slot(without the 'eip1967.PA1D.' prefix)
-     * @return A bytes32 reference to the storage slot
-     */
-    function getStorageSlot(string calldata slot) public pure returns (bytes32) {
-        return bytes32(uint256(keccak256(abi.encodePacked("eip1967.PA1D.", slot))) - 1);
     }
 
     /**

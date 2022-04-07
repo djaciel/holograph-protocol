@@ -1,36 +1,36 @@
-// SPDX-License-Identifier: UNLICENSED
+HOLOGRAPH_LICENSE_HEADER
 
 pragma solidity 0.8.11;
 
-contract Admin {
+abstract contract Admin {
 
     constructor (bool useSender) {
         address admin = (useSender ? msg.sender : tx.origin);
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.admin')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.admin')) - 1);
         assembly {
-            sstore(/* slot */0xad03c2ba1e62e8267d0e9e41d287f5a37e9b04541bf709bd3231dbc684036f34, admin)
+            sstore(/* slot */precomputeslot('eip1967.Holograph.Bridge.admin'), admin)
         }
     }
 
     modifier onlyAdmin() {
-        require(msg.sender == getAdmin(), "CXIP: admin only function");
+        require(msg.sender == getAdmin(), "HOLOGRAPH: admin only function");
         _;
     }
 
     function getAdmin() public view returns (address admin) {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.admin')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.admin')) - 1);
         assembly {
-            admin := sload(/* slot */0xad03c2ba1e62e8267d0e9e41d287f5a37e9b04541bf709bd3231dbc684036f34)
+            admin := sload(/* slot */precomputeslot('eip1967.Holograph.Bridge.admin'))
         }
     }
 
     function setAdmin(address admin) public onlyAdmin {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.admin')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.admin')) - 1);
         assembly {
-            sstore(/* slot */0xad03c2ba1e62e8267d0e9e41d287f5a37e9b04541bf709bd3231dbc684036f34, admin)
+            sstore(/* slot */precomputeslot('eip1967.Holograph.Bridge.admin'), admin)
         }
     }
 

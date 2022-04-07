@@ -104,6 +104,9 @@
 pragma solidity 0.8.11;
 
 import "./abstract/Admin.sol";
+import "./abstract/Initializable.sol";
+
+import "./interface/IInitializable.sol";
 import "./interface/SecureStorage.sol";
 
 /*
@@ -111,7 +114,7 @@ import "./interface/SecureStorage.sol";
  * @dev With the goal of deploying replicate-able non-fungible token smart contracts through this process.
  * @dev This is just the first step. But it is fundamental for achieving cross-chain non-fungible tokens.
  */
-contract HolographFactory is Admin {
+contract HolographFactory is Admin, Initializable {
 
     /*
      * @dev This event is fired every time that a bridgeable contract is deployed.
@@ -121,12 +124,18 @@ contract HolographFactory is Admin {
     /*
      * @dev Constructor is left empty and only the admin address is set.
      */
-    constructor() Admin(false) {
-    }
+    constructor() Admin(false) {}
 
-    function init(bytes memory _data) external returns (bytes memory) {
-        // we leave this here
-        return _data;
+    function init(bytes memory data) external override returns (bytes4) {
+        require(!_isInitialized(), "HOLOGRAPH: already initialized");
+        (uint32 chainType, address registry, address secureStorage) = abi.decode(data, (uint32, address, address));
+        assembly {
+            sstore(0xf659863303d91045cf6f5789ae687c591017a1efd53ebb2eec518fb10873ecb8, chainType)
+            sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
+            sstore(0xd26498b26a05274577b8ac2e3250418da53433f3ff82027428ee3c530702cdec, secureStorage)
+        }
+        _setInitialized();
+        return IInitializable.init.selector;
     }
 
     /*
@@ -138,22 +147,22 @@ contract HolographFactory is Admin {
      *                   4 = Polygon mainnet
      *                   etc.
      */
-    function getChainType() public view returns (uint256 chainType) {
+    function getChainType() public view returns (uint32 chainType) {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.chainType')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.chainType')) - 1);
         assembly {
-            chainType := sload(0x53f4736b3941358c349f7ec35387508752b8072b3da9b148bd4ddfdc7193f781)
+            chainType := sload(0xf659863303d91045cf6f5789ae687c591017a1efd53ebb2eec518fb10873ecb8)
         }
     }
 
     /*
      * @dev Sets the chain type that the factory is currently on.
      */
-    function setChainType(uint256 chainType) public onlyAdmin {
+    function setChainType(uint32 chainType) public onlyAdmin {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.chainType')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.chainType')) - 1);
         assembly {
-            sstore(0x53f4736b3941358c349f7ec35387508752b8072b3da9b148bd4ddfdc7193f781, chainType)
+            sstore(0xf659863303d91045cf6f5789ae687c591017a1efd53ebb2eec518fb10873ecb8, chainType)
         }
     }
 
@@ -163,9 +172,9 @@ contract HolographFactory is Admin {
      */
     function getBridgeRegistry() public view returns (address bridgeRegistry) {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.bridgeRegistry')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
         assembly {
-            bridgeRegistry := sload(0xfc89649c4d8647cdcc800285fa4e41291204b97fcf93802affd29dbf455c9cc7)
+            bridgeRegistry := sload(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349)
         }
     }
 
@@ -174,9 +183,9 @@ contract HolographFactory is Admin {
      */
     function setBridgeRegistry(address bridgeRegistry) public onlyAdmin {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.bridgeRegistry')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
         assembly {
-            sstore(0xfc89649c4d8647cdcc800285fa4e41291204b97fcf93802affd29dbf455c9cc7, bridgeRegistry)
+            sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, bridgeRegistry)
         }
     }
 
@@ -186,9 +195,9 @@ contract HolographFactory is Admin {
      */
     function getSecureStorage() public view returns (address secureStorage) {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.secureStorage')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.secureStorage')) - 1);
         assembly {
-            secureStorage := sload(0x79f80368403b7edc02a8210b03e3a2e29c8161d4dd32b5c18e363302a0a04914)
+            secureStorage := sload(0xd26498b26a05274577b8ac2e3250418da53433f3ff82027428ee3c530702cdec)
         }
     }
 
@@ -197,9 +206,9 @@ contract HolographFactory is Admin {
      */
     function setSecureStorage(address secureStorage) public onlyAdmin {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.secureStorage')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.secureStorage')) - 1);
         assembly {
-            sstore(0x79f80368403b7edc02a8210b03e3a2e29c8161d4dd32b5c18e363302a0a04914, secureStorage)
+            sstore(0xd26498b26a05274577b8ac2e3250418da53433f3ff82027428ee3c530702cdec, secureStorage)
         }
     }
 

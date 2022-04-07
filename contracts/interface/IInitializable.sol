@@ -103,8 +103,8 @@
 
 pragma solidity 0.8.11;
 
-interface Initializable {
+interface IInitializable {
 
-    function init(bytes memory _data) external;
+    function init(bytes memory _data) external returns (bytes4);
 
 }

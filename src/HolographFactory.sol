@@ -1,109 +1,11 @@
-// SPDX-License-Identifier: UNLICENSED
-/*
-
-  ,,,,,,,,,,,
- [ HOLOGRAPH ]
-  '''''''''''
-  _____________________________________________________________
- |                                                             |
- |                            / ^ \                            |
- |                            ~~*~~            .               |
- |                         [ '<>:<>' ]         |=>             |
- |               __           _/"\_           _|               |
- |             .:[]:.          """          .:[]:.             |
- |           .'  []  '.        \_/        .'  []  '.           |
- |         .'|   []   |'.               .'|   []   |'.         |
- |       .'  |   []   |  '.           .'  |   []   |  '.       |
- |     .'|   |   []   |   |'.       .'|   |   []   |   |'.     |
- |   .'  |   |   []   |   |  '.   .'  |   |   []   |   |  '.   |
- |.:'|   |   |   []   |   |   |':'|   |   |   []   |   |   |':.|
- |___|___|___|___[]___|___|___|___|___|___|___[]___|___|___|___|
- |XxXxXxXxXxXxXxX[]XxXxXxXxXxXxXxXxXxXxXxXxXxX[]XxXxXxXxXxXxXxX|
- |^^^^^^^^^^^^^^^[]^^^^^^^^^^^^^^^^^^^^^^^^^^^[]^^^^^^^^^^^^^^^|
- |               []                           []               |
- |               []                           []               |
- |    ,          []     ,        ,'      *    []               |
- |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
- |_____________________________________________________________|
-
-             - one bridge, infinite possibilities -
-
-
- ***************************************************************
-
- DISCLAIMER: U.S Patent Pending
-
- LICENSE: Holograph Limited Public License (H-LPL)
-
- https://holograph.xyz/licenses/h-lpl/1.0.0
-
- This license governs use of the accompanying software. If you
- use the software, you accept this license. If you do not accept
- the license, you are not permitted to use the software.
-
- 1. Definitions
-
- The terms "reproduce," "reproduction," "derivative works," and
- "distribution" have the same meaning here as under U.S.
- copyright law. A "contribution" is the original software, or
- any additions or changes to the software. A "contributor" is
- any person that distributes its contribution under this
- license. "Licensed patents" are a contributor’s patent claims
- that read directly on its contribution.
-
- 2. Grant of Rights
-
- A) Copyright Grant- Subject to the terms of this license,
- including the license conditions and limitations in sections 3
- and 4, each contributor grants you a non-exclusive, worldwide,
- royalty-free copyright license to reproduce its contribution,
- prepare derivative works of its contribution, and distribute
- its contribution or any derivative works that you create.
- B) Patent Grant- Subject to the terms of this license,
- including the license conditions and limitations in section 3,
- each contributor grants you a non-exclusive, worldwide,
- royalty-free license under its licensed patents to make, have
- made, use, sell, offer for sale, import, and/or otherwise
- dispose of its contribution in the software or derivative works
- of the contribution in the software.
-
- 3. Conditions and Limitations
-
- A) No Trademark License- This license does not grant you rights
- to use any contributors’ name, logo, or trademarks.
- B) If you bring a patent claim against any contributor over
- patents that you claim are infringed by the software, your
- patent license from such contributor is terminated with
- immediate effect.
- C) If you distribute any portion of the software, you must
- retain all copyright, patent, trademark, and attribution
- notices that are present in the software.
- D) If you distribute any portion of the software in source code
- form, you may do so only under this license by including a
- complete copy of this license with your distribution. If you
- distribute any portion of the software in compiled or object
- code form, you may only do so under a license that complies
- with this license.
- E) The software is licensed “as-is.” You bear all risks of
- using it. The contributors give no express warranties,
- guarantees, or conditions. You may have additional consumer
- rights under your local laws which this license cannot change.
- To the extent permitted under your local laws, the contributors
- exclude all implied warranties, including those of
- merchantability, fitness for a particular purpose and
- non-infringement.
-
- 4. (F) Platform Limitation- The licenses granted in sections
- 2.A & 2.B extend only to the software or derivative works that
- you create that run on a Holograph system product.
-
- ***************************************************************
-
-*/
+HOLOGRAPH_LICENSE_HEADER
 
 pragma solidity 0.8.11;
 
 import "./abstract/Admin.sol";
+import "./abstract/Initializable.sol";
+
+import "./interface/IInitializable.sol";
 import "./interface/SecureStorage.sol";
 
 /*
@@ -111,7 +13,7 @@ import "./interface/SecureStorage.sol";
  * @dev With the goal of deploying replicate-able non-fungible token smart contracts through this process.
  * @dev This is just the first step. But it is fundamental for achieving cross-chain non-fungible tokens.
  */
-contract HolographFactory is Admin {
+contract HolographFactory is Admin, Initializable {
 
     /*
      * @dev This event is fired every time that a bridgeable contract is deployed.
@@ -121,12 +23,18 @@ contract HolographFactory is Admin {
     /*
      * @dev Constructor is left empty and only the admin address is set.
      */
-    constructor() Admin(false) {
-    }
+    constructor() Admin(false) {}
 
-    function init(bytes memory _data) external returns (bytes memory) {
-        // we leave this here
-        return _data;
+    function init(bytes memory data) external override returns (bytes4) {
+        require(!_isInitialized(), "HOLOGRAPH: already initialized");
+        (uint32 chainType, address registry, address secureStorage) = abi.decode(data, (uint32, address, address));
+        assembly {
+            sstore(precomputeslot('eip1967.Holograph.Bridge.chainType'), chainType)
+            sstore(precomputeslot('eip1967.Holograph.Bridge.registry'), registry)
+            sstore(precomputeslot('eip1967.Holograph.Bridge.secureStorage'), secureStorage)
+        }
+        _setInitialized();
+        return IInitializable.init.selector;
     }
 
     /*
@@ -138,22 +46,22 @@ contract HolographFactory is Admin {
      *                   4 = Polygon mainnet
      *                   etc.
      */
-    function getChainType() public view returns (uint256 chainType) {
+    function getChainType() public view returns (uint32 chainType) {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.chainType')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.chainType')) - 1);
         assembly {
-            chainType := sload(0x53f4736b3941358c349f7ec35387508752b8072b3da9b148bd4ddfdc7193f781)
+            chainType := sload(precomputeslot('eip1967.Holograph.Bridge.chainType'))
         }
     }
 
     /*
      * @dev Sets the chain type that the factory is currently on.
      */
-    function setChainType(uint256 chainType) public onlyAdmin {
+    function setChainType(uint32 chainType) public onlyAdmin {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.chainType')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.chainType')) - 1);
         assembly {
-            sstore(0x53f4736b3941358c349f7ec35387508752b8072b3da9b148bd4ddfdc7193f781, chainType)
+            sstore(precomputeslot('eip1967.Holograph.Bridge.chainType'), chainType)
         }
     }
 
@@ -163,9 +71,9 @@ contract HolographFactory is Admin {
      */
     function getBridgeRegistry() public view returns (address bridgeRegistry) {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.bridgeRegistry')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
         assembly {
-            bridgeRegistry := sload(0xfc89649c4d8647cdcc800285fa4e41291204b97fcf93802affd29dbf455c9cc7)
+            bridgeRegistry := sload(precomputeslot('eip1967.Holograph.Bridge.registry'))
         }
     }
 
@@ -174,9 +82,9 @@ contract HolographFactory is Admin {
      */
     function setBridgeRegistry(address bridgeRegistry) public onlyAdmin {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.bridgeRegistry')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
         assembly {
-            sstore(0xfc89649c4d8647cdcc800285fa4e41291204b97fcf93802affd29dbf455c9cc7, bridgeRegistry)
+            sstore(precomputeslot('eip1967.Holograph.Bridge.registry'), bridgeRegistry)
         }
     }
 
@@ -186,9 +94,9 @@ contract HolographFactory is Admin {
      */
     function getSecureStorage() public view returns (address secureStorage) {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.secureStorage')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.secureStorage')) - 1);
         assembly {
-            secureStorage := sload(0x79f80368403b7edc02a8210b03e3a2e29c8161d4dd32b5c18e363302a0a04914)
+            secureStorage := sload(precomputeslot('eip1967.Holograph.Bridge.secureStorage'))
         }
     }
 
@@ -197,9 +105,9 @@ contract HolographFactory is Admin {
      */
     function setSecureStorage(address secureStorage) public onlyAdmin {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.secureStorage')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.secureStorage')) - 1);
         assembly {
-            sstore(0x79f80368403b7edc02a8210b03e3a2e29c8161d4dd32b5c18e363302a0a04914, secureStorage)
+            sstore(precomputeslot('eip1967.Holograph.Bridge.secureStorage'), secureStorage)
         }
     }
 

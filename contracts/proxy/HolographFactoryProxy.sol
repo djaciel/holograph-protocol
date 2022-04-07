@@ -109,19 +109,19 @@ contract HolographFactoryProxy is Admin {
 
     constructor() Admin(false) {}
 
-    function getFactory() public view returns (address factory) {
+    function getFactory() external view returns (address factory) {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.factory')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.factory')) - 1);
         assembly {
-            factory := sload(/* slot */0x40873c98ec1e021b58a4c3d2335551a22c8705bf1e593aeec50f857d010897c6)
+            factory := sload(/* slot */0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2)
         }
     }
 
-    function setFactory(address factory) public onlyAdmin {
+    function setFactory(address factory) external onlyAdmin {
         // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.CXIP.BRIDGE.factory')) - 1);
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.factory')) - 1);
         assembly {
-            sstore(/* slot */0x40873c98ec1e021b58a4c3d2335551a22c8705bf1e593aeec50f857d010897c6, factory)
+            sstore(/* slot */0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2, factory)
         }
     }
 
@@ -129,8 +129,8 @@ contract HolographFactoryProxy is Admin {
     }
 
     fallback() external payable {
-        address factory = getFactory();
         assembly {
+            let factory := sload(0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2)
             calldatacopy(0, 0, calldatasize())
             let result := delegatecall(gas(), factory, 0, calldatasize(), 0, 0)
             returndatacopy(0, 0, returndatasize())

@@ -118,17 +118,17 @@ contract SecureStorage is Admin {
     address private _owner;
 
     modifier unlocked() {
-        require(!_locked, "CXIP: storage locked");
+        require(!_locked, "HOLOGRAPH: storage locked");
         _;
     }
 
     modifier onlyOwner() {
-        require(msg.sender == _owner || msg.sender == getAdmin(), "CXIP: unauthorised msg sender");
+        require(msg.sender == _owner || msg.sender == getAdmin(), "HOLOGRAPH: unauthorised sender");
         _;
     }
 
     modifier nonReentrant() {
-        require(!_locked, "CXIP: storage already locked");
+        require(!_locked, "HOLOGRAPH: storage IS locked");
         _locked = true;
         _;
         _locked = false;
@@ -167,7 +167,7 @@ contract SecureStorage is Admin {
      * @param newOwner Address of new owner.
      */
     function transferOwnership(address newOwner) public onlyOwner unlocked {
-        require(newOwner != address(0), "CXIP: zero address");
+        require(newOwner != address(0), "HOLOGRAPH: zero address");
         _owner = newOwner;
     }
 

@@ -103,8 +103,82 @@
 
 pragma solidity 0.8.11;
 
-interface Initializable {
 
-    function init(bytes memory _data) external;
+import "./abstract/Admin.sol";
+import "./abstract/Initializable.sol";
+
+import "./interface/IInitializable.sol";
+
+contract Holograph is Admin, Initializable {
+
+    constructor() Admin(false) {}
+
+    function init(bytes memory data) external override returns (bytes4) {
+        require(!_isInitialized(), "HOLOGRAPH: already initialized");
+        (address bridge, address factory, address registry) = abi.decode(data, (address, address, address));
+        assembly {
+            sstore(0x59036437ddb2ae93ba5f745fe3623e0ba2d1d31785c6fb2b60763096e5e37c57, bridge)
+            sstore(0x9bc298959101083ad4520c0780f4cbf911d5e31e3590071839e0a0202d902797, factory)
+            sstore(0xaede2bc3a4efea5c3e97fc0653a31a2d588631f12ca399590f9f9e2f19a3b3c9, registry)
+        }
+        _setInitialized();
+        return IInitializable.init.selector;
+    }
+
+    function getBridge() external view returns (address bridgeAddress) {
+        // The slot hash has been precomputed for gas optimizaion
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridgeAddress')) - 1);
+        assembly {
+            bridgeAddress := sload(0x59036437ddb2ae93ba5f745fe3623e0ba2d1d31785c6fb2b60763096e5e37c57)
+        }
+    }
+
+    function setBridge(address bridgeAddress) external onlyAdmin {
+        // The slot hash has been precomputed for gas optimizaion
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridgeAddress')) - 1);
+        assembly {
+            sstore(/* slot */0x59036437ddb2ae93ba5f745fe3623e0ba2d1d31785c6fb2b60763096e5e37c57, bridgeAddress)
+        }
+    }
+
+    function getFactory() external view returns (address factoryAddress) {
+        // The slot hash has been precomputed for gas optimizaion
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.factoryAddress')) - 1);
+        assembly {
+            factoryAddress := sload(/* slot */0x9bc298959101083ad4520c0780f4cbf911d5e31e3590071839e0a0202d902797)
+        }
+    }
+
+    function setFactory(address factoryAddress) external onlyAdmin {
+        // The slot hash has been precomputed for gas optimizaion
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.factoryAddress')) - 1);
+        assembly {
+            sstore(/* slot */0x9bc298959101083ad4520c0780f4cbf911d5e31e3590071839e0a0202d902797, factoryAddress)
+        }
+    }
+
+    function getRegistry() external view returns (address registryAddress) {
+        // The slot hash has been precomputed for gas optimizaion
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registryAddress')) - 1);
+        assembly {
+            registryAddress := sload(/* slot */0xaede2bc3a4efea5c3e97fc0653a31a2d588631f12ca399590f9f9e2f19a3b3c9)
+        }
+    }
+
+    function setRegistry(address registryAddress) external onlyAdmin {
+        // The slot hash has been precomputed for gas optimizaion
+        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registryAddress')) - 1);
+        assembly {
+            sstore(/* slot */0xaede2bc3a4efea5c3e97fc0653a31a2d588631f12ca399590f9f9e2f19a3b3c9, registryAddress)
+        }
+    }
+
+    receive() external payable {
+        revert();
+    }
+
+    fallback() external payable {
+        revert();
+    }
 
 }

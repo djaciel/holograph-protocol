@@ -103,7 +103,7 @@
 
 pragma solidity 0.8.11;
 
-import "./interface/Initializable.sol";
+import "./interface/IInitializable.sol";
 
 /*
  * @dev In the beginning there was a smart contract...
@@ -128,7 +128,7 @@ contract HolographGenesis {
             contractAddress := create2(0, add(sourceCode, 0x20), mload(sourceCode), salt)
         }
         require(_isContract(contractAddress), "deployment failed");
-        Initializable(contractAddress).init(initCode);
+        require(IInitializable(contractAddress).init(initCode) == IInitializable.init.selector, "initialization failed");
     }
 
     function approveDeployer(address newDeployer) external {
