@@ -5,8 +5,8 @@ const HDWalletProvider = require ('truffle-hdwallet-provider');
 const Web3 = require ('web3');
 const { NETWORK, GAS, WALLET } = require ('../config/env');
 
-const rpc = JSON.parse (fs.readFileSync ('./rpc.json', 'utf8'));
-const provider = new HDWalletProvider (WALLET, rpc[NETWORK]);
+const network = JSON.parse (fs.readFileSync ('./networks.json', 'utf8')) [NETWORK];
+const provider = new HDWalletProvider (WALLET, network.rpc);
 const web3 = new Web3 (provider);
 
 const error = function (err) {
@@ -14,7 +14,8 @@ const error = function (err) {
     process.exit ();
 };
 const from = {
-    from: provider.addresses [0],
+    chainId: network.chain,
+    from: provider.addresses [0]
 };
 
 const removeX = function (input) {
@@ -61,6 +62,7 @@ async function main () {
 
 //     console.log (
 //         await contract.methods.mint ('Lorem ipsum doral').send ({
+//             chainId: network.chain,
 //             from: provider.addresses[0],
 //             value: web3.utils.toHex (web3.utils.toWei ('0.1', 'ether'))
 //         }).catch (error)

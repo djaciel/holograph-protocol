@@ -1,10 +1,11 @@
 {
-  "bridgeFactoryProxy": "0x2020427269646765466163746f727950726f7879",
-  "bridgeRegistryProxy": "0x20427269646765526567697374727950726f7879",
-  "secureStorageProxyBytecode1": "AA",
-  "secureStorageProxyBytecode2": "BB",
-  "bridgeableContractBytecode1": "AA",
-  "bridgeableContractBytecode2": "BB",
-  "bridgeableContractBytecode3": "CC",
-  "bridgeableContractBytecode4": "DD"
+    "holographAddress": "0x042a0a99a13D4d8d63B22B49a1E1067B964d29B8",
+    "bridgeFactoryProxy": "0x2020427269646765466163746f727950726f7879",
+    "bridgeRegistryProxy": "0x20427269646765526567697374727950726f7879",
+    "secureStorageProxyBytecode1": "AA",
+    "secureStorageProxyBytecode2": "BB",
+    "bridgeableContractBytecode1": "AA",
+    "bridgeableContractBytecode2": "BB",
+    "bridgeableContractBytecode3": "CC",
+    "bridgeableContractBytecode4": "DD"
 }

@@ -108,6 +108,8 @@ import "./abstract/Initializable.sol";
 
 import "./interface/IInitializable.sol";
 
+import "./library/Holograph.sol";
+
 /*
  * @dev This smart contract stores the different source codes that have been prepared and can be used for bridging.
  * @dev We will store here the layer 1 for ERC721 and ERC1155 smart contracts.
@@ -152,5 +154,9 @@ contract HolographRegistry is Admin, Initializable {
         require(_typeAddresses[contractType] == address(0), "HOLOGRAPH: contract already set");
         _typeAddresses[contractType] = contractAddress;
     }
-
+//
+//     function holograph() external pure returns (address) {
+//         return Holograph.source();
+//     }
+//
 }

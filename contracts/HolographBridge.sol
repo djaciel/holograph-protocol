@@ -108,6 +108,8 @@ import "./abstract/Initializable.sol";
 
 import "./interface/IInitializable.sol";
 
+import "./library/Holograph.sol";
+
 /*
  * @dev This smart contract contains the actual core bridging logic.
  */
@@ -118,10 +120,19 @@ contract HolographBridge is Admin, Initializable {
      */
     constructor() Admin(false) {}
 
-    function init(bytes memory/* data*/) external override returns (bytes4) {
+    function init(bytes memory data) external override returns (bytes4) {
         require(!_isInitialized(), "HOLOGRAPH: already initialized");
+        (address registry, address factory) = abi.decode(data, (address, address));
+        assembly {
+            sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
+            sstore(0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2, factory)
+        }
         _setInitialized();
         return IInitializable.init.selector;
     }
-
+//
+//     function holograph() external pure returns (address) {
+//         return Holograph.source();
+//     }
+//
 }

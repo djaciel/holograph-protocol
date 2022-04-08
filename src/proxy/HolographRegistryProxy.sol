@@ -3,10 +3,23 @@ HOLOGRAPH_LICENSE_HEADER
 pragma solidity 0.8.11;
 
 import "../abstract/Admin.sol";
+import "../abstract/Initializable.sol";
 
-contract HolographRegistryProxy is Admin {
+import "../interface/IInitializable.sol";
+
+contract HolographRegistryProxy is Admin, Initializable {
 
     constructor() Admin(false) {
+    }
+
+    function init(bytes memory data) external override returns (bytes4) {
+        require(!_isInitialized(), "HOLOGRAPH: already initialized");
+        (address registry) = abi.decode(data, (address));
+        assembly {
+            sstore(precomputeslot('eip1967.Holograph.Bridge.registry'), registry)
+        }
+        _setInitialized();
+        return IInitializable.init.selector;
     }
 
     function getRegistry() external view returns (address registry) {

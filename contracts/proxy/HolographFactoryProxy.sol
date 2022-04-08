@@ -104,10 +104,23 @@
 pragma solidity 0.8.11;
 
 import "../abstract/Admin.sol";
+import "../abstract/Initializable.sol";
 
-contract HolographFactoryProxy is Admin {
+import "../interface/IInitializable.sol";
+
+contract HolographFactoryProxy is Admin, Initializable {
 
     constructor() Admin(false) {}
+
+    function init(bytes memory data) external override returns (bytes4) {
+        require(!_isInitialized(), "HOLOGRAPH: already initialized");
+        (address factory) = abi.decode(data, (address));
+        assembly {
+            sstore(0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2, factory)
+        }
+        _setInitialized();
+        return IInitializable.init.selector;
+    }
 
     function getFactory() external view returns (address factory) {
         // The slot hash has been precomputed for gas optimizaion

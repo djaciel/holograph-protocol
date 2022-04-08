@@ -104,10 +104,23 @@
 pragma solidity 0.8.11;
 
 import "../abstract/Admin.sol";
+import "../abstract/Initializable.sol";
 
-contract HolographRegistryProxy is Admin {
+import "../interface/IInitializable.sol";
+
+contract HolographRegistryProxy is Admin, Initializable {
 
     constructor() Admin(false) {
+    }
+
+    function init(bytes memory data) external override returns (bytes4) {
+        require(!_isInitialized(), "HOLOGRAPH: already initialized");
+        (address registry) = abi.decode(data, (address));
+        assembly {
+            sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
+        }
+        _setInitialized();
+        return IInitializable.init.selector;
     }
 
     function getRegistry() external view returns (address registry) {

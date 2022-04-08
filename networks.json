@@ -1,0 +1,42 @@
+{
+	"local": {
+	    "chain": 1337,
+	    "rpc": "http://localhost:8545"
+	},
+	"cxip": {
+	    "chain": 1337,
+	    "rpc": "https://rpc.cxip.dev"
+	},
+	"live": {
+	    "chain": 1,
+	    "rpc": "https://97a530cec94a42fcb0e5fbaea538f149.eth.rpc.rivet.cloud"
+	},
+	"eth": {
+	    "chain": 1,
+	    "rpc": "https://eth.getblock.io/mainnet/?api_key=7bf62a30-d403-4afc-99dc-462dfbfb10de"
+	},
+	"bsc": {
+	    "chain": 56,
+	    "rpc": "https://bsc.getblock.io/mainnet/ ?api_key=7bf62a30-d403-4afc-99dc-462dfbfb10de"
+	},
+	"matic": {
+	    "chain": 137,
+	    "rpc": "https://matic.getblock.io/mainnet/?api_key=7bf62a30-d403-4afc-99dc-462dfbfb10de"
+	},
+	"avax": {
+	    "chain": 43114,
+	    "rpc": "https://avax.getblock.io/mainnet/ext/bc/C/rpc?api_key=7bf62a30-d403-4afc-99dc-462dfbfb10de"
+	},
+	"arbitrum": {
+	    "chain": 42161,
+	    "rpc": "https://arbitrum.getblock.io/mainnet/?api_key=7bf62a30-d403-4afc-99dc-462dfbfb10de"
+	},
+	"optimism": {
+	    "chain": 10,
+	    "rpc": "https://optimism.getblock.io/mainnet/?api_key=7bf62a30-d403-4afc-99dc-462dfbfb10de"
+	},
+	"ftm": {
+	    "chain": 250,
+	    "rpc": "https://ftm.getblock.io/mainnet/?api_key=7bf62a30-d403-4afc-99dc-462dfbfb10de"
+	}
+}

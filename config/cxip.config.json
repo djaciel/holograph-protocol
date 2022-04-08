@@ -1,10 +1,11 @@
 {
-  "bridgeFactoryProxy": "0x2020427269646765466163746f727950726f7879",
-  "bridgeRegistryProxy": "0x20427269646765526567697374727950726f7879",
-  "secureStorageProxyBytecode1": "SECURE_STORAGE_PROXY_BYTECODE_1",
-  "secureStorageProxyBytecode2": "SECURE_STORAGE_PROXY_BYTECODE_2",
-  "bridgeableContractBytecode1": "BRIDGEABLE_CONTRACT_BYTECODE_1",
-  "bridgeableContractBytecode2": "BRIDGEABLE_CONTRACT_BYTECODE_2",
-  "bridgeableContractBytecode3": "BRIDGEABLE_CONTRACT_BYTECODE_3",
-  "bridgeableContractBytecode4": "BRIDGEABLE_CONTRACT_BYTECODE_4"
+    "holographAddress": "0x042a0a99a13D4d8d63B22B49a1E1067B964d29B8",
+    "bridgeFactoryProxy": "0x2020427269646765466163746f727950726f7879",
+    "bridgeRegistryProxy": "0x20427269646765526567697374727950726f7879",
+    "secureStorageProxyBytecode1": "SECURE_STORAGE_PROXY_BYTECODE_1",
+    "secureStorageProxyBytecode2": "SECURE_STORAGE_PROXY_BYTECODE_2",
+    "bridgeableContractBytecode1": "BRIDGEABLE_CONTRACT_BYTECODE_1",
+    "bridgeableContractBytecode2": "BRIDGEABLE_CONTRACT_BYTECODE_2",
+    "bridgeableContractBytecode3": "BRIDGEABLE_CONTRACT_BYTECODE_3",
+    "bridgeableContractBytecode4": "BRIDGEABLE_CONTRACT_BYTECODE_4"
 }

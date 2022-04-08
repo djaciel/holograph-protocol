@@ -3,11 +3,20 @@ HOLOGRAPH_LICENSE_HEADER
 pragma solidity 0.8.11;
 
 import "../abstract/Admin.sol";
-import "../interface/HolographFactory.sol";
+import "../abstract/Initializable.sol";
 
-contract SecureStorageProxy is Admin {
+import "../interface/HolographFactory.sol";
+import "../interface/IInitializable.sol";
+
+contract SecureStorageProxy is Admin, Initializable {
 
     constructor() Admin(true) {
+    }
+
+    function init(bytes memory/* data*/) external override returns (bytes4) {
+        require(!_isInitialized(), "HOLOGRAPH: already initialized");
+        _setInitialized();
+        return IInitializable.init.selector;
     }
 
     receive() external payable {
