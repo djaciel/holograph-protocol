@@ -1,11 +1,13 @@
 build
 data
 db
+db2
 node_modules
 old_code
 .env
 .mnemonic
 keys.json
+keys2.json
 
 .idea
 .DS_Store
