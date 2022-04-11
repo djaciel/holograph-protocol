@@ -36,6 +36,11 @@ contract SampleERC721 is IInitializable, HolographedERC721  {
 
     mapping(uint256 => string) private _tokenURIs;
 
+    modifier onlyHolographer() {
+        require(msg.sender == _holographer, "holographer only function");
+        _;
+    }
+
     /**
      * @notice Constructor is empty and not utilised.
      * @dev To make exact CREATE2 deployment possible, constructor is left empty. We utilize the "init" function instead.
@@ -58,7 +63,7 @@ contract SampleERC721 is IInitializable, HolographedERC721  {
      * @dev Defaults the the Arweave URI
      * @return string The URI.
      */
-    function tokenURI(uint256 tokenId) external view returns (string memory) {
+    function tokenURI(uint256 tokenId) external view onlyHolographer returns (string memory) {
         return _tokenURIs[tokenId];
     }
 
@@ -66,63 +71,63 @@ contract SampleERC721 is IInitializable, HolographedERC721  {
         return "it works!";
     }
 
-    function bridgeIn(address/* _from*/, address/* _to*/, uint256/* _tokenId*/, bytes calldata/* _data*/) external returns (bool success) {
+    function bridgeIn(address/* _from*/, address/* _to*/, uint256/* _tokenId*/, bytes calldata/* _data*/) external onlyHolographer returns (bool success) {
         // dummy input to prevent "switch to view" warnings
         _success = true;
         return _success;
     }
 
-    function bridgeOut(address/* _from*/, address/* _to*/, uint256/* _tokenId*/) external returns (bytes memory/* _data*/) {
+    function bridgeOut(address/* _from*/, address/* _to*/, uint256/* _tokenId*/) external onlyHolographer returns (bytes memory/* _data*/) {
         // dummy input to prevent "switch to view" warnings
         _success = true;
         return _data;
     }
 
-    function afterApprove(address/* _owner*/, address/* _to*/, uint256/* _tokenId*/) external view returns (bool success) {
+    function afterApprove(address/* _owner*/, address/* _to*/, uint256/* _tokenId*/) external view onlyHolographer returns (bool success) {
         return _success;
     }
 
-    function beforeApprove(address/* _owner*/, address/* _to*/, uint256/* _tokenId*/) external view returns (bool success) {
+    function beforeApprove(address/* _owner*/, address/* _to*/, uint256/* _tokenId*/) external view onlyHolographer returns (bool success) {
         return _success;
     }
 
-    function afterApprovalAll(address/* _to*/, bool/* _approved*/) external view returns (bool success) {
+    function afterApprovalAll(address/* _to*/, bool/* _approved*/) external view onlyHolographer returns (bool success) {
         return _success;
     }
 
-    function beforeApprovalAll(address/* _to*/, bool/* _approved*/) external view returns (bool success) {
+    function beforeApprovalAll(address/* _to*/, bool/* _approved*/) external view onlyHolographer returns (bool success) {
         return _success;
     }
 
-    function afterBurn(address/* _owner*/, uint256/* _tokenId*/) external view returns (bool success) {
+    function afterBurn(address/* _owner*/, uint256/* _tokenId*/) external view onlyHolographer returns (bool success) {
         return _success;
     }
 
-    function beforeBurn(address/* _owner*/, uint256/* _tokenId*/) external view returns (bool success) {
+    function beforeBurn(address/* _owner*/, uint256/* _tokenId*/) external view onlyHolographer returns (bool success) {
         return _success;
     }
 
-    function afterMint() external view returns (bool success) {
+    function afterMint() external view onlyHolographer returns (bool success) {
         return _success;
     }
 
-    function beforeMint() external view returns (bool success) {
+    function beforeMint() external view onlyHolographer returns (bool success) {
         return _success;
     }
 
-    function afterSafeTransfer(address/* _from*/, address/* _to*/, uint256/* _tokenId*/, bytes calldata/* _data*/) external view returns (bool success) {
+    function afterSafeTransfer(address/* _from*/, address/* _to*/, uint256/* _tokenId*/, bytes calldata/* _data*/) external view onlyHolographer returns (bool success) {
         return _success;
     }
 
-    function beforeSafeTransfer(address/* _from*/, address/* _to*/, uint256/* _tokenId*/, bytes calldata/* _data*/) external view returns (bool success) {
+    function beforeSafeTransfer(address/* _from*/, address/* _to*/, uint256/* _tokenId*/, bytes calldata/* _data*/) external view onlyHolographer returns (bool success) {
         return _success;
     }
 
-    function afterTransfer(address/* _from*/, address/* _to*/, uint256/* _tokenId*/, bytes calldata/* _data*/) external view returns (bool success) {
+    function afterTransfer(address/* _from*/, address/* _to*/, uint256/* _tokenId*/, bytes calldata/* _data*/) external view onlyHolographer returns (bool success) {
         return _success;
     }
 
-    function beforeTransfer(address/* _from*/, address/* _to*/, uint256/* _tokenId*/, bytes calldata/* _data*/) external view returns (bool success) {
+    function beforeTransfer(address/* _from*/, address/* _to*/, uint256/* _tokenId*/, bytes calldata/* _data*/) external view onlyHolographer returns (bool success) {
         return _success;
     }
 
