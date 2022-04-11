@@ -12,7 +12,7 @@
     "cleanup": "rm -fr ./build ; mkdir ./build ; rm -fr ./data ; mkdir ./data",
     "compile": "node ./scripts/compile.js",
     "dev": "rm -fr ./contracts ; mkdir contracts ; node scripts/build.js ; sh _build.sh",
-    "ganache": "rm -fr ./db ; mkdir ./db ; rm ./keys.json ; ganache-cli --accounts=10 --defaultBalanceEther=100 --deterministic --mnemonic=\"$(cat ./.mnemonic)\" --port=8545 --hostname=0.0.0.0 --gasPrice=0 --gasLimit=10000000 --networkId=5777 --db=./db --acctKeys=./keys.json",
+    "ganache": "rm -fr ./db ; rm -fr ./db2 ; mkdir ./db ; mkdir ./db2 ; rm ./keys.json ; rm ./keys2.json ; ganache-cli --accounts=10 --defaultBalanceEther=100 --deterministic --mnemonic=\"$(cat ./.mnemonic)\" --port=8545 --hostname=0.0.0.0 --gasPrice=0 --gasLimit=10000000 --networkId=5777 --db=./db --acctKeys=./keys.json & ganache-cli --accounts=10 --defaultBalanceEther=100 --deterministic --mnemonic=\"$(cat ./.mnemonic)\" --port=9545 --hostname=0.0.0.0 --gasPrice=0 --gasLimit=10000000 --networkId=5777 --db=./db2 --acctKeys=./keys2.json",
     "pipeline": "npm run-script ganache & sh _pipeline.sh"
   },
   "dependencies": {
