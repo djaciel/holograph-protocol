@@ -248,7 +248,7 @@ contract HolographFactory is Admin, Initializable {
         bytes memory encodedInit = abi.encode(
             abi.encode(
                 config.chainType,
-                0xB26340eF4f741Ce120062eA904c6eEA212D7bA41,
+                0xD48b092413723b86286CC6e2DF68b441491456FA,
                 secureStorageAddress,
                 config.contractType,
                 sourceContractAddress

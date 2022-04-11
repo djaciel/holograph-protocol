@@ -732,7 +732,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable  {
     }
 
     function _chain() private view returns (uint32) {
-        uint32 currentChain = IHolograph(0xB26340eF4f741Ce120062eA904c6eEA212D7bA41).getChainType();
+        uint32 currentChain = IHolograph(0xD48b092413723b86286CC6e2DF68b441491456FA).getChainType();
         if (currentChain != IHolographer(payable(address(this))).getOriginChain()) {
             return currentChain;
         }
@@ -778,7 +778,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable  {
      * @dev Get the bridge contract address.
      */
     function bridge() private view returns (address) {
-        return IHolograph(0xB26340eF4f741Ce120062eA904c6eEA212D7bA41).getBridge();
+        return IHolograph(0xD48b092413723b86286CC6e2DF68b441491456FA).getBridge();
     }
 
     /**
@@ -787,7 +787,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable  {
     function royalties() private view returns (address) {
         return IHolographRegistry(
             IHolograph(
-                0xB26340eF4f741Ce120062eA904c6eEA212D7bA41
+                0xD48b092413723b86286CC6e2DF68b441491456FA
             ).getRegistry()
         ).getContractTypeAddress(0x0000000000000000000000000000000000000000000000000000000050413144);
     }
