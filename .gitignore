@@ -9,3 +9,6 @@ keys.json
 
 .idea
 .DS_Store
+
+.original.env
+.original.mnemonic
