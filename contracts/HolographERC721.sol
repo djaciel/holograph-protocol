@@ -377,7 +377,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable  {
             // we do nothing
         }
         (bool success, bytes memory returnData) = royalties().delegatecall(
-            abi.encodeWithSignature("init(bytes)", abi.encode(payable(address(this)), uint256(contractBps)))
+            abi.encodeWithSignature("init(bytes)", abi.encode(address(this), uint256(contractBps)))
         );
         (bytes4 selector) = abi.decode(returnData, (bytes4));
         require(success && selector == IInitializable.init.selector, "initialization failed");

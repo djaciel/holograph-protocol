@@ -146,8 +146,8 @@ contract PA1D is Admin, Owner, Initializable {
 
 
     function init(bytes memory data) external override returns (bytes4) {
-        (address payable receiver, uint256 bp) = abi.decode(data, (address, uint256));
-        setRoyalties(0, receiver, bp);
+        (address receiver, uint256 bp) = abi.decode(data, (address, uint256));
+//         setRoyalties(0, payable(receiver), bp);
         return IInitializable.init.selector;
     }
 

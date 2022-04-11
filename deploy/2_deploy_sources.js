@@ -408,7 +408,7 @@ async function main () {
             salt, // bytes12 saltHash
             '0x' + PA1D_CONTRACT.bin, // bytes memory sourceCode
             web3.eth.abi.encodeParameters (
-                ['address payable', 'uint256'],
+                ['address', 'uint256'],
                 [provider.addresses [0], '0x0000000000000000000000000000000000000000000000000000000000000000']
             ) // bytes memory initCode
         ).send ({

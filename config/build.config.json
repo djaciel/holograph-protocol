@@ -1,9 +1,4 @@
 {
     "holographAddress": "0x20202020486f6c6f677261706841646472657373",
-    "bridgeableContractBytecode1": "BRIDGEABLE_CONTRACT_BYTECODE_1",
-    "bridgeableContractBytecode2": "BRIDGEABLE_CONTRACT_BYTECODE_2",
-    "bridgeableContractBytecode3": "BRIDGEABLE_CONTRACT_BYTECODE_3",
-    "bridgeableContractBytecode4": "BRIDGEABLE_CONTRACT_BYTECODE_4",
-    "bridgeableContractBytecode5": "BRIDGEABLE_CONTRACT_BYTECODE_5",
     "holographLicenseHeader": "HOLOGRAPH_LICENSE_HEADER"
 }

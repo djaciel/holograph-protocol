@@ -55,9 +55,6 @@ async function main () {
     const HOLOGRAPH_ERC721 = 'HolographERC721';
     const HOLOGRAPH_ERC721_ADDRESS = fs.readFileSync ('./data/' + NETWORK + '.' + HOLOGRAPH_ERC721 + '.address', 'utf8').trim ();
 
-    const PA1D = 'PA1D';
-    const PA1D_ADDRESS = fs.readFileSync ('./data/' + NETWORK + '.' + PA1D + '.address', 'utf8').trim ();
-
     const FACTORY = new web3.eth.Contract (
         HOLOGRAPH_REGISTRY_CONTRACT.abi,
         HOLOGRAPH_REGISTRY_PROXY_ADDRESS
@@ -73,18 +70,6 @@ async function main () {
         throwError (JSON.stringify (setContractTypeAddressResult, null, 4));
     } else {
         console.log ('Set HolographERC721 address to address type 0x0000000000000000000000000000000000486f6c6f6772617068455243373231');
-    }
-
-    const setContractTypeAddressResult2 = await FACTORY.methods.setContractTypeAddress('0x0000000000000000000000000000000000000000000000000000000050413144', PA1D_ADDRESS).send ({
-        chainId: network.chain,
-        from: provider.addresses [0],
-        gas: web3.utils.toHex (1000000),
-        gasPrice: web3.utils.toHex (web3.utils.toWei (GAS, 'gwei'))
-    }).catch (web3Error);
-    if (!setContractTypeAddressResult2.status) {
-        throwError (JSON.stringify (setContractTypeAddressResult2, null, 4));
-    } else {
-        console.log ('Set PA1D address to address type 0x0000000000000000000000000000000000000000000000000000000050413144');
     }
 
     process.exit ();
