@@ -114,10 +114,15 @@ contract HolographBridgeProxy is Admin, Initializable {
 
     function init(bytes memory data) external override returns (bytes4) {
         require(!_isInitialized(), "HOLOGRAPH: already initialized");
-        (address bridge) = abi.decode(data, (address));
+        (address bridge, bytes memory initCode) = abi.decode(data, (address, bytes));
         assembly {
             sstore(0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f, bridge)
         }
+        (bool success, bytes memory returnData) = bridge.delegatecall(
+            abi.encodeWithSignature("init(bytes)", initCode)
+        );
+        (bytes4 selector) = abi.decode(returnData, (bytes4));
+        require(success && selector == IInitializable.init.selector, "initialization failed");
         _setInitialized();
         return IInitializable.init.selector;
     }
@@ -138,8 +143,7 @@ contract HolographBridgeProxy is Admin, Initializable {
         }
     }
 
-    receive() external payable {
-    }
+    receive() external payable {}
 
     fallback() external payable {
         assembly {

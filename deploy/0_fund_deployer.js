@@ -28,10 +28,11 @@ web3.eth.sendTransaction (
     function (error, result) {
         if (error) {
             console.log ('Could not fund ' + ethAmount + ' ETH to ' + facadeProvider.addresses [0], error);
+            process.exit (1);
         }
         else {
             console.log ('Funded ' + ethAmount + ' ETH to ' + facadeProvider.addresses [0]);
+            process.exit ();
         }
-        process.exit ();
     }
 );

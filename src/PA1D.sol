@@ -3,12 +3,14 @@ HOLOGRAPH_LICENSE_HEADER
 pragma solidity 0.8.11;
 
 import "./abstract/Admin.sol";
+import "./abstract/Initializable.sol";
 import "./abstract/Owner.sol";
 
 import "./library/Address.sol";
 import "./library/Zora.sol";
 
 import "./interface/ERC20.sol";
+import "./interface/IInitializable.sol";
 import "./interface/IPA1D.sol";
 
 /**
@@ -17,7 +19,7 @@ import "./interface/IPA1D.sol";
  * @notice A smart contract for providing royalty info, collecting royalties, and distributing it to configured payout wallets.
  * @dev This smart contract is not intended to be used directly. Apply it to any of your ERC721 or ERC1155 smart contracts through a delegatecall fallback.
  */
-contract PA1D {
+contract PA1D is Admin, Owner, Initializable {
     /**
      * @notice Event emitted when setting/updating royalty info/fees. This is used by Rarible V1.
      * @dev Emits event in order to comply with Rarible V1 royalty spec.
@@ -30,7 +32,7 @@ contract PA1D {
     /**
      * @dev Use this modifier to lock public functions that should not be accesible to non-owners.
      */
-    modifier onlyOwner() {
+    modifier onlyOwner() override {
         require(isOwner(), "PA1D: caller not an owner");
         _;
     }
@@ -39,42 +41,13 @@ contract PA1D {
      * @notice Constructor is empty and not utilised.
      * @dev Since the smart contract is being used inside of a fallback context, the constructor function is not being used.
      */
-    constructor() {}
+    constructor() Admin(true) Owner(true) {}
 
-    /**
-     * @notice Initialise the smart contract on source smart contract deployment/initialisation.
-     * @dev Use the init function once, when deploying or initialising your overlying smart contract.
-     * @dev Take great care to not expose this function to your other public functions.
-     * @param tokenId Specify a particular token id only if using the init function for a special case. Otherwise leave empty(0).
-     * @param receiver The address for the default receiver of all royalty payouts. Recommended to use the overlying smart contract address. This will allow the PA1D smart contract to handle all royalty settings, receipt, and distribution.
-     * @param bp The default base points(percentage) for royalty payouts.
-     */
-    function init(
-        uint256 tokenId,
-        address payable receiver,
-        uint256 bp
-    ) public onlyOwner {
-        //         if (Address.isZero(receiver)) {
-        //             receiver = payable(this);
-        //         }
-        //         setRoyalties(tokenId, receiver, bp);
-        //         // We register the smart contract with Rarible(V1) as the controller for royalties.
-        //         // This makes sure that all royalty info will be queried from the contract and not somewhere else
-        //         /**
-        //          * @dev Keep in mind that Rarible V1 makes a "owner" function call to the overlying smart contract.
-        //          * @dev It is mandatory to have owner function call return this contract address, or the function will fail.
-        //          */
-        //         (
-        //             bool setProviderSuccess, /*bytes memory setProviderResponse*/
-        //         ) = address(0x20202052617269626C6520526F79616c74696573).call(
-        //                 /**
-        //                  * @dev We hardcode the bytes4 function hash to save on gas
-        //                  */
-        //                 // abi.encodeWithSignature(
-        //                 //     'setProviderByToken(address,address)',
-        //                 abi.encodeWithSelector(bytes4(0xd836f013), address(this), address(this))
-        //             );
-        //         require(setProviderSuccess, "PA1D: failed setting Rarible");
+
+    function init(bytes memory data) external override returns (bytes4) {
+        (address payable receiver, uint256 bp) = abi.decode(data, (address, uint256));
+        setRoyalties(0, receiver, bp);
+        return IInitializable.init.selector;
     }
 
     /**
@@ -83,7 +56,7 @@ contract PA1D {
      * @return Returns true is message sender is an owner.
      */
     function isOwner() internal view returns (bool) {
-        return (msg.sender == Owner(address(this)).getOwner() || msg.sender == Admin(address(this)).getAdmin());
+        return (msg.sender == getOwner() || msg.sender == getAdmin() || msg.sender == Owner(address(this)).getOwner() || msg.sender == Admin(address(this)).getAdmin());
     }
 
     /**

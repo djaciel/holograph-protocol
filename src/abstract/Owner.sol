@@ -13,7 +13,7 @@ abstract contract Owner {
         }
     }
 
-    modifier onlyOwner() {
+    modifier onlyOwner() virtual {
         require(msg.sender == getOwner(), "HOLOGRAPH: owner only function");
         _;
     }
@@ -31,6 +31,13 @@ abstract contract Owner {
         // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.owner')) - 1);
         assembly {
             sstore(/* slot */precomputeslot('eip1967.Holograph.Bridge.owner'), owner)
+        }
+    }
+
+    function transferOwnership(address newOwner) public onlyOwner {
+        require(newOwner != address(0), "HOLOGRAPH: zero address");
+        assembly {
+            sstore(precomputeslot('eip1967.Holograph.Bridge.owner'), newOwner)
         }
     }
 

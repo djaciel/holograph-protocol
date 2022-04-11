@@ -3,17 +3,18 @@ HOLOGRAPH_LICENSE_HEADER
 pragma solidity 0.8.11;
 
 import "./abstract/Admin.sol";
+import "./abstract/Initializable.sol";
 import "./abstract/Owner.sol";
-
-import "./Holographer.sol";
-import "./PA1D.sol";
-import "./SecureStorage.sol";
 
 import "./interface/ERC165.sol";
 import "./interface/ERC721Holograph.sol";
 import "./interface/ERC721TokenReceiver.sol";
 import "./interface/HolographedERC721.sol";
-import "./interface/HolographRegistry.sol";
+import "./interface/IHolograph.sol";
+import "./interface/IHolographer.sol";
+import "./interface/IHolographRegistry.sol";
+import "./interface/IInitializable.sol";
+import "./interface/IPA1D.sol";
 
 import "./library/Address.sol";
 import "./library/Base64.sol";
@@ -26,7 +27,7 @@ import "./library/Strings.sol";
  * @notice A smart contract for minting and managing Holograph Bridgeable ERC721 NFTs.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
-contract HolographERC721 is Admin, Owner, ERC721Holograph {
+contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable  {
 
     /**
      * @dev Configuration for events to trigger for source smart contract.
@@ -93,7 +94,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph {
      * @notice Constructor is empty and not utilised.
      * @dev To make exact CREATE2 deployment possible, constructor is left empty. We utilize the "init" function instead.
      */
-    constructor() Admin(true) Owner(true) {
+    constructor() Admin(false) Owner(true) {
     }
 
     /**
@@ -140,6 +141,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph {
             interfaceId == 0x5b5e139f || // ERC721Metadata
             interfaceId == 0x150b7a02 || // ERC721TokenReceiver
             interfaceId == 0xe8a3d485 || // contractURI()
+            ERC165(royalties()).supportsInterface(interfaceId) || // check if royalties supports interface
             ERC165(source()).supportsInterface(interfaceId) // check if source supports interface
         ) {
             return true;
@@ -224,7 +226,10 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph {
             _transferFrom(bridge(), to, tokenId);
         } else {
             // we mint the token
-            _mint(to, tokenId);
+            _mint(from, tokenId);
+            if (from != to) {
+                _transferFrom(from, to, tokenId);
+            }
         }
         if (Booleans.get(_eventConfig, 1)) {
             require(SourceERC721().bridgeIn(from, to, tokenId, data));
@@ -238,7 +243,10 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph {
      */
     function holographBridgeOut(address from, address to, uint256 tokenId) external returns (bytes4, bytes memory data) {
         require(msg.sender == bridge(),  "ERC721: only bridge can call");
-        _transferFrom(from, bridge(), tokenId);
+        if (from != to) {
+            _transferFrom(from, to, tokenId);
+        }
+        _transferFrom(to, bridge(), tokenId);
         if (Booleans.get(_eventConfig, 2)) {
             return (0x57aeff0a, SourceERC721().bridgeOut(from, to, tokenId));
         } else {
@@ -249,17 +257,30 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph {
     /**
      * @notice Initializes the collection.
      * @dev Special function to allow a one time initialisation on deployment. Also configures and deploys royalties.
-     * @param collectionName The collection name.
-     * @param collectionSymbol The collection symbol.
      */
-    function init(string calldata collectionName, string calldata collectionSymbol, uint16 collectionBps, uint256 eventConfig, bytes calldata data) external {
-        require(Address.isZero(getAdmin()), "ERC721: already initialized");
-        setAdmin(msg.sender);
-        _name = collectionName;
-        _symbol = collectionSymbol;
-        _bps = collectionBps;
+    function init(bytes memory data) external override returns (bytes4) {
+        (
+            string memory contractName,
+            string memory contractSymbol,
+            uint16 contractBps,
+            uint256 eventConfig,
+            bytes memory initCode
+        ) = abi.decode(data, (string, string, uint16, uint256, bytes));
+        _name = contractName;
+        _symbol = contractSymbol;
+        _bps = contractBps;
         _eventConfig = eventConfig;
-        SourceERC721().init(data);
+        try IHolographer(payable(address(this))).getSourceContract() returns (address payable sourceAddress) {
+            require(IInitializable(sourceAddress).init(initCode) == IInitializable.init.selector, "initialization failed");
+        } catch {
+            // we do nothing
+        }
+        (bool success, bytes memory returnData) = royalties().delegatecall(
+            abi.encodeWithSignature("init(bytes)", abi.encode(payable(address(this)), uint256(contractBps)))
+        );
+        (bytes4 selector) = abi.decode(returnData, (bytes4));
+        require(success && selector == IInitializable.init.selector, "initialization failed");
+        return IInitializable.init.selector;
     }
 
     /**
@@ -330,15 +351,38 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph {
         _burn(wallet, tokenId);
     }
 
-  /**
+    /**
      * @dev Allows for source smart contract to mint a token.
      */
     function sourceMint(address to, uint224 tokenId) external {
+        require(msg.sender == source(), "ERC721: only source can mint");
         // uint32 is reserved for chain id to be used
         // we need to get current chain id, and prepend it to tokenId
         // this will prevent possible tokenId overlap if minting simultaneously on multiple chains is possible
+        uint256 token = uint256(bytes32(abi.encodePacked(_chain(), tokenId)));
+        _mint(to, token);
+    }
+
+    /**
+     * @dev Allows for source smart contract to mint a batch of tokens.
+     */
+    function sourceMintBatch(address to, uint224[] calldata tokenIds) external {
         require(msg.sender == source(), "ERC721: only source can mint");
-        _mint(to, tokenId);
+        uint32 chain = _chain();
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            _mint(to, uint256(bytes32(abi.encodePacked(chain, tokenIds[i]))));
+        }
+    }
+
+    /**
+     * @dev Allows for source smart contract to mint a batch of tokens.
+     */
+    function sourceMintBatch(address[] calldata wallets, uint224[] calldata tokenIds) external {
+        require(msg.sender == source(), "ERC721: only source can mint");
+        uint32 chain = _chain();
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            _mint(wallets[i], uint256(bytes32(abi.encodePacked(chain, tokenIds[i]))));
+        }
     }
 
     /**
@@ -586,6 +630,14 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph {
         _addTokenToOwnerEnumeration(to, tokenId);
     }
 
+    function _chain() private view returns (uint32) {
+        uint32 currentChain = IHolograph(0x20202020486f6c6f677261706841646472657373).getChainType();
+        if (currentChain != IHolographer(payable(address(this))).getOriginChain()) {
+            return currentChain;
+        }
+        return 0;
+    }
+
     /**
      * @notice Checks if the token owner exists.
      * @dev If the address is the zero address no owner exists.
@@ -625,23 +677,25 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph {
      * @dev Get the bridge contract address.
      */
     function bridge() private view returns (address) {
-        return HolographRegistry(0x20427269646765526567697374727950726f7879)
-            .getTypeAddress(0x6E65656420746F206164642062726964676520636F6E74726163742068657265);
+        return IHolograph(0x20202020486f6c6f677261706841646472657373).getBridge();
     }
 
     /**
      * @dev Get the bridge contract address.
      */
     function royalties() private view returns (address) {
-        return HolographRegistry(0x20427269646765526567697374727950726f7879)
-            .getTypeAddress(0x6E65656420746F206164642062726964676520636F6E74726163742068657265);
+        return IHolographRegistry(
+            IHolograph(
+                0x20202020486f6c6f677261706841646472657373
+            ).getRegistry()
+        ).getContractTypeAddress(0x0000000000000000000000000000000000000000000000000000000050413144);
     }
 
     /**
      * @dev Get the source smart contract.
      */
     function source() private view returns (address) {
-        return Holographer(payable(address(this))).getSourceContract();
+        return IHolographer(payable(address(this))).getSourceContract();
     }
 
     /**
@@ -651,23 +705,36 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph {
     fallback() external {
         // we check if royalties support the function, send there, otherwise revert to source
         address pa1d = royalties();
-        address _target = PA1D(pa1d).supportsFunction(msg.sig) ? pa1d : source();
-        assembly {
-            calldatacopy(0, 0, calldatasize())
-            let result := delegatecall(gas(), _target, 0, calldatasize(), 0, 0)
-            returndatacopy(0, 0, returndatasize())
-            switch result
-            case 0 {
-                revert(0, returndatasize())
+        address _target;
+        if (IPA1D(pa1d).supportsFunction(msg.sig)) {
+            _target = pa1d;
+            assembly {
+                calldatacopy(0, 0, calldatasize())
+                let result := delegatecall(gas(), _target, 0, calldatasize(), 0, 0)
+                returndatacopy(0, 0, returndatasize())
+                switch result
+                case 0 {
+                    revert(0, returndatasize())
+                }
+                default {
+                    return(0, returndatasize())
+                }
             }
-            default {
-                return(0, returndatasize())
+        } else {
+            _target = source();
+            assembly {
+                calldatacopy(0, 0, calldatasize())
+                let result := call(gas(), _target, 0, 0, calldatasize(), 0, 0)
+                returndatacopy(0, 0, returndatasize())
+                switch result
+                case 0 {
+                    revert(0, returndatasize())
+                }
+                default {
+                    return(0, returndatasize())
+                }
             }
         }
-    }
-
-    function _storage() internal view returns (SecureStorage) {
-        return SecureStorage(Holographer(payable(address(this))).getSecureStorage());
     }
 
 }

@@ -5,11 +5,17 @@ pragma solidity 0.8.11;
 import "./abstract/Admin.sol";
 import "./abstract/Initializable.sol";
 
+import "./Holographer.sol";
+
 import "./interface/IHolograph.sol";
+import "./interface/IHolographRegistry.sol";
 import "./interface/IInitializable.sol";
 import "./interface/SecureStorage.sol";
 
-import "./library/Holograph.sol";
+import "./proxy/SecureStorageProxy.sol";
+
+import "./struct/DeploymentConfig.sol";
+import "./struct/Verification.sol";
 
 /*
  * @dev This smart contract demonstrates a clear and concise way that we plan to deploy smart contracts.
@@ -29,13 +35,11 @@ contract HolographFactory is Admin, Initializable {
     constructor() Admin(false) {}
 
     function init(bytes memory data) external override returns (bytes4) {
-        require(!_isInitialized(), "HOLOGRAPH: already initialized");
         (address registry, address secureStorage) = abi.decode(data, (address, address));
         assembly {
             sstore(precomputeslot('eip1967.Holograph.Bridge.registry'), registry)
             sstore(precomputeslot('eip1967.Holograph.Bridge.secureStorage'), secureStorage)
         }
-        _setInitialized();
         return IInitializable.init.selector;
     }
 
@@ -86,100 +90,90 @@ contract HolographFactory is Admin, Initializable {
     }
 
     /*
-     * @dev Bytecode of the Secure Storage Proxy smart contracts. Split at the point where Bridge Registry address should be.
-     */
-    bytes private constant _sspb1 = hex"SECURE_STORAGE_PROXY_BYTECODE_1";
-    bytes private constant _sspb2 = hex"SECURE_STORAGE_PROXY_BYTECODE_2";
-
-    /*
-     * @dev Bytecode of the Bridgeable Contract smart contract. Split at the points where: Bridge Registry address, contract type, and secure storage address should be.
-     */
-    bytes private constant _bcb1 = hex"BRIDGEABLE_CONTRACT_BYTECODE_1";
-    bytes private constant _bcb2 = hex"BRIDGEABLE_CONTRACT_BYTECODE_2";
-    bytes private constant _bcb3 = hex"BRIDGEABLE_CONTRACT_BYTECODE_3";
-    bytes private constant _bcb4 = hex"BRIDGEABLE_CONTRACT_BYTECODE_4";
-
-    /*
      * @dev A sample function of the deployment of bridgeable smart contracts.
      * @dev The used variables and formatting is not the final or decisive version, but the general idea is directly portrayed.
      * @notice In this function we have incorporated a secure storage function/extension. Keep in mind that this is not required or needed for bridgeable deployments to work. It is just a personal development choice.
      */
-    function deployBridgeableContract(uint256 contractType, uint256 chainType, bool openBridge, uint64 bridgeFee, address originalContractOwner, bytes calldata initCode) public {
+    function deployHolographableContract(DeploymentConfig calldata config, Verification calldata signature, address signer) external {
         // all of the necessary data is packed and hashed
-        bytes32 hash = keccak256(abi.encodePacked(contractType, chainType, openBridge, bridgeFee, originalContractOwner, initCode));
+        bytes32 hash = keccak256(abi.encodePacked(
+            config.contractType,
+            config.chainType,
+            config.salt,
+            keccak256(config.byteCode),
+            keccak256(config.initCode),
+            signer
+        ));
+        require(_verifySigner(signature.r, signature.s, signature.v, hash, signer), "HOLOGRAPH: invalid signature");
         // we check that a smart contract for this hash has not been deployed yet
-        require(_getDeploymentAddress(hash) == address(0), "CXIP: contract already deployed");
+        require(!IHolographRegistry(getBridgeRegistry()).isHolographedHashDeployed(hash), "HOLOGRAPH: already deployed");
         // hash is converted to an integer, in preparation for the create2 function
-        uint256 salt = uint256(hash);
+        uint256 saltInt = uint256(hash);
         address secureStorageAddress;
         // we combine the secure storage proxy bytecode parts, with the bridge registry address included
-        bytes memory secureStorageBytecode = abi.encodePacked(
-            _sspb1,
-            getBridgeRegistry(),
-            _sspb2
-        );
+        bytes memory secureStorageBytecode = type(SecureStorageProxy).creationCode;
         // the combined bytecode is then deployed
         assembly {
-            secureStorageAddress := create2(0, add(secureStorageBytecode, 0x20), mload(secureStorageBytecode), salt)
+            secureStorageAddress := create2(0, add(secureStorageBytecode, 0x20), mload(secureStorageBytecode), saltInt)
         }
-        // we now combine the bridgeable contract bytecode parts, with the relevant data packed in between the parts
-        bytes memory code = abi.encodePacked(
-            _bcb1,
-            getBridgeRegistry(),
-            _bcb2,
-            contractType,
-            _bcb3,
-            secureStorageAddress,
-            _bcb4
-        );
-        address contractAddress;// = address(bytes20(keccak256(abi.encodePacked(bytes1(0xff), address(this), salt, keccak256(code)))));
-        // the combined bytecode is then deployed
-        assembly {
-            contractAddress := create2(0, add(code, 0x20), mload(code), salt)
-            if iszero(extcodesize(contractAddress)) {
-                revert(0, 0)
+        //
+        address sourceContractAddress = address(uint160(uint256(keccak256(abi.encodePacked(bytes1(0xff), address(this), saltInt, keccak256(config.byteCode))))));
+        bytes memory sourceByteCode = config.byteCode;
+        if (!_isContract(sourceContractAddress)) {
+            assembly {
+                sourceContractAddress := create2(0, add(sourceByteCode, 0x20), mload(sourceByteCode), saltInt)
             }
+            require(_isContract(sourceContractAddress), "source contract create failed");
         }
-        // we update the deployed secure storage proxy contract with the newly deployed bridgeable contract address
-        // this allows the bridgeable smart contract to use that secure storage contract and no one else
-        SecureStorage(secureStorageAddress).setOwner(contractAddress);
-        // we then initialize the smart contract with the provided init code
-        (bool success, bytes memory output) = contractAddress.call(initCode);
-        // check that everything completed successfully
-        if (!success) {
-            // if an error occurred, stop everything and spit out the error for debugging
-            revert(string(output));
+        bytes memory holographerBytecode = type(Holographer).creationCode;
+        address holographerAddress = address(uint160(uint256(keccak256(abi.encodePacked(bytes1(0xff), address(this), saltInt, keccak256(holographerBytecode))))));
+        require(!_isContract(holographerAddress), "HOLOGRAPH: already deployed");
+        // the combined bytecode is then deployed
+        assembly {
+            holographerAddress := create2(0, add(holographerBytecode, 0x20), mload(holographerBytecode), saltInt)
         }
+        require(_isContract(holographerAddress), "Holographer deployment failed");
+        require(
+            IInitializable(secureStorageAddress).init(
+                abi.encode(
+                    getSecureStorage(),
+                    abi.encode(
+                        holographerAddress
+                    )
+                )
+            ) == IInitializable.init.selector,
+            "initialization failed"
+        );
+        bytes memory encodedInit = abi.encode(
+            abi.encode(
+                config.chainType,
+                0x20202020486F6c6f677261706841646472657373,
+                secureStorageAddress,
+                config.contractType,
+                sourceContractAddress
+            ),
+            config.initCode
+        );
+        require(IInitializable(holographerAddress).init(encodedInit) == IInitializable.init.selector, "initialization failed");
+        //
+        IHolographRegistry(getBridgeRegistry()).factoryDeployedHash(hash, holographerAddress);
         // we emit the event to indicate to anyone listening to the blockchain that a bridgeable smart contract has been deployed
-        emit BridgeableContractDeployed(contractAddress, hash);
-        // deployment map is updated with the has and deployed address, to prevent future deployments to same hash/address
-        _setDeploymentAddress(hash, contractAddress);
+        emit BridgeableContractDeployed(holographerAddress, hash);
     }
 
-    /*
-     * @dev Internal function for quickly checking if a hash has already been used to deploy a smart contract.
-     * @dev If the returned address is 0, then this means that hash has not been used yet.
-     */
-    function _getDeploymentAddress(bytes32 slot) internal view returns (address deploymentAddress) {
+    function _isContract(address contractAddress) internal view returns (bool) {
+        bytes32 codehash;
         assembly {
-            deploymentAddress := sload(slot)
+            codehash := extcodehash(contractAddress)
         }
+        return (codehash != 0x0 && codehash != 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470);
     }
 
-    /*
-     * @dev Internal function for setting the deployed address of a particular hash.
-     * @dev Is used as a way to prevent re-deployment of already deployed smart contracts.
-     * @dev Since using CREATE2 function allows to re-deploy/overwrite an already deployed smart contract.
-     * @dev The underlying source code is not changed, but this will reset to zero all storage slots.
-     */
-    function _setDeploymentAddress(bytes32 slot, address deploymentAddress) internal {
-        assembly {
-            sstore(slot, deploymentAddress)
+    function _verifySigner(bytes32 r, bytes32 s, uint8 v, bytes32 hash, address signer) internal pure returns (bool) {
+        if (v < 27) {
+            v += 27;
         }
+        return (ecrecover(hash, v, r, s) == signer || ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)), v, r, s) == signer);
     }
-//
-//     function holograph() external pure returns (address) {
-//         return Holograph.source();
-//     }
-//
+
 }

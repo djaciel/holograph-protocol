@@ -5,9 +5,8 @@ pragma solidity 0.8.11;
 import "./abstract/Admin.sol";
 import "./abstract/Initializable.sol";
 
+import "./interface/IHolograph.sol";
 import "./interface/IInitializable.sol";
-
-import "./library/Holograph.sol";
 
 /*
  * @dev This smart contract stores the different source codes that have been prepared and can be used for bridging.
@@ -15,6 +14,16 @@ import "./library/Holograph.sol";
  * @dev This way it can be super easy to upgrade/update the source code once, and have all smart contracts automatically updated.
  */
 contract HolographRegistry is Admin, Initializable {
+
+    /*
+     * @dev A list of smart contracts that are guaranteed secure and holographable.
+     */
+    mapping(address => bool) private _holographedContracts;
+
+    /*
+     * @dev A list of hashes and the mapped out contract addresses.
+     */
+    mapping(bytes32 => address) private _holographedContractsHashMap;
 
     /*
      * @dev Storage slot for saving contract type to contract address references.
@@ -25,7 +34,7 @@ contract HolographRegistry is Admin, Initializable {
      * @dev Reserved type addresses for Admin.
      *  Note: this is used for defining default contracts.
      */
-     mapping(bytes32 => bool) private _reservedTypes;
+    mapping(bytes32 => bool) private _reservedTypes;
 
     /*
      * @dev Constructor is left empty and only the admin address is set.
@@ -36,12 +45,10 @@ contract HolographRegistry is Admin, Initializable {
      * @dev An array of initially reserved contract types for admin only to set.
      */
     function init(bytes memory data) external override returns (bytes4) {
-        require(!_isInitialized(), "HOLOGRAPH: already initialized");
         (bytes32[] memory reservedTypes) = abi.decode(data, (bytes32[]));
         for (uint256 i = 0; i < reservedTypes.length; i++) {
             _reservedTypes[reservedTypes[i]] = true;
         }
-        _setInitialized();
         return IInitializable.init.selector;
     }
 
@@ -70,15 +77,34 @@ contract HolographRegistry is Admin, Initializable {
         _contractTypeAddresses[contractType] = contractAddress;
     }
 
+    function factoryDeployedHash(bytes32 hash, address contractAddress) external {
+        require(msg.sender == IHolograph(0x20202020486f6c6f677261706841646472657373).getFactory(), "HOLOGRAPH: factory only function");
+        _holographedContractsHashMap[hash] = contractAddress;
+        _holographedContracts[contractAddress] = true;
+    }
+
+    /*
+     * @dev Allows admin to update or toggle reserved types.
+     */
+    function updateReservedContractTypes(bytes32[] calldata hashes, bool[] calldata reserved) external onlyAdmin {
+        for (uint256 i = 0; i < hashes.length; i++) {
+            _reservedTypes[hashes[i]] = reserved[i];
+        }
+    }
+
     /*
      * @dev Returns the contract address for a contract type.
      */
-    function getContractTypeAddress(bytes32 contractType) external view returns(address) {
+    function getContractTypeAddress(bytes32 contractType) external view returns (address) {
         return _contractTypeAddresses[contractType];
     }
-//
-//     function holograph() external pure returns (address) {
-//         return Holograph.source();
-//     }
-//
+
+    function isHolographedContract(address smartContract) external view returns (bool) {
+        return _holographedContracts[smartContract];
+    }
+
+    function isHolographedHashDeployed(bytes32 hash) external view returns (bool) {
+        return _holographedContractsHashMap[hash] != address(0);
+    }
+
 }

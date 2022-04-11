@@ -104,26 +104,25 @@
 pragma solidity 0.8.11;
 
 import "./abstract/Admin.sol";
+import "./abstract/Initializable.sol";
+import "./abstract/Owner.sol";
 
-contract SecureStorage is Admin {
+import "./interface/IInitializable.sol";
+
+contract SecureStorage is Admin, Owner, Initializable {
 
     /**
      * @dev Boolean indicating if storage writing is locked. Used to prevent delegated contracts access.
      */
     bool private _locked;
 
-    /**
-     * @dev Address of contract owner. This address can run all onlyOwner functions.
-     */
-    address private _owner;
-
     modifier unlocked() {
         require(!_locked, "HOLOGRAPH: storage locked");
         _;
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == _owner || msg.sender == getAdmin(), "HOLOGRAPH: unauthorised sender");
+    modifier onlyOwner() override {
+        require(msg.sender == getOwner() || msg.sender == getAdmin(), "HOLOGRAPH: unauthorised sender");
         _;
     }
 
@@ -134,15 +133,14 @@ contract SecureStorage is Admin {
         _locked = false;
     }
 
-    constructor() Admin(false) {
-    }
+    constructor() Admin(false) Owner(false) {}
 
-    function getOwner() public view returns (address) {
-        return _owner;
-    }
-
-    function setOwner(address owner) public onlyOwner {
-        _owner = owner;
+    function init(bytes memory data) external override returns (bytes4) {
+        (address owner) = abi.decode(data, (address));
+        assembly {
+            sstore(/* slot */0x89b583059fdb0b2e807359b64eba1a8a1e6d099210701fafe6dad5dd2cd64fb8, owner)
+        }
+        return IInitializable.init.selector;
     }
 
     function getSlot(bytes32 slot) public view returns (bytes32 data) {
@@ -159,16 +157,6 @@ contract SecureStorage is Admin {
 
     function lock(bool position) public onlyOwner nonReentrant {
         _locked = position;
-    }
-
-    /**
-     * @notice Transfers ownership of the collection.
-     * @dev Can't be the zero address.
-     * @param newOwner Address of new owner.
-     */
-    function transferOwnership(address newOwner) public onlyOwner unlocked {
-        require(newOwner != address(0), "HOLOGRAPH: zero address");
-        _owner = newOwner;
     }
 
 }

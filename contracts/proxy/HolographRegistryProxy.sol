@@ -110,15 +110,19 @@ import "../interface/IInitializable.sol";
 
 contract HolographRegistryProxy is Admin, Initializable {
 
-    constructor() Admin(false) {
-    }
+    constructor() Admin(false) {}
 
     function init(bytes memory data) external override returns (bytes4) {
         require(!_isInitialized(), "HOLOGRAPH: already initialized");
-        (address registry) = abi.decode(data, (address));
+        (address registry, bytes memory initCode) = abi.decode(data, (address, bytes));
         assembly {
             sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
         }
+        (bool success, bytes memory returnData) = registry.delegatecall(
+            abi.encodeWithSignature("init(bytes)", initCode)
+        );
+        (bytes4 selector) = abi.decode(returnData, (bytes4));
+        require(success && selector == IInitializable.init.selector, "initialization failed");
         _setInitialized();
         return IInitializable.init.selector;
     }
@@ -139,8 +143,7 @@ contract HolographRegistryProxy is Admin, Initializable {
         }
     }
 
-    receive() external payable {
-    }
+    receive() external payable {}
 
     fallback() external payable {
         assembly {

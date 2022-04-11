@@ -7,8 +7,6 @@ pragma solidity 0.8.11;
 ///  Note: the ERC-165 identifier for this interface is 0xFFFFFFFF.
 interface HolographedERC721 {
 
-    function init(bytes calldata _data) external;
-
     // event id = 1
     function bridgeIn(address _from, address _to, uint256 _tokenId, bytes calldata _data) external returns (bool success);
 

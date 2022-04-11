@@ -18,8 +18,6 @@ interface ERC721Holograph is ERC165, ERC721, ERC721Enumerable, ERC721Metadata, E
 
     function holographBridgeOut(address from, address to, uint256 tokenId) external returns (bytes4, bytes memory data);
 
-    function init(string calldata collectionName, string calldata collectionSymbol, uint16 collectionBps, uint256 eventConfig, bytes calldata data) external;
-
     function safeTransferFrom(address from, address to, uint256 tokenId) external payable;
 
     function setApprovalForAll(address to, bool approved) external;

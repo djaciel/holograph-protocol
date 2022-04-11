@@ -103,10 +103,20 @@
 
 pragma solidity 0.8.11;
 
-library Holograph {
+interface IHolographRegistry {
 
-    function source() public pure returns (address) {
-        return 0x010552Bc7332762Edb49a877904c4f43B14D4252;
-    }
+    function referenceContractTypeAddress(address contractAddress) external returns (bytes32);
+
+    function setContractTypeAddress(bytes32 contractType, address contractAddress) external;
+
+    function updateReservedContractTypes(bytes32[] calldata hashes, bool[] calldata reserved) external;
+
+    function getContractTypeAddress(bytes32 contractType) external view returns (address);
+
+    function factoryDeployedHash(bytes32 hash, address contractAddress) external;
+
+    function isHolographedContract(address smartContract) external view returns (bool);
+
+    function isHolographedHashDeployed(bytes32 hash) external view returns (bool);
 
 }

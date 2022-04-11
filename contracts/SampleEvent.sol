@@ -103,10 +103,15 @@
 
 pragma solidity 0.8.11;
 
-interface HolographRegistry {
+contract SampleEvent {
 
-    function setTypeAddress (uint256 contractType, address contractAddress) external;
+    event Packet (uint16 chainId, bytes payload);
 
-    function getTypeAddress (uint256 contractType) external view returns(address);
+    constructor() {
+    }
+
+    function sample(bytes memory data) external {
+        emit Packet(1, data);
+    }
 
 }
