@@ -1,5 +1,5 @@
 {
-    "binary": "/usr/local/bin/solc",
+    "binary": "./solc",
     "configurations": [
         {
             "value": "base-path",
