@@ -8,10 +8,10 @@ pragma solidity 0.8.11;
 interface HolographedERC721 {
 
     // event id = 1
-    function bridgeIn(address _from, address _to, uint256 _tokenId, bytes calldata _data) external returns (bool success);
+    function bridgeIn(uint32 _chainId, address _from, address _to, uint256 _tokenId, bytes calldata _data) external returns (bool success);
 
     // event id = 2
-    function bridgeOut(address _from, address _to, uint256 _tokenId) external returns (bytes memory _data);
+    function bridgeOut(uint32 _chainId, address _from, address _to, uint256 _tokenId) external returns (bytes memory _data);
 
 
     // event id = 3

@@ -14,9 +14,9 @@ interface ERC721Holograph is ERC165, ERC721, ERC721Enumerable, ERC721Metadata, E
 
     function burn(uint256 tokenId) external;
 
-    function holographBridgeIn(address from, address to, uint256 tokenId, bytes calldata data) external returns (bytes4);
+    function holographBridgeIn(uint32 chainType, address from, address to, uint256 tokenId, bytes calldata data) external returns (bytes4);
 
-    function holographBridgeOut(address from, address to, uint256 tokenId) external returns (bytes4, bytes memory data);
+    function holographBridgeOut(uint32 chainType, address from, address to, uint256 tokenId) external returns (bytes4, bytes memory data);
 
     function safeTransferFrom(address from, address to, uint256 tokenId) external payable;
 
@@ -39,6 +39,8 @@ interface ERC721Holograph is ERC165, ERC721, ERC721Enumerable, ERC721Metadata, E
     function isApprovedForAll(address wallet, address operator) external view returns (bool);
 
     function name() external view returns (string memory);
+
+    function exists(uint256 tokenId) external view returns (bool);
 
     function ownerOf(uint256 tokenId) external view returns (address);
 

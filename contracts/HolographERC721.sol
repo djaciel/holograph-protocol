@@ -319,7 +319,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable  {
      * @dev Allows the bridge to bring in a token from another blockchain.
      *  Note: function selector 0x2dd69ea4 is bytes4(keccak256("holographBridgeIn(address,address,uint256,bytes)"))
      */
-    function holographBridgeIn(address from, address to, uint256 tokenId, bytes calldata data) external returns (bytes4) {
+    function holographBridgeIn(uint32 chainType, address from, address to, uint256 tokenId, bytes calldata data) external returns (bytes4) {
         require(msg.sender == bridge(),  "ERC721: only bridge can call");
         if (_exists(tokenId)) {
             // we transfer token out of bridge contract
@@ -333,25 +333,25 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable  {
             }
         }
         if (Booleans.get(_eventConfig, 1)) {
-            require(SourceERC721().bridgeIn(from, to, tokenId, data));
+            require(SourceERC721().bridgeIn(chainType, from, to, tokenId, data));
         }
-        return 0x2dd69ea4;
+        return ERC721Holograph.holographBridgeIn.selector;
     }
 
     /**
      * @dev Allows the bridge to take a token out onto another blockchain.
      *  Note: function selector 0x57aeff0a is bytes4(keccak256("holographBridgeOut(address,address,uint256)"))
      */
-    function holographBridgeOut(address from, address to, uint256 tokenId) external returns (bytes4, bytes memory data) {
+    function holographBridgeOut(uint32 chainType, address from, address to, uint256 tokenId) external returns (bytes4, bytes memory data) {
         require(msg.sender == bridge(),  "ERC721: only bridge can call");
         if (from != to) {
             _transferFrom(from, to, tokenId);
         }
         _transferFrom(to, bridge(), tokenId);
         if (Booleans.get(_eventConfig, 2)) {
-            return (0x57aeff0a, SourceERC721().bridgeOut(from, to, tokenId));
+            return (ERC721Holograph.holographBridgeOut.selector, SourceERC721().bridgeOut(chainType, from, to, tokenId));
         } else {
-            return (0x57aeff0a, "");
+            return (ERC721Holograph.holographBridgeOut.selector, "");
         }
     }
 
@@ -468,7 +468,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable  {
      * @dev Allows source to get the prepend for their tokenIds.
      */
     function sourceGetChainPrepend() external view returns (uint256) {
-        require(msg.sender == source(), "ERC721: only source can mint");
+        require(msg.sender == source(), "ERC721: only source needs this");
         return uint256(bytes32(abi.encodePacked(_chain(), uint224(0))));
     }
 

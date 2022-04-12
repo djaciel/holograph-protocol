@@ -103,26 +103,17 @@
 
 pragma solidity 0.8.11;
 
-interface HolographFactory {
+import "../struct/DeploymentConfig.sol";
+import "../struct/Verification.sol";
 
-    event Deployed(address indexed contractAddress, bytes32 indexed hash);
+interface IHolographFactory {
 
-    function getAdmin() external view returns (address admin);
-
-    function setAdmin(address admin) external;
-
-    function getChainType() external view returns (uint256 chainType);
-
-    function setChainType(uint256 chainType) external;
+    event BridgeableContractDeployed(address indexed contractAddress, bytes32 indexed hash);
 
     function getBridgeRegistry() external view returns (address bridgeRegistry);
 
-    function setBridgeRegistry(address bridgeRegistry) external;
-
     function getSecureStorage() external view returns (address secureStorage);
 
-    function setSecureStorage(address secureStorage) external;
-
-    function deploy(uint256 contractType, uint256 chainType, bool openBridge, uint64 bridgeFee, address originalContractOwner) external;
+    function deployHolographableContract(DeploymentConfig calldata config, Verification calldata signature, address signer) external;
 
 }
