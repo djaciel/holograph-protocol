@@ -47,4 +47,4 @@ You can accomplish this by editting the `.env` file's `NETWORK` variable from `l
 
 The two runs of the deployment scripts will accomplish the following: deploy the entire protocol on both chains, create the same collection on each chain, set `local` chain as original chain, mint sample NFTs on origin chain, and on foreign chain, test basic info validation, and simple functionality like `transferFrom`.
 
-Once the deployment has been done, multi-chain transfers can be tested **TO BE COMPLETED**.
+Once the deployment has been done, multi-chain transfers can be tested with `sh _bridge.sh` **NOT FINISHED YET, TO BE COMPLETED...**
