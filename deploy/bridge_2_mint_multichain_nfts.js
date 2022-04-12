@@ -112,7 +112,7 @@ async function main () {
         throwError (JSON.stringify (mintResult, null, 4));
     }
     const tokenId = hexify (hexify (web3_1.utils.numberToHex (web3_1.utils.toBN (mintResult.events.Transfer.returnValues._tokenId))).padStart (64, '0'), true);
-    console.log ('Token id', tokenId, 'minted.');
+    console.log ('Token id', tokenId, 'minted on', NETWORK);
 
     const mintResult2 = await ERC721_2.methods.mint (provider2.addresses [0], 'https://' + NETWORK2 + '.network/sampleNFT.jpg').send ({
         chainId: network2.chain,
@@ -124,7 +124,7 @@ async function main () {
         throwError (JSON.stringify (mintResult2, null, 4));
     }
     const tokenId2 = hexify (hexify (web3_2.utils.numberToHex (web3_2.utils.toBN (mintResult2.events.Transfer.returnValues._tokenId))).padStart (64, '0'), true);
-    console.log ('Token id', tokenId2, 'minted.');
+    console.log ('Token id', tokenId2, 'minted on', NETWORK2);
 
 //     const deploySampleErc721Result = await FACTORY1.methods.deployIn (web3_1.eth.abi.encodeParameters (
 //         ['tuple(bytes32,uint32,bytes32,bytes,bytes)', 'tuple(bytes32,bytes32,uint8)', 'address'],

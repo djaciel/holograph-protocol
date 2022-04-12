@@ -41,10 +41,8 @@ In a separate terminal run ganache by `npm run-script ganache`, to run two separ
 
 Build the latest version of the project with `npm run-script build-compile`.
 
-End to end testing can be done with `sh _deploy.sh`. You will need to run the function two times, one for `local` chain, and one for `local2`.
+End to end testing can be done with `sh _deploy.sh`.
 
-You can accomplish this by editting the `.env` file's `NETWORK` variable from `local` to `local2`.
-
-The two runs of the deployment scripts will accomplish the following: deploy the entire protocol on both chains, create the same collection on each chain, set `local` chain as original chain, mint sample NFTs on origin chain, and on foreign chain, test basic info validation, and simple functionality like `transferFrom`.
+The deployment script will accomplish the following: deploy the entire protocol on both chains, create the same collection on each chain, set `.env $NETWORK` chain as original chain, mint sample NFTs on origin chain, and on foreign chain, test basic info validation, and simple functionality like `transferFrom`.
 
 Once the deployment has been done, multi-chain transfers can be tested with `sh _bridge.sh` **NOT FINISHED YET, TO BE COMPLETED...**

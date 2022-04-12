@@ -9,6 +9,12 @@ env.config ({
 // grab local .env file if it exists
 env.config ({});
 
+if (process.env.NETWORK_TYPE == '2') {
+    let tempNetwork = process.env.NETWORK;
+    process.env.NETWORK = process.env.NETWORK2;
+    process.env.NETWORK2 = tempNetwork;
+}
+
 module.exports = {
     NODE_ENV,
     PRIVATE_KEY,
