@@ -9,8 +9,8 @@ node deploy/5_test_holograph_erc721.js &&
 node deploy/6_set_holograph_erc721_type.js &&
 node deploy/7_deploy_sample_erc721.js &&
 node deploy/8_test_sample_erc721.js &&
-# node deploy/.js &&
-# node deploy/.js &&
+node deploy/9_mint_sample_token.js &&
+node deploy/10_test_nft_functionality.js &&
 # node deploy/.js &&
 # node deploy/.js &&
 # node deploy/.js &&

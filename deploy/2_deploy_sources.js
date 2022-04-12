@@ -377,7 +377,13 @@ async function main () {
             '0x' + HOLOGRAPH_CONTRACT.bin, // bytes memory sourceCode
             web3.eth.abi.encodeParameters (
                 ['uint32', 'address', 'address', 'address', 'address'],
-                ['0x00000000', holographRegistryProxyAddress, holographFactoryProxyAddress, holographBridgeProxyAddress, secureStorageProxyAddress]
+                [
+                    hexify (network.holographId.toString (16).padStart (8, '0'), true),
+                    holographRegistryProxyAddress,
+                    holographFactoryProxyAddress,
+                    holographBridgeProxyAddress,
+                    secureStorageProxyAddress
+                ]
             ) // bytes memory initCode
         ).send ({
             chainId: network.chain,

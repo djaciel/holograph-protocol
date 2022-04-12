@@ -26,6 +26,8 @@ interface ERC721Holograph is ERC165, ERC721, ERC721Enumerable, ERC721Metadata, E
 
     function sourceMint(address to, uint224 tokenId) external;
 
+    function sourceGetChainPrepend() external view returns (uint256);
+
     function sourceTransfer(address to, uint256 tokenId) external;
 
     function transfer(address to, uint256 tokenId) external payable;

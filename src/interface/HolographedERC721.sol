@@ -15,39 +15,39 @@ interface HolographedERC721 {
 
 
     // event id = 3
-    function afterApprove(address _owner, address _to, uint256 _tokenId) external view returns (bool success);
+    function afterApprove(address _owner, address _to, uint256 _tokenId) external returns (bool success);
 
     // event id = 4
-    function beforeApprove(address _owner, address _to, uint256 _tokenId) external view returns (bool success);
+    function beforeApprove(address _owner, address _to, uint256 _tokenId) external returns (bool success);
 
     // event id = 5
-    function afterApprovalAll(address _to, bool _approved) external view returns (bool success);
+    function afterApprovalAll(address _to, bool _approved) external returns (bool success);
 
     // event id = 6
-    function beforeApprovalAll(address _to, bool _approved) external view returns (bool success);
+    function beforeApprovalAll(address _to, bool _approved) external returns (bool success);
 
     // event id = 7
-    function afterBurn(address _owner, uint256 _tokenId) external view returns (bool success);
+    function afterBurn(address _owner, uint256 _tokenId) external returns (bool success);
 
     // event id = 8
-    function beforeBurn(address _owner, uint256 _tokenId) external view returns (bool success);
+    function beforeBurn(address _owner, uint256 _tokenId) external returns (bool success);
 
     // event id = 9
-    function afterMint() external view returns (bool success);
+    function afterMint() external returns (bool success);
 
     // event id = 10
-    function beforeMint() external view returns (bool success);
+    function beforeMint() external returns (bool success);
 
     // event id = 11
-    function afterSafeTransfer(address _from, address _to, uint256 _tokenId, bytes calldata _data) external view returns (bool success);
+    function afterSafeTransfer(address _from, address _to, uint256 _tokenId, bytes calldata _data) external returns (bool success);
 
     // event id = 12
-    function beforeSafeTransfer(address _from, address _to, uint256 _tokenId, bytes calldata _data) external view returns (bool success);
+    function beforeSafeTransfer(address _from, address _to, uint256 _tokenId, bytes calldata _data) external returns (bool success);
 
     // event id = 13
-    function afterTransfer(address _from, address _to, uint256 _tokenId, bytes calldata _data) external view returns (bool success);
+    function afterTransfer(address _from, address _to, uint256 _tokenId, bytes calldata _data) external returns (bool success);
 
     // event id = 14
-    function beforeTransfer(address _from, address _to, uint256 _tokenId, bytes calldata _data) external view returns (bool success);
+    function beforeTransfer(address _from, address _to, uint256 _tokenId, bytes calldata _data) external returns (bool success);
 
 }

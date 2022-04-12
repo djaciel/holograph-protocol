@@ -163,7 +163,7 @@ contract Holographer is Admin, Initializable {
     /*
      * @dev Returns the original chain that contract was deployed on.
      */
-    function getOriginChain() public view returns (address originChain) {
+    function getOriginChain() public view returns (uint32 originChain) {
         assembly {
             originChain := sload(/* slot */0x2378c1f8aa4ffd1a2b352b1ec4b9fe37cee7d2bb3fa1a7e6aeaeb422f15defdb)
         }

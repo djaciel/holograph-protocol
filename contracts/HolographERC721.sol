@@ -465,6 +465,14 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable  {
     }
 
     /**
+     * @dev Allows source to get the prepend for their tokenIds.
+     */
+    function sourceGetChainPrepend() external view returns (uint256) {
+        require(msg.sender == source(), "ERC721: only source can mint");
+        return uint256(bytes32(abi.encodePacked(_chain(), uint224(0))));
+    }
+
+    /**
      * @dev Allows for source smart contract to mint a batch of tokens.
      */
     function sourceMintBatch(address to, uint224[] calldata tokenIds) external {
@@ -483,6 +491,18 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable  {
         uint32 chain = _chain();
         for (uint256 i = 0; i < tokenIds.length; i++) {
             _mint(wallets[i], uint256(bytes32(abi.encodePacked(chain, tokenIds[i]))));
+        }
+    }
+
+    /**
+     * @dev Allows for source smart contract to mint a batch of tokens.
+     */
+    function sourceMintBatchIncremental(address to, uint224 startingTokenId, uint256 length) external {
+        require(msg.sender == source(), "ERC721: only source can mint");
+        uint32 chain = _chain();
+        for (uint256 i = 0; i < length; i++) {
+            _mint(to, uint256(bytes32(abi.encodePacked(chain, startingTokenId))));
+            startingTokenId++;
         }
     }
 
@@ -736,7 +756,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable  {
         if (currentChain != IHolographer(payable(address(this))).getOriginChain()) {
             return currentChain;
         }
-        return 0;
+        return uint32(0);
     }
 
     /**

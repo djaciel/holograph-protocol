@@ -133,6 +133,13 @@ async function main () {
         gasPrice: web3.utils.toHex (web3.utils.toWei (GAS, 'gwei'))
     }).catch (web3Error));
 
+    console.log ('getOriginChain', await FACTORY.methods.getOriginChain ().call ({
+        chainId: network.chain,
+        from: provider.addresses [0],
+        gas: web3.utils.toHex (1000000),
+        gasPrice: web3.utils.toHex (web3.utils.toWei (GAS, 'gwei'))
+    }).catch (web3Error));
+
     console.log ("\n");
 
     process.exit ();

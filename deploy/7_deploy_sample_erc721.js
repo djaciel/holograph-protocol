@@ -62,7 +62,9 @@ async function main () {
 
     let config = [
         '0x0000000000000000000000000000000000486f6c6f6772617068455243373231', // bytes32 contractType
-        '0x00000000', // uint32 chainType
+        // WE MANUALLY SET THIS TO LOCAL NETWORK HOLOGRAPH ID
+        // this is to see the differences in how tokens are managed between chains
+        hexify ((4294967295).toString (16).padStart (8, '0'), true), // uint32 chainType
         '0x0000000000000000000000000000000000000000000000000000000000000000', // bytes32 salt
         hexify (SAMPLE_ERC721_CONTRACT.bin, true), // bytes byteCode
         web3.eth.abi.encodeParameters (
