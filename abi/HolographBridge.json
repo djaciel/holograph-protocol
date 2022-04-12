@@ -8,23 +8,60 @@
         "anonymous": false,
         "inputs": [
             {
-                "indexed": true,
-                "internalType": "address",
-                "name": "contractAddress",
-                "type": "address"
+                "indexed": false,
+                "internalType": "uint32",
+                "name": "chainId",
+                "type": "uint32"
             },
             {
-                "indexed": true,
-                "internalType": "bytes32",
-                "name": "hash",
-                "type": "bytes32"
+                "indexed": false,
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
             }
         ],
-        "name": "BridgeableContractDeployed",
+        "name": "DeployRequest",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": false,
+                "internalType": "uint32",
+                "name": "toChainId",
+                "type": "uint32"
+            },
+            {
+                "indexed": false,
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+            }
+        ],
+        "name": "TransferErc721",
         "type": "event"
     },
     {
         "inputs": [
+            {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+            }
+        ],
+        "name": "deployIn",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint32",
+                "name": "toChain",
+                "type": "uint32"
+            },
             {
                 "components": [
                     {
@@ -85,7 +122,78 @@
                 "type": "address"
             }
         ],
-        "name": "deployHolographableContract",
+        "name": "deployOut",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint32",
+                "name": "fromChain",
+                "type": "uint32"
+            },
+            {
+                "internalType": "address",
+                "name": "collection",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+            },
+            {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+            }
+        ],
+        "name": "erc721in",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint32",
+                "name": "toChain",
+                "type": "uint32"
+            },
+            {
+                "internalType": "address",
+                "name": "collection",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "erc721out",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -97,32 +205,6 @@
             {
                 "internalType": "address",
                 "name": "admin",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getBridgeRegistry",
-        "outputs": [
-            {
-                "internalType": "address",
-                "name": "bridgeRegistry",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getSecureStorage",
-        "outputs": [
-            {
-                "internalType": "address",
-                "name": "secureStorage",
                 "type": "address"
             }
         ],
@@ -157,32 +239,6 @@
             }
         ],
         "name": "setAdmin",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "bridgeRegistry",
-                "type": "address"
-            }
-        ],
-        "name": "setBridgeRegistry",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "secureStorage",
-                "type": "address"
-            }
-        ],
-        "name": "setSecureStorage",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

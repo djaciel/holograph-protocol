@@ -23,50 +23,11 @@
     },
     {
         "inputs": [],
-        "name": "getHolographEnforcer",
-        "outputs": [
-            {
-                "internalType": "address payable",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getOriginChain",
-        "outputs": [
-            {
-                "internalType": "uint32",
-                "name": "originChain",
-                "type": "uint32"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getSecureStorage",
+        "name": "getBridge",
         "outputs": [
             {
                 "internalType": "address",
-                "name": "secureStorage",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getSourceContract",
-        "outputs": [
-            {
-                "internalType": "address payable",
-                "name": "sourceContract",
+                "name": "bridge",
                 "type": "address"
             }
         ],
@@ -101,6 +62,19 @@
             }
         ],
         "name": "setAdmin",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "bridge",
+                "type": "address"
+            }
+        ],
+        "name": "setBridge",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

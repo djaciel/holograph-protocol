@@ -198,7 +198,25 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "getOwner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
+            {
+                "internalType": "uint32",
+                "name": "chainType",
+                "type": "uint32"
+            },
             {
                 "internalType": "address",
                 "name": "from",
@@ -234,6 +252,11 @@
     {
         "inputs": [
             {
+                "internalType": "uint32",
+                "name": "chainType",
+                "type": "uint32"
+            },
+            {
                 "internalType": "address",
                 "name": "from",
                 "type": "address"
@@ -268,33 +291,19 @@
     {
         "inputs": [
             {
-                "internalType": "string",
-                "name": "collectionName",
-                "type": "string"
-            },
-            {
-                "internalType": "string",
-                "name": "collectionSymbol",
-                "type": "string"
-            },
-            {
-                "internalType": "uint16",
-                "name": "collectionBps",
-                "type": "uint16"
-            },
-            {
-                "internalType": "uint256",
-                "name": "eventConfig",
-                "type": "uint256"
-            },
-            {
                 "internalType": "bytes",
                 "name": "data",
                 "type": "bytes"
             }
         ],
         "name": "init",
-        "outputs": [],
+        "outputs": [
+            {
+                "internalType": "bytes4",
+                "name": "",
+                "type": "bytes4"
+            }
+        ],
         "stateMutability": "nonpayable",
         "type": "function"
     },
@@ -473,6 +482,19 @@
     {
         "inputs": [
             {
+                "internalType": "address",
+                "name": "owner",
+                "type": "address"
+            }
+        ],
+        "name": "setOwner",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "uint256",
                 "name": "tokenId",
                 "type": "uint256"
@@ -481,6 +503,19 @@
         "name": "sourceBurn",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "sourceGetChainPrepend",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {
@@ -497,6 +532,65 @@
             }
         ],
         "name": "sourceMint",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address[]",
+                "name": "wallets",
+                "type": "address[]"
+            },
+            {
+                "internalType": "uint224[]",
+                "name": "tokenIds",
+                "type": "uint224[]"
+            }
+        ],
+        "name": "sourceMintBatch",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint224[]",
+                "name": "tokenIds",
+                "type": "uint224[]"
+            }
+        ],
+        "name": "sourceMintBatch",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint224",
+                "name": "startingTokenId",
+                "type": "uint224"
+            },
+            {
+                "internalType": "uint256",
+                "name": "length",
+                "type": "uint256"
+            }
+        ],
+        "name": "sourceMintBatchIncremental",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -712,6 +806,19 @@
         "name": "transferFrom",
         "outputs": [],
         "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newOwner",
+                "type": "address"
+            }
+        ],
+        "name": "transferOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
         "type": "function"
     }
 ]

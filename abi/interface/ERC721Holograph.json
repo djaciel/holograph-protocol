@@ -145,6 +145,25 @@
                 "type": "uint256"
             }
         ],
+        "name": "exists",
+        "outputs": [
+            {
+                "internalType": "bool",
+                "name": "",
+                "type": "bool"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+            }
+        ],
         "name": "getApproved",
         "outputs": [
             {
@@ -159,23 +178,23 @@
     {
         "inputs": [
             {
-                "internalType": "string",
-                "name": "collectionName",
-                "type": "string"
+                "internalType": "uint32",
+                "name": "chainType",
+                "type": "uint32"
             },
             {
-                "internalType": "string",
-                "name": "collectionSymbol",
-                "type": "string"
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
             },
             {
-                "internalType": "uint16",
-                "name": "collectionBps",
-                "type": "uint16"
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
             },
             {
                 "internalType": "uint256",
-                "name": "eventConfig",
+                "name": "tokenId",
                 "type": "uint256"
             },
             {
@@ -184,8 +203,53 @@
                 "type": "bytes"
             }
         ],
-        "name": "init",
-        "outputs": [],
+        "name": "holographBridgeIn",
+        "outputs": [
+            {
+                "internalType": "bytes4",
+                "name": "",
+                "type": "bytes4"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint32",
+                "name": "chainType",
+                "type": "uint32"
+            },
+            {
+                "internalType": "address",
+                "name": "from",
+                "type": "address"
+            },
+            {
+                "internalType": "address",
+                "name": "to",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "holographBridgeOut",
+        "outputs": [
+            {
+                "internalType": "bytes4",
+                "name": "",
+                "type": "bytes4"
+            },
+            {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+            }
+        ],
         "stateMutability": "nonpayable",
         "type": "function"
     },
@@ -359,6 +423,19 @@
         "name": "sourceBurn",
         "outputs": [],
         "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "sourceGetChainPrepend",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
         "type": "function"
     },
     {

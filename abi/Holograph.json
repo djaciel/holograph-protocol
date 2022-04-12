@@ -1,55 +1,12 @@
 [
     {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "contractAddress",
-                "type": "address"
-            },
-            {
-                "indexed": true,
-                "internalType": "bytes32",
-                "name": "hash",
-                "type": "bytes32"
-            }
-        ],
-        "name": "Deployed",
-        "type": "event"
+        "inputs": [],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
     },
     {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "contractType",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "chainType",
-                "type": "uint256"
-            },
-            {
-                "internalType": "bool",
-                "name": "openBridge",
-                "type": "bool"
-            },
-            {
-                "internalType": "uint64",
-                "name": "bridgeFee",
-                "type": "uint64"
-            },
-            {
-                "internalType": "address",
-                "name": "originalContractOwner",
-                "type": "address"
-            }
-        ],
-        "name": "deploy",
-        "outputs": [],
-        "stateMutability": "nonpayable",
-        "type": "function"
+        "stateMutability": "payable",
+        "type": "fallback"
     },
     {
         "inputs": [],
@@ -66,11 +23,11 @@
     },
     {
         "inputs": [],
-        "name": "getBridgeRegistry",
+        "name": "getBridge",
         "outputs": [
             {
                 "internalType": "address",
-                "name": "bridgeRegistry",
+                "name": "bridge",
                 "type": "address"
             }
         ],
@@ -82,9 +39,35 @@
         "name": "getChainType",
         "outputs": [
             {
-                "internalType": "uint256",
+                "internalType": "uint32",
                 "name": "chainType",
-                "type": "uint256"
+                "type": "uint32"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getFactory",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "factory",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getRegistry",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "registry",
+                "type": "address"
             }
         ],
         "stateMutability": "view",
@@ -106,6 +89,25 @@
     {
         "inputs": [
             {
+                "internalType": "bytes",
+                "name": "data",
+                "type": "bytes"
+            }
+        ],
+        "name": "init",
+        "outputs": [
+            {
+                "internalType": "bytes4",
+                "name": "",
+                "type": "bytes4"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "address",
                 "name": "admin",
                 "type": "address"
@@ -120,11 +122,11 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "bridgeRegistry",
+                "name": "bridge",
                 "type": "address"
             }
         ],
-        "name": "setBridgeRegistry",
+        "name": "setBridge",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -132,12 +134,38 @@
     {
         "inputs": [
             {
-                "internalType": "uint256",
+                "internalType": "uint32",
                 "name": "chainType",
-                "type": "uint256"
+                "type": "uint32"
             }
         ],
         "name": "setChainType",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "factory",
+                "type": "address"
+            }
+        ],
+        "name": "setFactory",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "registry",
+                "type": "address"
+            }
+        ],
+        "name": "setRegistry",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -154,5 +182,9 @@
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
+    },
+    {
+        "stateMutability": "payable",
+        "type": "receive"
     }
 ]
