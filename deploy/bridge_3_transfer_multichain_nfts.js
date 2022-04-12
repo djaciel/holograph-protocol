@@ -102,6 +102,30 @@ async function main () {
     );
 
     const tokenId = hexify ((1).toString (16).padStart (64, '0'), true);
+
+// Tests
+    console.log ('tokenURI', await ERC721_1.methods.tokenURI (tokenId).call ({
+        chainId: network1.chain,
+        from: provider1.addresses [0],
+        gas: web3_1.utils.toHex (1000000),
+        gasPrice: web3_1.utils.toHex (web3_1.utils.toWei (GAS, 'gwei'))
+    }).catch (web3Error));
+
+    console.log ('exists', await ERC721_1.methods.exists (tokenId).call ({
+        chainId: network1.chain,
+        from: provider1.addresses [0],
+        gas: web3_1.utils.toHex (1000000),
+        gasPrice: web3_1.utils.toHex (web3_1.utils.toWei (GAS, 'gwei'))
+    }).catch (web3Error));
+
+    console.log ('ownerOf', await ERC721_1.methods.ownerOf (tokenId).call ({
+        chainId: network1.chain,
+        from: provider1.addresses [0],
+        gas: web3_1.utils.toHex (1000000),
+        gasPrice: web3_1.utils.toHex (web3_1.utils.toWei (GAS, 'gwei'))
+    }).catch (web3Error));
+
+// BridgeOut
     const bridgeOutResult = await FACTORY1.methods.erc721out (network2.holographId, MULTICHAIN_ERC721_ADDRESS, provider1.addresses [0], provider2.addresses [0], tokenId).send ({
         chainId: network1.chain,
         from: provider1.addresses [0],
@@ -111,10 +135,87 @@ async function main () {
     if (!bridgeOutResult.status) {
         throwError (JSON.stringify (bridgeOutResult, null, 4));
     }
-    console.log (bridgeOutResult.events);
     let bridgeEvent = bridgeOutResult.events.TransferErc721.returnValues;
-    let transferEvent = bridgeOutResult.events.Transfer.returnValues;
-    console.log ('from', transferEvent._from, 'to', transferEvent._to, 'tokenId', transferEvent._tokenId, 'toChainId', bridgeEvent.toChainId, 'data', bridgeEvent.data);
+    let transferEvent = [
+        bridgeOutResult.events.Transfer [0].returnValues,
+        bridgeOutResult.events.Transfer [1].returnValues
+    ];
+    console.log ('from', transferEvent[0]._from, 'to', transferEvent[1]._to, 'tokenId', transferEvent[0]._tokenId, 'toChainId', bridgeEvent.toChainId, 'data', bridgeEvent.data);
+
+// BridgeIn
+    const bridgeInConfig = web3_1.eth.abi.decodeParameters ([
+        {
+            type: 'uint32',
+            name: 'fromChain'
+        },
+        {
+            type: 'address',
+            name: 'collection'
+        },
+        {
+            type: 'address',
+            name: 'from'
+        },
+        {
+            type: 'address',
+            name: 'to'
+        },
+        {
+            type: 'uint256',
+            name: 'tokenId'
+        },
+        {
+            type: 'bytes',
+            name: 'data'
+        },
+    ], bridgeEvent.data);
+    const bridgeInResult = await FACTORY2.methods.erc721in (
+        hexify (parseInt (bridgeInConfig.fromChain).toString (16).padStart (4, '0'), true),
+        bridgeInConfig.collection,
+        bridgeInConfig.from,
+        bridgeInConfig.to,
+        hexify (hexify (web3_2.utils.numberToHex (web3_2.utils.toBN (bridgeInConfig.tokenId))).padStart (64, '0'), true),
+        bridgeInConfig.data
+    ).send ({
+        chainId: network2.chain,
+        from: provider2.addresses [0],
+        gas: web3_2.utils.toHex (1000000),
+        gasPrice: web3_2.utils.toHex (web3_2.utils.toWei (GAS, 'gwei'))
+    }).catch (web3Error);
+    if (!bridgeInResult.status) {
+        throwError (JSON.stringify (bridgeInResult, null, 4));
+    }
+    let transferEvent2 = [
+        bridgeInResult.events.Transfer [0].returnValues,
+        bridgeInResult.events.Transfer [1].returnValues
+    ];
+    console.log ('from', transferEvent2[0]._from, 'to', transferEvent2[1]._to, 'tokenId', transferEvent2[0]._tokenId);
+
+// Tests
+    console.log ('tokenURI', await ERC721_1.methods.tokenURI (tokenId).call ({
+        chainId: network1.chain,
+        from: provider1.addresses [0],
+        gas: web3_1.utils.toHex (1000000),
+        gasPrice: web3_1.utils.toHex (web3_1.utils.toWei (GAS, 'gwei'))
+    }).catch (web3Error));
+
+    console.log ('exists', await ERC721_1.methods.exists (tokenId).call ({
+        chainId: network1.chain,
+        from: provider1.addresses [0],
+        gas: web3_1.utils.toHex (1000000),
+        gasPrice: web3_1.utils.toHex (web3_1.utils.toWei (GAS, 'gwei'))
+    }).catch (web3Error));
+
+    console.log ('ownerOf', await ERC721_1.methods.ownerOf (tokenId).call ({
+        chainId: network1.chain,
+        from: provider1.addresses [0],
+        gas: web3_1.utils.toHex (1000000),
+        gasPrice: web3_1.utils.toHex (web3_1.utils.toWei (GAS, 'gwei'))
+    }).catch (web3Error));
+
+//     let bridgeEvent2 = bridgeInResult.events.TransferErc721.returnValues;
+//     let transferEvent2 = bridgeInResult.events.Transfer.returnValues;
+//     console.log ('from', transferEvent._from, 'to', transferEvent._to, 'tokenId', transferEvent._tokenId, 'toChainId', bridgeEvent.toChainId, 'data', bridgeEvent.data);
 
 //     let tokenId2 = hexify (parseInt (network2.holographId).toString (16).padStart (8, '0') + (1).toString(16).padStart (56, '0'), true);
 // //     const mintResult2 = await ERC721_2.methods.mint (provider2.addresses [0], 'https://' + NETWORK2 + '.network/sampleNFT.jpg').send ({

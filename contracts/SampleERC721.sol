@@ -182,10 +182,11 @@ contract SampleERC721 is IInitializable, HolographedERC721  {
         return "it works!";
     }
 
-    function bridgeIn(uint32/* _chainId*/, address/* _from*/, address/* _to*/, uint256 _tokenId, bytes calldata _data) external onlyHolographer returns (bool success) {
+
+    function bridgeIn(uint32/* _chainId*/, address/* _from*/, address/* _to*/, uint256 _tokenId, bytes calldata _data) external onlyHolographer returns (bool) {
         (string memory URI) = abi.decode(_data, (string));
         _tokenURIs[_tokenId] = URI;
-        return _success;
+        return true;
     }
 
     function bridgeOut(uint32/* _chainId*/, address/* _from*/, address/* _to*/, uint256 _tokenId) external view onlyHolographer returns (bytes memory _data) {

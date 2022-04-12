@@ -326,14 +326,15 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable  {
             require(_tokenOwner[tokenId] == bridge(), "ERC721: bridge not token owner");
             _transferFrom(bridge(), to, tokenId);
         } else {
-            // we mint the token
-            _mint(from, tokenId);
+            // we mint the token to bridge
+            _mint(bridge(), tokenId);
+            _transferFrom(bridge(), from, tokenId);
             if (from != to) {
                 _transferFrom(from, to, tokenId);
             }
         }
         if (Booleans.get(_eventConfig, 1)) {
-            require(SourceERC721().bridgeIn(chainType, from, to, tokenId, data));
+            require(SourceERC721().bridgeIn(chainType, from, to, tokenId, data), "HOLOGRAPH: bridge in failed");
         }
         return ERC721Holograph.holographBridgeIn.selector;
     }
