@@ -1,64 +1,26 @@
 'use strict';
-
 const fs = require ('fs');
-const HDWalletProvider = require ('truffle-hdwallet-provider');
-const Web3 = require ('web3');
 const {
     NETWORK,
     GAS,
     DEPLOYER
 } = require ('../config/env');
-
-const HOLOGRAPH_FACTORY = 'HolographFactory';
-const HOLOGRAPH_FACTORY_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts [HOLOGRAPH_FACTORY + '.sol:' + HOLOGRAPH_FACTORY];
-
-const HOLOGRAPH_FACTORY_PROXY = 'HolographFactoryProxy';
-const HOLOGRAPH_FACTORY_PROXY_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts ['proxy/' + HOLOGRAPH_FACTORY_PROXY + '.sol:' + HOLOGRAPH_FACTORY_PROXY];
-
-const SAMPLE_ERC721 = 'SampleERC721';
-const SAMPLE_ERC721_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts [SAMPLE_ERC721 + '.sol:' + SAMPLE_ERC721];
-
-const network = JSON.parse (fs.readFileSync ('./networks.json', 'utf8')) [NETWORK];
-const provider = new HDWalletProvider (DEPLOYER, network.rpc);
-const web3 = new Web3 (provider);
-
-const removeX = function (input) {
-    if (input.startsWith ('0x')) {
-        return input.substring (2);
-    } else {
-        return input;
-    }
-};
-
-const hexify = function (input, prepend) {
-	input = input.toLowerCase ().trim ();
-	if (input.startsWith ('0x')) {
-		input = input.substring (2);
-	}
-	input = input.replace (/[^0-9a-f]/g, '');
-	if (prepend) {
-	    input = '0x' + input;
-	}
-	return input;
-};
-
-const throwError = function (err) {
-    process.stderr.write (err + '\n');
-    process.exit (1);
-};
-
-const web3Error = function (err) {
-    throwError (err.toString ())
-};
+const {removeX, hexify, throwError, web3Error, getContractArtifact, createNetworkPropsForUser, saveContractResult,
+    getContractAddress, createFactoryAtAddress
+} = require("./helpers/utils");
 
 async function main () {
+    const { network, provider, web3 } = createNetworkPropsForUser(DEPLOYER, NETWORK)
 
-    const HOLOGRAPH_FACTORY_PROXY_ADDRESS = fs.readFileSync ('./data/' + NETWORK + '.' + HOLOGRAPH_FACTORY_PROXY + '.address', 'utf8').trim ();
+    const SAMPLE_ERC721 = 'SampleERC721';
+    const SAMPLE_ERC721_CONTRACT = getContractArtifact(SAMPLE_ERC721)
 
-    const FACTORY = new web3.eth.Contract (
-        HOLOGRAPH_FACTORY_CONTRACT.abi,
-        HOLOGRAPH_FACTORY_PROXY_ADDRESS
-    );
+    const HOLOGRAPH_FACTORY = 'HolographFactory';
+    const HOLOGRAPH_FACTORY_CONTRACT = getContractArtifact(HOLOGRAPH_FACTORY)
+
+    const HOLOGRAPH_FACTORY_PROXY = 'HolographFactoryProxy';
+    const HOLOGRAPH_FACTORY_PROXY_ADDRESS = getContractAddress(NETWORK, HOLOGRAPH_FACTORY_PROXY)
+    const HOLOGRAPH_FACTORY_PROXY_FACTORY = createFactoryAtAddress(web3, HOLOGRAPH_FACTORY_CONTRACT.abi, HOLOGRAPH_FACTORY_PROXY_ADDRESS)
 
     let config = [
         '0x0000000000000000000000000000000000486f6c6f6772617068455243373231', // bytes32 contractType
@@ -107,7 +69,7 @@ async function main () {
         provider.addresses [0]
     );
 
-    const deploySampleErc721Result = await FACTORY.methods.deployHolographableContract (config, signature, provider.addresses [0]).send ({
+    const deploySampleErc721Result = await HOLOGRAPH_FACTORY_PROXY_FACTORY.methods.deployHolographableContract (config, signature, provider.addresses [0]).send ({
         chainId: network.chain,
         from: provider.addresses [0],
         gas: web3.utils.toHex (5000000),
@@ -117,11 +79,7 @@ async function main () {
         throwError (JSON.stringify (deploySampleErc721Result, null, 4));
     } else {
         let sampleErc721Address = deploySampleErc721Result.events.BridgeableContractDeployed.returnValues.contractAddress;
-        fs.writeFileSync (
-            './data/' + NETWORK + '.' + SAMPLE_ERC721 + '.address',
-            sampleErc721Address
-        );
-        console.log ('Deployed SampleERC721', sampleErc721Address);
+        saveContractResult(NETWORK, SAMPLE_ERC721, sampleErc721Address)
     }
 
     process.exit ();

@@ -1,66 +1,27 @@
 'use strict';
-
 const fs = require ('fs');
-const HDWalletProvider = require ('truffle-hdwallet-provider');
-const Web3 = require ('web3');
 const {
     NETWORK,
     GAS,
     DEPLOYER
 } = require ('../config/env');
-
-const GENESIS = 'HolographGenesis';
-const GENESIS_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts [GENESIS + '.sol:' + GENESIS];
-
-const HOLOGRAPH_ERC721 = 'HolographERC721';
-const HOLOGRAPH_ERC721_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts [HOLOGRAPH_ERC721 + '.sol:' + HOLOGRAPH_ERC721];
-
-const network = JSON.parse (fs.readFileSync ('./networks.json', 'utf8')) [NETWORK];
-const provider = new HDWalletProvider (DEPLOYER, network.rpc);
-const web3 = new Web3 (provider);
-
-const removeX = function (input) {
-    if (input.startsWith ('0x')) {
-        return input.substring (2);
-    } else {
-        return input;
-    }
-};
-
-const hexify = function (input, prepend) {
-	input = input.toLowerCase ().trim ();
-	if (input.startsWith ('0x')) {
-		input = input.substring (2);
-	}
-	input = input.replace (/[^0-9a-f]/g, '');
-	if (prepend) {
-	    input = '0x' + input;
-	}
-	return input;
-};
-
-const throwError = function (err) {
-    process.stderr.write (err + '\n');
-    process.exit (1);
-};
-
-const web3Error = function (err) {
-    throwError (err.toString ())
-};
+const {throwError, web3Error, getContractArtifact, createNetworkPropsForUser, saveContractResult,
+    getContractAddress, createFactoryAtAddress, generateExpectedAddress
+} = require("./helpers/utils");
 
 async function main () {
-
-    const GENESIS_ADDRESS = fs.readFileSync ('./data/' + NETWORK + '.' + GENESIS + '.address', 'utf8').trim ();
-
-    const FACTORY = new web3.eth.Contract (
-        GENESIS_CONTRACT.abi,
-        GENESIS_ADDRESS
-    );
-
+    const { network, provider, web3 } = createNetworkPropsForUser(DEPLOYER, NETWORK)
     const salt = '0x000000000000000000000000';
 
-// HolographRegistry
-        const holographErc721DeploymentResult = await FACTORY.methods.deploy (
+    const GENESIS = 'HolographGenesis';
+    const GENESIS_CONTRACT = getContractArtifact(GENESIS)
+    const GENESIS_ADDRESS = getContractAddress(NETWORK, GENESIS)
+    const GENESIS_FACTORY = createFactoryAtAddress(web3, GENESIS_CONTRACT.abi, GENESIS_ADDRESS)
+
+// HolographERC721
+        const HOLOGRAPH_ERC721 = 'HolographERC721';
+        const HOLOGRAPH_ERC721_CONTRACT = getContractArtifact(HOLOGRAPH_ERC721)
+        const holographErc721DeploymentResult = await GENESIS_FACTORY.methods.deploy (
             salt, // bytes12 saltHash
             '0x' + HOLOGRAPH_ERC721_CONTRACT.bin, // bytes memory sourceCode
             web3.eth.abi.encodeParameters (
@@ -79,23 +40,30 @@ async function main () {
             gas: web3.utils.toHex (5000000),
             gasPrice: web3.utils.toHex (web3.utils.toWei (GAS, 'gwei'))
         }).catch (web3Error);
-        let holographErc721Address = '0x' + removeX (web3.utils.keccak256 (
-            '0xff'
-            + removeX (GENESIS_ADDRESS)
-            + removeX (provider.addresses [0]) + removeX (salt)
-            + removeX (web3.utils.keccak256 ('0x' + HOLOGRAPH_ERC721_CONTRACT.bin))
-        )).substring (24);
+
+        // let holographErc721Address = '0x' + removeX (web3.utils.keccak256 (
+        //     '0xff'
+        //     + removeX (GENESIS_ADDRESS)
+        //     + removeX (provider.addresses [0]) + removeX (salt)
+        //     + removeX (web3.utils.keccak256 ('0x' + HOLOGRAPH_ERC721_CONTRACT.bin))
+        // )).substring (24);
+
+        let holographErc721Address = generateExpectedAddress({
+            genesisAddress: GENESIS_ADDRESS,
+            web3,
+            senderAddress: provider.addresses[0],
+            salt,
+            contractByteCode: HOLOGRAPH_ERC721_CONTRACT.bin
+        })
+
+
         if (!holographErc721DeploymentResult.status) {
             throwError (JSON.stringify (holographErc721DeploymentResult, null, 4));
         }
         if ('0x' + HOLOGRAPH_ERC721_CONTRACT ['bin-runtime'] != await web3.eth.getCode (holographErc721Address)) {
             throwError ('Could not properly compute CREATE2 address for holographErc721Address');
         }
-        fs.writeFileSync (
-            './data/' + NETWORK + '.' + HOLOGRAPH_ERC721 + '.address',
-            holographErc721Address
-        );
-        console.log ('holographErc721Address', holographErc721Address);
+        saveContractResult(NETWORK, HOLOGRAPH_ERC721, holographErc721Address)
 
     process.exit ();
 }

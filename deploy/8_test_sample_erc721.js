@@ -1,66 +1,29 @@
 'use strict';
-
 const fs = require ('fs');
-const HDWalletProvider = require ('truffle-hdwallet-provider');
-const Web3 = require ('web3');
 const {
     NETWORK,
     GAS,
     DEPLOYER
 } = require ('../config/env');
-
-
-const SAMPLE_ERC721 = 'SampleERC721';
-const SAMPLE_ERC721_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts [SAMPLE_ERC721 + '.sol:' + SAMPLE_ERC721];
-
-const HOLOGRAPH_ERC721 = 'HolographERC721';
-const HOLOGRAPH_ERC721_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts [HOLOGRAPH_ERC721 + '.sol:' + HOLOGRAPH_ERC721];
-
-const HOLOGRAPHER = 'Holographer';
-const HOLOGRAPHER_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts [HOLOGRAPHER + '.sol:' + HOLOGRAPHER];
-
-const network = JSON.parse (fs.readFileSync ('./networks.json', 'utf8')) [NETWORK];
-const provider = new HDWalletProvider (DEPLOYER, network.rpc);
-const web3 = new Web3 (provider);
-
-const removeX = function (input) {
-    if (input.startsWith ('0x')) {
-        return input.substring (2);
-    } else {
-        return input;
-    }
-};
-
-const hexify = function (input, prepend) {
-	input = input.toLowerCase ().trim ();
-	if (input.startsWith ('0x')) {
-		input = input.substring (2);
-	}
-	input = input.replace (/[^0-9a-f]/g, '');
-	if (prepend) {
-	    input = '0x' + input;
-	}
-	return input;
-};
-
-const throwError = function (err) {
-    process.stderr.write (err + '\n');
-    process.exit (1);
-};
-
-const web3Error = function (err) {
-    throwError (err.toString ())
-};
+const {web3Error, getContractArtifact, createNetworkPropsForUser, getContractAddress} = require("./helpers/utils");
 
 async function main () {
+    const { network, provider, web3 } = createNetworkPropsForUser(DEPLOYER, NETWORK)
 
-    const ERC721_ADDRESS = fs.readFileSync ('./data/' + NETWORK + '.' + SAMPLE_ERC721 + '.address', 'utf8').trim ();
+    const SAMPLE_ERC721 = 'SampleERC721';
+    const SAMPLE_ERC721_CONTRACT = getContractArtifact(SAMPLE_ERC721)
+    const ERC721_ADDRESS = getContractAddress(NETWORK, SAMPLE_ERC721)
 
-    const FACTORY = new web3.eth.Contract (
+    const HOLOGRAPH_ERC721 = 'HolographERC721';
+    const HOLOGRAPH_ERC721_CONTRACT = getContractArtifact(HOLOGRAPH_ERC721)
+
+    const HOLOGRAPHER = 'Holographer';
+    const HOLOGRAPHER_CONTRACT = getContractArtifact(HOLOGRAPHER)
+
+    const HOLOGRAPH_ERC721_CONTRACT_FACTORY = new web3.eth.Contract (
         SAMPLE_ERC721_CONTRACT.abi.concat (HOLOGRAPHER_CONTRACT.abi).concat (HOLOGRAPH_ERC721_CONTRACT.abi),
         ERC721_ADDRESS
     );
-
 
 // Deployed HolographGenesis Contract : 0xF7341fFb78ff58ba396e50e3dCF3ac99AD05F9f0
 // holographRegistryAddress 0x9dff1eb7d89d28aff0b130cc7a2ac72baa684d70
@@ -84,56 +47,56 @@ async function main () {
 
     console.log ("\n");
 
-    console.log ('getHolographEnforcer', await FACTORY.methods.getHolographEnforcer ().call ({
+    console.log ('getHolographEnforcer', await HOLOGRAPH_ERC721_CONTRACT_FACTORY.methods.getHolographEnforcer ().call ({
         chainId: network.chain,
         from: provider.addresses [0],
         gas: web3.utils.toHex (1000000),
         gasPrice: web3.utils.toHex (web3.utils.toWei (GAS, 'gwei'))
     }).catch (web3Error));
 
-    console.log ('getSecureStorage', await FACTORY.methods.getSecureStorage ().call ({
+    console.log ('getSecureStorage', await HOLOGRAPH_ERC721_CONTRACT_FACTORY.methods.getSecureStorage ().call ({
         chainId: network.chain,
         from: provider.addresses [0],
         gas: web3.utils.toHex (1000000),
         gasPrice: web3.utils.toHex (web3.utils.toWei (GAS, 'gwei'))
     }).catch (web3Error));
 
-    console.log ('getSourceContract', await FACTORY.methods.getSourceContract ().call ({
+    console.log ('getSourceContract', await HOLOGRAPH_ERC721_CONTRACT_FACTORY.methods.getSourceContract ().call ({
         chainId: network.chain,
         from: provider.addresses [0],
         gas: web3.utils.toHex (1000000),
         gasPrice: web3.utils.toHex (web3.utils.toWei (GAS, 'gwei'))
     }).catch (web3Error));
 
-    console.log ('test', await FACTORY.methods.test ().call ({
+    console.log ('test', await HOLOGRAPH_ERC721_CONTRACT_FACTORY.methods.test ().call ({
         chainId: network.chain,
         from: provider.addresses [0],
         gas: web3.utils.toHex (1000000),
         gasPrice: web3.utils.toHex (web3.utils.toWei (GAS, 'gwei'))
     }).catch (web3Error));
 
-    console.log ('contractURI', await FACTORY.methods.contractURI ().call ({
+    console.log ('contractURI', await HOLOGRAPH_ERC721_CONTRACT_FACTORY.methods.contractURI ().call ({
         chainId: network.chain,
         from: provider.addresses [0],
         gas: web3.utils.toHex (1000000),
         gasPrice: web3.utils.toHex (web3.utils.toWei (GAS, 'gwei'))
     }).catch (web3Error));
 
-    console.log ('name', await FACTORY.methods.name ().call ({
+    console.log ('name', await HOLOGRAPH_ERC721_CONTRACT_FACTORY.methods.name ().call ({
         chainId: network.chain,
         from: provider.addresses [0],
         gas: web3.utils.toHex (1000000),
         gasPrice: web3.utils.toHex (web3.utils.toWei (GAS, 'gwei'))
     }).catch (web3Error));
 
-    console.log ('symbol', await FACTORY.methods.symbol ().call ({
+    console.log ('symbol', await HOLOGRAPH_ERC721_CONTRACT_FACTORY.methods.symbol ().call ({
         chainId: network.chain,
         from: provider.addresses [0],
         gas: web3.utils.toHex (1000000),
         gasPrice: web3.utils.toHex (web3.utils.toWei (GAS, 'gwei'))
     }).catch (web3Error));
 
-    console.log ('getOriginChain', await FACTORY.methods.getOriginChain ().call ({
+    console.log ('getOriginChain', await HOLOGRAPH_ERC721_CONTRACT_FACTORY.methods.getOriginChain ().call ({
         chainId: network.chain,
         from: provider.addresses [0],
         gas: web3.utils.toHex (1000000),
