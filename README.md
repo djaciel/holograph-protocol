@@ -45,4 +45,4 @@ End to end testing can be done with `sh _deploy.sh`.
 
 The deployment script will accomplish the following: deploy the entire protocol on both chains, create the same collection on each chain, set `.env $NETWORK` chain as original chain, mint sample NFTs on origin chain, and on foreign chain, test basic info validation, and simple functionality like `transferFrom`.
 
-Once the deployment has been done, multi-chain transfers can be tested with `sh _bridge.sh` **NOT FINISHED YET, TO BE COMPLETED...**
+Once the deployment has been done, multi-chain transfers can be tested with `sh _bridge.sh`. This script tests `bridgeOut` and `bridgeIn` requests between `NETWORK` and `NETWORK2`.
