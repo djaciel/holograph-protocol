@@ -19,10 +19,10 @@ async function main () {
 
 // HolographERC721
         const HOLOGRAPH_ERC721 = 'HolographERC721';
-        const HOLOGRAPH_ERC721_CONTRACT = getContractArtifact(HOLOGRAPH_ERC721)
+        const HOLOGRAPH_ERC721_ARTIFACT = getContractArtifact(HOLOGRAPH_ERC721)
         const holographErc721DeploymentResult = await GENESIS_FACTORY.methods.deploy (
             salt, // bytes12 saltHash
-            '0x' + HOLOGRAPH_ERC721_CONTRACT.bin, // bytes memory sourceCode
+            '0x' + HOLOGRAPH_ERC721_ARTIFACT.bin, // bytes memory sourceCode
             web3.eth.abi.encodeParameters (
                 ['string', 'string', 'uint16', 'uint256', 'bytes'],
                 [
@@ -52,14 +52,14 @@ async function main () {
             web3,
             senderAddress: provider.addresses[0],
             salt,
-            contractByteCode: HOLOGRAPH_ERC721_CONTRACT.bin
+            contractByteCode: HOLOGRAPH_ERC721_ARTIFACT.bin
         })
 
 
         if (!holographErc721DeploymentResult.status) {
             throwError (JSON.stringify (holographErc721DeploymentResult, null, 4));
         }
-        if ('0x' + HOLOGRAPH_ERC721_CONTRACT ['bin-runtime'] != await web3.eth.getCode (holographErc721Address)) {
+        if ('0x' + HOLOGRAPH_ERC721_ARTIFACT ['bin-runtime'] != await web3.eth.getCode (holographErc721Address)) {
             throwError ('Could not properly compute CREATE2 address for holographErc721Address');
         }
         saveContractResult(NETWORK, HOLOGRAPH_ERC721, holographErc721Address)

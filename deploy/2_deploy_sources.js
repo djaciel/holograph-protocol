@@ -26,11 +26,11 @@ async function main () {
 
 // HolographRegistry
         const HOLOGRAPH_REGISTRY = 'HolographRegistry';
-        const HOLOGRAPH_REGISTRY_CONTRACT = getContractArtifact(HOLOGRAPH_REGISTRY)
+        const HOLOGRAPH_REGISTRY_ARTIFACT = getContractArtifact(HOLOGRAPH_REGISTRY)
 
         const holographRegistryDeploymentResult = await GENESIS_FACTORY.methods.deploy (
             salt, // bytes12 saltHash
-            '0x' + HOLOGRAPH_REGISTRY_CONTRACT.bin, // bytes memory sourceCode
+            '0x' + HOLOGRAPH_REGISTRY_ARTIFACT.bin, // bytes memory sourceCode
             web3.eth.abi.encodeParameters (
                 ['bytes32[]'],
                 [[]]
@@ -42,13 +42,13 @@ async function main () {
             web3,
             senderAddress: provider.addresses[0],
             salt,
-            contractByteCode: HOLOGRAPH_REGISTRY_CONTRACT.bin
+            contractByteCode: HOLOGRAPH_REGISTRY_ARTIFACT.bin
         })
 
         if (!holographRegistryDeploymentResult.status) {
             throwError (JSON.stringify (holographRegistryDeploymentResult, null, 4));
         }
-        if ('0x' + HOLOGRAPH_REGISTRY_CONTRACT ['bin-runtime'] != await web3.eth.getCode (holographRegistryAddress)) {
+        if ('0x' + HOLOGRAPH_REGISTRY_ARTIFACT ['bin-runtime'] != await web3.eth.getCode (holographRegistryAddress)) {
             throwError ('Could not properly compute CREATE2 address for holographRegistryAddress');
         }
 
