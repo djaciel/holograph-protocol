@@ -1,9 +1,9 @@
 {
-  "name": "BRIDGE",
-  "version": "0.0.1",
-  "description": "CXIP NFT BRIDGE",
+  "name": "Holograph Bridge Protocol",
+  "version": "1.0.0",
+  "description": "The Holograph Bridge Protocol - solidity smart contracts",
   "license": "UNLICENSED",
-  "author": "vitto.io",
+  "author": "thisisvitto",
   "main": "index.js",
   "scripts": {
     "abi": "rm -fr ./abi ; mkdir ./abi ; node ./scripts/abi.js",
