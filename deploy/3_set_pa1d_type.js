@@ -1,27 +1,24 @@
 'use strict';
+const fs = require ('fs');
 const {
     NETWORK,
     GAS,
     DEPLOYER
 } = require ('../config/env');
-const {throwError, web3Error, getContractArtifact, createNetworkPropsForUser,
-    getContractAddress, createFactoryAtAddress
+const {throwError, web3Error, createNetworkPropsForUser, createFactoryAtAddress
 } = require("./helpers/utils");
+const {getHolographRegistryProxyContract, getHolographRegistryContract, getPA1DContract} = require("./helpers/contracts");
 
 async function main () {
     const { network, provider, web3 } = createNetworkPropsForUser(DEPLOYER, NETWORK)
 
-    const HOLOGRAPH_REGISTRY_PROXY = 'HolographRegistryProxy';
-    const HOLOGRAPH_REGISTRY_PROXY_ADDRESS = getContractAddress(NETWORK, HOLOGRAPH_REGISTRY_PROXY)
+    const HOLOGRAPH_REGISTRY_PROXY = getHolographRegistryProxyContract(web3, NETWORK)
+    const HOLOGRAPH_REGISTRY = getHolographRegistryContract(web3, NETWORK)
+    const PA1D = getPA1DContract(web3, NETWORK)
 
-    const HOLOGRAPH_REGISTRY = 'HolographRegistry';
-    const HOLOGRAPH_REGISTRY_ARTIFACT = getContractArtifact(HOLOGRAPH_REGISTRY)
+    const HOLOGRAPH_REGISTRY_FACTORY = createFactoryAtAddress(web3, HOLOGRAPH_REGISTRY.artifact.abi, HOLOGRAPH_REGISTRY_PROXY.address)
 
-    const PA1D = 'PA1D';
-    const PA1D_ADDRESS = getContractAddress(NETWORK, PA1D)
-    const HOLOGRAPH_REGISTRY_FACTORY = createFactoryAtAddress(web3, HOLOGRAPH_REGISTRY_ARTIFACT.abi, HOLOGRAPH_REGISTRY_PROXY_ADDRESS)
-
-    const setContractTypeAddressResult2 = await HOLOGRAPH_REGISTRY_FACTORY.methods.setContractTypeAddress('0x0000000000000000000000000000000000000000000000000000000050413144', PA1D_ADDRESS).send ({
+    const setContractTypeAddressResult2 = await HOLOGRAPH_REGISTRY_FACTORY.methods.setContractTypeAddress('0x0000000000000000000000000000000000000000000000000000000050413144', PA1D.address).send ({
         chainId: network.chain,
         from: provider.addresses [0],
         gas: web3.utils.toHex (1000000),

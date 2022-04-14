@@ -67,6 +67,12 @@ function getPA1DContract(web3, networkName) {
     return getContractByName(web3, networkName, name)
 }
 
+function getHolographERC721Contract(web3, networkName) {
+    const name = 'HolographERC721';
+    return getContractByName(web3, networkName, name)
+}
+
+
 
 module.exports = {
     getContractByName,
@@ -80,5 +86,6 @@ module.exports = {
     getHolographFactoryProxyContract,
     getHolographBridgeContract,
     getHolographBridgeProxyContract,
-    getPA1DContract
+    getPA1DContract,
+    getHolographERC721Contract
 }

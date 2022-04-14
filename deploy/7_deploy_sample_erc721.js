@@ -1,4 +1,5 @@
 'use strict';
+const fs = require ('fs');
 const {
     NETWORK,
     GAS,
@@ -12,14 +13,14 @@ async function main () {
     const { network, provider, web3 } = createNetworkPropsForUser(DEPLOYER, NETWORK)
 
     const SAMPLE_ERC721 = 'SampleERC721';
-    const SAMPLE_ERC721_ARTIFACT = getContractArtifact(SAMPLE_ERC721)
+    const SAMPLE_ERC721_CONTRACT = getContractArtifact(SAMPLE_ERC721)
 
     const HOLOGRAPH_FACTORY = 'HolographFactory';
-    const HOLOGRAPH_FACTORY_ARTIFACT = getContractArtifact(HOLOGRAPH_FACTORY)
+    const HOLOGRAPH_FACTORY_CONTRACT = getContractArtifact(HOLOGRAPH_FACTORY)
 
     const HOLOGRAPH_FACTORY_PROXY = 'HolographFactoryProxy';
     const HOLOGRAPH_FACTORY_PROXY_ADDRESS = getContractAddress(NETWORK, HOLOGRAPH_FACTORY_PROXY)
-    const HOLOGRAPH_FACTORY_PROXY_FACTORY = createFactoryAtAddress(web3, HOLOGRAPH_FACTORY_ARTIFACT.abi, HOLOGRAPH_FACTORY_PROXY_ADDRESS)
+    const HOLOGRAPH_FACTORY_PROXY_FACTORY = createFactoryAtAddress(web3, HOLOGRAPH_FACTORY_CONTRACT.abi, HOLOGRAPH_FACTORY_PROXY_ADDRESS)
 
     let config = [
         '0x0000000000000000000000000000000000486f6c6f6772617068455243373231', // bytes32 contractType
@@ -27,7 +28,7 @@ async function main () {
         // this is to see the differences in how tokens are managed between chains
         hexify ((4294967295).toString (16).padStart (8, '0'), true), // uint32 chainType
         '0x0000000000000000000000000000000000000000000000000000000000000000', // bytes32 salt
-        hexify (SAMPLE_ERC721_ARTIFACT.bin, true), // bytes byteCode
+        hexify (SAMPLE_ERC721_CONTRACT.bin, true), // bytes byteCode
         web3.eth.abi.encodeParameters (
             ['string', 'string', 'uint16', 'uint256', 'bytes'],
             [
