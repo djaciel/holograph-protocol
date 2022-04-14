@@ -1,5 +1,4 @@
 'use strict';
-const fs = require ('fs');
 const {
     NETWORK,
     GAS,
@@ -14,9 +13,9 @@ async function main () {
     const salt = '0x000000000000000000000000';
 
     const GENESIS = 'HolographGenesis';
-    const GENESIS_CONTRACT = getContractArtifact(GENESIS)
+    const GENESIS_ARTIFACT = getContractArtifact(GENESIS)
     const GENESIS_ADDRESS = getContractAddress(NETWORK, GENESIS)
-    const GENESIS_FACTORY = createFactoryAtAddress(web3, GENESIS_CONTRACT.abi, GENESIS_ADDRESS)
+    const GENESIS_FACTORY = createFactoryAtAddress(web3, GENESIS_ARTIFACT.abi, GENESIS_ADDRESS)
 
 // HolographERC721
         const HOLOGRAPH_ERC721 = 'HolographERC721';

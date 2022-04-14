@@ -1,6 +1,4 @@
 'use strict';
-
-const fs = require ('fs');
 const HDWalletProvider = require ('truffle-hdwallet-provider');
 const Web3 = require ('web3');
 const {
@@ -9,7 +7,7 @@ const {
     WALLET1,
     WALLET2,
 } = require ('../config/env');
-const {throwError, web3Error, getContractArtifact, getNetworkInfo} = require("./helpers/utils");
+const {throwError, web3Error, getContractArtifact, getNetworkInfo, getContractAddress} = require("./helpers/utils");
 
 async function main () {
     const network = getNetworkInfo(NETWORK)
@@ -17,17 +15,18 @@ async function main () {
     const web3 = new Web3 (provider);
 
     const SAMPLE_ERC721 = 'SampleERC721';
-    const SAMPLE_ERC721_CONTRACT = getContractArtifact(SAMPLE_ERC721)
-    const ERC721_ADDRESS = fs.readFileSync ('./data/' + NETWORK + '.' + SAMPLE_ERC721 + '.address', 'utf8').trim ();
+    const SAMPLE_ERC721_ARTIFACT = getContractArtifact(SAMPLE_ERC721)
+    const SAMPLE_ERC721_ADDRESS = getContractAddress(NETWORK, SAMPLE_ERC721)
 
     const HOLOGRAPHER = 'Holographer';
-    const HOLOGRAPHER_CONTRACT = getContractArtifact(HOLOGRAPHER)
+    const HOLOGRAPHER_ARTIFACT = getContractArtifact(HOLOGRAPHER)
+
     const HOLOGRAPH_ERC721 = 'HolographERC721';
-    const HOLOGRAPH_ERC721_CONTRACT = getContractArtifact(HOLOGRAPH_ERC721)
+    const HOLOGRAPH_ERC721_ARTIFACT = getContractArtifact(HOLOGRAPH_ERC721)
 
     const HOLOGRAPH_ERC721_CONTRACT_FACTORY = new web3.eth.Contract (
-        SAMPLE_ERC721_CONTRACT.abi.concat (HOLOGRAPHER_CONTRACT.abi).concat (HOLOGRAPH_ERC721_CONTRACT.abi),
-        ERC721_ADDRESS
+        SAMPLE_ERC721_ARTIFACT.abi.concat (HOLOGRAPHER_ARTIFACT.abi).concat (HOLOGRAPH_ERC721_ARTIFACT.abi),
+        SAMPLE_ERC721_ADDRESS
     );
 
     let tokenId = NETWORK == 'local' ? 1 : '0xFFFFFFFE00000000000000000000000000000000000000000000000000000001';

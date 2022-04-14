@@ -1,5 +1,4 @@
 'use strict';
-
 const {
     NETWORK,
     GAS,
@@ -21,9 +20,9 @@ async function main () {
     }
 
     const GENESIS = 'HolographGenesis';
-    const GENESIS_CONTRACT = getContractArtifact(GENESIS)
+    const GENESIS_ARTIFACT = getContractArtifact(GENESIS)
     const GENESIS_ADDRESS = getContractAddress(NETWORK, GENESIS)
-    const GENESIS_FACTORY = createFactoryAtAddress(web3, GENESIS_CONTRACT.abi, GENESIS_ADDRESS)
+    const GENESIS_FACTORY = createFactoryAtAddress(web3, GENESIS_ARTIFACT.abi, GENESIS_ADDRESS)
 
 // HolographRegistry
         const HOLOGRAPH_REGISTRY = 'HolographRegistry';
@@ -57,11 +56,11 @@ async function main () {
 
 // HolographRegistryProxy
         const HOLOGRAPH_REGISTRY_PROXY = 'HolographRegistryProxy';
-        const HOLOGRAPH_REGISTRY_PROXY_CONTRACT = getContractArtifact(HOLOGRAPH_REGISTRY_PROXY)
+        const HOLOGRAPH_REGISTRY_PROXY_ARTIFACT = getContractArtifact(HOLOGRAPH_REGISTRY_PROXY)
 
         const holographRegistryProxyDeploymentResult = await GENESIS_FACTORY.methods.deploy (
             salt, // bytes12 saltHash
-            '0x' + HOLOGRAPH_REGISTRY_PROXY_CONTRACT.bin, // bytes memory sourceCode
+            '0x' + HOLOGRAPH_REGISTRY_PROXY_ARTIFACT.bin, // bytes memory sourceCode
             web3.eth.abi.encodeParameters (
                 ['address', 'bytes'],
                 [
@@ -84,23 +83,23 @@ async function main () {
             web3,
             senderAddress: provider.addresses[0],
             salt,
-            contractByteCode: HOLOGRAPH_REGISTRY_PROXY_CONTRACT.bin
+            contractByteCode: HOLOGRAPH_REGISTRY_PROXY_ARTIFACT.bin
         })
 
         if (!holographRegistryProxyDeploymentResult.status) {
             throwError (JSON.stringify (holographRegistryProxyDeploymentResult, null, 4));
         }
-        if ('0x' + HOLOGRAPH_REGISTRY_PROXY_CONTRACT ['bin-runtime'] != await web3.eth.getCode (holographRegistryProxyAddress)) {
+        if ('0x' + HOLOGRAPH_REGISTRY_PROXY_ARTIFACT ['bin-runtime'] != await web3.eth.getCode (holographRegistryProxyAddress)) {
             throwError ('Could not properly compute CREATE2 address for holographRegistryProxyAddress');
         }
         saveContractResult(NETWORK, HOLOGRAPH_REGISTRY_PROXY, holographRegistryProxyAddress)
 
 // HolographFactory
         const HOLOGRAPH_FACTORY = 'HolographFactory';
-        const HOLOGRAPH_FACTORY_CONTRACT = getContractArtifact(HOLOGRAPH_FACTORY)
+        const HOLOGRAPH_FACTORY_ARTIFACT = getContractArtifact(HOLOGRAPH_FACTORY)
         const holographFactoryDeploymentResult = await GENESIS_FACTORY.methods.deploy (
             salt, // bytes12 saltHash
-            '0x' + HOLOGRAPH_FACTORY_CONTRACT.bin, // bytes memory sourceCode
+            '0x' + HOLOGRAPH_FACTORY_ARTIFACT.bin, // bytes memory sourceCode
             web3.eth.abi.encodeParameters (
                 ['address', 'address'],
                 ['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000']
@@ -117,23 +116,23 @@ async function main () {
             web3,
             senderAddress: provider.addresses[0],
             salt,
-            contractByteCode: HOLOGRAPH_FACTORY_CONTRACT.bin
+            contractByteCode: HOLOGRAPH_FACTORY_ARTIFACT.bin
         })
 
         if (!holographFactoryDeploymentResult.status) {
             throwError (JSON.stringify (holographFactoryDeploymentResult, null, 4));
         }
-        if ('0x' + HOLOGRAPH_FACTORY_CONTRACT ['bin-runtime'] != await web3.eth.getCode (holographFactoryAddress)) {
+        if ('0x' + HOLOGRAPH_FACTORY_ARTIFACT ['bin-runtime'] != await web3.eth.getCode (holographFactoryAddress)) {
             throwError ('Could not properly compute CREATE2 address for holographFactoryAddress');
         }
         saveContractResult(NETWORK, HOLOGRAPH_FACTORY, holographFactoryAddress)
 
 // SecureStorage
         const SECURE_STORAGE = 'SecureStorage';
-        const SECURE_STORAGE_CONTRACT = getContractArtifact(SECURE_STORAGE)
+        const SECURE_STORAGE_ARTIFACT = getContractArtifact(SECURE_STORAGE)
         const secureStorageDeploymentResult = await GENESIS_FACTORY.methods.deploy (
             salt, // bytes12 saltHash
-            '0x' + SECURE_STORAGE_CONTRACT.bin, // bytes memory sourceCode
+            '0x' + SECURE_STORAGE_ARTIFACT.bin, // bytes memory sourceCode
             web3.eth.abi.encodeParameters (
                 ['address'],
                 ['0x0000000000000000000000000000000000000000']
@@ -145,23 +144,23 @@ async function main () {
             web3,
             senderAddress: provider.addresses[0],
             salt,
-            contractByteCode: SECURE_STORAGE_CONTRACT.bin
+            contractByteCode: SECURE_STORAGE_ARTIFACT.bin
         })
 
         if (!secureStorageDeploymentResult.status) {
             throwError (JSON.stringify (secureStorageDeploymentResult, null, 4));
         }
-        if ('0x' + SECURE_STORAGE_CONTRACT ['bin-runtime'] != await web3.eth.getCode (secureStorageAddress)) {
+        if ('0x' + SECURE_STORAGE_ARTIFACT ['bin-runtime'] != await web3.eth.getCode (secureStorageAddress)) {
             throwError ('Could not properly compute CREATE2 address for secureStorageAddress');
         }
         saveContractResult(NETWORK, SECURE_STORAGE, secureStorageAddress)
 
 // SecureStorageProxy
         const SECURE_STORAGE_PROXY = 'SecureStorageProxy';
-        const SECURE_STORAGE_PROXY_CONTRACT = getContractArtifact(SECURE_STORAGE_PROXY)
+        const SECURE_STORAGE_PROXY_ARTIFACT = getContractArtifact(SECURE_STORAGE_PROXY)
         const secureStorageProxyDeploymentResult = await GENESIS_FACTORY.methods.deploy (
             salt, // bytes12 saltHash
-            '0x' + SECURE_STORAGE_PROXY_CONTRACT.bin, // bytes memory sourceCode
+            '0x' + SECURE_STORAGE_PROXY_ARTIFACT.bin, // bytes memory sourceCode
             web3.eth.abi.encodeParameters (
                 ['address', 'bytes'],
                 [
@@ -179,24 +178,24 @@ async function main () {
             web3,
             senderAddress: provider.addresses[0],
             salt,
-            contractByteCode: SECURE_STORAGE_PROXY_CONTRACT.bin
+            contractByteCode: SECURE_STORAGE_PROXY_ARTIFACT.bin
         })
 
 
         if (!secureStorageProxyDeploymentResult.status) {
             throwError (JSON.stringify (secureStorageProxyDeploymentResult, null, 4));
         }
-        if ('0x' + SECURE_STORAGE_PROXY_CONTRACT ['bin-runtime'] != await web3.eth.getCode (secureStorageProxyAddress)) {
+        if ('0x' + SECURE_STORAGE_PROXY_ARTIFACT ['bin-runtime'] != await web3.eth.getCode (secureStorageProxyAddress)) {
             throwError ('Could not properly compute CREATE2 address for secureStorageProxyAddress');
         }
         saveContractResult(NETWORK, SECURE_STORAGE_PROXY, secureStorageProxyAddress)
 
 // HolographFactoryProxy
         const HOLOGRAPH_FACTORY_PROXY = 'HolographFactoryProxy';
-        const HOLOGRAPH_FACTORY_PROXY_CONTRACT = getContractArtifact(HOLOGRAPH_FACTORY_PROXY)
+        const HOLOGRAPH_FACTORY_PROXY_ARTIFACT = getContractArtifact(HOLOGRAPH_FACTORY_PROXY)
         const holographFactoryProxyDeploymentResult = await GENESIS_FACTORY.methods.deploy (
             salt, // bytes12 saltHash
-            '0x' + HOLOGRAPH_FACTORY_PROXY_CONTRACT.bin, // bytes memory sourceCode
+            '0x' + HOLOGRAPH_FACTORY_PROXY_ARTIFACT.bin, // bytes memory sourceCode
             web3.eth.abi.encodeParameters (
                 ['address', 'bytes'],
                 [
@@ -214,23 +213,23 @@ async function main () {
             web3,
             senderAddress: provider.addresses[0],
             salt,
-            contractByteCode: HOLOGRAPH_FACTORY_PROXY_CONTRACT.bin
+            contractByteCode: HOLOGRAPH_FACTORY_PROXY_ARTIFACT.bin
         })
 
         if (!holographFactoryProxyDeploymentResult.status) {
             throwError (JSON.stringify (holographFactoryProxyDeploymentResult, null, 4));
         }
-        if ('0x' + HOLOGRAPH_FACTORY_PROXY_CONTRACT ['bin-runtime'] != await web3.eth.getCode (holographFactoryProxyAddress)) {
+        if ('0x' + HOLOGRAPH_FACTORY_PROXY_ARTIFACT ['bin-runtime'] != await web3.eth.getCode (holographFactoryProxyAddress)) {
             throwError ('Could not properly compute CREATE2 address for holographFactoryProxyAddress');
         }
         saveContractResult(NETWORK, HOLOGRAPH_FACTORY_PROXY, holographFactoryProxyAddress)
 
 // HolographBridge
         const HOLOGRAPH_BRIDGE = 'HolographBridge';
-        const HOLOGRAPH_BRIDGE_CONTRACT = getContractArtifact(HOLOGRAPH_BRIDGE)
+        const HOLOGRAPH_BRIDGE_ARTIFACT = getContractArtifact(HOLOGRAPH_BRIDGE)
         const holographBridgeDeploymentResult = await GENESIS_FACTORY.methods.deploy (
             salt, // bytes12 saltHash
-            '0x' + HOLOGRAPH_BRIDGE_CONTRACT.bin, // bytes memory sourceCode
+            '0x' + HOLOGRAPH_BRIDGE_ARTIFACT.bin, // bytes memory sourceCode
             web3.eth.abi.encodeParameters (
                 ['address', 'address'],
                 ['0x0000000000000000000000000000000000000000', '0x0000000000000000000000000000000000000000']
@@ -247,23 +246,23 @@ async function main () {
             web3,
             senderAddress: provider.addresses[0],
             salt,
-            contractByteCode: HOLOGRAPH_BRIDGE_CONTRACT.bin
+            contractByteCode: HOLOGRAPH_BRIDGE_ARTIFACT.bin
         })
 
         if (!holographBridgeDeploymentResult.status) {
             throwError (JSON.stringify (holographBridgeDeploymentResult, null, 4));
         }
-        if ('0x' + HOLOGRAPH_BRIDGE_CONTRACT ['bin-runtime'] != await web3.eth.getCode (holographBridgeAddress)) {
+        if ('0x' + HOLOGRAPH_BRIDGE_ARTIFACT ['bin-runtime'] != await web3.eth.getCode (holographBridgeAddress)) {
             throwError ('Could not properly compute CREATE2 address for holographBridgeAddress');
         }
         saveContractResult(NETWORK, HOLOGRAPH_BRIDGE, holographBridgeAddress)
 
 // HolographBridgeProxy
         const HOLOGRAPH_BRIDGE_PROXY = 'HolographBridgeProxy';
-        const HOLOGRAPH_BRIDGE_PROXY_CONTRACT = getContractArtifact(HOLOGRAPH_BRIDGE_PROXY)
+        const HOLOGRAPH_BRIDGE_PROXY_ARTIFACT = getContractArtifact(HOLOGRAPH_BRIDGE_PROXY)
         const holographBridgeProxyDeploymentResult = await GENESIS_FACTORY.methods.deploy (
             salt, // bytes12 saltHash
-            '0x' + HOLOGRAPH_BRIDGE_PROXY_CONTRACT.bin, // bytes memory sourceCode
+            '0x' + HOLOGRAPH_BRIDGE_PROXY_ARTIFACT.bin, // bytes memory sourceCode
             web3.eth.abi.encodeParameters (
                 ['address', 'bytes'],
                 [
@@ -281,23 +280,23 @@ async function main () {
             web3,
             senderAddress: provider.addresses[0],
             salt,
-            contractByteCode: HOLOGRAPH_BRIDGE_PROXY_CONTRACT.bin
+            contractByteCode: HOLOGRAPH_BRIDGE_PROXY_ARTIFACT.bin
         })
 
         if (!holographBridgeProxyDeploymentResult.status) {
             throwError (JSON.stringify (holographBridgeProxyDeploymentResult, null, 4));
         }
-        if ('0x' + HOLOGRAPH_BRIDGE_PROXY_CONTRACT ['bin-runtime'] != await web3.eth.getCode (holographBridgeProxyAddress)) {
+        if ('0x' + HOLOGRAPH_BRIDGE_PROXY_ARTIFACT ['bin-runtime'] != await web3.eth.getCode (holographBridgeProxyAddress)) {
             throwError ('Could not properly compute CREATE2 address for holographBridgeProxyAddress');
         }
         saveContractResult(NETWORK, HOLOGRAPH_BRIDGE_PROXY, holographBridgeProxyAddress)
 
 // Holograph
         const HOLOGRAPH = 'Holograph';
-        const HOLOGRAPH_CONTRACT = getContractArtifact(HOLOGRAPH)
+        const HOLOGRAPH_ARTIFACT = getContractArtifact(HOLOGRAPH)
         const holographDeploymentResult = await GENESIS_FACTORY.methods.deploy (
             salt, // bytes12 saltHash
-            '0x' + HOLOGRAPH_CONTRACT.bin, // bytes memory sourceCode
+            '0x' + HOLOGRAPH_ARTIFACT.bin, // bytes memory sourceCode
             web3.eth.abi.encodeParameters (
                 ['uint32', 'address', 'address', 'address', 'address'],
                 [
@@ -315,22 +314,22 @@ async function main () {
             web3,
             senderAddress: provider.addresses[0],
             salt,
-            contractByteCode: HOLOGRAPH_CONTRACT.bin
+            contractByteCode: HOLOGRAPH_ARTIFACT.bin
         })
         if (!holographDeploymentResult.status) {
             throwError (JSON.stringify (holographDeploymentResult, null, 4));
         }
-        if ('0x' + HOLOGRAPH_CONTRACT ['bin-runtime'] != await web3.eth.getCode (holographAddress)) {
+        if ('0x' + HOLOGRAPH_ARTIFACT ['bin-runtime'] != await web3.eth.getCode (holographAddress)) {
             throwError ('Could not properly compute CREATE2 address for holographAddress');
         }
         saveContractResult(NETWORK, HOLOGRAPH, holographAddress)
 
 // PA1D
         const PA1D = 'PA1D';
-        const PA1D_CONTRACT = getContractArtifact(PA1D)
+        const PA1D_ARTIFACT = getContractArtifact(PA1D)
         const pa1dDeploymentResult = await GENESIS_FACTORY.methods.deploy (
             salt, // bytes12 saltHash
-            '0x' + PA1D_CONTRACT.bin, // bytes memory sourceCode
+            '0x' + PA1D_ARTIFACT.bin, // bytes memory sourceCode
             web3.eth.abi.encodeParameters (
                 ['address', 'uint256'],
                 [provider.addresses [0], '0x0000000000000000000000000000000000000000000000000000000000000000']
@@ -347,13 +346,13 @@ async function main () {
             web3,
             senderAddress: provider.addresses[0],
             salt,
-            contractByteCode: PA1D_CONTRACT.bin
+            contractByteCode: PA1D_ARTIFACT.bin
         })
 
         if (!pa1dDeploymentResult.status) {
             throwError (JSON.stringify (pa1dDeploymentResult, null, 4));
         }
-        if ('0x' + PA1D_CONTRACT ['bin-runtime'] != await web3.eth.getCode (pa1dAddress)) {
+        if ('0x' + PA1D_ARTIFACT ['bin-runtime'] != await web3.eth.getCode (pa1dAddress)) {
             throwError ('Could not properly compute CREATE2 address for pa1dAddress');
         }
         saveContractResult(NETWORK, PA1D, pa1dAddress)

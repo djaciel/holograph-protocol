@@ -1,7 +1,6 @@
 const fs = require('fs')
 const HDWalletProvider = require('truffle-hdwallet-provider')
 const Web3 = require('web3')
-const {NETWORK} = require("../../config/env");
 
 function getContractArtifact(name) {
     const isProxy = name.toLowerCase().includes("proxy");
@@ -58,6 +57,17 @@ function createFactoryAtAddress(web3, abi, address) {
     );
 }
 
+function createCombinedFactoryAtAddress(web3, artifacts, address) {
+    if(artifacts.length > 2) {
+        throw new Error(`Cannot combine more than two ABI's at a time`)
+    }
+    const result = artifacts[0].abi.concat(artifacts[1].abi)
+    return new web3.eth.Contract(
+        result,
+        address
+    )
+}
+
 function saveContractResult(networkName, contractName, contractAddress) {
     fs.writeFileSync (
         './data/' + networkName + '.' + contractName + '.address',
@@ -105,6 +115,31 @@ const generateExpectedAddress = function({genesisAddress, web3, senderAddress, s
     )).substring (24);
 }
 
+const setEvents = function (events) {
+    if (events.length < (32 * 8)) {
+        let add = (32 * 8) - events.length;
+        events = events.concat (Array.from (
+            {
+                length: add
+            },
+            function (_, i) {
+                return false;
+            }
+        ));
+    }
+    let binary = '';
+    for (let i = 0, l = (32 * 8); i < l; i++) {
+        let e = events [i];
+        if (!e && e != 1 && e != '1' && e != 'true') {
+            binary = '0' + binary;
+        } else {
+            binary = '1' + binary;
+        }
+    }
+    return '0x' + parseInt (binary, 2).toString (16).padStart (64, '0');
+};
+
+
 
 module.exports = {
     getContractArtifact,
@@ -116,10 +151,12 @@ module.exports = {
     createNetworkPropsForUser,
     createFactoryFromABI,
     createFactoryAtAddress,
+    createCombinedFactoryAtAddress,
     saveContractResult,
     removeX,
     hexify,
     throwError,
     web3Error,
-    generateExpectedAddress
+    generateExpectedAddress,
+    setEvents
 }

@@ -6,17 +6,15 @@ const {
 } = require ('../config/env');
 const {getContractArtifact, createFactoryFromABI, saveContractResult, createNetworkPropsForUser} = require("./helpers/utils");
 
-const ContractName = 'HolographGenesis';
-const HolographGenesisArtifact = getContractArtifact(ContractName)
-
 const { network, provider, web3 } = createNetworkPropsForUser(DEPLOYER, NETWORK)
 
-let HolographGenesisContract = createFactoryFromABI(web3, HolographGenesisArtifact.abi)
-let BYTECODE = HolographGenesisArtifact.bin;
+const ContractName = 'HolographGenesis';
+const HolographGenesisArtifact = getContractArtifact(ContractName)
+const HolographGenesisContract = createFactoryFromABI(web3, HolographGenesisArtifact.abi)
 
 // Function Call
 HolographGenesisContract.deploy ({
-    data: BYTECODE,
+    data: HolographGenesisArtifact.bin,
     arguments: []
 }).send ({
     chainId: network.chain,

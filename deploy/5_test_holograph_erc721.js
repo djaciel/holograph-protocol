@@ -1,5 +1,4 @@
 'use strict';
-const fs = require ('fs');
 const {
     NETWORK,
     GAS,
@@ -11,10 +10,10 @@ async function main () {
     const { network, provider, web3 } = createNetworkPropsForUser(DEPLOYER, NETWORK)
 
     const HOLOGRAPH_ERC721 = 'HolographERC721';
-    const HOLOGRAPH_ERC721_CONTRACT = getContractArtifact(HOLOGRAPH_ERC721)
+    const HOLOGRAPH_ERC721_ARTIFACT = getContractArtifact(HOLOGRAPH_ERC721)
 
     const HOLOGRAPH_ERC721_ADDRESS = getContractAddress(NETWORK, HOLOGRAPH_ERC721)
-    const HOLOGRAPH_ERC721_FACTORY = createFactoryAtAddress(web3, HOLOGRAPH_ERC721_CONTRACT.abi, HOLOGRAPH_ERC721_ADDRESS)
+    const HOLOGRAPH_ERC721_FACTORY = createFactoryAtAddress(web3, HOLOGRAPH_ERC721_ARTIFACT.abi, HOLOGRAPH_ERC721_ADDRESS)
 
     console.log ("\n");
 

@@ -1,5 +1,4 @@
 'use strict';
-const fs = require ('fs');
 const {
     NETWORK,
     GAS,
@@ -16,11 +15,11 @@ async function main () {
     const HOLOGRAPH_REGISTRY_PROXY_ADDRESS = getContractAddress(NETWORK, HOLOGRAPH_REGISTRY_PROXY)
 
     const HOLOGRAPH_REGISTRY = 'HolographRegistry';
-    const HOLOGRAPH_REGISTRY_CONTRACT = getContractArtifact(HOLOGRAPH_REGISTRY)
+    const HOLOGRAPH_REGISTRY_ARTIFACT = getContractArtifact(HOLOGRAPH_REGISTRY)
 
     const HOLOGRAPH_ERC721 = 'HolographERC721';
     const HOLOGRAPH_ERC721_ADDRESS = getContractAddress(NETWORK, HOLOGRAPH_ERC721)
-    const HOLOGRAPH_REGISTRY_FACTORY = createFactoryAtAddress(web3, HOLOGRAPH_REGISTRY_CONTRACT.abi, HOLOGRAPH_REGISTRY_PROXY_ADDRESS)
+    const HOLOGRAPH_REGISTRY_FACTORY = createFactoryAtAddress(web3, HOLOGRAPH_REGISTRY_ARTIFACT.abi, HOLOGRAPH_REGISTRY_PROXY_ADDRESS)
 
     const setContractTypeAddressResult = await HOLOGRAPH_REGISTRY_FACTORY.methods.setContractTypeAddress('0x0000000000000000000000000000000000486f6c6f6772617068455243373231', HOLOGRAPH_ERC721_ADDRESS).send ({
         chainId: network.chain,
