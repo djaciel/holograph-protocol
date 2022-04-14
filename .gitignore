@@ -14,3 +14,6 @@ keys2.json
 
 .original.env
 .original.mnemonic
+
+# ignore any file by prepending "ignore." to it
+ignore.*
