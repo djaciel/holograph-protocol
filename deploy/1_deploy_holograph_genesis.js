@@ -1,28 +1,20 @@
 'use strict';
-
-const fs = require ('fs');
-const HDWalletProvider = require ('truffle-hdwallet-provider');
-const Web3 = require ('web3');
 const {
     NETWORK,
     GAS,
     DEPLOYER
 } = require ('../config/env');
+const {getContractArtifact, createFactoryFromABI, saveContractResult, createNetworkPropsForUser} = require("./helpers/utils");
 
-const NAME = 'HolographGenesis';
+const { network, provider, web3 } = createNetworkPropsForUser(DEPLOYER, NETWORK)
 
-const FACTORY_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts [NAME + '.sol:' + NAME];
-
-const network = JSON.parse (fs.readFileSync ('./networks.json', 'utf8')) [NETWORK];
-const provider = new HDWalletProvider (DEPLOYER, network.rpc);
-const web3 = new Web3 (provider);
-
-let FACTORY = new web3.eth.Contract (FACTORY_CONTRACT.abi);
-let BYTECODE = FACTORY_CONTRACT.bin;
+const ContractName = 'HolographGenesis';
+const HolographGenesisArtifact = getContractArtifact(ContractName)
+const HolographGenesisContract = createFactoryFromABI(web3, HolographGenesisArtifact.abi)
 
 // Function Call
-FACTORY.deploy ({
-    data: BYTECODE,
+HolographGenesisContract.deploy ({
+    data: HolographGenesisArtifact.bin,
     arguments: []
 }).send ({
     chainId: network.chain,
@@ -32,11 +24,7 @@ FACTORY.deploy ({
 }, function (err, transactionHash) {
     console.log ('Transaction Hash :', transactionHash);
 })
-.then (function (newContractInstance) {
-    fs.writeFileSync (
-        './data/' + NETWORK + '.' + NAME + '.address',
-        newContractInstance.options.address
-    );
-    console.log ('Deployed ' + NAME + ' Contract : ' + newContractInstance.options.address);
-    process.exit ();
-});
+.then (function (contractInstance) {
+    saveContractResult(NETWORK, ContractName, contractInstance.options.address)
+    process.exit();
+})

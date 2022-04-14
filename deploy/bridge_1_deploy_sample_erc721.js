@@ -1,8 +1,4 @@
 'use strict';
-
-const fs = require ('fs');
-const HDWalletProvider = require ('truffle-hdwallet-provider');
-const Web3 = require ('web3');
 const {
     NETWORK,
     NETWORK2,
@@ -10,106 +6,39 @@ const {
     WALLET1,
     WALLET2
 } = require ('../config/env');
-
-const HOLOGRAPH = 'Holograph';
-const HOLOGRAPH_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts [HOLOGRAPH + '.sol:' + HOLOGRAPH];
-
-const HOLOGRAPH_BRIDGE = 'HolographBridge';
-const HOLOGRAPH_BRIDGE_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts [HOLOGRAPH_BRIDGE + '.sol:' + HOLOGRAPH_BRIDGE];
-
-const HOLOGRAPH_FACTORY = 'HolographFactory';
-const HOLOGRAPH_FACTORY_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts [HOLOGRAPH_FACTORY + '.sol:' + HOLOGRAPH_FACTORY];
-
-const HOLOGRAPH_BRIDGE_PROXY = 'HolographBridgeProxy';
-const HOLOGRAPH_BRIDGE_PROXY_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts ['proxy/' + HOLOGRAPH_BRIDGE_PROXY + '.sol:' + HOLOGRAPH_BRIDGE_PROXY];
-
-const SAMPLE_ERC721 = 'SampleERC721';
-const SAMPLE_ERC721_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts [SAMPLE_ERC721 + '.sol:' + SAMPLE_ERC721];
-
-const MULTICHAIN_ERC721 = 'MultichainERC721';
-
-const network1 = JSON.parse (fs.readFileSync ('./networks.json', 'utf8')) [NETWORK];
-const network2 = JSON.parse (fs.readFileSync ('./networks.json', 'utf8')) [NETWORK2];
-const provider1 = new HDWalletProvider (WALLET1, network1.rpc);
-const provider2 = new HDWalletProvider (WALLET2, network2.rpc);
-const web3_1 = new Web3 (provider1);
-const web3_2 = new Web3 (provider2);
-
-const removeX = function (input) {
-    if (input.startsWith ('0x')) {
-        return input.substring (2);
-    } else {
-        return input;
-    }
-};
-
-const hexify = function (input, prepend) {
-	input = input.toLowerCase ().trim ();
-	if (input.startsWith ('0x')) {
-		input = input.substring (2);
-	}
-	input = input.replace (/[^0-9a-f]/g, '');
-	if (prepend) {
-	    input = '0x' + input;
-	}
-	return input;
-};
-
-const throwError = function (err) {
-    process.stderr.write (err + '\n');
-    process.exit (1);
-};
-
-const web3Error = function (err) {
-    throwError (err.toString ())
-};
-
-// we expect a 32 * 8 array of booleans or 0-1 integers
-const setEvents = function (events) {
-    if (events.length < (32 * 8)) {
-        let add = (32 * 8) - events.length;
-        events = events.concat (Array.from (
-            {
-                length: add
-            },
-            function (_, i) {
-                return false;
-            }
-        ));
-    }
-    let binary = '';
-    for (let i = 0, l = (32 * 8); i < l; i++) {
-        let e = events [i];
-        if (!e && e != 1 && e != '1' && e != 'true') {
-            binary = '0' + binary;
-        } else {
-            binary = '1' + binary;
-        }
-    }
-    return '0x' + parseInt (binary, 2).toString (16).padStart (64, '0');
-};
+const {hexify, removeX, throwError, web3Error, setEvents, getContractArtifact, getContractAddress,
+    createFactoryAtAddress, createCombinedFactoryAtAddress, createNetworkPropsForUser, saveContractResult
+} = require("./helpers/utils");
 
 async function main () {
+    const { network: network1, provider: provider1, web3: web3_1 } = createNetworkPropsForUser(WALLET1, NETWORK)
+    const { network: network2, provider: provider2, web3: web3_2 } = createNetworkPropsForUser(WALLET2, NETWORK2)
 
-    const HOLOGRAPH_BRIDGE_PROXY_ADDRESS = await (new web3_1.eth.Contract (
-        HOLOGRAPH_CONTRACT.abi,
-        fs.readFileSync ('./data/' + NETWORK + '.' + HOLOGRAPH + '.address', 'utf8').trim ()
-    )).methods.getBridge ().call ({
+    const HOLOGRAPH = 'Holograph';
+    const HOLOGRAPH_ARTIFACT = getContractArtifact(HOLOGRAPH)
+    const HOLOGRAPH_ADDRESS = getContractAddress(NETWORK, HOLOGRAPH)
+    const HOLOGRAPH_FACTORY_WEB3_1 = createFactoryAtAddress(web3_1, HOLOGRAPH_ARTIFACT.abi, HOLOGRAPH_ADDRESS)
+
+    const HOLOGRAPH_BRIDGE_PROXY_ADDRESS = await (HOLOGRAPH_FACTORY_WEB3_1).methods.getBridge().call ({
         chainId: network1.chain,
         from: provider1.addresses [0],
         gas: web3_1.utils.toHex (5000000),
         gasPrice: web3_1.utils.toHex (web3_1.utils.toWei (GAS, 'gwei'))
-    }).catch (web3Error);
+    }).catch(web3Error);
 
-    const FACTORY1 = new web3_1.eth.Contract (
-        HOLOGRAPH_BRIDGE_CONTRACT.abi.concat (HOLOGRAPH_FACTORY_CONTRACT.abi),
-        HOLOGRAPH_BRIDGE_PROXY_ADDRESS
-    );
+    const HOLOGRAPH_BRIDGE = 'HolographBridge';
+    const HOLOGRAPH_BRIDGE_ARTIFACT = getContractArtifact(HOLOGRAPH_BRIDGE)
 
-    const FACTORY2 = new web3_2.eth.Contract (
-        HOLOGRAPH_BRIDGE_CONTRACT.abi.concat (HOLOGRAPH_FACTORY_CONTRACT.abi),
-        HOLOGRAPH_BRIDGE_PROXY_ADDRESS
-    );
+    const HOLOGRAPH_FACTORY = 'HolographFactory';
+    const HOLOGRAPH_FACTORY_ARTIFACT = getContractArtifact(HOLOGRAPH_FACTORY)
+
+    //NOTE HOLOGRAPH_BRIDGE_PROXY_ADDRESS has been deployed to both chains already
+    const FACTORY1 = createCombinedFactoryAtAddress(web3_1, [HOLOGRAPH_BRIDGE_ARTIFACT, HOLOGRAPH_FACTORY_ARTIFACT], HOLOGRAPH_BRIDGE_PROXY_ADDRESS)
+    const FACTORY2 = createCombinedFactoryAtAddress(web3_2, [HOLOGRAPH_BRIDGE_ARTIFACT, HOLOGRAPH_FACTORY_ARTIFACT], HOLOGRAPH_BRIDGE_PROXY_ADDRESS)
+
+    const MULTICHAIN_ERC721 = 'MultichainERC721';
+    const SAMPLE_ERC721 = 'SampleERC721';
+    const SAMPLE_ERC721_ARTIFACT = getContractArtifact(SAMPLE_ERC721)
 
     let config = [
         '0x0000000000000000000000000000000000486f6c6f6772617068455243373231', // bytes32 contractType
@@ -117,7 +46,7 @@ async function main () {
         hexify ((network1.holographId).toString (16).padStart (8, '0'), true), // uint32 chainType
         // we use current timestamp to create a guaranteed unique config
         hexify (Date.now ().toString (16).padStart (64, '0'), true), // bytes32 salt
-        hexify (SAMPLE_ERC721_CONTRACT.bin, true), // bytes byteCode
+        hexify (SAMPLE_ERC721_ARTIFACT.bin, true), // bytes byteCode
         web3_1.eth.abi.encodeParameters (
             ['string', 'string', 'uint16', 'uint256', 'bytes'],
             [
@@ -169,11 +98,6 @@ async function main () {
     if (parseInt (signature [2], 16) < 27) {
         signature [2] = '0x' + (parseInt (signature [2], 16) + 27).toString (16);
     }
-//     console.log (
-//         config,
-//         signature,
-//         provider1.addresses [0]
-//     );
 
     const deploySampleErc721Result = await FACTORY1.methods.deployIn (web3_1.eth.abi.encodeParameters (
         ['tuple(bytes32,uint32,bytes32,bytes,bytes)', 'tuple(bytes32,bytes32,uint8)', 'address'],
@@ -188,11 +112,8 @@ async function main () {
         throwError (JSON.stringify (deploySampleErc721Result, null, 4));
     } else {
         let sampleErc721Address = deploySampleErc721Result.events.BridgeableContractDeployed.returnValues.contractAddress;
-        fs.writeFileSync (
-            './data/' + NETWORK + '.' + MULTICHAIN_ERC721 + '.address',
-            sampleErc721Address
-        );
-        console.log ('Deployed', NETWORK, 'SampleERC721', sampleErc721Address);
+
+        saveContractResult(NETWORK, MULTICHAIN_ERC721, sampleErc721Address)
     }
 
     const deploySampleErc721Result2 = await FACTORY2.methods.deployIn (web3_2.eth.abi.encodeParameters (
@@ -208,11 +129,8 @@ async function main () {
         throwError (JSON.stringify (deploySampleErc721Result2, null, 4));
     } else {
         let sampleErc721Address2 = deploySampleErc721Result2.events.BridgeableContractDeployed.returnValues.contractAddress;
-        fs.writeFileSync (
-            './data/' + NETWORK2 + '.' + MULTICHAIN_ERC721 + '.address',
-            sampleErc721Address2
-        );
-        console.log ('Deployed', NETWORK2, 'SampleERC721', sampleErc721Address2);
+        saveContractResult(NETWORK2, MULTICHAIN_ERC721, sampleErc721Address2)
+
     }
 
     process.exit ();

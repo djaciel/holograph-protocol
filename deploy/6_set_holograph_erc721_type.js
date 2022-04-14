@@ -1,66 +1,27 @@
 'use strict';
-
-const fs = require ('fs');
-const HDWalletProvider = require ('truffle-hdwallet-provider');
-const Web3 = require ('web3');
 const {
     NETWORK,
     GAS,
     DEPLOYER
 } = require ('../config/env');
-
-const HOLOGRAPH_REGISTRY = 'HolographRegistry';
-const HOLOGRAPH_REGISTRY_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts [HOLOGRAPH_REGISTRY + '.sol:' + HOLOGRAPH_REGISTRY];
-
-const HOLOGRAPH_REGISTRY_PROXY = 'HolographRegistryProxy';
-const HOLOGRAPH_REGISTRY_PROXY_CONTRACT = JSON.parse (fs.readFileSync ('./build/combined.json')).contracts ['proxy/' + HOLOGRAPH_REGISTRY_PROXY + '.sol:' + HOLOGRAPH_REGISTRY_PROXY];
-
-const network = JSON.parse (fs.readFileSync ('./networks.json', 'utf8')) [NETWORK];
-const provider = new HDWalletProvider (DEPLOYER, network.rpc);
-const web3 = new Web3 (provider);
-
-const removeX = function (input) {
-    if (input.startsWith ('0x')) {
-        return input.substring (2);
-    } else {
-        return input;
-    }
-};
-
-const hexify = function (input, prepend) {
-	input = input.toLowerCase ().trim ();
-	if (input.startsWith ('0x')) {
-		input = input.substring (2);
-	}
-	input = input.replace (/[^0-9a-f]/g, '');
-	if (prepend) {
-	    input = '0x' + input;
-	}
-	return input;
-};
-
-const throwError = function (err) {
-    process.stderr.write (err + '\n');
-    process.exit (1);
-};
-
-const web3Error = function (err) {
-    throwError (err.toString ())
-};
+const {throwError, web3Error, getContractArtifact, createNetworkPropsForUser,
+    createFactoryAtAddress
+} = require("./helpers/utils");
+const {getHolographRegistryProxyContract, getHolographERC721Contract} = require("./helpers/contracts");
 
 async function main () {
+    const { network, provider, web3 } = createNetworkPropsForUser(DEPLOYER, NETWORK)
 
-    const HOLOGRAPH_REGISTRY_PROXY_ADDRESS = fs.readFileSync ('./data/' + NETWORK + '.' + HOLOGRAPH_REGISTRY_PROXY + '.address', 'utf8').trim ();
 
-    const HOLOGRAPH_ERC721 = 'HolographERC721';
-    const HOLOGRAPH_ERC721_ADDRESS = fs.readFileSync ('./data/' + NETWORK + '.' + HOLOGRAPH_ERC721 + '.address', 'utf8').trim ();
+    const HOLOGRAPH_REGISTRY_PROXY = getHolographRegistryProxyContract(web3, NETWORK)
 
-    const FACTORY = new web3.eth.Contract (
-        HOLOGRAPH_REGISTRY_CONTRACT.abi,
-        HOLOGRAPH_REGISTRY_PROXY_ADDRESS
-    );
+    const HOLOGRAPH_REGISTRY = 'HolographRegistry';
+    const HOLOGRAPH_REGISTRY_ARTIFACT = getContractArtifact(HOLOGRAPH_REGISTRY)
+    const HOLOGRAPH_REGISTRY_FACTORY = createFactoryAtAddress(web3, HOLOGRAPH_REGISTRY_ARTIFACT.abi, HOLOGRAPH_REGISTRY_PROXY.address) // NOTE: now how it uses the proxy address
 
-    const setContractTypeAddressResult = await FACTORY.methods.setContractTypeAddress('0x0000000000000000000000000000000000486f6c6f6772617068455243373231', HOLOGRAPH_ERC721_ADDRESS).send ({
+    const HOLOGRAPH_ERC721 = getHolographERC721Contract(web3, NETWORK)
+
+    const setContractTypeAddressResult = await HOLOGRAPH_REGISTRY_FACTORY.methods.setContractTypeAddress('0x0000000000000000000000000000000000486f6c6f6772617068455243373231', HOLOGRAPH_ERC721.address).send ({
         chainId: network.chain,
         from: provider.addresses [0],
         gas: web3.utils.toHex (1000000),
