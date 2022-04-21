@@ -136,13 +136,36 @@ async function main () {
         throwError (JSON.stringify (bridgeOutResult, null, 4));
     }
     let bridgeEvent = bridgeOutResult.events.TransferErc721.returnValues;
+    let lzEvent = bridgeOutResult.events.LzEvent.returnValues;
     let transferEvent = [
         bridgeOutResult.events.Transfer [0].returnValues,
         bridgeOutResult.events.Transfer [1].returnValues
     ];
     console.log ('from', transferEvent[0]._from, 'to', transferEvent[1]._to, 'tokenId', transferEvent[0]._tokenId, 'toChainId', bridgeEvent.toChainId, 'data', bridgeEvent.data);
 
+// LzReceive
+    const lzReceiveResult = await FACTORY2.methods.lzReceive (
+        '0xffff', // uint16 _srcChainId
+        '0x0000000000000000000000000000000000000000', // bytes calldata _srcAddress
+        '0xfffffffffffffffe', // uint64 _nonce
+        lzEvent._payload // bytes calldata _payload
+    ).send ({
+        chainId: network2.chain,
+        from: provider2.addresses [0],
+        gas: web3_2.utils.toHex (2000000),
+        gasPrice: web3_2.utils.toHex (web3_2.utils.toWei (GAS, 'gwei'))
+    }).catch (web3Error);
+    if (!lzReceiveResult.status) {
+        throwError (JSON.stringify (lzReceiveResult, null, 4));
+    }
+    let transferEvent2 = [
+        lzReceiveResult.events.Transfer [0].returnValues,
+        lzReceiveResult.events.Transfer [1].returnValues
+    ];
+    console.log ('from', transferEvent2[0]._from, 'to', transferEvent2[1]._to, 'tokenId', transferEvent2[0]._tokenId);
+
 // BridgeIn
+/*
     const bridgeInConfig = web3_1.eth.abi.decodeParameters ([
         {
             type: 'uint32',
@@ -190,6 +213,7 @@ async function main () {
         bridgeInResult.events.Transfer [1].returnValues
     ];
     console.log ('from', transferEvent2[0]._from, 'to', transferEvent2[1]._to, 'tokenId', transferEvent2[0]._tokenId);
+*/
 
 // Tests
     console.log ('tokenURI', await ERC721_1.methods.tokenURI (tokenId).call ({
