@@ -1,5 +1,5 @@
 {
-  "name": "Holograph Bridge Protocol",
+  "name": "Holograph-Bridge-Protocol",
   "version": "1.0.0",
   "description": "The Holograph Bridge Protocol - solidity smart contracts",
   "license": "UNLICENSED",
@@ -27,7 +27,7 @@
     "ganache-cli": "^6.12.2"
   },
   "engines": {
-    "node": "v16.6.1",
+    "node": "v16.14.2",
     "npm": "7.20.3"
   }
 }
