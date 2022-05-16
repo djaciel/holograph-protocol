@@ -1,6 +1,6 @@
 HOLOGRAPH_LICENSE_HEADER
 
-pragma solidity 0.8.11;
+SOLIDITY_COMPILER_VERSION
 
 import "./abstract/Admin.sol";
 import "./abstract/Initializable.sol";
@@ -35,10 +35,12 @@ contract SecureStorage is Admin, Owner, Initializable {
     constructor() Admin(false) Owner(false) {}
 
     function init(bytes memory data) external override returns (bytes4) {
+        require(!_isInitialized(), "HOLOGRAPH: already initialized");
         (address owner) = abi.decode(data, (address));
         assembly {
             sstore(/* slot */precomputeslot('eip1967.Holograph.Bridge.owner'), owner)
         }
+        _setInitialized();
         return IInitializable.init.selector;
     }
 

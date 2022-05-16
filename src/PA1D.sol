@@ -1,6 +1,6 @@
 HOLOGRAPH_LICENSE_HEADER
 
-pragma solidity 0.8.11;
+SOLIDITY_COMPILER_VERSION
 
 import "./abstract/Admin.sol";
 import "./abstract/Initializable.sol";
@@ -45,8 +45,10 @@ contract PA1D is Admin, Owner, Initializable {
 
 
     function init(bytes memory data) external override returns (bytes4) {
+        require(!_isInitialized(), "PA1D: already initialized");
         (address receiver, uint256 bp) = abi.decode(data, (address, uint256));
         setRoyalties(0, payable(receiver), bp);
+        _setInitialized();
         return IInitializable.init.selector;
     }
 

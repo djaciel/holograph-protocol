@@ -101,16 +101,16 @@
 
 */
 
-pragma solidity 0.8.11;
+pragma solidity 0.8.12;
 
 abstract contract Admin {
 
     constructor (bool useSender) {
-        address admin = (useSender ? msg.sender : tx.origin);
+        address adminAddress = (useSender ? msg.sender : tx.origin);
         // The slot hash has been precomputed for gas optimizaion
         // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.admin')) - 1);
         assembly {
-            sstore(/* slot */0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, admin)
+            sstore(/* slot */0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, adminAddress)
         }
     }
 
@@ -119,19 +119,23 @@ abstract contract Admin {
         _;
     }
 
-    function getAdmin() public view returns (address admin) {
+    function admin() public view returns (address) {
+        return getAdmin();
+    }
+
+    function getAdmin() public view returns (address adminAddress) {
         // The slot hash has been precomputed for gas optimizaion
         // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.admin')) - 1);
         assembly {
-            admin := sload(/* slot */0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d)
+            adminAddress := sload(/* slot */0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d)
         }
     }
 
-    function setAdmin(address admin) public onlyAdmin {
+    function setAdmin(address adminAddress) public onlyAdmin {
         // The slot hash has been precomputed for gas optimizaion
         // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.admin')) - 1);
         assembly {
-            sstore(/* slot */0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, admin)
+            sstore(/* slot */0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, adminAddress)
         }
     }
 

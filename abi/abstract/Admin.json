@@ -1,11 +1,24 @@
 [
     {
         "inputs": [],
+        "name": "admin",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "getAdmin",
         "outputs": [
             {
                 "internalType": "address",
-                "name": "admin",
+                "name": "adminAddress",
                 "type": "address"
             }
         ],
@@ -16,7 +29,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "admin",
+                "name": "adminAddress",
                 "type": "address"
             }
         ],

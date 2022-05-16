@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity >=0.5.0;
+SOLIDITY_COMPILER_VERSION
 
 import "./ILayerZeroUserApplicationConfig.sol";
 

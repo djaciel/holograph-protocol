@@ -1,8 +1,20 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.11;
+pragma solidity 0.8.12;
+
+import "../enum/HolographERC20Event.sol";
+import "../enum/HolographERC721Event.sol";
 
 library Booleans {
+
+    function get(uint256 _packedBools, HolographERC20Event _eventName) internal pure returns (bool) {
+        return get(_packedBools, uint256(_eventName));
+    }
+
+    function get(uint256 _packedBools, HolographERC721Event _eventName) internal pure returns (bool) {
+        return get(_packedBools, uint256(_eventName));
+    }
+
     function get(uint256 _packedBools, uint256 _boolNumber) internal pure returns (bool) {
         uint256 flag = (_packedBools >> _boolNumber) & uint256(1);
         return (flag == 1 ? true : false);

@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.11;
+SOLIDITY_COMPILER_VERSION
 
 struct Verification {
     bytes32 r;

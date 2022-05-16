@@ -5,6 +5,19 @@
         "type": "constructor"
     },
     {
+        "inputs": [],
+        "name": "admin",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "bytes32",
@@ -28,7 +41,7 @@
         "outputs": [
             {
                 "internalType": "address",
-                "name": "admin",
+                "name": "adminAddress",
                 "type": "address"
             }
         ],
@@ -44,6 +57,25 @@
             }
         ],
         "name": "getContractTypeAddress",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint32",
+                "name": "chainId",
+                "type": "uint32"
+            }
+        ],
+        "name": "getHToken",
         "outputs": [
             {
                 "internalType": "address",
@@ -134,7 +166,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "admin",
+                "name": "adminAddress",
                 "type": "address"
             }
         ],
@@ -157,6 +189,24 @@
             }
         ],
         "name": "setContractTypeAddress",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint32",
+                "name": "chainId",
+                "type": "uint32"
+            },
+            {
+                "internalType": "address",
+                "name": "hToken",
+                "type": "address"
+            }
+        ],
+        "name": "setHToken",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

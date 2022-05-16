@@ -5,12 +5,14 @@ const web3 = new (require ('web3')) ();
 const buildDir = './src';
 const deployDir = './contracts';
 
-const { NETWORK } = require ('../config/env');
+const { NETWORK, SOLIDITY_VERSION } = require ('../config/env');
 const buildConfig = JSON.parse (fs.readFileSync ('./config/build.config.json', 'utf8'));
 const license = fs.readFileSync ('./config/license', 'utf8');
+const version = 'pragma solidity ' + SOLIDITY_VERSION + ';';
 const config = Object.assign (
     {
-        holographLicenseHeader: license
+        holographLicenseHeader: license,
+        solidityCompilerVersion: version
     },
     JSON.parse (fs.readFileSync ('./config/' + NETWORK + '.config.json', 'utf8'))
 );

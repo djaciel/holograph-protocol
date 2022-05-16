@@ -1,15 +1,15 @@
 HOLOGRAPH_LICENSE_HEADER
 
-pragma solidity 0.8.11;
+SOLIDITY_COMPILER_VERSION
 
 abstract contract Admin {
 
     constructor (bool useSender) {
-        address admin = (useSender ? msg.sender : tx.origin);
+        address adminAddress = (useSender ? msg.sender : tx.origin);
         // The slot hash has been precomputed for gas optimizaion
         // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.admin')) - 1);
         assembly {
-            sstore(/* slot */precomputeslot('eip1967.Holograph.Bridge.admin'), admin)
+            sstore(/* slot */precomputeslot('eip1967.Holograph.Bridge.admin'), adminAddress)
         }
     }
 
@@ -18,19 +18,23 @@ abstract contract Admin {
         _;
     }
 
-    function getAdmin() public view returns (address admin) {
+    function admin() public view returns (address) {
+        return getAdmin();
+    }
+
+    function getAdmin() public view returns (address adminAddress) {
         // The slot hash has been precomputed for gas optimizaion
         // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.admin')) - 1);
         assembly {
-            admin := sload(/* slot */precomputeslot('eip1967.Holograph.Bridge.admin'))
+            adminAddress := sload(/* slot */precomputeslot('eip1967.Holograph.Bridge.admin'))
         }
     }
 
-    function setAdmin(address admin) public onlyAdmin {
+    function setAdmin(address adminAddress) public onlyAdmin {
         // The slot hash has been precomputed for gas optimizaion
         // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.admin')) - 1);
         assembly {
-            sstore(/* slot */precomputeslot('eip1967.Holograph.Bridge.admin'), admin)
+            sstore(/* slot */precomputeslot('eip1967.Holograph.Bridge.admin'), adminAddress)
         }
     }
 

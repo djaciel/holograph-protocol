@@ -5,7 +5,20 @@
         "outputs": [
             {
                 "internalType": "address",
-                "name": "owner",
+                "name": "ownerAddress",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
                 "type": "address"
             }
         ],
@@ -16,7 +29,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "owner",
+                "name": "ownerAddress",
                 "type": "address"
             }
         ],

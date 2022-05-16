@@ -6,11 +6,24 @@
     },
     {
         "inputs": [],
+        "name": "admin",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "getAdmin",
         "outputs": [
             {
                 "internalType": "address",
-                "name": "admin",
+                "name": "adminAddress",
                 "type": "address"
             }
         ],
@@ -23,7 +36,7 @@
         "outputs": [
             {
                 "internalType": "address",
-                "name": "owner",
+                "name": "ownerAddress",
                 "type": "address"
             }
         ],
@@ -82,10 +95,23 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "address",
-                "name": "admin",
+                "name": "adminAddress",
                 "type": "address"
             }
         ],
@@ -98,7 +124,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "owner",
+                "name": "ownerAddress",
                 "type": "address"
             }
         ],

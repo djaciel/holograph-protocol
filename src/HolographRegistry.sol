@@ -1,12 +1,14 @@
 HOLOGRAPH_LICENSE_HEADER
 
-pragma solidity 0.8.11;
+SOLIDITY_COMPILER_VERSION
 
 import "./abstract/Admin.sol";
 import "./abstract/Initializable.sol";
 
 import "./interface/IHolograph.sol";
 import "./interface/IInitializable.sol";
+
+import "./library/ChainId.sol";
 
 /*
  * @dev This smart contract stores the different source codes that have been prepared and can be used for bridging.
@@ -37,6 +39,11 @@ contract HolographRegistry is Admin, Initializable {
     mapping(bytes32 => bool) private _reservedTypes;
 
     /*
+     * @dev Mapping of all hTokens available for the different EVM chains
+     */
+    mapping(uint32 => address) private _hTokens;
+
+    /*
      * @dev Constructor is left empty and only the admin address is set.
      */
     constructor() Admin(false) {}
@@ -45,10 +52,12 @@ contract HolographRegistry is Admin, Initializable {
      * @dev An array of initially reserved contract types for admin only to set.
      */
     function init(bytes memory data) external override returns (bytes4) {
+        require(!_isInitialized(), "HOLOGRAPH: already initialized");
         (bytes32[] memory reservedTypes) = abi.decode(data, (bytes32[]));
         for (uint256 i = 0; i < reservedTypes.length; i++) {
             _reservedTypes[reservedTypes[i]] = true;
         }
+        _setInitialized();
         return IInitializable.init.selector;
     }
 
@@ -68,6 +77,15 @@ contract HolographRegistry is Admin, Initializable {
     }
 
     /*
+     * @dev Allows Holograph Factory to register a deployed contract, referenced with deployment hash.
+     */
+    function factoryDeployedHash(bytes32 hash, address contractAddress) external {
+       require(msg.sender == IHolograph(0x20202020486f6c6f677261706841646472657373).getFactory(), "HOLOGRAPH: factory only function");
+        _holographedContractsHashMap[hash] = contractAddress;
+        _holographedContracts[contractAddress] = true;
+    }
+
+    /*
      * @dev Sets the contract address for a contract type.
      */
     function setContractTypeAddress(bytes32 contractType, address contractAddress) external onlyAdmin {
@@ -77,10 +95,11 @@ contract HolographRegistry is Admin, Initializable {
         _contractTypeAddresses[contractType] = contractAddress;
     }
 
-    function factoryDeployedHash(bytes32 hash, address contractAddress) external {
-        require(msg.sender == IHolograph(0x20202020486f6c6f677261706841646472657373).getFactory(), "HOLOGRAPH: factory only function");
-        _holographedContractsHashMap[hash] = contractAddress;
-        _holographedContracts[contractAddress] = true;
+    /*
+     * @dev Sets the hToken address for a specific chain id.
+     */
+    function setHToken(uint32 chainId, address hToken) external onlyAdmin {
+        _hTokens[chainId] = hToken;
     }
 
     /*
@@ -97,6 +116,13 @@ contract HolographRegistry is Admin, Initializable {
      */
     function getContractTypeAddress(bytes32 contractType) external view returns (address) {
         return _contractTypeAddresses[contractType];
+    }
+
+    /*
+     * @dev Returns the hToken address for a given chain id.
+     */
+    function getHToken(uint32 chainId) external view returns (address) {
+        return _hTokens[chainId];
     }
 
     function isHolographedContract(address smartContract) external view returns (bool) {

@@ -39,6 +39,25 @@
     {
         "inputs": [
             {
+                "internalType": "uint32",
+                "name": "chainId",
+                "type": "uint32"
+            }
+        ],
+        "name": "getHToken",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "hToken",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
                 "internalType": "address",
                 "name": "smartContract",
                 "type": "address"
@@ -107,6 +126,24 @@
             }
         ],
         "name": "setContractTypeAddress",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint32",
+                "name": "chainId",
+                "type": "uint32"
+            },
+            {
+                "internalType": "address",
+                "name": "hToken",
+                "type": "address"
+            }
+        ],
+        "name": "setHToken",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

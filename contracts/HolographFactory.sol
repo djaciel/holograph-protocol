@@ -101,7 +101,7 @@
 
 */
 
-pragma solidity 0.8.11;
+pragma solidity 0.8.12;
 
 import "./abstract/Admin.sol";
 import "./abstract/Initializable.sol";
@@ -136,11 +136,13 @@ contract HolographFactory is Admin, Initializable {
     constructor() Admin(false) {}
 
     function init(bytes memory data) external override returns (bytes4) {
+        require(!_isInitialized(), "HOLOGRAPH: already initialized");
         (address registry, address secureStorage) = abi.decode(data, (address, address));
         assembly {
             sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
             sstore(0xd26498b26a05274577b8ac2e3250418da53433f3ff82027428ee3c530702cdec, secureStorage)
         }
+        _setInitialized();
         return IInitializable.init.selector;
     }
 
@@ -248,7 +250,7 @@ contract HolographFactory is Admin, Initializable {
         bytes memory encodedInit = abi.encode(
             abi.encode(
                 config.chainType,
-                0xD48b092413723b86286CC6e2DF68b441491456FA,
+                0x020be79e2D5a6a0204C07970F3586dc379d142e0,
                 secureStorageAddress,
                 config.contractType,
                 sourceContractAddress

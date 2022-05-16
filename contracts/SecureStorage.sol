@@ -101,7 +101,7 @@
 
 */
 
-pragma solidity 0.8.11;
+pragma solidity 0.8.12;
 
 import "./abstract/Admin.sol";
 import "./abstract/Initializable.sol";
@@ -136,10 +136,12 @@ contract SecureStorage is Admin, Owner, Initializable {
     constructor() Admin(false) Owner(false) {}
 
     function init(bytes memory data) external override returns (bytes4) {
+        require(!_isInitialized(), "HOLOGRAPH: already initialized");
         (address owner) = abi.decode(data, (address));
         assembly {
             sstore(/* slot */0x89b583059fdb0b2e807359b64eba1a8a1e6d099210701fafe6dad5dd2cd64fb8, owner)
         }
+        _setInitialized();
         return IInitializable.init.selector;
     }
 

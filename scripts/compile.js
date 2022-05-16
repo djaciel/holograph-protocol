@@ -4,12 +4,13 @@ const fs = require ('fs');
 const exec = require ('child_process').exec;
 const contractDir = './contracts';
 
+const { NETWORK, SOLIDITY_VERSION } = require ('../config/env');
 const config = JSON.parse (
     fs.readFileSync ('./config/compiler.config.json')
 );
 
 const assembleCommand = function (config, contracts) {
-    let command = config.binary;
+    let command = config.binary.replace ('SOLIDITY_VERSION', SOLIDITY_VERSION);
     for (let i = 0, l = config.configurations.length; i < l; i++) {
         let c = config.configurations [i];
         command += ' --' + c.value;

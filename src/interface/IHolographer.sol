@@ -1,6 +1,6 @@
 HOLOGRAPH_LICENSE_HEADER
 
-pragma solidity 0.8.11;
+SOLIDITY_COMPILER_VERSION
 
 interface IHolographer {
 

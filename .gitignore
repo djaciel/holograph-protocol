@@ -5,6 +5,7 @@ db2
 node_modules
 old_code
 .env
+.env.*
 .mnemonic
 keys.json
 keys2.json
@@ -17,3 +18,12 @@ keys2.json
 
 # ignore any file by prepending "ignore." to it
 ignore.*
+
+dist
+cache
+artifacts
+typechain
+typechain-types
+
+coverage
+coverage.json

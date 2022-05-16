@@ -1,6 +1,6 @@
 HOLOGRAPH_LICENSE_HEADER
 
-pragma solidity 0.8.11;
+SOLIDITY_COMPILER_VERSION
 
 interface IHolographRegistry {
 
@@ -8,11 +8,15 @@ interface IHolographRegistry {
 
     function setContractTypeAddress(bytes32 contractType, address contractAddress) external;
 
+    function setHToken(uint32 chainId, address hToken) external;
+
     function updateReservedContractTypes(bytes32[] calldata hashes, bool[] calldata reserved) external;
 
     function getContractTypeAddress(bytes32 contractType) external view returns (address);
 
     function factoryDeployedHash(bytes32 hash, address contractAddress) external;
+
+    function getHToken(uint32 chainId) external view returns (address hToken);
 
     function isHolographedContract(address smartContract) external view returns (bool);
 

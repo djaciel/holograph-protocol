@@ -80,8 +80,21 @@
         "type": "event"
     },
     {
-        "stateMutability": "nonpayable",
+        "stateMutability": "payable",
         "type": "fallback"
+    },
+    {
+        "inputs": [],
+        "name": "admin",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
     },
     {
         "inputs": [
@@ -171,7 +184,7 @@
         "outputs": [
             {
                 "internalType": "address",
-                "name": "admin",
+                "name": "adminAddress",
                 "type": "address"
             }
         ],
@@ -203,7 +216,7 @@
         "outputs": [
             {
                 "internalType": "address",
-                "name": "owner",
+                "name": "ownerAddress",
                 "type": "address"
             }
         ],
@@ -276,7 +289,7 @@
         "outputs": [
             {
                 "internalType": "bytes4",
-                "name": "",
+                "name": "selector",
                 "type": "bytes4"
             },
             {
@@ -379,6 +392,19 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "uint256",
@@ -452,7 +478,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "admin",
+                "name": "adminAddress",
                 "type": "address"
             }
         ],
@@ -483,7 +509,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "owner",
+                "name": "ownerAddress",
                 "type": "address"
             }
         ],
@@ -820,5 +846,9 @@
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
+    },
+    {
+        "stateMutability": "payable",
+        "type": "receive"
     }
 ]

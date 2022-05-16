@@ -101,7 +101,7 @@
 
 */
 
-pragma solidity 0.8.11;
+pragma solidity 0.8.12;
 
 /// @title Holograph ERC-721 Non-Fungible Token Standard
 /// @dev See https://holograph.network/standard/ERC-721
@@ -134,10 +134,10 @@ interface HolographedERC721 {
     function beforeBurn(address _owner, uint256 _tokenId) external returns (bool success);
 
     // event id = 9
-    function afterMint() external returns (bool success);
+    function afterMint(address _owner, uint256 _tokenId) external returns (bool success);
 
     // event id = 10
-    function beforeMint() external returns (bool success);
+    function beforeMint(address _owner, uint256 _tokenId) external returns (bool success);
 
     // event id = 11
     function afterSafeTransfer(address _from, address _to, uint256 _tokenId, bytes calldata _data) external returns (bool success);
