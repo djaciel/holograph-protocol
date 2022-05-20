@@ -6,7 +6,7 @@ This license governs use of the accompanying software. If you use the software, 
 
 **1. Definitions**
 
-The terms "*reproduce,*" "*reproduction,*" "*derivative works,*" and "*distribution*" have the same meaning here as under U.S. copyright law. A "*contribution*" is the original software, or any additions or changes to the software. A "*contributor*" is any person that distributes its contribution under this license. "*Licensed patents*" are a contributor's patent claims that read directly on its contribution.
+The terms "_reproduce,_" "_reproduction,_" "_derivative works,_" and "_distribution_" have the same meaning here as under U.S. copyright law. A "_contribution_" is the original software, or any additions or changes to the software. A "_contributor_" is any person that distributes its contribution under this license. "_Licensed patents_" are a contributor's patent claims that read directly on its contribution.
 
 **2. Grant of Rights**
 
@@ -21,4 +21,4 @@ The terms "*reproduce,*" "*reproduction,*" "*derivative works,*" and "*distribut
 **D)** If you distribute any portion of the software in source code form, you may do so only under this license by including a complete copy of this license with your distribution. If you distribute any portion of the software in compiled or object code form, you may only do so under a license that complies with this license.
 **E)** The software is licensed "as-is." You bear all risks of using it. The contributors give no express warranties, guarantees, or conditions. You may have additional consumer rights under your local laws which this license cannot change. To the extent permitted under your local laws, the contributors exclude all implied warranties, including those of merchantability, fitness for a particular purpose and non-infringement.
 
-**4. (F)** Platform Limitation- The licenses granted in sections **2.A** & **2.B** extend only to the software or derivative works that you create that run on a __Holograph system product__.
+**4. (F)** Platform Limitation- The licenses granted in sections **2.A** & **2.B** extend only to the software or derivative works that you create that run on a **Holograph system product**.

@@ -101,31 +101,33 @@
 
 */
 
-pragma solidity 0.8.12;
+pragma solidity 0.8.13;
 
 import "../interface/IInitializable.sol";
 
 abstract contract Initializable is IInitializable {
+  function init(bytes memory _data) external virtual returns (bytes4);
 
-    function init(bytes memory _data) external virtual returns (bytes4);
-
-    function _isInitialized() internal view returns (bool) {
-        // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.initialized')) - 1);
-        uint256 initialized;
-        assembly {
-            initialized := sload(0x4e5f991bca30eca2d4643aaefa807e88f96a4a97398933d572a3c0d973004a01)
-        }
-        return (initialized > 0);
+  function _isInitialized() internal view returns (bool) {
+    // The slot hash has been precomputed for gas optimizaion
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.initialized')) - 1);
+    uint256 initialized;
+    assembly {
+      initialized := sload(0x4e5f991bca30eca2d4643aaefa807e88f96a4a97398933d572a3c0d973004a01)
     }
+    return (initialized > 0);
+  }
 
-    function _setInitialized() internal {
-        // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.initialized')) - 1);
-        uint256 initialized = 1;
-        assembly {
-            sstore(/* slot */0x4e5f991bca30eca2d4643aaefa807e88f96a4a97398933d572a3c0d973004a01, initialized)
-        }
+  function _setInitialized() internal {
+    // The slot hash has been precomputed for gas optimizaion
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.initialized')) - 1);
+    uint256 initialized = 1;
+    assembly {
+      sstore(
+        /* slot */
+        0x4e5f991bca30eca2d4643aaefa807e88f96a4a97398933d572a3c0d973004a01,
+        initialized
+      )
     }
-
+  }
 }

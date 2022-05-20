@@ -101,35 +101,40 @@
 
 */
 
-pragma solidity 0.8.12;
+pragma solidity 0.8.13;
 
 abstract contract NonReentrant {
+  constructor() {
+    setStatus(1);
+  }
 
-    constructor () {
-        setStatus(1);
+  modifier nonReentrant() {
+    require(getStatus() != 2, "ERC20: reentrant call");
+    setStatus(2);
+    _;
+    setStatus(1);
+  }
+
+  function getStatus() internal view returns (uint256 status) {
+    // The slot hash has been precomputed for gas optimizaion
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.reentrant')) - 1);
+    assembly {
+      status := sload(
+        /* slot */
+        0x5bf044ad06f1ee9ee2fcd7caf4e944279b877408c76c4515cca6b4e937b01334
+      )
     }
+  }
 
-    modifier nonReentrant() {
-        require(getStatus() != 2, "ERC20: reentrant call");
-        setStatus(2);
-        _;
-        setStatus(1);
+  function setStatus(uint256 status) internal {
+    // The slot hash has been precomputed for gas optimizaion
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.reentrant')) - 1);
+    assembly {
+      sstore(
+        /* slot */
+        0x5bf044ad06f1ee9ee2fcd7caf4e944279b877408c76c4515cca6b4e937b01334,
+        status
+      )
     }
-
-    function getStatus() internal view returns (uint256 status) {
-        // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.reentrant')) - 1);
-        assembly {
-            status := sload(/* slot */0x5bf044ad06f1ee9ee2fcd7caf4e944279b877408c76c4515cca6b4e937b01334)
-        }
-    }
-
-    function setStatus(uint256 status) internal {
-        // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.reentrant')) - 1);
-        assembly {
-            sstore(/* slot */0x5bf044ad06f1ee9ee2fcd7caf4e944279b877408c76c4515cca6b4e937b01334, status)
-        }
-    }
-
+  }
 }

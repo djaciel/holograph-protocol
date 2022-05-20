@@ -1,9 +1,9 @@
-// SPDX-License-Identifier: UNLICENSED
+/*HOLOGRAPH_LICENSE_HEADER*/
 
-SOLIDITY_COMPILER_VERSION
+/*SOLIDITY_COMPILER_VERSION*/
 
 struct Verification {
-    bytes32 r;
-    bytes32 s;
-    uint8 v;
+  bytes32 r;
+  bytes32 s;
+  uint8 v;
 }

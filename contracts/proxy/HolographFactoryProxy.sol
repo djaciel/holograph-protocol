@@ -101,7 +101,7 @@
 
 */
 
-pragma solidity 0.8.12;
+pragma solidity 0.8.13;
 
 import "../abstract/Admin.sol";
 import "../abstract/Initializable.sol";
@@ -109,56 +109,59 @@ import "../abstract/Initializable.sol";
 import "../interface/IInitializable.sol";
 
 contract HolographFactoryProxy is Admin, Initializable {
+  constructor() Admin(false) {}
 
-    constructor() Admin(false) {}
-
-    function init(bytes memory data) external override returns (bytes4) {
-        require(!_isInitialized(), "HOLOGRAPH: already initialized");
-        (address factory, bytes memory initCode) = abi.decode(data, (address, bytes));
-        assembly {
-            sstore(0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2, factory)
-        }
-        (bool success, bytes memory returnData) = factory.delegatecall(
-            abi.encodeWithSignature("init(bytes)", initCode)
-        );
-        (bytes4 selector) = abi.decode(returnData, (bytes4));
-        require(success && selector == IInitializable.init.selector, "initialization failed");
-        _setInitialized();
-        return IInitializable.init.selector;
+  function init(bytes memory data) external override returns (bytes4) {
+    require(!_isInitialized(), "HOLOGRAPH: already initialized");
+    (address factory, bytes memory initCode) = abi.decode(data, (address, bytes));
+    assembly {
+      sstore(0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2, factory)
     }
+    (bool success, bytes memory returnData) = factory.delegatecall(abi.encodeWithSignature("init(bytes)", initCode));
+    bytes4 selector = abi.decode(returnData, (bytes4));
+    require(success && selector == IInitializable.init.selector, "initialization failed");
+    _setInitialized();
+    return IInitializable.init.selector;
+  }
 
-    function getFactory() external view returns (address factory) {
-        // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.factory')) - 1);
-        assembly {
-            factory := sload(/* slot */0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2)
-        }
+  function getFactory() external view returns (address factory) {
+    // The slot hash has been precomputed for gas optimizaion
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.factory')) - 1);
+    assembly {
+      factory := sload(
+        /* slot */
+        0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2
+      )
     }
+  }
 
-    function setFactory(address factory) external onlyAdmin {
-        // The slot hash has been precomputed for gas optimizaion
-        // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.factory')) - 1);
-        assembly {
-            sstore(/* slot */0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2, factory)
-        }
+  function setFactory(address factory) external onlyAdmin {
+    // The slot hash has been precomputed for gas optimizaion
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.factory')) - 1);
+    assembly {
+      sstore(
+        /* slot */
+        0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2,
+        factory
+      )
     }
+  }
 
-    receive() external payable {}
+  receive() external payable {}
 
-    fallback() external payable {
-        assembly {
-            let factory := sload(0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2)
-            calldatacopy(0, 0, calldatasize())
-            let result := delegatecall(gas(), factory, 0, calldatasize(), 0, 0)
-            returndatacopy(0, 0, returndatasize())
-            switch result
-            case 0 {
-                revert(0, returndatasize())
-            }
-            default {
-                return(0, returndatasize())
-            }
-        }
+  fallback() external payable {
+    assembly {
+      let factory := sload(0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2)
+      calldatacopy(0, 0, calldatasize())
+      let result := delegatecall(gas(), factory, 0, calldatasize(), 0, 0)
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
+        revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
+      }
     }
-
+  }
 }

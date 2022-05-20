@@ -3,6 +3,7 @@ data
 db
 db2
 node_modules
+custom_modules
 old_code
 .env
 .env.*
@@ -21,9 +22,15 @@ ignore.*
 
 dist
 cache
+ganache
 artifacts
 typechain
 typechain-types
 
 coverage
 coverage.json
+
+# temp addition, while migrating to hardhat testing
+old_test
+
+editor.bbprojectd
