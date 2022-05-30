@@ -2,11 +2,9 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-import "../abstract/ERC20H.sol";
+import "../abstract/StrictERC20H.sol";
 
 import "../interface/ERC20Holograph.sol";
-
-import "../library/Strings.sol";
 
 /**
  * @title Sample ERC-20 token that is bridgeable via Holograph
@@ -14,21 +12,16 @@ import "../library/Strings.sol";
  * @notice A smart contract for minting and managing Holograph Bridgeable ERC20 Tokens.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
-contract SampleERC20 is ERC20H {
-  /*
-   * @dev Address of initial creator/owner of the contract.
-   */
-  address private _owner;
-
-  /*
+contract SampleERC20 is StrictERC20H {
+  /**
    * @dev Just a dummy value for now to test transferring of data.
    */
   mapping(address => bytes32) private _walletSalts;
 
-  modifier onlyOwner(address msgSender) {
-    require(msgSender == _owner, "owner only function");
-    _;
-  }
+  /**
+   * @dev Temporary implementation to suppress compiler state mutability warnings.
+   */
+  bool private _dummy;
 
   /**
    * @notice Constructor is empty and not utilised.
@@ -42,30 +35,22 @@ contract SampleERC20 is ERC20H {
    */
   function init(bytes memory data) external override returns (bytes4) {
     // do your own custom logic here
-    address owner = abi.decode(data, (address));
-    _owner = owner;
+    address contractOwner = abi.decode(data, (address));
+    _owner = contractOwner;
     // run underlying initializer logic
     return _init(data);
   }
 
-  /*
+  /**
    * @dev Sample mint where anyone can mint any amounts of tokens.
    */
-  function mint(
-    address msgSender,
-    address to,
-    uint256 amount
-  ) external onlyHolographer onlyOwner(msgSender) {
+  function mint(address to, uint256 amount) external onlyHolographer onlyOwner {
     ERC20Holograph(holographer()).sourceMint(to, amount);
     if (_walletSalts[to] == bytes32(0)) {
       _walletSalts[to] = keccak256(
         abi.encodePacked(to, amount, block.timestamp, block.number, blockhash(block.number - 1))
       );
     }
-  }
-
-  function test(address msgSender) external view onlyHolographer returns (string memory) {
-    return string(abi.encodePacked("it works! ", Strings.toHexString(msgSender)));
   }
 
   function bridgeIn(
@@ -85,7 +70,8 @@ contract SampleERC20 is ERC20H {
     address, /* _from*/
     address _to,
     uint256 /* _amount*/
-  ) external view override onlyHolographer returns (bytes memory _data) {
+  ) external override onlyHolographer returns (bytes memory _data) {
+    _dummy = false;
     _data = abi.encode(_walletSalts[_to]);
   }
 }

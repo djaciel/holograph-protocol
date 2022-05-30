@@ -8,13 +8,14 @@ import "../abstract/Initializable.sol";
 import "../interface/IInitializable.sol";
 
 contract SecureStorageProxy is Admin, Initializable {
-  constructor() Admin(true) {}
+  constructor() {}
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (address secureStorage, bytes memory initCode) = abi.decode(data, (address, bytes));
     assembly {
       sstore(precomputeslot("eip1967.Holograph.Bridge.secureStorage"), secureStorage)
+      sstore(precomputeslot("eip1967.Holograph.Bridge.admin"), origin())
     }
     (bool success, bytes memory returnData) = secureStorage.delegatecall(
       abi.encodeWithSignature("init(bytes)", initCode)
@@ -27,25 +28,18 @@ contract SecureStorageProxy is Admin, Initializable {
   }
 
   function getSecureStorage() external view returns (address secureStorage) {
-    // The slot hash has been precomputed for gas optimizaion
+    // The slot hash has been precomputed for gas optimization
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.secureStorage')) - 1);
     assembly {
-      secureStorage := sload(
-        /* slot */
-        precomputeslot("eip1967.Holograph.Bridge.secureStorage")
-      )
+      secureStorage := sload(precomputeslot("eip1967.Holograph.Bridge.secureStorage"))
     }
   }
 
   function setSecureStorage(address secureStorage) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
+    // The slot hash has been precomputed for gas optimization
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.secureStorage')) - 1);
     assembly {
-      sstore(
-        /* slot */
-        precomputeslot("eip1967.Holograph.Bridge.secureStorage"),
-        secureStorage
-      )
+      sstore(precomputeslot("eip1967.Holograph.Bridge.secureStorage"), secureStorage)
     }
   }
 

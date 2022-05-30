@@ -31,18 +31,16 @@ contract SecureStorage is Admin, Owner, Initializable {
     _locked = false;
   }
 
-  constructor() Admin(false) Owner(false) {}
+  constructor() {}
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     address owner = abi.decode(data, (address));
     assembly {
-      sstore(
-        /* slot */
-        precomputeslot("eip1967.Holograph.Bridge.owner"),
-        owner
-      )
+      sstore(precomputeslot("eip1967.Holograph.Bridge.owner"), owner)
+      sstore(precomputeslot("eip1967.Holograph.Bridge.admin"), origin())
     }
+
     _setInitialized();
     return IInitializable.init.selector;
   }

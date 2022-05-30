@@ -5,6 +5,8 @@
 import "../library/Zora.sol";
 
 interface IPA1D {
+  function initPA1D(bytes memory data) external returns (bytes4);
+
   function configurePayouts(address payable[] memory addresses, uint256[] memory bps) external;
 
   function getPayoutInfo() external view returns (address payable[] memory addresses, uint256[] memory bps);

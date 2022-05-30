@@ -26,7 +26,7 @@
  |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
  |_____________________________________________________________|
 
-             - one bridge, infinite possibilities -
+      - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -105,16 +105,23 @@ pragma solidity 0.8.13;
 
 import "../abstract/Initializable.sol";
 
-import "../interface/HolographedERC721.sol";
-
-abstract contract ERC721H is Initializable, HolographedERC721 {
-  /*
-   * @dev Dummy variable to prevent empty functions from making "switch to pure" warnings.
+abstract contract ERC721H is Initializable {
+  /**
+   * @dev Address of initial creator/owner of the collection.
    */
-  bool private _success;
+  address internal _owner;
 
   modifier onlyHolographer() {
-    require(msg.sender == holographer(), "holographer only function");
+    require(msg.sender == holographer(), "ERC721: holographer only");
+    _;
+  }
+
+  modifier onlyOwner() {
+    if (msg.sender == holographer()) {
+      require(msgSender() == _owner, "ERC721: owner only function");
+    } else {
+      require(msg.sender == _owner, "ERC721: owner only function");
+    }
     _;
   }
 
@@ -138,157 +145,68 @@ abstract contract ERC721H is Initializable, HolographedERC721 {
     require(!_isInitialized(), "ERC721: already initialized");
     address _holographer = msg.sender;
     assembly {
-      sstore(
-        /* slot */
-        0x6e5f8ca8411e7bcc0b4514ebbbdd1e5a67471d01255657bdeed111c1c4204aec,
-        _holographer
-      )
+      sstore(0xe860eb97addcc8d7a4df2e57474b879e6fae678a490e3807075a99030ddd9250, _holographer)
     }
     _setInitialized();
     return IInitializable.init.selector;
   }
 
-  /*
-   * @dev Address of Holograph ERC20 standards enforcer smart contract.
+  /**
+   * @dev The Holographer passes original msg.sender via calldata. This function extracts it.
    */
-  function holographer() internal view returns (address _holographer) {
+  function msgSender() internal pure returns (address sender) {
     assembly {
-      _holographer := sload(
-        /* slot */
-        0x6e5f8ca8411e7bcc0b4514ebbbdd1e5a67471d01255657bdeed111c1c4204aec
-      )
+      sender := calldataload(sub(calldatasize(), 0x20))
     }
   }
 
-  function bridgeIn(
-    uint32, /* _chainId*/
-    address, /* _from*/
-    address, /* _to*/
-    uint256, /* _tokenId*/
-    bytes calldata /* _data*/
-  ) external virtual onlyHolographer returns (bool) {
-    _success = true;
-    return true;
-  }
-
-  function bridgeOut(
-    uint32, /* _chainId*/
-    address, /* _from*/
-    address, /* _to*/
-    uint256 /* _tokenId*/
-  ) external view virtual onlyHolographer returns (bytes memory _data) {
-    _data = abi.encode(holographer());
-  }
-
-  function afterApprove(
-    address, /* _owner*/
-    address, /* _to*/
-    uint256 /* _tokenId*/
-  ) external virtual onlyHolographer returns (bool success) {
-    _success = true;
-    return _success;
-  }
-
-  function beforeApprove(
-    address, /* _owner*/
-    address, /* _to*/
-    uint256 /* _tokenId*/
-  ) external virtual onlyHolographer returns (bool success) {
-    _success = true;
-    return _success;
-  }
-
-  function afterApprovalAll(
-    address, /* _to*/
-    bool /* _approved*/
-  ) external virtual onlyHolographer returns (bool success) {
-    _success = true;
-    return _success;
-  }
-
-  function beforeApprovalAll(
-    address, /* _to*/
-    bool /* _approved*/
-  ) external virtual onlyHolographer returns (bool success) {
-    _success = true;
-    return _success;
-  }
-
-  function afterBurn(
-    address, /* _owner*/
-    uint256 /* _tokenId*/
-  ) external virtual onlyHolographer returns (bool success) {
-    _success = true;
-    return _success;
-  }
-
-  function beforeBurn(
-    address, /* _owner*/
-    uint256 /* _tokenId*/
-  ) external virtual onlyHolographer returns (bool success) {
-    _success = true;
-    return _success;
-  }
-
-  function afterMint(
-    address, /* _owner*/
-    uint256 /* _tokenId*/
-  ) external virtual onlyHolographer returns (bool success) {
-    _success = true;
-    return _success;
-  }
-
-  function beforeMint(
-    address, /* _owner*/
-    uint256 /* _tokenId*/
-  ) external virtual onlyHolographer returns (bool success) {
-    _success = true;
-    return _success;
-  }
-
-  function afterSafeTransfer(
-    address, /* _from*/
-    address, /* _to*/
-    uint256, /* _tokenId*/
-    bytes calldata /* _data*/
-  ) external virtual onlyHolographer returns (bool success) {
-    _success = true;
-    return _success;
-  }
-
-  function beforeSafeTransfer(
-    address, /* _from*/
-    address, /* _to*/
-    uint256, /* _tokenId*/
-    bytes calldata /* _data*/
-  ) external virtual onlyHolographer returns (bool success) {
-    _success = true;
-    return _success;
-  }
-
-  function afterTransfer(
-    address, /* _from*/
-    address, /* _to*/
-    uint256, /* _tokenId*/
-    bytes calldata /* _data*/
-  ) external virtual onlyHolographer returns (bool success) {
-    _success = true;
-    return _success;
-  }
-
-  function beforeTransfer(
-    address, /* _from*/
-    address, /* _to*/
-    uint256, /* _tokenId*/
-    bytes calldata /* _data*/
-  ) external virtual onlyHolographer returns (bool success) {
-    _success = true;
-    return _success;
-  }
-
-  function msgSender() external view returns (address sender) {
+  /**
+   * @dev Address of Holograph ERC721 standards enforcer smart contract.
+   */
+  function holographer() internal view returns (address _holographer) {
     assembly {
-      sender := sload(0x8441fa6ff843f273d23d65e882c7fe479d103e38c6404b1e55f13302c0f3fc78)
+      _holographer := sload(0xe860eb97addcc8d7a4df2e57474b879e6fae678a490e3807075a99030ddd9250)
+    }
+  }
+
+  function supportsInterface(bytes4) external pure returns (bool) {
+    return false;
+  }
+
+  function owner() external view returns (address) {
+    return _owner;
+  }
+
+  function isOwner() external view returns (bool) {
+    if (msg.sender == holographer()) {
+      return msgSender() == _owner;
+    } else {
+      return msg.sender == _owner;
+    }
+  }
+
+  function isOwner(address wallet) external view returns (bool) {
+    return wallet == _owner;
+  }
+
+  /**
+   * @dev Defined here to suppress compiler warnings
+   */
+  receive() external payable {}
+
+  /**
+   * @dev Return true for any un-implemented event hooks
+   */
+  fallback() external payable {
+    assembly {
+      switch eq(sload(0xe860eb97addcc8d7a4df2e57474b879e6fae678a490e3807075a99030ddd9250), caller())
+      case 1 {
+        mstore(0x80, 0x0000000000000000000000000000000000000000000000000000000000000001)
+        return(0x80, 0x20)
+      }
+      default {
+        revert(0x00, 0x00)
+      }
     }
   }
 }

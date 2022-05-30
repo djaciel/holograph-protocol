@@ -9,3 +9,4 @@ I made this more better by doing ...
 
 - [ ] I have performed a self-review of my code
 - [ ] Code styles have been enforced
+- [ ] All Hardhat tests are passing

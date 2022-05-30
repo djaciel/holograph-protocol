@@ -40,11 +40,50 @@
   },
   {
     "inputs": [],
+    "name": "getInterfaces",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "interfacesAddress",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getOperator",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "operatorAddress",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "getRegistry",
     "outputs": [
       {
         "internalType": "address",
         "name": "registryAddress",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getSecureStorage",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "secureStorageAddress",
         "type": "address"
       }
     ],

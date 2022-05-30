@@ -38,6 +38,8 @@ contract ERC20Mock is
 {
   using Counters for Counters.Counter;
 
+  bool private _works;
+
   /**
    * @dev Mapping of all the addresse's balances.
    */
@@ -87,7 +89,8 @@ contract ERC20Mock is
     uint8 contractDecimals,
     string memory domainSeperator,
     string memory domainVersion
-  ) EIP712(domainSeperator, domainVersion) {
+  ) {
+    _works = true;
     _name = contractName;
     _symbol = contractSymbol;
     _decimals = contractDecimals;
@@ -135,6 +138,9 @@ contract ERC20Mock is
     _supportedInterfaces[0xb88d4fde] = true;
     _supportedInterfaces[bytes4(0x423f6cef) ^ bytes4(0xeb795549) ^ bytes4(0x42842e0e) ^ bytes4(0xb88d4fde)] = true;
 
+    // ERC20Receiver
+    _supportedInterfaces[ERC20Receiver.onERC20Received.selector] = true;
+
     // ERC20Permit
     _supportedInterfaces[ERC20Permit.permit.selector] = true;
     _supportedInterfaces[ERC20Permit.nonces.selector] = true;
@@ -142,9 +148,22 @@ contract ERC20Mock is
     _supportedInterfaces[
       ERC20Permit.permit.selector ^ ERC20Permit.nonces.selector ^ ERC20Permit.DOMAIN_SEPARATOR.selector
     ] = true;
+    _eip712_init(domainSeperator, domainVersion);
   }
 
-  /*
+  function toggleWorks(bool active) external {
+    _works = active;
+  }
+
+  function transferTokens(
+    address payable token,
+    address to,
+    uint256 amount
+  ) external {
+    ERC20(token).transfer(to, amount);
+  }
+
+  /**
    * @dev Purposefully left empty, to prevent running out of gas errors when receiving native token payments.
    */
   receive() external payable {}
@@ -244,13 +263,21 @@ contract ERC20Mock is
     uint256 amount,
     bytes calldata /* data*/
   ) public returns (bytes4) {
-    // we do our own logic here
-    require(ERC20(account).balanceOf(address(this)) >= amount, "ERC20: balance check failed");
     assembly {
       // used to drop "change function to view" compiler warning
       sstore(precomputeslot("eip1967.Holograph.ERC20Mock.fakeData"), amount)
     }
-    return this.onERC20Received.selector;
+    if (_works) {
+      require(Address.isContract(account), "ERC20: operator not contract");
+      try ERC20(account).balanceOf(address(this)) returns (uint256 balance) {
+        require(balance >= amount, "ERC20: balance check failed");
+      } catch {
+        revert("ERC20: failed getting balance");
+      }
+      return ERC20Receiver.onERC20Received.selector;
+    } else {
+      return 0x00000000;
+    }
   }
 
   function permit(

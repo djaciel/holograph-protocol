@@ -86,4 +86,22 @@ interface HolographedERC721 {
     uint256 _tokenId,
     bytes calldata _data
   ) external returns (bool success);
+
+  // event id = 15
+  function afterOnERC721Received(
+    address _operator,
+    address _from,
+    address _to,
+    uint256 _tokenId,
+    bytes calldata _data
+  ) external returns (bool success);
+
+  // event id = 16
+  function beforeOnERC721Received(
+    address _operator,
+    address _from,
+    address _to,
+    uint256 _tokenId,
+    bytes calldata _data
+  ) external returns (bool success);
 }

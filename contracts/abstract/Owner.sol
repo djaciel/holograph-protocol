@@ -26,7 +26,7 @@
  |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
  |_____________________________________________________________|
 
-             - one bridge, infinite possibilities -
+      - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -104,25 +104,19 @@
 pragma solidity 0.8.13;
 
 abstract contract Owner {
-  constructor(bool useSender) {
-    address ownerAddress = (useSender ? msg.sender : tx.origin);
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.owner')) - 1);
-    assembly {
-      sstore(
-        /* slot */
-        0x89b583059fdb0b2e807359b64eba1a8a1e6d099210701fafe6dad5dd2cd64fb8,
-        ownerAddress
-      )
-    }
-  }
+  /**
+   * @dev Event emitted when contract owner is changed.
+   */
+  event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+  constructor() {}
 
   modifier onlyOwner() virtual {
     require(msg.sender == getOwner(), "HOLOGRAPH: owner only function");
     _;
   }
 
-  function owner() public view returns (address) {
+  function owner() public view virtual returns (address) {
     return getOwner();
   }
 
@@ -140,6 +134,7 @@ abstract contract Owner {
   function setOwner(address ownerAddress) public onlyOwner {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.owner')) - 1);
+    address previousOwner = getOwner();
     assembly {
       sstore(
         /* slot */
@@ -147,12 +142,28 @@ abstract contract Owner {
         ownerAddress
       )
     }
+    emit OwnershipTransferred(previousOwner, ownerAddress);
   }
 
   function transferOwnership(address newOwner) public onlyOwner {
     require(newOwner != address(0), "HOLOGRAPH: zero address");
     assembly {
       sstore(0x89b583059fdb0b2e807359b64eba1a8a1e6d099210701fafe6dad5dd2cd64fb8, newOwner)
+    }
+  }
+
+  function ownerCall(address target, bytes calldata data) external payable onlyOwner {
+    assembly {
+      calldatacopy(0, data.offset, data.length)
+      let result := call(gas(), target, callvalue(), 0, data.length, 0, 0)
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
+        revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
+      }
     }
   }
 }

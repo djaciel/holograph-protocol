@@ -26,7 +26,7 @@
  |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
  |_____________________________________________________________|
 
-             - one bridge, infinite possibilities -
+      - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -103,13 +103,14 @@
 
 pragma solidity 0.8.13;
 
+import "./CollectionURI.sol";
 import "./ERC165.sol";
 import "./ERC721.sol";
 import "./ERC721Enumerable.sol";
 import "./ERC721Metadata.sol";
 import "./ERC721TokenReceiver.sol";
 
-interface ERC721Holograph is ERC165, ERC721, ERC721Enumerable, ERC721Metadata, ERC721TokenReceiver {
+interface ERC721Holograph is ERC165, ERC721, ERC721Enumerable, ERC721Metadata, ERC721TokenReceiver, CollectionURI {
   function approve(address to, uint256 tokenId) external payable;
 
   function burn(uint256 tokenId) external;
@@ -155,6 +156,8 @@ interface ERC721Holograph is ERC165, ERC721, ERC721Enumerable, ERC721Metadata, E
 
   function name() external view returns (string memory);
 
+  function burned(uint256 tokenId) external view returns (bool);
+
   function exists(uint256 tokenId) external view returns (bool);
 
   function ownerOf(uint256 tokenId) external view returns (address);
@@ -172,11 +175,4 @@ interface ERC721Holograph is ERC165, ERC721, ERC721Enumerable, ERC721Metadata, E
   function tokenURI(uint256 tokenId) external view returns (string memory);
 
   function totalSupply() external view returns (uint256);
-
-  function onERC721Received(
-    address _operator,
-    address _from,
-    uint256 _tokenId,
-    bytes calldata _data
-  ) external pure returns (bytes4);
 }

@@ -26,7 +26,7 @@
  |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
  |_____________________________________________________________|
 
-             - one bridge, infinite possibilities -
+      - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -109,13 +109,14 @@ import "../abstract/Initializable.sol";
 import "../interface/IInitializable.sol";
 
 contract SecureStorageProxy is Admin, Initializable {
-  constructor() Admin(true) {}
+  constructor() {}
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (address secureStorage, bytes memory initCode) = abi.decode(data, (address, bytes));
     assembly {
       sstore(0xd26498b26a05274577b8ac2e3250418da53433f3ff82027428ee3c530702cdec, secureStorage)
+      sstore(0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, origin())
     }
     (bool success, bytes memory returnData) = secureStorage.delegatecall(
       abi.encodeWithSignature("init(bytes)", initCode)
@@ -128,25 +129,18 @@ contract SecureStorageProxy is Admin, Initializable {
   }
 
   function getSecureStorage() external view returns (address secureStorage) {
-    // The slot hash has been precomputed for gas optimizaion
+    // The slot hash has been precomputed for gas optimization
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.secureStorage')) - 1);
     assembly {
-      secureStorage := sload(
-        /* slot */
-        0xd26498b26a05274577b8ac2e3250418da53433f3ff82027428ee3c530702cdec
-      )
+      secureStorage := sload(0xd26498b26a05274577b8ac2e3250418da53433f3ff82027428ee3c530702cdec)
     }
   }
 
   function setSecureStorage(address secureStorage) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
+    // The slot hash has been precomputed for gas optimization
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.secureStorage')) - 1);
     assembly {
-      sstore(
-        /* slot */
-        0xd26498b26a05274577b8ac2e3250418da53433f3ff82027428ee3c530702cdec,
-        secureStorage
-      )
+      sstore(0xd26498b26a05274577b8ac2e3250418da53433f3ff82027428ee3c530702cdec, secureStorage)
     }
   }
 

@@ -41,13 +41,32 @@ contract PA1D is Admin, Owner, Initializable {
    * @notice Constructor is empty and not utilised.
    * @dev Since the smart contract is being used inside of a fallback context, the constructor function is not being used.
    */
-  constructor() Admin(true) Owner(true) {}
+  constructor() {}
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "PA1D: already initialized");
+    assembly {
+      sstore(precomputeslot("eip1967.Holograph.Bridge.admin"), caller())
+      sstore(precomputeslot("eip1967.Holograph.Bridge.owner"), caller())
+    }
     (address receiver, uint256 bp) = abi.decode(data, (address, uint256));
     setRoyalties(0, payable(receiver), bp);
     _setInitialized();
+    return IInitializable.init.selector;
+  }
+
+  function initPA1D(bytes memory data) external returns (bytes4) {
+    uint256 initialized;
+    assembly {
+      initialized := sload(precomputeslot("eip1967.Holograph.PA1D.initialized"))
+    }
+    require(initialized == 0, "PA1D: already initialized");
+    (address receiver, uint256 bp) = abi.decode(data, (address, uint256));
+    setRoyalties(0, payable(receiver), bp);
+    initialized = 1;
+    assembly {
+      sstore(precomputeslot("eip1967.Holograph.PA1D.initialized"), initialized)
+    }
     return IInitializable.init.selector;
   }
 

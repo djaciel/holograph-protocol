@@ -4,7 +4,7 @@
 
 import "./interface/IInitializable.sol";
 
-/*
+/**
  * @dev In the beginning there was a smart contract...
  */
 contract HolographGenesis {

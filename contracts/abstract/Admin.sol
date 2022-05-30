@@ -26,7 +26,7 @@
  |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
  |_____________________________________________________________|
 
-             - one bridge, infinite possibilities -
+      - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -104,18 +104,7 @@
 pragma solidity 0.8.13;
 
 abstract contract Admin {
-  constructor(bool useSender) {
-    address adminAddress = (useSender ? msg.sender : tx.origin);
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.admin')) - 1);
-    assembly {
-      sstore(
-        /* slot */
-        0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d,
-        adminAddress
-      )
-    }
-  }
+  constructor() {}
 
   modifier onlyAdmin() {
     require(msg.sender == getAdmin(), "HOLOGRAPH: admin only function");
@@ -146,6 +135,21 @@ abstract contract Admin {
         0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d,
         adminAddress
       )
+    }
+  }
+
+  function adminCall(address target, bytes calldata data) external payable onlyAdmin {
+    assembly {
+      calldatacopy(0, data.offset, data.length)
+      let result := call(gas(), target, callvalue(), 0, data.length, 0, 0)
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
+        revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
+      }
     }
   }
 }

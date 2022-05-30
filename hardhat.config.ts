@@ -1,8 +1,8 @@
 import fs from 'fs';
-import '@nomiclabs/hardhat-waffle';
 import '@typechain/hardhat';
 import 'hardhat-gas-reporter';
 import 'hardhat-deploy-holographed';
+import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import { types, task, HardhatUserConfig } from 'hardhat/config';
@@ -127,6 +127,7 @@ const config: HardhatUserConfig = {
   },
   namedAccounts: {
     deployer: 0,
+    lzEndpoint: 10,
   },
   solidity: {
     version: SOLIDITY_VERSION,
@@ -141,7 +142,7 @@ const config: HardhatUserConfig = {
     },
   },
   mocha: {
-    timeout: 60000,
+    timeout: 1000 * 60 * 60,
   },
   gasReporter: {
     enabled: process.env.REPORT_GAS ? true : false,

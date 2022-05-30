@@ -1,14 +1,16 @@
-import { ethers } from 'hardhat';
+declare var global: any;
 import { Contract } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction, Deployment } from 'hardhat-deploy-holographed/types';
+import { LeanHardhatRuntimeEnvironment, hreSplit } from '../scripts/utils/helpers';
 
-const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
+  let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
   const { artifacts, deployments, getNamedAccounts } = hre;
   const { deploy } = deployments;
   const { deployer } = await getNamedAccounts();
 
-  let holographGenesisContract: Contract | null = await ethers.getContractOrNull('HolographGenesis');
+  let holographGenesisContract: Contract | null = await hre.ethers.getContractOrNull('HolographGenesis');
   let holographGenesisDeployment: Deployment | null = null;
   if (holographGenesisContract == null) {
     try {
@@ -22,6 +24,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       from: deployer,
       args: [],
       log: true,
+      waitConfirmations: 1,
+      nonce: await hre.ethers.provider.getTransactionCount(deployer),
     });
   }
 };

@@ -7,21 +7,23 @@ import "./abstract/Initializable.sol";
 import "./abstract/Owner.sol";
 
 import "./enum/HolographERC721Event.sol";
+import "./enum/InterfaceType.sol";
 
 import "./interface/ERC165.sol";
+import "./interface/ERC721.sol";
 import "./interface/ERC721Holograph.sol";
+import "./interface/ERC721Metadata.sol";
 import "./interface/ERC721TokenReceiver.sol";
 import "./interface/HolographedERC721.sol";
 import "./interface/IHolograph.sol";
 import "./interface/IHolographer.sol";
 import "./interface/IHolographRegistry.sol";
 import "./interface/IInitializable.sol";
+import "./interface/IInterfaces.sol";
 import "./interface/IPA1D.sol";
+import "./interface/Ownable.sol";
 
-import "./library/Address.sol";
-import "./library/Base64.sol";
 import "./library/Booleans.sol";
-import "./library/Strings.sol";
 
 /**
  * @title Holograph Bridgeable ERC-721 Collection
@@ -100,37 +102,14 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    * @notice Constructor is empty and not utilised.
    * @dev To make exact CREATE2 deployment possible, constructor is left empty. We utilize the "init" function instead.
    */
-  constructor() Admin(false) Owner(true) {}
+  constructor() {}
 
   /**
    * @notice Gets a base64 encoded contract JSON file.
    * @return string The URI.
    */
   function contractURI() external view returns (string memory) {
-    return
-      string(
-        abi.encodePacked(
-          "data:application/json;base64,",
-          Base64.encode(
-            abi.encodePacked(
-              "{",
-              '"name":"',
-              _name,
-              '",',
-              '"description":"',
-              _name,
-              '",',
-              '"seller_fee_basis_points":',
-              Strings.uint2str(_bps),
-              ",",
-              '"fee_recipient":"',
-              Strings.toAsciiString(address(this)),
-              '"',
-              "}"
-            )
-          )
-        )
-      );
+    return IInterfaces(interfaces()).contractURI(_name, "", "", _bps, address(this));
   }
 
   /**
@@ -149,12 +128,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    */
   function supportsInterface(bytes4 interfaceId) external view returns (bool) {
     if (
-      interfaceId == 0x01ffc9a7 || // ERC165
-      interfaceId == 0x80ac58cd || // ERC721
-      interfaceId == 0x780e9d63 || // ERC721Enumerable
-      interfaceId == 0x5b5e139f || // ERC721Metadata
-      interfaceId == 0x150b7a02 || // ERC721TokenReceiver
-      interfaceId == 0xe8a3d485 || // contractURI()
+      IInterfaces(interfaces()).supportsInterface(InterfaceType.ERC721, interfaceId) || // check global interfaces
       ERC165(royalties()).supportsInterface(interfaceId) || // check if royalties supports interface
       ERC165(source()).supportsInterface(interfaceId) // check if source supports interface
     ) {
@@ -189,6 +163,28 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    */
   function tokensOfOwner(address wallet) external view returns (uint256[] memory) {
     return _ownedTokens[wallet];
+  }
+
+  /**
+   * @notice Get set length list, starting from index, for tokens owned by wallet.
+   * @param wallet The wallet address to get tokens for.
+   * @param index The index to start enumeration from.
+   * @param length The length of returned results.
+   * @return tokenIds uint256[] Returns a set length array of token ids owned by wallet.
+   */
+  function tokensOfOwner(
+    address wallet,
+    uint256 index,
+    uint256 length
+  ) external view returns (uint256[] memory tokenIds) {
+    uint256 supply = _ownedTokensCount[wallet];
+    if (index + length > supply) {
+      length = supply - index;
+    }
+    tokenIds = new uint256[](length);
+    for (uint256 i = 0; i < length; i++) {
+      tokenIds[i] = _ownedTokens[wallet][index + i];
+    }
   }
 
   /**
@@ -288,27 +284,37 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    */
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "ERC721: already initialized");
+    assembly {
+      sstore(precomputeslot("eip1967.Holograph.Bridge.owner"), caller())
+    }
     (
       string memory contractName,
       string memory contractSymbol,
       uint16 contractBps,
       uint256 eventConfig,
+      bool skipInit,
       bytes memory initCode
-    ) = abi.decode(data, (string, string, uint16, uint256, bytes));
+    ) = abi.decode(data, (string, string, uint16, uint256, bool, bytes));
     _name = contractName;
     _symbol = contractSymbol;
     _bps = contractBps;
     _eventConfig = eventConfig;
-    try IHolographer(payable(address(this))).getSourceContract() returns (address payable sourceAddress) {
-      require(IInitializable(sourceAddress).init(initCode) == IInitializable.init.selector, "initialization failed");
-    } catch {
-      // we do nothing
+    if (!skipInit) {
+      try IHolographer(payable(address(this))).getSourceContract() returns (address payable sourceAddress) {
+        require(
+          IInitializable(sourceAddress).init(initCode) == IInitializable.init.selector,
+          "ERC721: could not init source"
+        );
+      } catch {
+        revert("ERC721: could not init source");
+      }
+      (bool success, bytes memory returnData) = royalties().delegatecall(
+        abi.encodeWithSignature("initPA1D(bytes)", abi.encode(address(this), uint256(contractBps)))
+      );
+      bytes4 selector = abi.decode(returnData, (bytes4));
+      require(success && selector == IInitializable.init.selector, "ERC721: coud not init PA1D");
     }
-    //         (bool success, bytes memory returnData) = royalties().delegatecall(
-    //             abi.encodeWithSignature("init(bytes)", abi.encode(address(this), uint256(contractBps)))
-    //         );
-    //         (bytes4 selector) = abi.decode(returnData, (bytes4));
-    //         require(success && selector == IInitializable.init.selector, "initialization failed");
+
     _setInitialized();
     return IInitializable.init.selector;
   }
@@ -347,11 +353,12 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
       require(SourceERC721().beforeSafeTransfer(from, to, tokenId, data));
     }
     _transferFrom(from, to, tokenId);
-    if (Address.isContract(to)) {
+    if (_isContract(to)) {
       require(
-        (ERC165(to).supportsInterface(0x01ffc9a7) &&
-          ERC165(to).supportsInterface(0x150b7a02) &&
-          ERC721TokenReceiver(to).onERC721Received(address(this), from, tokenId, data) == 0x150b7a02),
+        (ERC165(to).supportsInterface(ERC165.supportsInterface.selector) &&
+          ERC165(to).supportsInterface(ERC721TokenReceiver.onERC721Received.selector) &&
+          ERC721TokenReceiver(to).onERC721Received(address(this), from, tokenId, data) ==
+          ERC721TokenReceiver.onERC721Received.selector),
         "ERC721: onERC721Received fail"
       );
     }
@@ -528,12 +535,16 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    * @return uint256 Returns an integer, representing total amount of tokens held by address.
    */
   function balanceOf(address wallet) public view returns (uint256) {
-    require(!Address.isZero(wallet), "ERC721: zero address");
+    require(wallet != address(0), "ERC721: zero address");
     return _ownedTokensCount[wallet];
   }
 
+  function burned(uint256 tokenId) public view returns (bool) {
+    return _burnedTokens[tokenId];
+  }
+
   function exists(uint256 tokenId) public view returns (bool) {
-    return !Address.isZero(_tokenOwner[tokenId]);
+    return _tokenOwner[tokenId] != address(0);
   }
 
   /**
@@ -565,7 +576,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    */
   function ownerOf(uint256 tokenId) external view returns (address) {
     address tokenOwner = _tokenOwner[tokenId];
-    require(!Address.isZero(tokenOwner), "ERC721: token does not exist");
+    require(tokenOwner != address(0), "ERC721: token does not exist");
     return tokenOwner;
   }
 
@@ -578,6 +589,23 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
   function tokenByIndex(uint256 index) external view returns (uint256) {
     require(index < _allTokens.length, "ERC721: index out of bounds");
     return _allTokens[index];
+  }
+
+  /**
+   * @notice Get set length list, starting from index, for all tokens.
+   * @param index The index to start enumeration from.
+   * @param length The length of returned results.
+   * @return tokenIds uint256[] Returns a set length array of token ids minted.
+   */
+  function tokens(uint256 index, uint256 length) external view returns (uint256[] memory tokenIds) {
+    uint256 supply = _allTokens.length;
+    if (index + length > supply) {
+      length = supply - index;
+    }
+    tokenIds = new uint256[](length);
+    for (uint256 i = 0; i < length; i++) {
+      tokenIds[i] = _allTokens[index + i];
+    }
   }
 
   /**
@@ -611,15 +639,24 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    * @return bytes4 Returns the interfaceId of onERC721Received.
    */
   function onERC721Received(
-    address,
-    /*_operator*/
-    address,
-    /*_from*/
-    uint256,
-    /*_tokenId*/
-    bytes calldata /*_data*/
-  ) external pure returns (bytes4) {
-    return 0x150b7a02;
+    address _operator,
+    address _from,
+    uint256 _tokenId,
+    bytes calldata _data
+  ) external returns (bytes4) {
+    require(_isContract(_operator), "ERC721: operator not contract");
+    if (Booleans.get(_eventConfig, HolographERC721Event.beforeOnERC721Received)) {
+      require(SourceERC721().beforeOnERC721Received(_operator, _from, address(this), _tokenId, _data));
+    }
+    try ERC721Holograph(_operator).ownerOf(_tokenId) returns (address tokenOwner) {
+      require(tokenOwner == address(this), "ERC721: contract not token owner");
+    } catch {
+      revert("ERC721: token does not exist");
+    }
+    if (Booleans.get(_eventConfig, HolographERC721Event.afterOnERC721Received)) {
+      require(SourceERC721().afterOnERC721Received(_operator, _from, address(this), _tokenId, _data));
+    }
+    return ERC721TokenReceiver.onERC721Received.selector;
   }
 
   /**
@@ -627,7 +664,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    * @param to Address of token owner for which to add the token.
    * @param tokenId Id of token to add.
    */
-  function _addTokenToOwnerEnumeration(address to, uint256 tokenId) private {
+  function _addTokenToOwnerEnumeration(address to, uint256 tokenId) internal {
     _ownedTokensIndex[tokenId] = _ownedTokensCount[to];
     _ownedTokensCount[to]++;
     _ownedTokens[to].push(tokenId);
@@ -641,7 +678,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    * @param wallet Address of current token owner.
    * @param tokenId The token to burn.
    */
-  function _burn(address wallet, uint256 tokenId) private {
+  function _burn(address wallet, uint256 tokenId) internal {
     _clearApproval(tokenId);
     _tokenOwner[tokenId] = address(0);
     emit Transfer(wallet, address(0), tokenId);
@@ -654,7 +691,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    * @dev Removes from count.
    * @param tokenId T.
    */
-  function _clearApproval(uint256 tokenId) private {
+  function _clearApproval(uint256 tokenId) internal {
     delete _tokenApprovals[tokenId];
   }
 
@@ -664,8 +701,9 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    * @param to Address to mint to.
    * @param tokenId The new token.
    */
-  function _mint(address to, uint256 tokenId) private {
-    require(!Address.isZero(to), "ERC721: minting to burn address");
+  function _mint(address to, uint256 tokenId) internal {
+    require(tokenId > 0, "ERC721: token id cannot be zero");
+    require(to != address(0), "ERC721: minting to burn address");
     require(!_exists(tokenId), "ERC721: token already exists");
     require(!_burnedTokens[tokenId], "ERC721: token has been burned");
     _tokenOwner[tokenId] = to;
@@ -673,7 +711,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
     _addTokenToOwnerEnumeration(to, tokenId);
   }
 
-  function _removeTokenFromAllTokensEnumeration(uint256 tokenId) private {
+  function _removeTokenFromAllTokensEnumeration(uint256 tokenId) internal {
     uint256 lastTokenIndex = _allTokens.length - 1;
     uint256 tokenIndex = _allTokensIndex[tokenId];
     uint256 lastTokenId = _allTokens[lastTokenIndex];
@@ -689,7 +727,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    * @param from Address of token owner for which to remove the token.
    * @param tokenId Id of token to remove.
    */
-  function _removeTokenFromOwnerEnumeration(address from, uint256 tokenId) private {
+  function _removeTokenFromOwnerEnumeration(address from, uint256 tokenId) internal {
     _removeTokenFromAllTokensEnumeration(tokenId);
     _ownedTokensCount[from]--;
     uint256 lastTokenIndex = _ownedTokensCount[from];
@@ -717,9 +755,9 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
     address from,
     address to,
     uint256 tokenId
-  ) private {
+  ) internal {
     require(_tokenOwner[tokenId] == from, "ERC721: token not owned");
-    require(!Address.isZero(to), "ERC721: use burn instead");
+    require(to != address(0), "ERC721: use burn instead");
     _clearApproval(tokenId);
     _tokenOwner[tokenId] = to;
     emit Transfer(from, to, tokenId);
@@ -727,7 +765,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
     _addTokenToOwnerEnumeration(to, tokenId);
   }
 
-  function _chain() private view returns (uint32) {
+  function _chain() internal view returns (uint32) {
     uint32 currentChain = IHolograph(IHolographer(payable(address(this))).getHolograph()).getChainType();
     if (currentChain != IHolographer(payable(address(this))).getOriginChain()) {
       return currentChain;
@@ -741,9 +779,9 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    * @param tokenId The affected token.
    * @return bool True if it exists.
    */
-  function _exists(uint256 tokenId) private view returns (bool) {
+  function _exists(uint256 tokenId) internal view returns (bool) {
     address tokenOwner = _tokenOwner[tokenId];
-    return !Address.isZero(tokenOwner);
+    return tokenOwner != address(0);
   }
 
   /**
@@ -753,30 +791,49 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    * @param tokenId The affected token.
    * @return bool True if approved.
    */
-  function _isApproved(address spender, uint256 tokenId) private view returns (bool) {
-    require(_exists(tokenId));
+  function _isApproved(address spender, uint256 tokenId) internal view returns (bool) {
+    require(_exists(tokenId), "ERC721: token does not exist");
     address tokenOwner = _tokenOwner[tokenId];
     return (spender == tokenOwner || _tokenApprovals[tokenId] == spender || _operatorApprovals[tokenOwner][spender]);
+  }
+
+  function _isContract(address contractAddress) internal view returns (bool) {
+    bytes32 codehash;
+    assembly {
+      codehash := extcodehash(contractAddress)
+    }
+    return (codehash != 0x0 && codehash != 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470);
   }
 
   /**
    * @dev Get the source smart contract as bridgeable interface.
    */
-  function SourceERC721() private view returns (HolographedERC721) {
+  function SourceERC721() internal view returns (HolographedERC721) {
     return HolographedERC721(source());
   }
 
   /**
    * @dev Get the bridge contract address.
    */
-  function bridge() private view returns (address) {
+  function bridge() internal view returns (address) {
     return IHolograph(IHolographer(payable(address(this))).getHolograph()).getBridge();
+  }
+
+  /**
+   * @dev Get the interfaces contract address.
+   */
+  function interfaces() internal view returns (address) {
+    return IHolograph(IHolographer(payable(address(this))).getHolograph()).getInterfaces();
+  }
+
+  function owner() public view override returns (address) {
+    return Ownable(source()).owner();
   }
 
   /**
    * @dev Get the bridge contract address.
    */
-  function royalties() private view returns (address) {
+  function royalties() internal view returns (address) {
     return
       IHolographRegistry(IHolograph(IHolographer(payable(address(this))).getHolograph()).getRegistry())
         .getContractTypeAddress(0x0000000000000000000000000000000000000000000000000000000050413144);
@@ -785,11 +842,11 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
   /**
    * @dev Get the source smart contract.
    */
-  function source() private view returns (address) {
+  function source() internal view returns (address) {
     return IHolographer(payable(address(this))).getSourceContract();
   }
 
-  /*
+  /**
    * @dev Purposefully left empty, to prevent running out of gas errors when receiving native token payments.
    */
   receive() external payable {}
@@ -817,22 +874,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
         }
       }
     } else {
-      /*
-            _target = source();
-            assembly {
-                calldatacopy(0, 0, calldatasize())
-                let result := call(gas(), _target, 0, 0, calldatasize(), 0, 0)
-                returndatacopy(0, 0, returndatasize())
-                switch result
-                case 0 {
-                    revert(0, returndatasize())
-                }
-                default {
-                    return(0, returndatasize())
-                }
-            }
-*/
-      /*
+      /**
        * @dev We forward the calldata to source contract via a call request.
        *  Since this replaces msg.sender with address(this), we inject original msg.sender into calldata.
        *  This allows us to protect this contract's storage layer from source contract's malicious actions.
@@ -841,9 +883,8 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
       _target = source();
       assembly {
         calldatacopy(0, 0, calldatasize())
-        // we inject msg.sender into the calldata 32 byte slot right after 4 byte function selector
-        mstore(4, caller())
-        let result := call(gas(), _target, callvalue(), 0, calldatasize(), 0, 0)
+        mstore(calldatasize(), caller())
+        let result := call(gas(), _target, callvalue(), 0, add(calldatasize(), 32), 0, 0)
         returndatacopy(0, 0, returndatasize())
         switch result
         case 0 {

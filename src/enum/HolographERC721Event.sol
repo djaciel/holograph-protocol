@@ -16,5 +16,7 @@ enum HolographERC721Event {
   afterSafeTransfer, // 11
   beforeSafeTransfer, // 12
   afterTransfer, // 13
-  beforeTransfer // 14
+  beforeTransfer, // 14
+  beforeOnERC721Received, // 15
+  afterOnERC721Received // 16
 }

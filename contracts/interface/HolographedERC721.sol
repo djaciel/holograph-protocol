@@ -26,7 +26,7 @@
  |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
  |_____________________________________________________________|
 
-             - one bridge, infinite possibilities -
+      - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -182,6 +182,24 @@ interface HolographedERC721 {
 
   // event id = 14
   function beforeTransfer(
+    address _from,
+    address _to,
+    uint256 _tokenId,
+    bytes calldata _data
+  ) external returns (bool success);
+
+  // event id = 15
+  function afterOnERC721Received(
+    address _operator,
+    address _from,
+    address _to,
+    uint256 _tokenId,
+    bytes calldata _data
+  ) external returns (bool success);
+
+  // event id = 16
+  function beforeOnERC721Received(
+    address _operator,
     address _from,
     address _to,
     uint256 _tokenId,

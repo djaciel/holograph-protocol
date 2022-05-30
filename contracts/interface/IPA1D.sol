@@ -26,7 +26,7 @@
  |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
  |_____________________________________________________________|
 
-             - one bridge, infinite possibilities -
+      - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -106,6 +106,8 @@ pragma solidity 0.8.13;
 import "../library/Zora.sol";
 
 interface IPA1D {
+  function initPA1D(bytes memory data) external returns (bytes4);
+
   function configurePayouts(address payable[] memory addresses, uint256[] memory bps) external;
 
   function getPayoutInfo() external view returns (address payable[] memory addresses, uint256[] memory bps);

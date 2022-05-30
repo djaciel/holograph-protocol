@@ -26,7 +26,7 @@
  |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
  |_____________________________________________________________|
 
-             - one bridge, infinite possibilities -
+      - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -142,13 +142,32 @@ contract PA1D is Admin, Owner, Initializable {
    * @notice Constructor is empty and not utilised.
    * @dev Since the smart contract is being used inside of a fallback context, the constructor function is not being used.
    */
-  constructor() Admin(true) Owner(true) {}
+  constructor() {}
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "PA1D: already initialized");
+    assembly {
+      sstore(0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, caller())
+      sstore(0x89b583059fdb0b2e807359b64eba1a8a1e6d099210701fafe6dad5dd2cd64fb8, caller())
+    }
     (address receiver, uint256 bp) = abi.decode(data, (address, uint256));
     setRoyalties(0, payable(receiver), bp);
     _setInitialized();
+    return IInitializable.init.selector;
+  }
+
+  function initPA1D(bytes memory data) external returns (bytes4) {
+    uint256 initialized;
+    assembly {
+      initialized := sload(0x33a44e907d5bf333e203bebc20bb8c91c00375213b80f466a908f3d50b337c6c)
+    }
+    require(initialized == 0, "PA1D: already initialized");
+    (address receiver, uint256 bp) = abi.decode(data, (address, uint256));
+    setRoyalties(0, payable(receiver), bp);
+    initialized = 1;
+    assembly {
+      sstore(0x33a44e907d5bf333e203bebc20bb8c91c00375213b80f466a908f3d50b337c6c, initialized)
+    }
     return IInitializable.init.selector;
   }
 

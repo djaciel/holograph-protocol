@@ -26,7 +26,7 @@
  |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
  |_____________________________________________________________|
 
-             - one bridge, infinite possibilities -
+      - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -107,8 +107,6 @@ import "../abstract/ERC721H.sol";
 
 import "../interface/ERC721Holograph.sol";
 
-import "../library/Strings.sol";
-
 import "../struct/TokenData.sol";
 
 /**
@@ -118,25 +116,15 @@ import "../struct/TokenData.sol";
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
 contract CxipERC721 is ERC721H {
-  /*
-   * @dev Address of initial creator/owner of the collection.
-   */
-  address private _owner;
-
   /**
    * @dev Token data mapped by token id.
    */
   mapping(uint256 => TokenData) private _tokenData;
 
-  /*
+  /**
    * @dev Internal reference used for minting incremental token ids.
    */
   uint224 private _currentTokenId;
-
-  modifier onlyOwner(address msgSender) {
-    require(msgSender == _owner, "owner only function");
-    _;
-  }
 
   /**
    * @notice Constructor is empty and not utilised.
@@ -149,7 +137,6 @@ contract CxipERC721 is ERC721H {
    * @dev Special function to allow a one time initialisation on deployment. Also configures and deploys royalties.
    */
   function init(bytes memory data) external override returns (bytes4) {
-    // do your own custom logic here
     address owner = abi.decode(data, (address));
     _owner = owner;
     // run underlying initializer logic
@@ -166,14 +153,10 @@ contract CxipERC721 is ERC721H {
       string(abi.encodePacked("https://arweave.net/", _tokenData[_tokenId].arweave, _tokenData[_tokenId].arweave2));
   }
 
-  function cxipMint(
-    address msgSender,
-    uint224 tokenId,
-    TokenData calldata tokenData
-  ) external onlyHolographer onlyOwner(msgSender) {
+  function cxipMint(uint224 tokenId, TokenData calldata tokenData) external onlyHolographer onlyOwner {
     ERC721Holograph H721 = ERC721Holograph(holographer());
     if (tokenId == 0) {
-      while (H721.exists(uint256(_currentTokenId))) {
+      while (H721.exists(uint256(_currentTokenId)) || H721.burned(uint256(_currentTokenId))) {
         _currentTokenId += 1;
       }
       tokenId = _currentTokenId;
@@ -189,7 +172,7 @@ contract CxipERC721 is ERC721H {
     address, /* _to*/
     uint256 _tokenId,
     bytes calldata _data
-  ) external override onlyHolographer returns (bool) {
+  ) external onlyHolographer returns (bool) {
     TokenData memory tokenData = abi.decode(_data, (TokenData));
     _tokenData[_tokenId] = tokenData;
     return true;
@@ -200,14 +183,14 @@ contract CxipERC721 is ERC721H {
     address, /* _from*/
     address, /* _to*/
     uint256 _tokenId
-  ) external view override onlyHolographer returns (bytes memory _data) {
+  ) external view onlyHolographer returns (bytes memory _data) {
     _data = abi.encode(_tokenData[_tokenId]);
   }
 
   function afterBurn(
     address, /* _owner*/
     uint256 _tokenId
-  ) external override onlyHolographer returns (bool) {
+  ) external onlyHolographer returns (bool) {
     delete _tokenData[_tokenId];
     return true;
   }

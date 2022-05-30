@@ -2,11 +2,9 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-import "../abstract/ERC721H.sol";
+import "../abstract/StrictERC721H.sol";
 
 import "../interface/ERC721Holograph.sol";
-
-import "../library/Strings.sol";
 
 /**
  * @title Sample ERC-721 Collection that is bridgeable via Holograph
@@ -14,23 +12,21 @@ import "../library/Strings.sol";
  * @notice A smart contract for minting and managing Holograph Bridgeable ERC721 NFTs.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
-contract SampleERC721 is ERC721H {
-  /*
-   * @dev Address of initial creator/owner of the collection.
+contract SampleERC721 is StrictERC721H {
+  /**
+   * @dev Mapping of all token URIs.
    */
-  address private _owner;
-
   mapping(uint256 => string) private _tokenURIs;
 
-  /*
+  /**
    * @dev Internal reference used for minting incremental token ids.
    */
   uint224 private _currentTokenId;
 
-  modifier onlyOwner(address msgSender) {
-    require(msgSender == _owner, "owner only function");
-    _;
-  }
+  /**
+   * @dev Temporary implementation to suppress compiler state mutability warnings.
+   */
+  bool private _dummy;
 
   /**
    * @notice Constructor is empty and not utilised.
@@ -44,8 +40,8 @@ contract SampleERC721 is ERC721H {
    */
   function init(bytes memory data) external override returns (bytes4) {
     // do your own custom logic here
-    address owner = abi.decode(data, (address));
-    _owner = owner;
+    address contractOwner = abi.decode(data, (address));
+    _owner = contractOwner;
     // run underlying initializer logic
     return _init(data);
   }
@@ -59,22 +55,25 @@ contract SampleERC721 is ERC721H {
     return _tokenURIs[_tokenId];
   }
 
-  /*
-   * @dev Sample mint where anyone can mint any token, with a custom URI
+  /**
+   * @dev Sample mint where anyone can mint specific token, with a custom URI
    */
   function mint(
-    address msgSender,
     address to,
+    uint224 tokenId,
     string calldata URI
-  ) external onlyHolographer onlyOwner(msgSender) {
-    _currentTokenId++;
-    ERC721Holograph(holographer()).sourceMint(to, _currentTokenId);
-    uint256 _tokenId = ERC721Holograph(holographer()).sourceGetChainPrepend() + uint256(_currentTokenId);
-    _tokenURIs[_tokenId] = URI;
-  }
-
-  function test(address msgSender) external view onlyHolographer returns (string memory) {
-    return string(abi.encodePacked("it works! ", Strings.toHexString(msgSender)));
+  ) external onlyHolographer onlyOwner {
+    ERC721Holograph H721 = ERC721Holograph(holographer());
+    if (tokenId == 0) {
+      _currentTokenId += 1;
+      while (H721.exists(uint256(_currentTokenId)) || H721.burned(uint256(_currentTokenId))) {
+        _currentTokenId += 1;
+      }
+      tokenId = _currentTokenId;
+    }
+    H721.sourceMint(to, tokenId);
+    uint256 id = H721.sourceGetChainPrepend() + uint256(tokenId);
+    _tokenURIs[id] = URI;
   }
 
   function bridgeIn(
@@ -94,7 +93,8 @@ contract SampleERC721 is ERC721H {
     address, /* _from*/
     address, /* _to*/
     uint256 _tokenId
-  ) external view override onlyHolographer returns (bytes memory _data) {
+  ) external override onlyHolographer returns (bytes memory _data) {
+    _dummy = false;
     _data = abi.encode(_tokenURIs[_tokenId]);
   }
 

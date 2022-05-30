@@ -7,14 +7,14 @@
     "tokenSymbol": "HRD"
   },
   "localhost": {
-    "chain": 1337,
+    "chain": 1338,
     "rpc": "http://localhost:8545",
     "holographId": 4294967295,
     "tokenName": "Localhost",
     "tokenSymbol": "LH"
   },
   "localhost2": {
-    "chain": 1337,
+    "chain": 1339,
     "rpc": "http://localhost:9545",
     "holographId": 4294967294,
     "tokenName": "Localhost 2",
