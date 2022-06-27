@@ -101,6 +101,10 @@
 
 pragma solidity 0.8.13;
 
-interface IHolographTreasury {
-
+struct OperatorJob {
+  uint8 pod;
+  uint16 blockTimes;
+  address operator;
+  uint256 startBlock;
+  uint256[5] fallbackOperators;
 }
