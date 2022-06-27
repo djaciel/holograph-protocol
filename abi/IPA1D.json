@@ -366,25 +366,6 @@
     "inputs": [
       {
         "internalType": "bytes4",
-        "name": "selector",
-        "type": "bytes4"
-      }
-    ],
-    "name": "supportsFunction",
-    "outputs": [
-      {
-        "internalType": "bool",
-        "name": "",
-        "type": "bool"
-      }
-    ],
-    "stateMutability": "pure",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes4",
         "name": "interfaceId",
         "type": "bytes4"
       }

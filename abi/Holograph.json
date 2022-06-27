@@ -132,11 +132,11 @@
   },
   {
     "inputs": [],
-    "name": "getSecureStorage",
+    "name": "getTreasury",
     "outputs": [
       {
         "internalType": "address",
-        "name": "secureStorage",
+        "name": "treasury",
         "type": "address"
       }
     ],
@@ -257,11 +257,11 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "secureStorage",
+        "name": "treasury",
         "type": "address"
       }
     ],
-    "name": "setSecureStorage",
+    "name": "setTreasury",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

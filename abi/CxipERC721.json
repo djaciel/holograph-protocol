@@ -113,63 +113,14 @@
         "type": "uint224"
       },
       {
-        "components": [
-          {
-            "internalType": "bytes32",
-            "name": "payloadHash",
-            "type": "bytes32"
-          },
-          {
-            "components": [
-              {
-                "internalType": "bytes32",
-                "name": "r",
-                "type": "bytes32"
-              },
-              {
-                "internalType": "bytes32",
-                "name": "s",
-                "type": "bytes32"
-              },
-              {
-                "internalType": "uint8",
-                "name": "v",
-                "type": "uint8"
-              }
-            ],
-            "internalType": "struct Verification",
-            "name": "payloadSignature",
-            "type": "tuple"
-          },
-          {
-            "internalType": "address",
-            "name": "creator",
-            "type": "address"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "arweave",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes11",
-            "name": "arweave2",
-            "type": "bytes11"
-          },
-          {
-            "internalType": "bytes32",
-            "name": "ipfs",
-            "type": "bytes32"
-          },
-          {
-            "internalType": "bytes14",
-            "name": "ipfs2",
-            "type": "bytes14"
-          }
-        ],
-        "internalType": "struct TokenData",
-        "name": "tokenData",
-        "type": "tuple"
+        "internalType": "enum TokenUriType",
+        "name": "uriType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "string",
+        "name": "tokenUri",
+        "type": "string"
       }
     ],
     "name": "cxipMint",

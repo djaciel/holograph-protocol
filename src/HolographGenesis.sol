@@ -10,34 +10,42 @@ import "./interface/IInitializable.sol";
 contract HolographGenesis {
   mapping(address => bool) private _approvedDeployers;
 
-  event Announcement(string message);
+  event Message(string message);
+
+  modifier onlyDeployer() {
+    require(_approvedDeployers[msg.sender], "HOLOGRAPH: deployer not approved");
+    _;
+  }
 
   constructor() {
     _approvedDeployers[tx.origin] = true;
-    emit Announcement("Let there be light!");
+    emit Message("The future of NFTs is Holograph.");
   }
 
   function deploy(
+    uint256 chainId,
     bytes12 saltHash,
     bytes memory sourceCode,
     bytes memory initCode
-  ) external {
-    require(_approvedDeployers[msg.sender], "thou shalt not deploy");
+  ) external onlyDeployer {
+    require(chainId == block.chainid, "HOLOGRAPH: incorrect chain id");
     bytes32 salt = bytes32(abi.encodePacked(msg.sender, saltHash));
     address contractAddress = address(
       uint160(uint256(keccak256(abi.encodePacked(bytes1(0xff), address(this), salt, keccak256(sourceCode)))))
     );
-    require(!_isContract(contractAddress), "contract already deployed");
+    require(!_isContract(contractAddress), "HOLOGRAPH: already deployed");
     assembly {
       contractAddress := create2(0, add(sourceCode, 0x20), mload(sourceCode), salt)
     }
-    require(_isContract(contractAddress), "deployment failed");
-    require(IInitializable(contractAddress).init(initCode) == IInitializable.init.selector, "initialization failed");
+    require(_isContract(contractAddress), "HOLOGRAPH: deployment failed");
+    require(
+      IInitializable(contractAddress).init(initCode) == IInitializable.init.selector,
+      "HOLOGRAPH: initialization failed"
+    );
   }
 
-  function approveDeployer(address newDeployer) external {
-    require(_approvedDeployers[msg.sender], "you are not approved");
-    _approvedDeployers[newDeployer] = true;
+  function approveDeployer(address newDeployer, bool approve) external onlyDeployer {
+    _approvedDeployers[newDeployer] = approve;
   }
 
   function isApprovedDeployer(address deployer) external view returns (bool) {

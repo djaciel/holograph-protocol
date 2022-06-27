@@ -1,32 +1,30 @@
 // SPDX-License-Identifier: UNLICENSED
 /*
 
-  ,,,,,,,,,,,
- [ HOLOGRAPH ]
-  '''''''''''
-  _____________________________________________________________
- |                                                             |
- |                            / ^ \                            |
- |                            ~~*~~            .               |
- |                         [ '<>:<>' ]         |=>             |
- |               __           _/"\_           _|               |
- |             .:[]:.          """          .:[]:.             |
- |           .'  []  '.        \_/        .'  []  '.           |
- |         .'|   []   |'.               .'|   []   |'.         |
- |       .'  |   []   |  '.           .'  |   []   |  '.       |
- |     .'|   |   []   |   |'.       .'|   |   []   |   |'.     |
- |   .'  |   |   []   |   |  '.   .'  |   |   []   |   |  '.   |
- |.:'|   |   |   []   |   |   |':'|   |   |   []   |   |   |':.|
- |___|___|___|___[]___|___|___|___|___|___|___[]___|___|___|___|
- |XxXxXxXxXxXxXxX[]XxXxXxXxXxXxXxXxXxXxXxXxXxX[]XxXxXxXxXxXxXxX|
- |^^^^^^^^^^^^^^^[]^^^^^^^^^^^^^^^^^^^^^^^^^^^[]^^^^^^^^^^^^^^^|
- |               []                           []               |
- |               []                           []               |
- |    ,          []     ,        ,'      *    []               |
- |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
- |_____________________________________________________________|
-
-      - one protocol, one bridge = infinite possibilities -
+                         ┌───────────┐
+                         │ HOLOGRAPH │
+                         └───────────┘
+╔═════════════════════════════════════════════════════════════╗
+║                                                             ║
+║                            / ^ \                            ║
+║                            ~~*~~            ¸               ║
+║                         [ '<>:<>' ]         │░░░            ║
+║               ╔╗           _/"\_           ╔╣               ║
+║             ┌─╬╬─┐          """          ┌─╬╬─┐             ║
+║          ┌─┬┘ ╠╣ └┬─┐       \_/       ┌─┬┘ ╠╣ └┬─┐          ║
+║       ┌─┬┘ │  ╠╣  │ └┬─┐           ┌─┬┘ │  ╠╣  │ └┬─┐       ║
+║    ┌─┬┘ │  │  ╠╣  │  │ └┬─┐     ┌─┬┘ │  │  ╠╣  │  │ └┬─┐    ║
+║ ┌─┬┘ │  │  │  ╠╣  │  │  │ └┬┐ ┌┬┘ │  │  │  ╠╣  │  │  │ └┬─┐ ║
+╠┬┘ │  │  │  │  ╠╣  │  │  │  │└¤┘│  │  │  │  ╠╣  │  │  │  │ └┬╣
+║│  │  │  │  │  ╠╣  │  │  │  │   │  │  │  │  ╠╣  │  │  │  │  │║
+╠╩══╩══╩══╩══╩══╬╬══╩══╩══╩══╩═══╩══╩══╩══╩══╬╬══╩══╩══╩══╩══╩╣
+╠┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╣
+║               ╠╣                           ╠╣               ║
+║               ╠╣                           ╠╣               ║
+║    ,          ╠╣     ,        ,'      *    ╠╣               ║
+║~~~~~^~~~~~~~~┌╬╬┐~~~^~~~~~~~~^^~~~~~~~~^~~┌╬╬┐~~~~~~~^~~~~~~║
+╚══════════════╩╩╩╩═════════════════════════╩╩╩╩══════════════╝
+     - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -105,9 +103,12 @@ pragma solidity 0.8.13;
 
 import "../abstract/ERC721H.sol";
 
-import "../interface/ERC721Holograph.sol";
+import "../enum/TokenUriType.sol";
 
-import "../struct/TokenData.sol";
+import "../interface/ERC721Holograph.sol";
+import "../interface/IInterfaces.sol";
+import "../interface/IHolograph.sol";
+import "../interface/IHolographer.sol";
 
 /**
  * @title CXIP ERC-721 Collection that is bridgeable via Holograph
@@ -117,14 +118,24 @@ import "../struct/TokenData.sol";
  */
 contract CxipERC721 is ERC721H {
   /**
-   * @dev Token data mapped by token id.
-   */
-  mapping(uint256 => TokenData) private _tokenData;
-
-  /**
    * @dev Internal reference used for minting incremental token ids.
    */
   uint224 private _currentTokenId;
+
+  /**
+   * @dev Enum of type of token URI to use globally for the entire contract.
+   */
+  TokenUriType private _uriType;
+
+  /**
+   * @dev Enum mapping of type of token URI to use for specific tokenId.
+   */
+  mapping(uint256 => TokenUriType) private _tokenUriType;
+
+  /**
+   * @dev Mapping of IPFS URIs for tokenIds.
+   */
+  mapping(uint256 => mapping(TokenUriType => string)) private _tokenURIs;
 
   /**
    * @notice Constructor is empty and not utilised.
@@ -137,6 +148,8 @@ contract CxipERC721 is ERC721H {
    * @dev Special function to allow a one time initialisation on deployment. Also configures and deploys royalties.
    */
   function init(bytes memory data) external override returns (bytes4) {
+    // we set this as default type since that's what Mint is currently using
+    _uriType = TokenUriType.IPFS;
     address owner = abi.decode(data, (address));
     _owner = owner;
     // run underlying initializer logic
@@ -145,25 +158,45 @@ contract CxipERC721 is ERC721H {
 
   /**
    * @notice Get's the URI of the token.
-   * @dev Defaults the the Arweave URI
    * @return string The URI.
    */
   function tokenURI(uint256 _tokenId) external view onlyHolographer returns (string memory) {
+    TokenUriType uriType = _tokenUriType[_tokenId];
+    if (uriType == TokenUriType.UNDEFINED) {
+      uriType = _uriType;
+    }
     return
-      string(abi.encodePacked("https://arweave.net/", _tokenData[_tokenId].arweave, _tokenData[_tokenId].arweave2));
+      string(
+        abi.encodePacked(
+          IInterfaces(IHolograph(IHolographer(holographer()).getHolograph()).getInterfaces()).getUriPrepend(uriType),
+          _tokenURIs[_tokenId][uriType]
+        )
+      );
   }
 
-  function cxipMint(uint224 tokenId, TokenData calldata tokenData) external onlyHolographer onlyOwner {
+  function cxipMint(
+    uint224 tokenId,
+    TokenUriType uriType,
+    string calldata tokenUri
+  ) external onlyHolographer onlyOwner {
     ERC721Holograph H721 = ERC721Holograph(holographer());
+    uint256 chainPrepend = H721.sourceGetChainPrepend();
     if (tokenId == 0) {
-      while (H721.exists(uint256(_currentTokenId)) || H721.burned(uint256(_currentTokenId))) {
+      _currentTokenId += 1;
+      while (
+        H721.exists(chainPrepend + uint256(_currentTokenId)) || H721.burned(chainPrepend + uint256(_currentTokenId))
+      ) {
         _currentTokenId += 1;
       }
       tokenId = _currentTokenId;
     }
-    H721.sourceMint(tokenData.creator, tokenId);
-    uint256 id = H721.sourceGetChainPrepend() + uint256(tokenId);
-    _tokenData[id] = tokenData;
+    H721.sourceMint(msgSender(), tokenId);
+    uint256 id = chainPrepend + uint256(tokenId);
+    if (uriType == TokenUriType.UNDEFINED) {
+      uriType = _uriType;
+    }
+    _tokenUriType[id] = uriType;
+    _tokenURIs[id][uriType] = tokenUri;
   }
 
   function bridgeIn(
@@ -173,8 +206,9 @@ contract CxipERC721 is ERC721H {
     uint256 _tokenId,
     bytes calldata _data
   ) external onlyHolographer returns (bool) {
-    TokenData memory tokenData = abi.decode(_data, (TokenData));
-    _tokenData[_tokenId] = tokenData;
+    (TokenUriType uriType, string memory tokenUri) = abi.decode(_data, (TokenUriType, string));
+    _tokenUriType[_tokenId] = uriType;
+    _tokenURIs[_tokenId][uriType] = tokenUri;
     return true;
   }
 
@@ -184,14 +218,22 @@ contract CxipERC721 is ERC721H {
     address, /* _to*/
     uint256 _tokenId
   ) external view onlyHolographer returns (bytes memory _data) {
-    _data = abi.encode(_tokenData[_tokenId]);
+    TokenUriType uriType = _tokenUriType[_tokenId];
+    if (uriType == TokenUriType.UNDEFINED) {
+      uriType = _uriType;
+    }
+    _data = abi.encode(uriType, _tokenURIs[_tokenId][uriType]);
   }
 
   function afterBurn(
     address, /* _owner*/
     uint256 _tokenId
   ) external onlyHolographer returns (bool) {
-    delete _tokenData[_tokenId];
+    TokenUriType uriType = _tokenUriType[_tokenId];
+    if (uriType == TokenUriType.UNDEFINED) {
+      uriType = _uriType;
+    }
+    delete _tokenURIs[_tokenId][uriType];
     return true;
   }
 }

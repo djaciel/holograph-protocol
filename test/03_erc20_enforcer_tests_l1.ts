@@ -37,8 +37,6 @@ import {
   PA1D,
   SampleERC20,
   SampleERC721,
-  SecureStorage,
-  SecureStorageProxy,
 } from '../typechain-types';
 
 describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {

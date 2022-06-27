@@ -14,7 +14,7 @@
         "type": "string"
       }
     ],
-    "name": "Announcement",
+    "name": "Message",
     "type": "event"
   },
   {
@@ -23,6 +23,11 @@
         "internalType": "address",
         "name": "newDeployer",
         "type": "address"
+      },
+      {
+        "internalType": "bool",
+        "name": "approve",
+        "type": "bool"
       }
     ],
     "name": "approveDeployer",
@@ -32,6 +37,11 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "chainId",
+        "type": "uint256"
+      },
       {
         "internalType": "bytes12",
         "name": "saltHash",

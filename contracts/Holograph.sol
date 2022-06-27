@@ -1,32 +1,30 @@
 // SPDX-License-Identifier: UNLICENSED
 /*
 
-  ,,,,,,,,,,,
- [ HOLOGRAPH ]
-  '''''''''''
-  _____________________________________________________________
- |                                                             |
- |                            / ^ \                            |
- |                            ~~*~~            .               |
- |                         [ '<>:<>' ]         |=>             |
- |               __           _/"\_           _|               |
- |             .:[]:.          """          .:[]:.             |
- |           .'  []  '.        \_/        .'  []  '.           |
- |         .'|   []   |'.               .'|   []   |'.         |
- |       .'  |   []   |  '.           .'  |   []   |  '.       |
- |     .'|   |   []   |   |'.       .'|   |   []   |   |'.     |
- |   .'  |   |   []   |   |  '.   .'  |   |   []   |   |  '.   |
- |.:'|   |   |   []   |   |   |':'|   |   |   []   |   |   |':.|
- |___|___|___|___[]___|___|___|___|___|___|___[]___|___|___|___|
- |XxXxXxXxXxXxXxX[]XxXxXxXxXxXxXxXxXxXxXxXxXxX[]XxXxXxXxXxXxXxX|
- |^^^^^^^^^^^^^^^[]^^^^^^^^^^^^^^^^^^^^^^^^^^^[]^^^^^^^^^^^^^^^|
- |               []                           []               |
- |               []                           []               |
- |    ,          []     ,        ,'      *    []               |
- |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
- |_____________________________________________________________|
-
-      - one protocol, one bridge = infinite possibilities -
+                         ┌───────────┐
+                         │ HOLOGRAPH │
+                         └───────────┘
+╔═════════════════════════════════════════════════════════════╗
+║                                                             ║
+║                            / ^ \                            ║
+║                            ~~*~~            ¸               ║
+║                         [ '<>:<>' ]         │░░░            ║
+║               ╔╗           _/"\_           ╔╣               ║
+║             ┌─╬╬─┐          """          ┌─╬╬─┐             ║
+║          ┌─┬┘ ╠╣ └┬─┐       \_/       ┌─┬┘ ╠╣ └┬─┐          ║
+║       ┌─┬┘ │  ╠╣  │ └┬─┐           ┌─┬┘ │  ╠╣  │ └┬─┐       ║
+║    ┌─┬┘ │  │  ╠╣  │  │ └┬─┐     ┌─┬┘ │  │  ╠╣  │  │ └┬─┐    ║
+║ ┌─┬┘ │  │  │  ╠╣  │  │  │ └┬┐ ┌┬┘ │  │  │  ╠╣  │  │  │ └┬─┐ ║
+╠┬┘ │  │  │  │  ╠╣  │  │  │  │└¤┘│  │  │  │  ╠╣  │  │  │  │ └┬╣
+║│  │  │  │  │  ╠╣  │  │  │  │   │  │  │  │  ╠╣  │  │  │  │  │║
+╠╩══╩══╩══╩══╩══╬╬══╩══╩══╩══╩═══╩══╩══╩══╩══╬╬══╩══╩══╩══╩══╩╣
+╠┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╣
+║               ╠╣                           ╠╣               ║
+║               ╠╣                           ╠╣               ║
+║    ,          ╠╣     ,        ,'      *    ╠╣               ║
+║~~~~~^~~~~~~~~┌╬╬┐~~~^~~~~~~~~^^~~~~~~~~^~~┌╬╬┐~~~~~~~^~~~~~~║
+╚══════════════╩╩╩╩═════════════════════════╩╩╩╩══════════════╝
+     - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -116,22 +114,24 @@ contract Holograph is Admin, Initializable, IHolograph {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (
       uint32 chainType,
-      address interfaces,
-      address registry,
-      address factory,
       address bridge,
+      address factory,
+      address interfaces,
       address operator,
-      address secureStorage
+      address registry,
+      address treasury
     ) = abi.decode(data, (uint32, address, address, address, address, address, address));
     assembly {
       sstore(0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, origin())
+
       sstore(0xf659863303d91045cf6f5789ae687c591017a1efd53ebb2eec518fb10873ecb8, chainType)
-      sstore(0x23e584d4fb363739321c1e56c9bcdc29517a4c57065f8502226c995fd15b2472, interfaces)
-      sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
-      sstore(0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2, factory)
+
       sstore(0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f, bridge)
+      sstore(0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2, factory)
+      sstore(0x23e584d4fb363739321c1e56c9bcdc29517a4c57065f8502226c995fd15b2472, interfaces)
       sstore(0x7bef7d8d97f57f9aa64de319c8598b5cdc7c3d2715fc02428415a98281ca6bdc, operator)
-      sstore(0xd26498b26a05274577b8ac2e3250418da53433f3ff82027428ee3c530702cdec, secureStorage)
+      sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
+      sstore(0xc8f5846d0f0d68cef76d4d10d7d189845e41b44d1dbdc208ed0f8961f993af5f, treasury)
     }
     _setInitialized();
     return IInitializable.init.selector;
@@ -177,11 +177,7 @@ contract Holograph is Admin, Initializable, IHolograph {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridge')) - 1);
     assembly {
-      sstore(
-        /* slot */
-        0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f,
-        bridge
-      )
+      sstore(0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f, bridge)
     }
   }
 
@@ -189,10 +185,7 @@ contract Holograph is Admin, Initializable, IHolograph {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.factory')) - 1);
     assembly {
-      factory := sload(
-        /* slot */
-        0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2
-      )
+      factory := sload(0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2)
     }
   }
 
@@ -200,11 +193,7 @@ contract Holograph is Admin, Initializable, IHolograph {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.factory')) - 1);
     assembly {
-      sstore(
-        /* slot */
-        0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2,
-        factory
-      )
+      sstore(0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2, factory)
     }
   }
 
@@ -220,11 +209,7 @@ contract Holograph is Admin, Initializable, IHolograph {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.interfaces')) - 1);
     assembly {
-      sstore(
-        /* slot */
-        0x23e584d4fb363739321c1e56c9bcdc29517a4c57065f8502226c995fd15b2472,
-        interfaces
-      )
+      sstore(0x23e584d4fb363739321c1e56c9bcdc29517a4c57065f8502226c995fd15b2472, interfaces)
     }
   }
 
@@ -248,10 +233,7 @@ contract Holograph is Admin, Initializable, IHolograph {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
-      registry := sload(
-        /* slot */
-        0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349
-      )
+      registry := sload(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349)
     }
   }
 
@@ -259,34 +241,23 @@ contract Holograph is Admin, Initializable, IHolograph {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
-      sstore(
-        /* slot */
-        0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349,
-        registry
-      )
+      sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
     }
   }
 
-  function getSecureStorage() external view returns (address secureStorage) {
+  function getTreasury() external view returns (address treasury) {
     // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.secureStorage')) - 1);
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.treasury')) - 1);
     assembly {
-      secureStorage := sload(
-        /* slot */
-        0xd26498b26a05274577b8ac2e3250418da53433f3ff82027428ee3c530702cdec
-      )
+      treasury := sload(0xc8f5846d0f0d68cef76d4d10d7d189845e41b44d1dbdc208ed0f8961f993af5f)
     }
   }
 
-  function setSecureStorage(address secureStorage) external onlyAdmin {
+  function setTreasury(address treasury) external onlyAdmin {
     // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.secureStorage')) - 1);
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.treasury')) - 1);
     assembly {
-      sstore(
-        /* slot */
-        0xd26498b26a05274577b8ac2e3250418da53433f3ff82027428ee3c530702cdec,
-        secureStorage
-      )
+      sstore(0xc8f5846d0f0d68cef76d4d10d7d189845e41b44d1dbdc208ed0f8961f993af5f, treasury)
     }
   }
 

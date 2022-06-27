@@ -3,6 +3,7 @@
 /*SOLIDITY_COMPILER_VERSION*/
 
 enum HolographERC721Event {
+  UNDEFINED, // 0
   bridgeIn, //  1
   bridgeOut, //  2
   afterApprove, //  3

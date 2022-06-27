@@ -14,14 +14,14 @@ import {
   generateInitCode,
 } from '../scripts/utils/helpers';
 import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
-import Web3 from 'web3';
-
-const networks = JSON.parse(fs.readFileSync('./config/networks.json', 'utf8'));
+import networks from '../config/networks';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
   const accounts = await hre.ethers.getSigners();
   const deployer: SignerWithAddress = accounts[0];
+
+  const salt = hre.deploymentSalt;
 
   const network = networks[hre.networkName];
 
@@ -29,8 +29,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log(err);
     process.exit();
   };
-
-  const web3 = new Web3();
 
   const holographFactoryProxy = await hre.ethers.getContract('HolographFactoryProxy');
   const holographFactory = ((await hre.ethers.getContract('HolographFactory')) as Contract).attach(
@@ -60,7 +58,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       18,
       ConfigureEvents([]),
       generateInitCode(['address', 'uint16'], [deployer.address, 0]),
-      '0x' + '00'.repeat(32)
+      salt
     );
 
     const sig = await deployer.signMessage(erc20ConfigHashBytes);

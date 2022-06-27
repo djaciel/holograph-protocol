@@ -1,32 +1,30 @@
 // SPDX-License-Identifier: UNLICENSED
 /*
 
-  ,,,,,,,,,,,
- [ HOLOGRAPH ]
-  '''''''''''
-  _____________________________________________________________
- |                                                             |
- |                            / ^ \                            |
- |                            ~~*~~            .               |
- |                         [ '<>:<>' ]         |=>             |
- |               __           _/"\_           _|               |
- |             .:[]:.          """          .:[]:.             |
- |           .'  []  '.        \_/        .'  []  '.           |
- |         .'|   []   |'.               .'|   []   |'.         |
- |       .'  |   []   |  '.           .'  |   []   |  '.       |
- |     .'|   |   []   |   |'.       .'|   |   []   |   |'.     |
- |   .'  |   |   []   |   |  '.   .'  |   |   []   |   |  '.   |
- |.:'|   |   |   []   |   |   |':'|   |   |   []   |   |   |':.|
- |___|___|___|___[]___|___|___|___|___|___|___[]___|___|___|___|
- |XxXxXxXxXxXxXxX[]XxXxXxXxXxXxXxXxXxXxXxXxXxX[]XxXxXxXxXxXxXxX|
- |^^^^^^^^^^^^^^^[]^^^^^^^^^^^^^^^^^^^^^^^^^^^[]^^^^^^^^^^^^^^^|
- |               []                           []               |
- |               []                           []               |
- |    ,          []     ,        ,'      *    []               |
- |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
- |_____________________________________________________________|
-
-      - one protocol, one bridge = infinite possibilities -
+                         ┌───────────┐
+                         │ HOLOGRAPH │
+                         └───────────┘
+╔═════════════════════════════════════════════════════════════╗
+║                                                             ║
+║                            / ^ \                            ║
+║                            ~~*~~            ¸               ║
+║                         [ '<>:<>' ]         │░░░            ║
+║               ╔╗           _/"\_           ╔╣               ║
+║             ┌─╬╬─┐          """          ┌─╬╬─┐             ║
+║          ┌─┬┘ ╠╣ └┬─┐       \_/       ┌─┬┘ ╠╣ └┬─┐          ║
+║       ┌─┬┘ │  ╠╣  │ └┬─┐           ┌─┬┘ │  ╠╣  │ └┬─┐       ║
+║    ┌─┬┘ │  │  ╠╣  │  │ └┬─┐     ┌─┬┘ │  │  ╠╣  │  │ └┬─┐    ║
+║ ┌─┬┘ │  │  │  ╠╣  │  │  │ └┬┐ ┌┬┘ │  │  │  ╠╣  │  │  │ └┬─┐ ║
+╠┬┘ │  │  │  │  ╠╣  │  │  │  │└¤┘│  │  │  │  ╠╣  │  │  │  │ └┬╣
+║│  │  │  │  │  ╠╣  │  │  │  │   │  │  │  │  ╠╣  │  │  │  │  │║
+╠╩══╩══╩══╩══╩══╬╬══╩══╩══╩══╩═══╩══╩══╩══╩══╬╬══╩══╩══╩══╩══╩╣
+╠┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╣
+║               ╠╣                           ╠╣               ║
+║               ╠╣                           ╠╣               ║
+║    ,          ╠╣     ,        ,'      *    ╠╣               ║
+║~~~~~^~~~~~~~~┌╬╬┐~~~^~~~~~~~~^^~~~~~~~~^~~┌╬╬┐~~~~~~~^~~~~~~║
+╚══════════════╩╩╩╩═════════════════════════╩╩╩╩══════════════╝
+     - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -107,7 +105,6 @@ import "./abstract/Admin.sol";
 import "./abstract/Initializable.sol";
 import "./abstract/Owner.sol";
 
-import "./library/Address.sol";
 import "./library/Zora.sol";
 
 import "./interface/ERC20.sol";
@@ -176,7 +173,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @dev We check owner, admin, and identity for a more comprehensive coverage.
    * @return Returns true is message sender is an owner.
    */
-  function isOwner() internal view returns (bool) {
+  function isOwner() private view returns (bool) {
     return (msg.sender == getOwner() ||
       msg.sender == getAdmin() ||
       msg.sender == Owner(address(this)).getOwner() ||
@@ -187,7 +184,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @dev Gets the default royalty payment receiver address from storage slot.
    * @return receiver Wallet or smart contract that will receive the initial royalty payouts.
    */
-  function _getDefaultReceiver() internal view returns (address payable receiver) {
+  function _getDefaultReceiver() private view returns (address payable receiver) {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.defaultReceiver')) - 1);
     assembly {
@@ -202,7 +199,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @dev Sets the default royalty payment receiver address to storage slot.
    * @param receiver Wallet or smart contract that will receive the initial royalty payouts.
    */
-  function _setDefaultReceiver(address receiver) internal {
+  function _setDefaultReceiver(address receiver) private {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.defaultReceiver')) - 1);
     assembly {
@@ -218,7 +215,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @dev Gets the default royalty base points(percentage) from storage slot.
    * @return bp Royalty base points(percentage) for royalty payouts.
    */
-  function _getDefaultBp() internal view returns (uint256 bp) {
+  function _getDefaultBp() private view returns (uint256 bp) {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.defaultBp')) - 1);
     assembly {
@@ -233,7 +230,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @dev Sets the default royalty base points(percentage) to storage slot.
    * @param bp Uint256 of royalty percentage, provided in base points format.
    */
-  function _setDefaultBp(uint256 bp) internal {
+  function _setDefaultBp(uint256 bp) private {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.defaultBp')) - 1);
     assembly {
@@ -249,7 +246,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @dev Gets the royalty payment receiver address, for a particular token id, from storage slot.
    * @return receiver Wallet or smart contract that will receive the royalty payouts for a particular token id.
    */
-  function _getReceiver(uint256 tokenId) internal view returns (address payable receiver) {
+  function _getReceiver(uint256 tokenId) private view returns (address payable receiver) {
     bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.receiver", tokenId))) - 1);
     assembly {
       receiver := sload(slot)
@@ -261,7 +258,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @param tokenId Uint256 of the token id to set the receiver for.
    * @param receiver Wallet or smart contract that will receive the royalty payouts for a particular token id.
    */
-  function _setReceiver(uint256 tokenId, address receiver) internal {
+  function _setReceiver(uint256 tokenId, address receiver) private {
     bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.receiver", tokenId))) - 1);
     assembly {
       sstore(slot, receiver)
@@ -272,7 +269,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @dev Gets the royalty base points(percentage), for a particular token id, from storage slot.
    * @return bp Royalty base points(percentage) for the royalty payouts of a specific token id.
    */
-  function _getBp(uint256 tokenId) internal view returns (uint256 bp) {
+  function _getBp(uint256 tokenId) private view returns (uint256 bp) {
     bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.bp", tokenId))) - 1);
     assembly {
       bp := sload(slot)
@@ -284,14 +281,14 @@ contract PA1D is Admin, Owner, Initializable {
    * @param tokenId Uint256 of the token id to set the base points for.
    * @param bp Uint256 of royalty percentage, provided in base points format, for a particular token id.
    */
-  function _setBp(uint256 tokenId, uint256 bp) internal {
+  function _setBp(uint256 tokenId, uint256 bp) private {
     bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.bp", tokenId))) - 1);
     assembly {
       sstore(slot, bp)
     }
   }
 
-  function _getPayoutAddresses() internal view returns (address payable[] memory addresses) {
+  function _getPayoutAddresses() private view returns (address payable[] memory addresses) {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.payout.addresses')) - 1);
     bytes32 slot = 0x700a541bc37f227b0d36d34e7b77cc0108bde768297c6f80f448f380387371df;
@@ -310,7 +307,7 @@ contract PA1D is Admin, Owner, Initializable {
     }
   }
 
-  function _setPayoutAddresses(address payable[] memory addresses) internal {
+  function _setPayoutAddresses(address payable[] memory addresses) private {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.payout.addresses')) - 1);
     bytes32 slot = 0x700a541bc37f227b0d36d34e7b77cc0108bde768297c6f80f448f380387371df;
@@ -328,7 +325,7 @@ contract PA1D is Admin, Owner, Initializable {
     }
   }
 
-  function _getPayoutBps() internal view returns (uint256[] memory bps) {
+  function _getPayoutBps() private view returns (uint256[] memory bps) {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.payout.bps')) - 1);
     bytes32 slot = 0x7a62e8104cd2cc2ef6bd3a26bcb71428108fbe0e0ead6a5bfb8676781e2ed28d;
@@ -347,7 +344,7 @@ contract PA1D is Admin, Owner, Initializable {
     }
   }
 
-  function _setPayoutBps(uint256[] memory bps) internal {
+  function _setPayoutBps(uint256[] memory bps) private {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.payout.bps')) - 1);
     bytes32 slot = 0x7a62e8104cd2cc2ef6bd3a26bcb71428108fbe0e0ead6a5bfb8676781e2ed28d;
@@ -365,14 +362,14 @@ contract PA1D is Admin, Owner, Initializable {
     }
   }
 
-  function _getTokenAddress(string memory tokenName) internal view returns (address tokenAddress) {
+  function _getTokenAddress(string memory tokenName) private view returns (address tokenAddress) {
     bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.tokenAddress", tokenName))) - 1);
     assembly {
       tokenAddress := sload(slot)
     }
   }
 
-  function _setTokenAddress(string memory tokenName, address tokenAddress) internal {
+  function _setTokenAddress(string memory tokenName, address tokenAddress) private {
     bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.tokenAddress", tokenName))) - 1);
     assembly {
       sstore(slot, tokenAddress)
@@ -382,7 +379,7 @@ contract PA1D is Admin, Owner, Initializable {
   /**
    * @dev Internal function that transfers ETH to all payout recipients.
    */
-  function _payoutEth() internal {
+  function _payoutEth() private {
     address payable[] memory addresses = _getPayoutAddresses();
     uint256[] memory bps = _getPayoutBps();
     uint256 length = addresses.length;
@@ -405,7 +402,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @dev Internal function that transfers tokens to all payout recipients.
    * @param tokenAddress Smart contract address of ERC20 token.
    */
-  function _payoutToken(address tokenAddress) internal {
+  function _payoutToken(address tokenAddress) private {
     address payable[] memory addresses = _getPayoutAddresses();
     uint256[] memory bps = _getPayoutBps();
     uint256 length = addresses.length;
@@ -426,7 +423,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @dev Try to use _payoutToken and handle each token individually.
    * @param tokenAddresses Array of smart contract addresses of ERC20 tokens.
    */
-  function _payoutTokens(address[] memory tokenAddresses) internal {
+  function _payoutTokens(address[] memory tokenAddresses) private {
     address payable[] memory addresses = _getPayoutAddresses();
     uint256[] memory bps = _getPayoutBps();
     ERC20 erc20;
@@ -449,7 +446,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @dev This function validates that the call is being made by an authorised wallet.
    * @dev Will revert entire tranaction if it fails.
    */
-  function _validatePayoutRequestor() internal view {
+  function _validatePayoutRequestor() private view {
     if (!isOwner()) {
       bool matched;
       address payable[] memory addresses = _getPayoutAddresses();
@@ -732,27 +729,5 @@ contract PA1D is Admin, Owner, Initializable {
    */
   function getTokenAddress(string memory tokenName) public view returns (address) {
     return _getTokenAddress(tokenName);
-  }
-
-  function supportsFunction(bytes4 selector) public pure returns (bool) {
-    return (selector == IPA1D.configurePayouts.selector ||
-      selector == IPA1D.getPayoutInfo.selector ||
-      selector == IPA1D.getEthPayout.selector ||
-      selector == IPA1D.getTokenPayout.selector ||
-      selector == IPA1D.getTokensPayout.selector ||
-      selector == IPA1D.supportsInterface.selector ||
-      selector == IPA1D.setRoyalties.selector ||
-      selector == IPA1D.royaltyInfo.selector ||
-      selector == IPA1D.getFeeBps.selector ||
-      selector == IPA1D.getFeeRecipients.selector ||
-      selector == IPA1D.getRoyalties.selector ||
-      selector == IPA1D.getFees.selector ||
-      selector == IPA1D.tokenCreator.selector ||
-      selector == IPA1D.calculateRoyaltyFee.selector ||
-      selector == IPA1D.marketContract.selector ||
-      selector == IPA1D.tokenCreators.selector ||
-      selector == IPA1D.bidSharesForToken.selector ||
-      selector == IPA1D.getStorageSlot.selector ||
-      selector == IPA1D.getTokenAddress.selector);
   }
 }

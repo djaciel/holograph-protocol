@@ -76,18 +76,5 @@
     ],
     "stateMutability": "view",
     "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getSecureStorage",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "secureStorageAddress",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
   }
 ]

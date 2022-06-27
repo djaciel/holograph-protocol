@@ -5,13 +5,15 @@
 import "./abstract/Admin.sol";
 import "./abstract/Initializable.sol";
 
+import "./enum/ChainIdType.sol";
+
 import "./interface/IHolograph.sol";
 import "./interface/IHolographBridge.sol";
 import "./interface/IHolographOperator.sol";
 import "./interface/IHolographRegistry.sol";
 import "./interface/IInitializable.sol";
-
-import "./library/ChainId.sol";
+import "./interface/IInterfaces.sol";
+import "./interface/ILayerZeroEndpoint.sol";
 
 /**
  * @dev This smart contract contains the actual core operator logic.
@@ -27,8 +29,6 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
    */
   event AvailableJob(bytes _payload);
 
-  event LzEvent(uint16 _dstChainId, bytes _destination, bytes _payload);
-
   modifier onlyBridge() {
     require(msg.sender == _bridge(), "HOLOGRAPH: bridge only call");
     _;
@@ -36,13 +36,18 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
 
   modifier onlyLZ() {
     assembly {
+      // check if lzEndpoint
       switch eq(sload(precomputeslot("eip1967.Holograph.Bridge.lZEndpoint")), caller())
       case 0 {
-        mstore(0x80, 0x08c379a000000000000000000000000000000000000000000000000000000000)
-        mstore(0xa0, 0x0000002000000000000000000000000000000000000000000000000000000000)
-        mstore(0xc0, 0x0000001b484f4c4f47524150483a204c5a206f6e6c7920656e64706f696e7400)
-        mstore(0xe0, 0x0000000000000000000000000000000000000000000000000000000000000000)
-        revert(0x80, 0xc4)
+        // check if operator is calling self, used for job estimations
+        switch eq(address(), caller())
+        case 0 {
+          mstore(0x80, 0x08c379a000000000000000000000000000000000000000000000000000000000)
+          mstore(0xa0, 0x0000002000000000000000000000000000000000000000000000000000000000)
+          mstore(0xc0, 0x0000001b484f4c4f47524150483a204c5a206f6e6c7920656e64706f696e7400)
+          mstore(0xe0, 0x0000000000000000000000000000000000000000000000000000000000000000)
+          revert(0x80, 0xc4)
+        }
       }
     }
     _;
@@ -55,12 +60,17 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
-    (address holograph, address registry, address bridge) = abi.decode(data, (address, address, address));
+    (address bridge, address holograph, address interfaces, address registry) = abi.decode(
+      data,
+      (address, address, address, address)
+    );
     assembly {
       // sstore(precomputeslot("eip1967.Holograph.Bridge.deadAddress"), 0x000000000000000000000000000000000000000000000000000000000000dead)
       sstore(precomputeslot("eip1967.Holograph.Bridge.admin"), origin())
-      sstore(precomputeslot("eip1967.Holograph.Bridge.holograph"), holograph)
+
       sstore(precomputeslot("eip1967.Holograph.Bridge.bridge"), bridge)
+      sstore(precomputeslot("eip1967.Holograph.Bridge.holograph"), holograph)
+      sstore(precomputeslot("eip1967.Holograph.Bridge.interfaces"), interfaces)
       sstore(precomputeslot("eip1967.Holograph.Bridge.registry"), registry)
     }
     _setInitialized();
@@ -72,7 +82,7 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
     bytes calldata _srcAddress,
     uint64, /* _nonce*/
     bytes calldata _payload
-  ) external onlyLZ {
+  ) external payable onlyLZ {
     assembly {
       let ptr := mload(0x40)
       calldatacopy(add(ptr, 0x0c), _srcAddress.offset, _srcAddress.length)
@@ -89,7 +99,7 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
     emit AvailableJob(_payload);
   }
 
-  function executeJob(bytes calldata _payload) external {
+  function executeJob(bytes calldata _payload) external payable {
     // we do our operator logic here
     // we will also manage gas/value here
     bytes32 hash = keccak256(_payload);
@@ -118,9 +128,10 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
     bytes calldata _srcAddress,
     uint64 _nonce,
     bytes calldata _payload
-  ) external {
+  ) external payable {
     assembly {
       // switch eq(sload(precomputeslot("eip1967.Holograph.Bridge.deadAddress")), caller())
+      // allow only address(0) so that function succeeds only on estimate gas calls
       switch eq(mload(0x60), caller())
       case 0 {
         mstore(0x80, 0x08c379a000000000000000000000000000000000000000000000000000000000)
@@ -130,35 +141,48 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
         revert(0x80, 0xc4)
       }
     }
-    IHolographOperator(address(this)).lzReceive(_srcChainId, _srcAddress, _nonce, _payload);
-    IHolographOperator(address(this)).executeJob(_payload);
+    IHolographOperator(payable(address(this))).lzReceive(_srcChainId, _srcAddress, _nonce, _payload);
+    IHolographOperator(payable(address(this))).executeJob(_payload);
   }
 
   function send(
-    uint16 _dstChainId,
-    bytes calldata _destination,
-    bytes calldata _payload,
-    address payable, /* _refundAddress*/
-    address, /* _zroPaymentAddress*/
-    bytes calldata /* _adapterParams*/
+    uint32 toChain,
+    address msgSender,
+    bytes calldata _payload
   ) external payable onlyBridge {
-    // we really don't care about anything and just emit an event that we can leverage for multichain replication
-    emit LzEvent(_dstChainId, _destination, _payload);
+    ILayerZeroEndpoint lZEndpoint;
+    assembly {
+      lZEndpoint := sload(precomputeslot("eip1967.Holograph.Bridge.lZEndpoint"))
+    }
+    lZEndpoint.send{value: msg.value}(
+      uint16(_interfaces().getChainId(ChainIdType.HOLOGRAPH, uint256(toChain), ChainIdType.LAYERZERO)),
+      abi.encodePacked(address(this)),
+      _payload,
+      payable(msgSender),
+      address(this),
+      abi.encodePacked(uint16(1), uint256(52000 + (_payload.length * 25)))
+    );
   }
 
-  function _bridge() internal view returns (address bridge) {
+  function _bridge() private view returns (address bridge) {
     assembly {
       bridge := sload(precomputeslot("eip1967.Holograph.Bridge.bridge"))
     }
   }
 
-  function _holograph() internal view returns (address holograph) {
+  function _holograph() private view returns (address holograph) {
     assembly {
       holograph := sload(precomputeslot("eip1967.Holograph.Bridge.holograph"))
     }
   }
 
-  function _registry() internal view returns (address registry) {
+  function _interfaces() private view returns (IInterfaces interfaces) {
+    assembly {
+      interfaces := sload(precomputeslot("eip1967.Holograph.Bridge.interfaces"))
+    }
+  }
+
+  function _registry() private view returns (address registry) {
     assembly {
       registry := sload(precomputeslot("eip1967.Holograph.Bridge.registry"))
     }
@@ -173,6 +197,70 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
   function setLZEndpoint(address lZEndpoint) external onlyAdmin {
     assembly {
       sstore(precomputeslot("eip1967.Holograph.Bridge.lZEndpoint"), lZEndpoint)
+    }
+  }
+
+  function getBridge() external view returns (address bridge) {
+    // The slot hash has been precomputed for gas optimizaion
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridge')) - 1);
+    assembly {
+      bridge := sload(precomputeslot("eip1967.Holograph.Bridge.bridge"))
+    }
+  }
+
+  function setBridge(address bridge) external onlyAdmin {
+    // The slot hash has been precomputed for gas optimizaion
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridge')) - 1);
+    assembly {
+      sstore(precomputeslot("eip1967.Holograph.Bridge.bridge"), bridge)
+    }
+  }
+
+  function getHolograph() external view returns (address holograph) {
+    // The slot hash has been precomputed for gas optimizaion
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.holograph')) - 1);
+    assembly {
+      holograph := sload(precomputeslot("eip1967.Holograph.Bridge.holograph"))
+    }
+  }
+
+  function setHolograph(address holograph) external onlyAdmin {
+    // The slot hash has been precomputed for gas optimizaion
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.holograph')) - 1);
+    assembly {
+      sstore(precomputeslot("eip1967.Holograph.Bridge.factory"), holograph)
+    }
+  }
+
+  function getInterfaces() external view returns (address interfaces) {
+    // The slot hash has been precomputed for gas optimizaion
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.interfaces')) - 1);
+    assembly {
+      interfaces := sload(precomputeslot("eip1967.Holograph.Bridge.interfaces"))
+    }
+  }
+
+  function setInterfaces(address interfaces) external onlyAdmin {
+    // The slot hash has been precomputed for gas optimizaion
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.interfaces')) - 1);
+    assembly {
+      sstore(precomputeslot("eip1967.Holograph.Bridge.interfaces"), interfaces)
+    }
+  }
+
+  function getRegistry() external view returns (address registry) {
+    // The slot hash has been precomputed for gas optimizaion
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
+    assembly {
+      registry := sload(precomputeslot("eip1967.Holograph.Bridge.registry"))
+    }
+  }
+
+  function setRegistry(address registry) external onlyAdmin {
+    // The slot hash has been precomputed for gas optimizaion
+    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
+    assembly {
+      sstore(precomputeslot("eip1967.Holograph.Bridge.registry"), registry)
     }
   }
 }

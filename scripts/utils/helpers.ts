@@ -25,6 +25,7 @@ import {
 } from '@nomiclabs/hardhat-ethers/internal/helpers';
 import type * as ProviderProxyT from '@nomiclabs/hardhat-ethers/internal/provider-proxy';
 import { DeploymentConfigStruct } from '../../typechain-types/HolographFactory';
+import networks from '../../config/networks';
 
 export interface LeanHardhatRuntimeEnvironment {
   networkName: string;
@@ -37,6 +38,7 @@ export interface LeanHardhatRuntimeEnvironment {
   provider: EthereumProvider;
   ethers: typeof ethers & HardhatEthersHelpers;
   artifacts: Artifacts;
+  deploymentSalt: string;
 }
 
 export interface Network {
@@ -45,6 +47,8 @@ export interface Network {
   holographId: number;
   tokenName: string;
   tokenSymbol: string;
+  lzEndpoint?: string;
+  webSocket?: string;
 }
 
 export interface Networks {
@@ -75,14 +79,14 @@ const stringToHex = function (str: string): string {
   return web3.utils.utf8ToHex(str) as string;
 };
 
-const randomHex = function (bytes: number): string {
+const randomHex = function (bytes: number, prepend: boolean = true): string {
   let text: string = '';
   for (let i: number = 0; i < bytes; i++) {
     text += Math.floor(Math.random() * 255)
       .toString(16)
       .padStart(2, '0');
   }
-  return '0x' + text;
+  return (prepend ? '0x' : '') + text;
 };
 
 const StrictECDSA = function (signature: Signature): Signature {
@@ -159,7 +163,8 @@ const hreSplit = async function (
   hre1: HardhatRuntimeEnvironment,
   flip?: boolean
 ): Promise<{ hre: LeanHardhatRuntimeEnvironment; hre2: LeanHardhatRuntimeEnvironment }> {
-  if (!isDefined(hre1.network.companionNetworks['l2'])) {
+  let localnet: boolean = hre1.network.name == 'localhost' || hre1.network.name == 'localhost2';
+  if (localnet && !isDefined(hre1.network.companionNetworks['l2'])) {
     throw new Error(
       'A companion network is required for multi-chain testing. Use "companionNetworks" inside of Hardhat networks config file.'
     );
@@ -167,6 +172,7 @@ const hreSplit = async function (
   let hre: LeanHardhatRuntimeEnvironment;
   let hre2: LeanHardhatRuntimeEnvironment;
   let hre3: LeanHardhatRuntimeEnvironment;
+  let salt: string = global.__DEPLOYMENT_SALT || '0x' + '00'.repeat(32);
   if (typeof global.__hreL1 === 'undefined') {
     hre = {
       networkName: hre1.network.name,
@@ -177,22 +183,28 @@ const hreSplit = async function (
       provider: hre1.network.provider,
       ethers: hre1.ethers,
       artifacts: hre1.artifacts,
+      deploymentSalt: salt,
     };
     global.__hreL1 = hre;
   } else {
     hre = global.__hreL1 as LeanHardhatRuntimeEnvironment;
   }
   if (typeof global.__hreL2 === 'undefined') {
-    hre2 = {
-      networkName: hre1.network.companionNetworks['l2'],
-      deployments: hre1.companionNetworks['l2'].deployments,
-      getNamedAccounts: hre1.companionNetworks['l2'].getNamedAccounts,
-      getUnnamedAccounts: hre1.companionNetworks['l2'].getUnnamedAccounts,
-      getChainId: hre1.companionNetworks['l2'].getChainId,
-      provider: hre1.companionNetworks['l2'].provider,
-      ethers: l2Ethers(hre1),
-      artifacts: hre1.artifacts,
-    };
+    if (localnet) {
+      hre2 = {
+        networkName: hre1.network.companionNetworks['l2'],
+        deployments: hre1.companionNetworks['l2'].deployments,
+        getNamedAccounts: hre1.companionNetworks['l2'].getNamedAccounts,
+        getUnnamedAccounts: hre1.companionNetworks['l2'].getUnnamedAccounts,
+        getChainId: hre1.companionNetworks['l2'].getChainId,
+        provider: hre1.companionNetworks['l2'].provider,
+        ethers: l2Ethers(hre1),
+        artifacts: hre1.artifacts,
+        deploymentSalt: salt,
+      };
+    } else {
+      hre2 = hre;
+    }
     global.__hreL2 = hre2;
   } else {
     hre2 = global.__hreL2 as LeanHardhatRuntimeEnvironment;
@@ -251,12 +263,16 @@ const generateInitCode = function (vars: string[], vals: any[]): string {
   return web3.eth.abi.encodeParameters(vars, vals);
 };
 
-const generateDeployCode = function (salt: string, byteCode: string, initCode: string): string {
+const generateDeployCode = function (chainId: string, salt: string, byteCode: string, initCode: string): string {
   return web3.eth.abi.encodeFunctionCall(
     {
       name: 'deploy',
       type: 'function',
       inputs: [
+        {
+          type: 'uint256',
+          name: 'chainId',
+        },
         {
           type: 'bytes12',
           name: 'saltHash',
@@ -272,7 +288,8 @@ const generateDeployCode = function (salt: string, byteCode: string, initCode: s
       ],
     },
     [
-      salt, // bytes12 sourceCode
+      chainId, // uint256 chainId
+      '0x' + salt.substring(salt.length - 24), // bytes12 sourceCode
       byteCode, // bytes memory sourceCode
       initCode, // bytes memory initCode
     ]
@@ -299,6 +316,7 @@ const genesisDeriveFutureAddress = async function (
   name: string,
   initCode: string
 ): Promise<string> {
+  const chainId: string = BigNumber.from(networks[hre.networkName].chain).toHexString();
   const { deployments, getNamedAccounts, ethers } = hre;
   const { deploy, deterministicCustom } = deployments;
   const { deployer } = await getNamedAccounts();
@@ -316,8 +334,8 @@ const genesisDeriveFutureAddress = async function (
     args: [],
     log: true,
     deployerAddress: holographGenesis?.address,
-    saltHash: deployer + salt.substring(2),
-    deployCode: generateDeployCode(salt, contractBytecode, initCode),
+    saltHash: deployer + salt.substring(salt.length - 24),
+    deployCode: generateDeployCode(chainId, salt, contractBytecode, initCode),
   });
   return contractDeterministic.address;
 };
@@ -326,8 +344,10 @@ const genesisDeployHelper = async function (
   hre: LeanHardhatRuntimeEnvironment,
   salt: string,
   name: string,
-  initCode: string
+  initCode: string,
+  contractAddress: string = zeroAddress()
 ): Promise<Contract> {
+  const chainId: string = BigNumber.from(networks[hre.networkName].chain).toHexString();
   const { deployments, getNamedAccounts, ethers } = hre;
   const { deploy, deterministicCustom } = deployments;
   const { deployer } = await getNamedAccounts();
@@ -347,15 +367,18 @@ const genesisDeployHelper = async function (
       // we do nothing
     }
   }
-  if (!isContractDeployed(contract)) {
+  if (
+    !isContractDeployed(contract) ||
+    (contract != null && (contract.address as string).toLowerCase() != contractAddress.toLowerCase())
+  ) {
     const contractBytecode: BytesLike = ((await ethers.getContractFactory(name)) as ContractFactory).bytecode;
     const contractDeterministic = await deterministicCustom(name, {
       from: deployer,
       args: [],
       log: true,
       deployerAddress: holographGenesis?.address,
-      saltHash: deployer + salt.substring(2),
-      deployCode: generateDeployCode(salt, contractBytecode, initCode),
+      saltHash: deployer + salt.substring(salt.length - 24),
+      deployCode: generateDeployCode(chainId, salt, contractBytecode, initCode),
       waitConfirmations: 1,
       nonce: await ethers.provider.getTransactionCount(deployer),
     });
@@ -556,6 +579,21 @@ const sleep = async function (ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
+const getGasUsage = async function (
+  hre: LeanHardhatRuntimeEnvironment,
+  description: string = '',
+  verbose: boolean = false
+): Promise<BigNumber> {
+  let blockNumber: number = await hre.ethers.provider.getBlockNumber();
+  let transactionHash = (await hre.ethers.provider.getBlockWithTransactions(blockNumber)).transactions[0].hash;
+  let transaction = await hre.ethers.provider.getTransactionReceipt(transactionHash);
+  let gasUsed: BigNumber = transaction.cumulativeGasUsed;
+  if (verbose) {
+    process.stdout.write('\n          ' + description + ' gas used: ' + gasUsed.toString() + '\n');
+  }
+  return gasUsed;
+};
+
 export {
   isDefined,
   bytesToHex,
@@ -582,4 +620,5 @@ export {
   generateErc20Config,
   getHolographedContractHash,
   sleep,
+  getGasUsage,
 };

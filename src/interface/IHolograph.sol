@@ -14,6 +14,4 @@ interface IHolograph {
   function getOperator() external view returns (address operatorAddress);
 
   function getRegistry() external view returns (address registryAddress);
-
-  function getSecureStorage() external view returns (address secureStorageAddress);
 }

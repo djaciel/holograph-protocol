@@ -1,32 +1,30 @@
 // SPDX-License-Identifier: UNLICENSED
 /*
 
-  ,,,,,,,,,,,
- [ HOLOGRAPH ]
-  '''''''''''
-  _____________________________________________________________
- |                                                             |
- |                            / ^ \                            |
- |                            ~~*~~            .               |
- |                         [ '<>:<>' ]         |=>             |
- |               __           _/"\_           _|               |
- |             .:[]:.          """          .:[]:.             |
- |           .'  []  '.        \_/        .'  []  '.           |
- |         .'|   []   |'.               .'|   []   |'.         |
- |       .'  |   []   |  '.           .'  |   []   |  '.       |
- |     .'|   |   []   |   |'.       .'|   |   []   |   |'.     |
- |   .'  |   |   []   |   |  '.   .'  |   |   []   |   |  '.   |
- |.:'|   |   |   []   |   |   |':'|   |   |   []   |   |   |':.|
- |___|___|___|___[]___|___|___|___|___|___|___[]___|___|___|___|
- |XxXxXxXxXxXxXxX[]XxXxXxXxXxXxXxXxXxXxXxXxXxX[]XxXxXxXxXxXxXxX|
- |^^^^^^^^^^^^^^^[]^^^^^^^^^^^^^^^^^^^^^^^^^^^[]^^^^^^^^^^^^^^^|
- |               []                           []               |
- |               []                           []               |
- |    ,          []     ,        ,'      *    []               |
- |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
- |_____________________________________________________________|
-
-      - one protocol, one bridge = infinite possibilities -
+                         ┌───────────┐
+                         │ HOLOGRAPH │
+                         └───────────┘
+╔═════════════════════════════════════════════════════════════╗
+║                                                             ║
+║                            / ^ \                            ║
+║                            ~~*~~            ¸               ║
+║                         [ '<>:<>' ]         │░░░            ║
+║               ╔╗           _/"\_           ╔╣               ║
+║             ┌─╬╬─┐          """          ┌─╬╬─┐             ║
+║          ┌─┬┘ ╠╣ └┬─┐       \_/       ┌─┬┘ ╠╣ └┬─┐          ║
+║       ┌─┬┘ │  ╠╣  │ └┬─┐           ┌─┬┘ │  ╠╣  │ └┬─┐       ║
+║    ┌─┬┘ │  │  ╠╣  │  │ └┬─┐     ┌─┬┘ │  │  ╠╣  │  │ └┬─┐    ║
+║ ┌─┬┘ │  │  │  ╠╣  │  │  │ └┬┐ ┌┬┘ │  │  │  ╠╣  │  │  │ └┬─┐ ║
+╠┬┘ │  │  │  │  ╠╣  │  │  │  │└¤┘│  │  │  │  ╠╣  │  │  │  │ └┬╣
+║│  │  │  │  │  ╠╣  │  │  │  │   │  │  │  │  ╠╣  │  │  │  │  │║
+╠╩══╩══╩══╩══╩══╬╬══╩══╩══╩══╩═══╩══╩══╩══╩══╬╬══╩══╩══╩══╩══╩╣
+╠┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╣
+║               ╠╣                           ╠╣               ║
+║               ╠╣                           ╠╣               ║
+║    ,          ╠╣     ,        ,'      *    ╠╣               ║
+║~~~~~^~~~~~~~~┌╬╬┐~~~^~~~~~~~~^^~~~~~~~~^~~┌╬╬┐~~~~~~~^~~~~~~║
+╚══════════════╩╩╩╩═════════════════════════╩╩╩╩══════════════╝
+     - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -128,12 +126,8 @@ import "./interface/IInitializable.sol";
 import "./interface/IInterfaces.sol";
 import "./interface/Ownable.sol";
 
-import "./library/Address.sol";
-import "./library/Base64.sol";
-import "./library/Booleans.sol";
 import "./library/Counters.sol";
 import "./library/ECDSA.sol";
-import "./library/Strings.sol";
 
 /**
  * @title Holograph Bridgeable ERC-20 Token
@@ -335,22 +329,22 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
   }
 
   function approve(address spender, uint256 amount) public returns (bool) {
-    if (Booleans.get(_eventConfig, HolographERC20Event.beforeApprove)) {
+    if (_isEventRegistered(HolographERC20Event.beforeApprove)) {
       require(SourceERC20().beforeApprove(msg.sender, spender, amount));
     }
     _approve(msg.sender, spender, amount);
-    if (Booleans.get(_eventConfig, HolographERC20Event.afterApprove)) {
+    if (_isEventRegistered(HolographERC20Event.afterApprove)) {
       require(SourceERC20().afterApprove(msg.sender, spender, amount));
     }
     return true;
   }
 
   function burn(uint256 amount) public {
-    if (Booleans.get(_eventConfig, HolographERC20Event.beforeBurn)) {
+    if (_isEventRegistered(HolographERC20Event.beforeBurn)) {
       require(SourceERC20().beforeBurn(msg.sender, amount));
     }
     _burn(msg.sender, amount);
-    if (Booleans.get(_eventConfig, HolographERC20Event.afterBurn)) {
+    if (_isEventRegistered(HolographERC20Event.afterBurn)) {
       require(SourceERC20().afterBurn(msg.sender, amount));
     }
   }
@@ -361,11 +355,11 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     unchecked {
       _allowances[account][msg.sender] = currentAllowance - amount;
     }
-    if (Booleans.get(_eventConfig, HolographERC20Event.beforeBurn)) {
+    if (_isEventRegistered(HolographERC20Event.beforeBurn)) {
       require(SourceERC20().beforeBurn(account, amount));
     }
     _burn(account, amount);
-    if (Booleans.get(_eventConfig, HolographERC20Event.afterBurn)) {
+    if (_isEventRegistered(HolographERC20Event.afterBurn)) {
       require(SourceERC20().afterBurn(account, amount));
     }
     return true;
@@ -378,11 +372,11 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     unchecked {
       newAllowance = currentAllowance - subtractedValue;
     }
-    if (Booleans.get(_eventConfig, HolographERC20Event.beforeApprove)) {
+    if (_isEventRegistered(HolographERC20Event.beforeApprove)) {
       require(SourceERC20().beforeApprove(msg.sender, spender, newAllowance));
     }
     _approve(msg.sender, spender, newAllowance);
-    if (Booleans.get(_eventConfig, HolographERC20Event.afterApprove)) {
+    if (_isEventRegistered(HolographERC20Event.afterApprove)) {
       require(SourceERC20().afterApprove(msg.sender, spender, newAllowance));
     }
     return true;
@@ -399,12 +393,13 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     bytes calldata data
   ) external returns (bytes4) {
     require(msg.sender == bridge(), "ERC20: only bridge can call");
-    _mint(bridge(), amount);
-    _transfer(bridge(), from, amount);
-    if (from != to) {
-      _transfer(from, to, amount);
-    }
-    if (Booleans.get(_eventConfig, 1)) {
+    _mint(to, amount);
+    //     _mint(bridge(), amount);
+    //     _transfer(bridge(), from, amount);
+    //     if (from != to) {
+    //       _transfer(from, to, amount);
+    //     }
+    if (_isEventRegistered(HolographERC20Event.bridgeIn)) {
       require(SourceERC20().bridgeIn(chainType, from, to, amount, data), "HOLOGRAPH: bridge in failed");
     }
     return ERC20Holograph.holographBridgeIn.selector;
@@ -428,14 +423,15 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
         _allowances[from][operator] = currentAllowance - amount;
       }
     }
-    if (from != to) {
-      _transfer(from, to, amount);
-    }
-    _transfer(to, bridge(), amount);
-    if (Booleans.get(_eventConfig, 2)) {
+    //     if (from != to) {
+    //       _transfer(from, to, amount);
+    //     }
+    //     _transfer(to, bridge(), amount);
+    if (_isEventRegistered(HolographERC20Event.bridgeOut)) {
       data = SourceERC20().bridgeOut(chainType, from, to, amount);
     }
-    _burn(bridge(), amount);
+    //     _burn(bridge(), amount);
+    _burn(from, amount);
     return (ERC20Holograph.holographBridgeOut.selector, data);
   }
 
@@ -448,11 +444,11 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     unchecked {
       require(newAllowance >= currentAllowance, "ERC20: increased above max value");
     }
-    if (Booleans.get(_eventConfig, HolographERC20Event.beforeApprove)) {
+    if (_isEventRegistered(HolographERC20Event.beforeApprove)) {
       require(SourceERC20().beforeApprove(msg.sender, spender, newAllowance));
     }
     _approve(msg.sender, spender, newAllowance);
-    if (Booleans.get(_eventConfig, HolographERC20Event.afterApprove)) {
+    if (_isEventRegistered(HolographERC20Event.afterApprove)) {
       require(SourceERC20().afterApprove(msg.sender, spender, newAllowance));
     }
     return true;
@@ -464,8 +460,8 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     uint256 amount,
     bytes calldata data
   ) public returns (bytes4) {
-    require(Address.isContract(account), "ERC20: operator not contract");
-    if (Booleans.get(_eventConfig, HolographERC20Event.beforeOnERC20Received)) {
+    require(_isContract(account), "ERC20: operator not contract");
+    if (_isEventRegistered(HolographERC20Event.beforeOnERC20Received)) {
       require(SourceERC20().beforeOnERC20Received(account, sender, address(this), amount, data));
     }
     try ERC20(account).balanceOf(address(this)) returns (uint256 balance) {
@@ -473,7 +469,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     } catch {
       revert("ERC20: failed getting balance");
     }
-    if (Booleans.get(_eventConfig, HolographERC20Event.afterOnERC20Received)) {
+    if (_isEventRegistered(HolographERC20Event.afterOnERC20Received)) {
       require(SourceERC20().afterOnERC20Received(account, sender, address(this), amount, data));
     }
     return ERC20Receiver.onERC20Received.selector;
@@ -504,11 +500,11 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     bytes32 hash = _hashTypedDataV4(structHash);
     address signer = ECDSA.recover(hash, v, r, s);
     require(signer == account, "ERC20: invalid signature");
-    if (Booleans.get(_eventConfig, HolographERC20Event.beforeApprove)) {
+    if (_isEventRegistered(HolographERC20Event.beforeApprove)) {
       require(SourceERC20().beforeApprove(account, spender, amount));
     }
     _approve(account, spender, amount);
-    if (Booleans.get(_eventConfig, HolographERC20Event.afterApprove)) {
+    if (_isEventRegistered(HolographERC20Event.afterApprove)) {
       require(SourceERC20().afterApprove(account, spender, amount));
     }
   }
@@ -522,12 +518,12 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     uint256 amount,
     bytes memory data
   ) public returns (bool) {
-    if (Booleans.get(_eventConfig, HolographERC20Event.beforeSafeTransfer)) {
+    if (_isEventRegistered(HolographERC20Event.beforeSafeTransfer)) {
       require(SourceERC20().beforeSafeTransfer(msg.sender, recipient, amount, data));
     }
     _transfer(msg.sender, recipient, amount);
     require(_checkOnERC20Received(msg.sender, recipient, amount, data), "ERC20: non ERC20Receiver");
-    if (Booleans.get(_eventConfig, HolographERC20Event.afterSafeTransfer)) {
+    if (_isEventRegistered(HolographERC20Event.afterSafeTransfer)) {
       require(SourceERC20().afterSafeTransfer(msg.sender, recipient, amount, data));
     }
     return true;
@@ -554,12 +550,12 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
         _allowances[account][msg.sender] = currentAllowance - amount;
       }
     }
-    if (Booleans.get(_eventConfig, HolographERC20Event.beforeSafeTransfer)) {
+    if (_isEventRegistered(HolographERC20Event.beforeSafeTransfer)) {
       require(SourceERC20().beforeSafeTransfer(account, recipient, amount, data));
     }
     _transfer(account, recipient, amount);
     require(_checkOnERC20Received(account, recipient, amount, data), "ERC20: non ERC20Receiver");
-    if (Booleans.get(_eventConfig, HolographERC20Event.afterSafeTransfer)) {
+    if (_isEventRegistered(HolographERC20Event.afterSafeTransfer)) {
       require(SourceERC20().afterSafeTransfer(account, recipient, amount, data));
     }
     return true;
@@ -604,11 +600,11 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
   }
 
   function transfer(address recipient, uint256 amount) public returns (bool) {
-    if (Booleans.get(_eventConfig, HolographERC20Event.beforeTransfer)) {
+    if (_isEventRegistered(HolographERC20Event.beforeTransfer)) {
       require(SourceERC20().beforeTransfer(msg.sender, recipient, amount));
     }
     _transfer(msg.sender, recipient, amount);
-    if (Booleans.get(_eventConfig, HolographERC20Event.afterTransfer)) {
+    if (_isEventRegistered(HolographERC20Event.afterTransfer)) {
       require(SourceERC20().afterTransfer(msg.sender, recipient, amount));
     }
     return true;
@@ -626,11 +622,11 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
         _allowances[account][msg.sender] = currentAllowance - amount;
       }
     }
-    if (Booleans.get(_eventConfig, HolographERC20Event.beforeTransfer)) {
+    if (_isEventRegistered(HolographERC20Event.beforeTransfer)) {
       require(SourceERC20().beforeTransfer(account, recipient, amount));
     }
     _transfer(account, recipient, amount);
-    if (Booleans.get(_eventConfig, HolographERC20Event.afterTransfer)) {
+    if (_isEventRegistered(HolographERC20Event.afterTransfer)) {
       require(SourceERC20().afterTransfer(account, recipient, amount));
     }
     return true;
@@ -640,15 +636,15 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     address account,
     address spender,
     uint256 amount
-  ) internal {
-    require(!Address.isZero(account), "ERC20: account is zero address");
-    require(!Address.isZero(spender), "ERC20: spender is zero address");
+  ) private {
+    require(account != address(0), "ERC20: account is zero address");
+    require(spender != address(0), "ERC20: spender is zero address");
     _allowances[account][spender] = amount;
     emit Approval(account, spender, amount);
   }
 
-  function _burn(address account, uint256 amount) internal {
-    require(!Address.isZero(account), "ERC20: account is zero address");
+  function _burn(address account, uint256 amount) private {
+    require(account != address(0), "ERC20: account is zero address");
     uint256 accountBalance = _balances[account];
     require(accountBalance >= amount, "ERC20: amount exceeds balance");
     unchecked {
@@ -663,8 +659,8 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     address recipient,
     uint256 amount,
     bytes memory data
-  ) internal nonReentrant returns (bool) {
-    if (Address.isContract(recipient)) {
+  ) private nonReentrant returns (bool) {
+    if (_isContract(recipient)) {
       try ERC165(recipient).supportsInterface(0x01ffc9a7) returns (bool erc165support) {
         require(erc165support, "ERC20: no ERC165 support");
         // we have erc165 support
@@ -704,8 +700,8 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
    * @param to Address to mint to.
    * @param amount Amount of tokens to mint.
    */
-  function _mint(address to, uint256 amount) internal {
-    require(!Address.isZero(to), "ERC20: minting to burn address");
+  function _mint(address to, uint256 amount) private {
+    require(to != address(0), "ERC20: minting to burn address");
     _totalSupply += amount;
     _balances[to] += amount;
     emit Transfer(address(0), to, amount);
@@ -715,9 +711,9 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     address account,
     address recipient,
     uint256 amount
-  ) internal {
-    require(!Address.isZero(account), "ERC20: account is zero address");
-    require(!Address.isZero(recipient), "ERC20: recipient is zero address");
+  ) private {
+    require(account != address(0), "ERC20: account is zero address");
+    require(recipient != address(0), "ERC20: recipient is zero address");
     uint256 accountBalance = _balances[account];
     require(accountBalance >= amount, "ERC20: amount exceeds balance");
     unchecked {
@@ -732,9 +728,21 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
    *
    * _Available since v4.1._
    */
-  function _useNonce(address account) internal returns (uint256 current) {
+  function _useNonce(address account) private returns (uint256 current) {
     Counters.Counter storage nonce = _nonces[account];
     current = nonce.current();
     nonce.increment();
+  }
+
+  function _isContract(address contractAddress) private view returns (bool) {
+    bytes32 codehash;
+    assembly {
+      codehash := extcodehash(contractAddress)
+    }
+    return (codehash != 0x0 && codehash != 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470);
+  }
+
+  function _isEventRegistered(HolographERC20Event _eventName) private view returns (bool) {
+    return ((_eventConfig >> uint256(_eventName)) & uint256(1) == 1 ? true : false);
   }
 }

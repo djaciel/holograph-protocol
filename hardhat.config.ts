@@ -1,3 +1,4 @@
+declare var global: any;
 import fs from 'fs';
 import '@typechain/hardhat';
 import 'hardhat-gas-reporter';
@@ -6,24 +7,30 @@ import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import { types, task, HardhatUserConfig } from 'hardhat/config';
+import 'hardhat-holograph-contract-builder';
+import networks from './config/networks';
 import dotenv from 'dotenv';
 dotenv.config();
-
-import 'hardhat-holograph-contract-builder';
-
-const networks = JSON.parse(fs.readFileSync('./config/networks.json', 'utf8'));
 
 const SOLIDITY_VERSION = process.env.SOLIDITY_VERSION || '0.8.13';
 
 const MNEMONIC = process.env.MNEMONIC || 'test '.repeat(11) + 'junk';
-
 const DEPLOYER = process.env.DEPLOYER || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 
 const RINKEBY_PRIVATE_KEY = process.env.RINKEBY_PRIVATE_KEY! || DEPLOYER;
 const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || DEPLOYER;
+
+const MATIC_PRIVATE_KEY = process.env.MATIC_PRIVATE_KEY || DEPLOYER;
+const MUMBAI_PRIVATE_KEY = process.env.MUMBAI_PRIVATE_KEY || DEPLOYER;
+
 const CXIP_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || DEPLOYER;
 
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
+const ETHERSCAN_API_KEY: string = process.env.ETHERSCAN_API_KEY || '';
+const POLYGONSCAN_API_KEY: string = process.env.POLYGONSCAN_API_KEY || '';
+
+const DEPLOYMENT_SALT = parseInt(process.env.DEPLOYMENT_SALT || '0');
+
+global.__DEPLOYMENT_SALT = '0x' + DEPLOYMENT_SALT.toString(16).padStart(64, '0');
 
 task('abi', 'Create standalone ABI files for all smart contracts')
   .addOptionalParam('silent', 'Provide less details in the output', false, types.boolean)
@@ -73,6 +80,36 @@ task('abi', 'Create standalone ABI files for all smart contracts')
  */
 const config: HardhatUserConfig = {
   defaultNetwork: 'localhost',
+  external: {
+    deployments: {
+      arbitrum: ['externalDeployments/arbitrum'],
+      arbitrum_rinkeby: ['externalDeployments/arbitrum_rinkeby'],
+      aurora: ['externalDeployments/aurora'],
+      aurora_testnet: ['externalDeployments/aurora_testnet'],
+      avax: ['externalDeployments/avax'],
+      bsc: ['externalDeployments/bsc'],
+      bsc_testnet: ['externalDeployments/bsc_testnet'],
+      cronos: ['externalDeployments/cronos'],
+      cronos_testnet: ['externalDeployments/cronos_testnet'],
+      cxip: ['externalDeployments/cxip'],
+      eth: ['externalDeployments/eth'],
+      eth_goerli: ['externalDeployments/eth_goerli'],
+      eth_kovan: ['externalDeployments/eth_kovan'],
+      eth_rinkeby: ['externalDeployments/eth_rinkeby'],
+      eth_ropsten: ['externalDeployments/eth_ropsten'],
+      ftm: ['externalDeployments/ftm'],
+      ftm_testnet: ['externalDeployments/ftm_testnet'],
+      fuji: ['externalDeployments/fuji'],
+      gno: ['externalDeployments/gno'],
+      gno_sokol: ['externalDeployments/gno_sokol'],
+      localhost: ['externalDeployments/localhost'],
+      localhost2: ['externalDeployments/localhost2'],
+      matic: ['externalDeployments/matic'],
+      mumbai: ['externalDeployments/mumbai'],
+      optimism: ['externalDeployments/optimism'],
+      optimism_kovan: ['externalDeployments/optimism_kovan'],
+    },
+  },
   networks: {
     localhost: {
       url: networks.localhost.rpc,
@@ -116,6 +153,16 @@ const config: HardhatUserConfig = {
       chainId: networks.eth_rinkeby.chain,
       accounts: [RINKEBY_PRIVATE_KEY],
     },
+    matic: {
+      url: networks.matic.rpc,
+      chainId: networks.matic.chain,
+      accounts: [MATIC_PRIVATE_KEY] || '',
+    },
+    mumbai: {
+      url: networks.mumbai.rpc,
+      chainId: networks.mumbai.chain,
+      accounts: [MUMBAI_PRIVATE_KEY],
+    },
     cxip: {
       url: networks.cxip.rpc,
       chainId: networks.cxip.chain,
@@ -151,7 +198,12 @@ const config: HardhatUserConfig = {
     coinmarketcap: process.env.COINMARKETCAP_API_KEY,
   },
   etherscan: {
-    apiKey: ETHERSCAN_API_KEY,
+    apiKey: {
+      mainnet: ETHERSCAN_API_KEY,
+      rinkeby: ETHERSCAN_API_KEY,
+      polygon: POLYGONSCAN_API_KEY,
+      polygonMumbai: POLYGONSCAN_API_KEY,
+    },
   },
   hardhatHolographContractBuilder: {
     runOnCompile: true,

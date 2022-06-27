@@ -11,6 +11,9 @@ import { HolographERC1155Event, ConfigureEvents } from '../scripts/utils/events'
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
+
+  const salt = hre.deploymentSalt;
+
   // this is purposefully left empty, and is a placeholder for future use
 };
 

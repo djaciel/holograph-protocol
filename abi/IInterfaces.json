@@ -41,6 +41,54 @@
   {
     "inputs": [
       {
+        "internalType": "enum ChainIdType",
+        "name": "fromChainType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fromChainId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum ChainIdType",
+        "name": "toChainType",
+        "type": "uint8"
+      }
+    ],
+    "name": "getChainId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "toChainId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum TokenUriType",
+        "name": "uriType",
+        "type": "uint8"
+      }
+    ],
+    "name": "getUriPrepend",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "prepend",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "enum InterfaceType",
         "name": "interfaceType",
         "type": "uint8"
@@ -60,6 +108,62 @@
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum ChainIdType",
+        "name": "fromChainType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fromChainId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum ChainIdType",
+        "name": "toChainType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "toChainId",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateChainIdMap",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum ChainIdType[]",
+        "name": "fromChainType",
+        "type": "uint8[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "fromChainId",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "enum ChainIdType[]",
+        "name": "toChainType",
+        "type": "uint8[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "toChainId",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "updateChainIdMaps",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {

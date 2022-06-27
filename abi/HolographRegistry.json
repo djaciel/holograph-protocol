@@ -105,6 +105,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getHolograph",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "holograph",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "bytes32",
@@ -244,6 +257,19 @@
       }
     ],
     "name": "setHToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "holograph",
+        "type": "address"
+      }
+    ],
+    "name": "setHolograph",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

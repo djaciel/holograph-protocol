@@ -16,6 +16,7 @@ import { HolographERC721Event, ConfigureEvents } from '../scripts/utils/events';
 import {
   Admin,
   CxipERC721,
+  CxipERC721Proxy,
   ERC20Mock,
   Holograph,
   HolographBridge,
@@ -35,8 +36,6 @@ import {
   PA1D,
   SampleERC20,
   SampleERC721,
-  SecureStorage,
-  SecureStorageProxy,
 } from '../typechain-types';
 
 describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {

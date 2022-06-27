@@ -94,6 +94,54 @@
   {
     "inputs": [
       {
+        "internalType": "enum ChainIdType",
+        "name": "fromChainType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fromChainId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum ChainIdType",
+        "name": "toChainType",
+        "type": "uint8"
+      }
+    ],
+    "name": "getChainId",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "toChainId",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum TokenUriType",
+        "name": "uriType",
+        "type": "uint8"
+      }
+    ],
+    "name": "getUriPrepend",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "prepend",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes",
         "name": "data",
         "type": "bytes"
@@ -150,6 +198,62 @@
   {
     "inputs": [
       {
+        "internalType": "enum ChainIdType",
+        "name": "fromChainType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "fromChainId",
+        "type": "uint256"
+      },
+      {
+        "internalType": "enum ChainIdType",
+        "name": "toChainType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "uint256",
+        "name": "toChainId",
+        "type": "uint256"
+      }
+    ],
+    "name": "updateChainIdMap",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum ChainIdType[]",
+        "name": "fromChainType",
+        "type": "uint8[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "fromChainId",
+        "type": "uint256[]"
+      },
+      {
+        "internalType": "enum ChainIdType[]",
+        "name": "toChainType",
+        "type": "uint8[]"
+      },
+      {
+        "internalType": "uint256[]",
+        "name": "toChainId",
+        "type": "uint256[]"
+      }
+    ],
+    "name": "updateChainIdMaps",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "enum InterfaceType",
         "name": "interfaceType",
         "type": "uint8"
@@ -166,6 +270,47 @@
       }
     ],
     "name": "updateInterface",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum InterfaceType",
+        "name": "interfaceType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "bytes4[]",
+        "name": "interfaceIds",
+        "type": "bytes4[]"
+      },
+      {
+        "internalType": "bool",
+        "name": "supported",
+        "type": "bool"
+      }
+    ],
+    "name": "updateInterfaceBatch",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "enum TokenUriType",
+        "name": "uriType",
+        "type": "uint8"
+      },
+      {
+        "internalType": "string",
+        "name": "prepend",
+        "type": "string"
+      }
+    ],
+    "name": "updateUriPrepend",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

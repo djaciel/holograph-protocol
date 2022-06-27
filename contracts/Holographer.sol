@@ -1,32 +1,30 @@
 // SPDX-License-Identifier: UNLICENSED
 /*
 
-  ,,,,,,,,,,,
- [ HOLOGRAPH ]
-  '''''''''''
-  _____________________________________________________________
- |                                                             |
- |                            / ^ \                            |
- |                            ~~*~~            .               |
- |                         [ '<>:<>' ]         |=>             |
- |               __           _/"\_           _|               |
- |             .:[]:.          """          .:[]:.             |
- |           .'  []  '.        \_/        .'  []  '.           |
- |         .'|   []   |'.               .'|   []   |'.         |
- |       .'  |   []   |  '.           .'  |   []   |  '.       |
- |     .'|   |   []   |   |'.       .'|   |   []   |   |'.     |
- |   .'  |   |   []   |   |  '.   .'  |   |   []   |   |  '.   |
- |.:'|   |   |   []   |   |   |':'|   |   |   []   |   |   |':.|
- |___|___|___|___[]___|___|___|___|___|___|___[]___|___|___|___|
- |XxXxXxXxXxXxXxX[]XxXxXxXxXxXxXxXxXxXxXxXxXxX[]XxXxXxXxXxXxXxX|
- |^^^^^^^^^^^^^^^[]^^^^^^^^^^^^^^^^^^^^^^^^^^^[]^^^^^^^^^^^^^^^|
- |               []                           []               |
- |               []                           []               |
- |    ,          []     ,        ,'      *    []               |
- |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
- |_____________________________________________________________|
-
-      - one protocol, one bridge = infinite possibilities -
+                         ┌───────────┐
+                         │ HOLOGRAPH │
+                         └───────────┘
+╔═════════════════════════════════════════════════════════════╗
+║                                                             ║
+║                            / ^ \                            ║
+║                            ~~*~~            ¸               ║
+║                         [ '<>:<>' ]         │░░░            ║
+║               ╔╗           _/"\_           ╔╣               ║
+║             ┌─╬╬─┐          """          ┌─╬╬─┐             ║
+║          ┌─┬┘ ╠╣ └┬─┐       \_/       ┌─┬┘ ╠╣ └┬─┐          ║
+║       ┌─┬┘ │  ╠╣  │ └┬─┐           ┌─┬┘ │  ╠╣  │ └┬─┐       ║
+║    ┌─┬┘ │  │  ╠╣  │  │ └┬─┐     ┌─┬┘ │  │  ╠╣  │  │ └┬─┐    ║
+║ ┌─┬┘ │  │  │  ╠╣  │  │  │ └┬┐ ┌┬┘ │  │  │  ╠╣  │  │  │ └┬─┐ ║
+╠┬┘ │  │  │  │  ╠╣  │  │  │  │└¤┘│  │  │  │  ╠╣  │  │  │  │ └┬╣
+║│  │  │  │  │  ╠╣  │  │  │  │   │  │  │  │  ╠╣  │  │  │  │  │║
+╠╩══╩══╩══╩══╩══╬╬══╩══╩══╩══╩═══╩══╩══╩══╩══╬╬══╩══╩══╩══╩══╩╣
+╠┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╣
+║               ╠╣                           ╠╣               ║
+║               ╠╣                           ╠╣               ║
+║    ,          ╠╣     ,        ,'      *    ╠╣               ║
+║~~~~~^~~~~~~~~┌╬╬┐~~~^~~~~~~~~^^~~~~~~~~^~~┌╬╬┐~~~~~~~^~~~~~~║
+╚══════════════╩╩╩╩═════════════════════════╩╩╩╩══════════════╝
+     - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -122,13 +120,14 @@ contract Holographer is Admin, Initializable {
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPHER: already initialized");
     (bytes memory encoded, bytes memory initCode) = abi.decode(data, (bytes, bytes));
-    (uint32 originChain, address holograph, address secureStorage, bytes32 contractType, address sourceContract) = abi
-      .decode(encoded, (uint32, address, address, bytes32, address));
+    (uint32 originChain, address holograph, bytes32 contractType, address sourceContract) = abi.decode(
+      encoded,
+      (uint32, address, bytes32, address)
+    );
     assembly {
       sstore(0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, caller())
       sstore(0x2378c1f8aa4ffd1a2b352b1ec4b9fe37cee7d2bb3fa1a7e6aeaeb422f15defdb, originChain)
       sstore(0x1eee493315beeac80829afd0aaa340f3821cabe68571a2743478e81638a3d94d, holograph)
-      sstore(0xd26498b26a05274577b8ac2e3250418da53433f3ff82027428ee3c530702cdec, secureStorage)
       sstore(0x927d33f74b40d20ebbbc7fbed0f01deacf3e0b589b248a5cc2fc82aa94928913, contractType)
       sstore(0xee63e41dd03b4d304382a6596ec5f4a6eb601d3640835d27fca1d0be62955bb5, sourceContract)
     }
@@ -155,19 +154,13 @@ contract Holographer is Admin, Initializable {
    * @dev The choice to use this approach was taken to prevent storage slot overrides.
    */
   function getHolographEnforcer() public view returns (address payable) {
-    address holograph;
+    IHolograph holograph;
     bytes32 contractType;
     assembly {
-      holograph := sload(
-        /* slot */
-        0x1eee493315beeac80829afd0aaa340f3821cabe68571a2743478e81638a3d94d
-      )
-      contractType := sload(
-        /* slot */
-        0x927d33f74b40d20ebbbc7fbed0f01deacf3e0b589b248a5cc2fc82aa94928913
-      )
+      holograph := sload(0x1eee493315beeac80829afd0aaa340f3821cabe68571a2743478e81638a3d94d)
+      contractType := sload(0x927d33f74b40d20ebbbc7fbed0f01deacf3e0b589b248a5cc2fc82aa94928913)
     }
-    return payable(IHolographRegistry(IHolograph(holograph).getRegistry()).getContractTypeAddress(contractType));
+    return payable(IHolographRegistry(holograph.getRegistry()).getContractTypeAddress(contractType));
   }
 
   /**
@@ -175,22 +168,7 @@ contract Holographer is Admin, Initializable {
    */
   function getOriginChain() public view returns (uint32 originChain) {
     assembly {
-      originChain := sload(
-        /* slot */
-        0x2378c1f8aa4ffd1a2b352b1ec4b9fe37cee7d2bb3fa1a7e6aeaeb422f15defdb
-      )
-    }
-  }
-
-  /**
-   * @dev Returns a hardcoded address for the custom secure storage contract deployed in parallel with this contract deployment.
-   */
-  function getSecureStorage() public view returns (address secureStorage) {
-    assembly {
-      secureStorage := sload(
-        /* slot */
-        0xd26498b26a05274577b8ac2e3250418da53433f3ff82027428ee3c530702cdec
-      )
+      originChain := sload(0x2378c1f8aa4ffd1a2b352b1ec4b9fe37cee7d2bb3fa1a7e6aeaeb422f15defdb)
     }
   }
 
@@ -199,10 +177,7 @@ contract Holographer is Admin, Initializable {
    */
   function getSourceContract() public view returns (address payable sourceContract) {
     assembly {
-      sourceContract := sload(
-        /* slot */
-        0xee63e41dd03b4d304382a6596ec5f4a6eb601d3640835d27fca1d0be62955bb5
-      )
+      sourceContract := sload(0xee63e41dd03b4d304382a6596ec5f4a6eb601d3640835d27fca1d0be62955bb5)
     }
   }
 

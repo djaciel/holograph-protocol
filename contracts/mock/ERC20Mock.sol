@@ -1,32 +1,30 @@
 // SPDX-License-Identifier: UNLICENSED
 /*
 
-  ,,,,,,,,,,,
- [ HOLOGRAPH ]
-  '''''''''''
-  _____________________________________________________________
- |                                                             |
- |                            / ^ \                            |
- |                            ~~*~~            .               |
- |                         [ '<>:<>' ]         |=>             |
- |               __           _/"\_           _|               |
- |             .:[]:.          """          .:[]:.             |
- |           .'  []  '.        \_/        .'  []  '.           |
- |         .'|   []   |'.               .'|   []   |'.         |
- |       .'  |   []   |  '.           .'  |   []   |  '.       |
- |     .'|   |   []   |   |'.       .'|   |   []   |   |'.     |
- |   .'  |   |   []   |   |  '.   .'  |   |   []   |   |  '.   |
- |.:'|   |   |   []   |   |   |':'|   |   |   []   |   |   |':.|
- |___|___|___|___[]___|___|___|___|___|___|___[]___|___|___|___|
- |XxXxXxXxXxXxXxX[]XxXxXxXxXxXxXxXxXxXxXxXxXxX[]XxXxXxXxXxXxXxX|
- |^^^^^^^^^^^^^^^[]^^^^^^^^^^^^^^^^^^^^^^^^^^^[]^^^^^^^^^^^^^^^|
- |               []                           []               |
- |               []                           []               |
- |    ,          []     ,        ,'      *    []               |
- |~~~~~^~~~~~~~~/##\~~~^~~~~~~~~^^~~~~~~~~^~~/##\~~~~~~~^~~~~~~|
- |_____________________________________________________________|
-
-      - one protocol, one bridge = infinite possibilities -
+                         ┌───────────┐
+                         │ HOLOGRAPH │
+                         └───────────┘
+╔═════════════════════════════════════════════════════════════╗
+║                                                             ║
+║                            / ^ \                            ║
+║                            ~~*~~            ¸               ║
+║                         [ '<>:<>' ]         │░░░            ║
+║               ╔╗           _/"\_           ╔╣               ║
+║             ┌─╬╬─┐          """          ┌─╬╬─┐             ║
+║          ┌─┬┘ ╠╣ └┬─┐       \_/       ┌─┬┘ ╠╣ └┬─┐          ║
+║       ┌─┬┘ │  ╠╣  │ └┬─┐           ┌─┬┘ │  ╠╣  │ └┬─┐       ║
+║    ┌─┬┘ │  │  ╠╣  │  │ └┬─┐     ┌─┬┘ │  │  ╠╣  │  │ └┬─┐    ║
+║ ┌─┬┘ │  │  │  ╠╣  │  │  │ └┬┐ ┌┬┘ │  │  │  ╠╣  │  │  │ └┬─┐ ║
+╠┬┘ │  │  │  │  ╠╣  │  │  │  │└¤┘│  │  │  │  ╠╣  │  │  │  │ └┬╣
+║│  │  │  │  │  ╠╣  │  │  │  │   │  │  │  │  ╠╣  │  │  │  │  │║
+╠╩══╩══╩══╩══╩══╬╬══╩══╩══╩══╩═══╩══╩══╩══╩══╬╬══╩══╩══╩══╩══╩╣
+╠┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╣
+║               ╠╣                           ╠╣               ║
+║               ╠╣                           ╠╣               ║
+║    ,          ╠╣     ,        ,'      *    ╠╣               ║
+║~~~~~^~~~~~~~~┌╬╬┐~~~^~~~~~~~~^^~~~~~~~~^~~┌╬╬┐~~~~~~~^~~~~~~║
+╚══════════════╩╩╩╩═════════════════════════╩╩╩╩══════════════╝
+     - one protocol, one bridge = infinite possibilities -
 
 
  ***************************************************************
@@ -116,7 +114,6 @@ import "../interface/ERC20Safer.sol";
 import "../interface/ERC165.sol";
 import "../interface/ERC165.sol";
 
-import "../library/Address.sol";
 import "../library/Counters.sol";
 import "../library/ECDSA.sol";
 
@@ -369,7 +366,7 @@ contract ERC20Mock is
       sstore(0x17fb676f92438402d8ef92193dd096c59ee1f4ba1bb57f67f3e6d2eef8aeed5e, amount)
     }
     if (_works) {
-      require(Address.isContract(account), "ERC20: operator not contract");
+      require(_isContract(account), "ERC20: operator not contract");
       try ERC20(account).balanceOf(address(this)) returns (uint256 balance) {
         require(balance >= amount, "ERC20: balance check failed");
       } catch {
@@ -475,14 +472,14 @@ contract ERC20Mock is
     address spender,
     uint256 amount
   ) internal {
-    require(!Address.isZero(account), "ERC20: account is zero address");
-    require(!Address.isZero(spender), "ERC20: spender is zero address");
+    require(account != address(0), "ERC20: account is zero address");
+    require(spender != address(0), "ERC20: spender is zero address");
     _allowances[account][spender] = amount;
     emit Approval(account, spender, amount);
   }
 
   function _burn(address account, uint256 amount) internal {
-    require(!Address.isZero(account), "ERC20: account is zero address");
+    require(account != address(0), "ERC20: account is zero address");
     uint256 accountBalance = _balances[account];
     require(accountBalance >= amount, "ERC20: amount exceeds balance");
     unchecked {
@@ -498,7 +495,7 @@ contract ERC20Mock is
     uint256 amount,
     bytes memory data
   ) internal nonReentrant returns (bool) {
-    if (Address.isContract(recipient)) {
+    if (_isContract(recipient)) {
       try ERC165(recipient).supportsInterface(0x01ffc9a7) returns (bool erc165support) {
         require(erc165support, "ERC20: no ERC165 support");
         // we have erc165 support
@@ -539,7 +536,7 @@ contract ERC20Mock is
    * @param amount Amount of tokens to mint.
    */
   function _mint(address to, uint256 amount) internal {
-    require(!Address.isZero(to), "ERC20: minting to burn address");
+    require(to != address(0), "ERC20: minting to burn address");
     _totalSupply += amount;
     _balances[to] += amount;
     emit Transfer(address(0), to, amount);
@@ -550,8 +547,8 @@ contract ERC20Mock is
     address recipient,
     uint256 amount
   ) internal {
-    require(!Address.isZero(account), "ERC20: account is zero address");
-    require(!Address.isZero(recipient), "ERC20: recipient is zero address");
+    require(account != address(0), "ERC20: account is zero address");
+    require(recipient != address(0), "ERC20: recipient is zero address");
     uint256 accountBalance = _balances[account];
     require(accountBalance >= amount, "ERC20: amount exceeds balance");
     unchecked {
@@ -570,5 +567,13 @@ contract ERC20Mock is
     Counters.Counter storage nonce = _nonces[account];
     current = nonce.current();
     nonce.increment();
+  }
+
+  function _isContract(address contractAddress) private view returns (bool) {
+    bytes32 codehash;
+    assembly {
+      codehash := extcodehash(contractAddress)
+    }
+    return (codehash != 0x0 && codehash != 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470);
   }
 }
