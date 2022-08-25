@@ -124,6 +124,11 @@ import "./struct/Verification.sol";
  */
 contract HolographBridge is Admin, Initializable, IHolographBridge {
   /**
+   * @dev Internal nonce used for randomness.
+   */
+  uint256 private _jobNonce;
+
+  /**
    * @dev Constructor is left empty and only the admin address is set.
    */
   constructor() {}
@@ -177,7 +182,51 @@ contract HolographBridge is Admin, Initializable, IHolographBridge {
     }
   }
 
+  /* !!! PROVIDING SUPPORT FOR OLD VERSION !!! */
   function erc721in(
+    uint32 fromChain,
+    address collection,
+    address from,
+    address to,
+    uint256 tokenId,
+    bytes calldata data
+  ) external onlyBridge {
+    require(_registry().isHolographedContract(collection), "HOLOGRAPH: not holographed");
+    require(
+      ERC721Holograph(collection).holographBridgeIn(fromChain, from, to, tokenId, data) ==
+        ERC721Holograph.holographBridgeIn.selector,
+      "HOLOGRAPH: bridge in failed"
+    );
+  }
+
+  /* !!! PROVIDING SUPPORT FOR OLD VERSION !!! */
+  function erc20in(
+    uint32 fromChain,
+    address token,
+    address from,
+    address to,
+    uint256 amount,
+    bytes calldata data
+  ) external onlyBridge {
+    require(_registry().isHolographedContract(token), "HOLOGRAPH: not holographed");
+    require(
+      ERC20Holograph(token).holographBridgeIn(fromChain, from, to, amount, data) ==
+        ERC20Holograph.holographBridgeIn.selector,
+      "HOLOGRAPH: bridge in failed"
+    );
+  }
+
+  /* !!! PROVIDING SUPPORT FOR OLD VERSION !!! */
+  function deployIn(bytes calldata data) external onlyBridge {
+    (DeploymentConfig memory config, Verification memory signature, address signer) = abi.decode(
+      data,
+      (DeploymentConfig, Verification, address)
+    );
+    _factory().deployHolographableContract(config, signature, signer);
+  }
+
+  function erc721in(
+    uint256 nonce,
     uint32 fromChain,
     address collection,
     address from,
@@ -213,11 +262,13 @@ contract HolographBridge is Admin, Initializable, IHolographBridge {
     require(to != address(0), "HOLOGRAPH: zero address");
     (bytes4 selector, bytes memory data) = erc721.holographBridgeOut(toChain, from, to, tokenId);
     require(selector == ERC721Holograph.holographBridgeOut.selector, "HOLOGRAPH: bridge out failed");
+    _jobNonce++;
     _operator().send{value: msg.value}(
       toChain,
       msg.sender,
       abi.encodeWithSignature(
-        "erc721in(uint32,address,address,address,uint256,bytes)",
+        "erc721in(uint256,uint32,address,address,address,uint256,bytes)",
+        _jobNonce,
         _holograph().getChainType(),
         collection,
         from,
@@ -229,6 +280,7 @@ contract HolographBridge is Admin, Initializable, IHolographBridge {
   }
 
   function erc20in(
+    uint256 nonce,
     uint32 fromChain,
     address token,
     address from,
@@ -256,11 +308,13 @@ contract HolographBridge is Admin, Initializable, IHolographBridge {
     require(erc20.balanceOf(from) >= amount, "HOLOGRAPH: not enough tokens");
     (bytes4 selector, bytes memory data) = erc20.holographBridgeOut(toChain, msg.sender, from, to, amount);
     require(selector == ERC20Holograph.holographBridgeOut.selector, "HOLOGRAPH: bridge out failed");
+    _jobNonce++;
     _operator().send{value: msg.value}(
       toChain,
       msg.sender,
       abi.encodeWithSignature(
-        "erc20in(uint32,address,address,address,uint256,bytes)",
+        "erc20in(uint256,uint32,address,address,address,uint256,bytes)",
+        _jobNonce,
         _holograph().getChainType(),
         token,
         from,
@@ -271,7 +325,11 @@ contract HolographBridge is Admin, Initializable, IHolographBridge {
     );
   }
 
-  function deployIn(bytes calldata data) external onlyBridge {
+  function deployIn(
+    uint256 nonce,
+    uint32 fromChain,
+    bytes calldata data
+  ) external onlyBridge {
     (DeploymentConfig memory config, Verification memory signature, address signer) = abi.decode(
       data,
       (DeploymentConfig, Verification, address)
@@ -285,10 +343,16 @@ contract HolographBridge is Admin, Initializable, IHolographBridge {
     Verification calldata signature,
     address signer
   ) external payable {
+    _jobNonce++;
     _operator().send{value: msg.value}(
       toChain,
       msg.sender,
-      abi.encodeWithSignature("deployIn(bytes)", abi.encode(config, signature, signer))
+      abi.encodeWithSignature(
+        "deployIn(uint256,uint32,bytes)",
+        _jobNonce,
+        _holograph().getChainType(),
+        abi.encode(config, signature, signer)
+      )
     );
   }
 

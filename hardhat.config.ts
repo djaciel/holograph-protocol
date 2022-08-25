@@ -6,7 +6,6 @@ import 'hardhat-deploy-holographed';
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
-import { EtherscanConfig } from '@nomiclabs/hardhat-etherscan/src/types';
 import { types, task, HardhatUserConfig } from 'hardhat/config';
 import 'hardhat-holograph-contract-builder';
 import networks from './config/networks';
@@ -23,7 +22,6 @@ const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || DEPLOYER;
 
 const MATIC_PRIVATE_KEY = process.env.MATIC_PRIVATE_KEY || DEPLOYER;
 const MUMBAI_PRIVATE_KEY = process.env.MUMBAI_PRIVATE_KEY || DEPLOYER;
-
 const FUJI_PRIVATE_KEY = process.env.FUJI_PRIVATE_KEY || DEPLOYER;
 
 const CXIP_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || DEPLOYER;

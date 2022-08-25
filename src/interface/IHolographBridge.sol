@@ -9,6 +9,7 @@ interface IHolographBridge {
   function executeJob(bytes calldata _payload) external;
 
   function erc721in(
+    uint256 nonce,
     uint32 fromChain,
     address collection,
     address from,
@@ -26,6 +27,7 @@ interface IHolographBridge {
   ) external payable;
 
   function erc20in(
+    uint256 nonce,
     uint32 fromChain,
     address token,
     address from,
@@ -42,7 +44,11 @@ interface IHolographBridge {
     uint256 amount
   ) external payable;
 
-  function deployIn(bytes calldata data) external;
+  function deployIn(
+    uint256 nonce,
+    uint32 fromChain,
+    bytes calldata data
+  ) external;
 
   function deployOut(
     uint32 toChain,
