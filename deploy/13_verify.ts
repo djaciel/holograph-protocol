@@ -7,10 +7,23 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   if (hre.network.name != 'localhost' && hre.network.name != 'localhost2') {
     let contracts: string[] = [
       'Holograph',
-      'HolographFactoryProxy',
-      'HolographFactory',
+      'HolographBridge',
+      'HolographBridgeProxy',
+      'Holographer',
+      'HolographERC20',
       'HolographERC721',
+      'HolographFactory',
+      'HolographFactoryProxy',
+      'HolographOperator',
+      'HolographOperatorProxy',
+      'HolographRegistry',
+      'HolographRegistryProxy',
+      'HolographTreasury',
+      'HolographTreasuryProxy',
+      'Interfaces',
+      'PA1D',
       'CxipERC721',
+      'CxipERC721Proxy',
       'PA1D',
     ];
     for (let i: number = 0, l: number = contracts.length; i < l; i++) {
