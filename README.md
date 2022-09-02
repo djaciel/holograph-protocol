@@ -1,33 +1,8 @@
-# Holograph Bridge Protocol
+![Holograph - Render 16](https://user-images.githubusercontent.com/21043504/188220186-9c7f55e0-143a-41b4-a6b8-90e8bd54bfd9.png)
 
-This project contains the latest version of the Holograph Bridge Protocol.
+# Holograph Protocol
 
-```
-                         ┌───────────┐
-                         │ HOLOGRAPH │
-                         └───────────┘
-╔═════════════════════════════════════════════════════════════╗
-║                                                             ║
-║                            / ^ \                            ║
-║                            ~~*~~            ¸               ║
-║                         [ '<>:<>' ]         │░░░            ║
-║               ╔╗           _/"\_           ╔╣               ║
-║             ┌─╬╬─┐          """          ┌─╬╬─┐             ║
-║          ┌─┬┘ ╠╣ └┬─┐       \_/       ┌─┬┘ ╠╣ └┬─┐          ║
-║       ┌─┬┘ │  ╠╣  │ └┬─┐           ┌─┬┘ │  ╠╣  │ └┬─┐       ║
-║    ┌─┬┘ │  │  ╠╣  │  │ └┬─┐     ┌─┬┘ │  │  ╠╣  │  │ └┬─┐    ║
-║ ┌─┬┘ │  │  │  ╠╣  │  │  │ └┬┐ ┌┬┘ │  │  │  ╠╣  │  │  │ └┬─┐ ║
-╠┬┘ │  │  │  │  ╠╣  │  │  │  │└¤┘│  │  │  │  ╠╣  │  │  │  │ └┬╣
-║│  │  │  │  │  ╠╣  │  │  │  │   │  │  │  │  ╠╣  │  │  │  │  │║
-╠╩══╩══╩══╩══╩══╬╬══╩══╩══╩══╩═══╩══╩══╩══╩══╬╬══╩══╩══╩══╩══╩╣
-╠┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╣
-║               ╠╣                           ╠╣               ║
-║               ╠╣                           ╠╣               ║
-║    ,          ╠╣     ,        ,'      *    ╠╣               ║
-║~~~~~^~~~~~~~~┌╬╬┐~~~^~~~~~~~~^^~~~~~~~~^~~┌╬╬┐~~~~~~~^~~~~~~║
-╚══════════════╩╩╩╩═════════════════════════╩╩╩╩══════════════╝
-     - one protocol, one bridge = infinite possibilities -
-```
+This project contains the latest version of the Holograph Protocol.
 
 ---
 
@@ -64,7 +39,7 @@ _If you need the smart contracts ABI files for dApp integrations, use `yarn run 
 
 ---
 
-## Making changes
+## Making Changes
 
 **Before pushing your work to the repo, make sure to prepare your code**
 
