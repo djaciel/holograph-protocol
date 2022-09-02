@@ -37,7 +37,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   hre.deployments.log('the future "HolographERC721" address is', futureErc721Address);
 
   // HolographERC721
-  let erc721DeployedCode: string = await hre.provider.send('eth_getCode', [futureErc721Address]);
+  let erc721DeployedCode: string = await hre.provider.send('eth_getCode', [futureErc721Address, 'latest']);
   if (erc721DeployedCode == '0x' || erc721DeployedCode == '') {
     hre.deployments.log('"HolographERC721" bytecode not found, need to deploy"');
     let holographErc721 = await genesisDeployHelper(
@@ -70,7 +70,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   hre.deployments.log('the future "CxipERC721" address is', futureCxipErc721Address);
 
   // CxipERC721
-  let cxipErc721DeployedCode: string = await hre.provider.send('eth_getCode', [futureCxipErc721Address]);
+  let cxipErc721DeployedCode: string = await hre.provider.send('eth_getCode', [futureCxipErc721Address, 'latest']);
   if (cxipErc721DeployedCode == '0x' || cxipErc721DeployedCode == '') {
     hre.deployments.log('"CxipERC721" bytecode not found, need to deploy"');
     let cxipErc721 = await genesisDeployHelper(

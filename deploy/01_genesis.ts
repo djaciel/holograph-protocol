@@ -23,7 +23,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     holographGenesisContract != null &&
     holographGenesisContract.address == '0x9f69aefbb4418a1b4642116b5c8c2b30896019a8'
   ) {
-    let deployedCode: string = await hre.provider.send('eth_getCode', [holographGenesisContract.address]);
+    let deployedCode: string = await hre.provider.send('eth_getCode', [holographGenesisContract.address, 'latest']);
     if (deployedCode == '0x' || deployedCode == '') {
       // no deployed code found, we will need to deploy
       if (hre.networkName == 'localhost') {

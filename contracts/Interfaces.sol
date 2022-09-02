@@ -395,7 +395,6 @@ contract Interfaces is Admin, Initializable {
         0x42842e0e ^
         ERC721.transferFrom.selector ^
         ERC721.approve.selector ^
-        ERC721.approve.selector ^
         ERC721.setApprovalForAll.selector ^
         ERC721.getApproved.selector ^
         ERC721.isApprovedForAll.selector

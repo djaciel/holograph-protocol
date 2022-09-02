@@ -96,7 +96,7 @@ contract HolographTreasury is Admin, Initializable, IHolographTreasury {
     // The slot hash has been precomputed for gas optimizaion
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.holograph')) - 1);
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.factory"), holograph)
+      sstore(precomputeslot("eip1967.Holograph.Bridge.holograph"), holograph)
     }
   }
 

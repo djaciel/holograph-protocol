@@ -19,7 +19,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
   describe('Check that contract addresses are properly deployed', async () => {
     describe('Interfaces:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.interfaces.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.interfaces.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('Interfaces')).deployedBytecode
         );
       });
@@ -27,7 +27,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('CxipERC721 Holographer:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.cxipErc721Holographer.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.cxipErc721Holographer.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('Holographer')).deployedBytecode
         );
       });
@@ -35,7 +35,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('CxipERC721 Enforcer:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.cxipErc721Enforcer.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.cxipErc721Enforcer.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographERC721')).deployedBytecode
         );
       });
@@ -43,7 +43,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('CxipERC721:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.cxipErc721.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.cxipErc721.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('CxipERC721Proxy')).deployedBytecode
         );
       });
@@ -51,7 +51,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('CxipERC721Proxy:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.cxipErc721Proxy.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.cxipErc721Proxy.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('CxipERC721Proxy')).deployedBytecode
         );
       });
@@ -59,7 +59,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('ERC20Mock:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.erc20Mock.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.erc20Mock.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('ERC20Mock')).deployedBytecode
         );
       });
@@ -67,7 +67,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('Holograph:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holograph.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holograph.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('Holograph')).deployedBytecode
         );
       });
@@ -75,7 +75,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('HolographBridge:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holographBridge.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holographBridge.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographBridge')).deployedBytecode
         );
       });
@@ -83,7 +83,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('HolographBridgeProxy:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holographBridgeProxy.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holographBridgeProxy.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographBridgeProxy')).deployedBytecode
         );
       });
@@ -91,7 +91,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('Holographer:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holographer.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holographer.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('Holographer')).deployedBytecode
         );
       });
@@ -99,7 +99,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('HolographERC20:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holographErc20.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holographErc20.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographERC20')).deployedBytecode
         );
       });
@@ -107,7 +107,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('HolographERC721:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holographErc721.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holographErc721.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographERC721')).deployedBytecode
         );
       });
@@ -115,7 +115,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('HolographFactory:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holographFactory.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holographFactory.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographFactory')).deployedBytecode
         );
       });
@@ -123,7 +123,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('HolographFactoryProxy:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holographFactoryProxy.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holographFactoryProxy.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographFactoryProxy')).deployedBytecode
         );
       });
@@ -131,7 +131,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('HolographGenesis:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holographGenesis.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holographGenesis.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographGenesis')).deployedBytecode
         );
       });
@@ -139,7 +139,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('HolographOperator:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holographOperator.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holographOperator.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographOperator')).deployedBytecode
         );
       });
@@ -147,7 +147,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('HolographOperatorProxy:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holographOperatorProxy.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holographOperatorProxy.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographOperatorProxy')).deployedBytecode
         );
       });
@@ -155,7 +155,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('HolographRegistry:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holographRegistry.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holographRegistry.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographRegistry')).deployedBytecode
         );
       });
@@ -163,7 +163,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('HolographRegistryProxy:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holographRegistryProxy.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holographRegistryProxy.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographRegistryProxy')).deployedBytecode
         );
       });
@@ -171,7 +171,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('HolographTreasury:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holographTreasury.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holographTreasury.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographTreasury')).deployedBytecode
         );
       });
@@ -179,7 +179,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('HolographTreasuryProxy:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.holographTreasuryProxy.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.holographTreasuryProxy.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographTreasuryProxy')).deployedBytecode
         );
       });
@@ -187,7 +187,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('hToken Holographer:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.hTokenHolographer.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.hTokenHolographer.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('Holographer')).deployedBytecode
         );
       });
@@ -195,7 +195,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('hToken Enforcer:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.hTokenEnforcer.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.hTokenEnforcer.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographERC20')).deployedBytecode
         );
       });
@@ -203,7 +203,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('hToken:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.hToken.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.hToken.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('hToken')).deployedBytecode
         );
       });
@@ -211,7 +211,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('MockERC721Receiver:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.mockErc721Receiver.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.mockErc721Receiver.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('MockERC721Receiver')).deployedBytecode
         );
       });
@@ -219,7 +219,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('MockLZEndpoint:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.mockLZEndpoint.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.mockLZEndpoint.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('MockLZEndpoint')).deployedBytecode
         );
       });
@@ -227,7 +227,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('PA1D:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.pa1d.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.pa1d.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('PA1D')).deployedBytecode
         );
       });
@@ -235,7 +235,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('SampleERC20 Holographer:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.sampleErc20Holographer.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.sampleErc20Holographer.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('Holographer')).deployedBytecode
         );
       });
@@ -243,7 +243,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('SampleERC20 Enforcer:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.sampleErc20Enforcer.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.sampleErc20Enforcer.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographERC20')).deployedBytecode
         );
       });
@@ -251,7 +251,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('SampleERC20:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.sampleErc20.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.sampleErc20.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('SampleERC20')).deployedBytecode
         );
       });
@@ -259,7 +259,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('SampleERC721 Holographer:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.sampleErc721Holographer.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.sampleErc721Holographer.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('Holographer')).deployedBytecode
         );
       });
@@ -267,7 +267,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('SampleERC721 Enforcer:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.sampleErc721Enforcer.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.sampleErc721Enforcer.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('HolographERC721')).deployedBytecode
         );
       });
@@ -275,7 +275,7 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
 
     describe('SampleERC721:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.sampleErc721.address])).to.equal(
+        expect(await l2.hre.provider.send('eth_getCode', [l2.sampleErc721.address, 'latest'])).to.equal(
           (await l2.hre.artifacts.readArtifact('SampleERC721')).deployedBytecode
         );
       });

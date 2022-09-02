@@ -132,7 +132,6 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
               functionHash('safeTransferFrom(address,address,uint256,bytes)'),
               functionHash('transferFrom(address,address,uint256)'),
               functionHash('approve(address,uint256)'),
-              functionHash('approve(address,uint256)'),
               functionHash('setApprovalForAll(address,bool)'),
               functionHash('getApproved(uint256)'),
               functionHash('isApprovedForAll(address,address)'),

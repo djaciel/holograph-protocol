@@ -12,6 +12,17 @@ import networks from './config/networks';
 import dotenv from 'dotenv';
 dotenv.config();
 
+const getGitBranch = function () {
+  const acceptableBranches = ['mainnet', 'testnet', 'develop'];
+  const contents = fs.readFileSync('./.git/HEAD', 'utf8');
+  const branch = contents.trim().split('ref: refs/heads/')[1];
+  if (acceptableBranches.includes(branch)) {
+    return branch;
+  } else {
+    return 'develop';
+  }
+};
+
 const SOLIDITY_VERSION = process.env.SOLIDITY_VERSION || '0.8.13';
 
 const MNEMONIC = process.env.MNEMONIC || 'test '.repeat(11) + 'junk';
@@ -22,13 +33,17 @@ const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || DEPLOYER;
 
 const MATIC_PRIVATE_KEY = process.env.MATIC_PRIVATE_KEY || DEPLOYER;
 const MUMBAI_PRIVATE_KEY = process.env.MUMBAI_PRIVATE_KEY || DEPLOYER;
+const FUJI_PRIVATE_KEY = process.env.FUJI_PRIVATE_KEY || DEPLOYER;
 
 const CXIP_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || DEPLOYER;
 
 const ETHERSCAN_API_KEY: string = process.env.ETHERSCAN_API_KEY || '';
 const POLYGONSCAN_API_KEY: string = process.env.POLYGONSCAN_API_KEY || '';
+const AVALANCHE_API_KEY: string = process.env.AVALANCHE_API_KEY || '';
 
 const DEPLOYMENT_SALT = parseInt(process.env.DEPLOYMENT_SALT || '0');
+
+const DEPLOYMENT_PATH = process.env.DEPLOYMENT_PATH || 'deployments';
 
 global.__DEPLOYMENT_SALT = '0x' + DEPLOYMENT_SALT.toString(16).padStart(64, '0');
 
@@ -79,6 +94,9 @@ task('abi', 'Create standalone ABI files for all smart contracts')
  * @type import('hardhat/config').HardhatUserConfig
  */
 const config: HardhatUserConfig = {
+  paths: {
+    deployments: DEPLOYMENT_PATH + '/' + getGitBranch(),
+  },
   defaultNetwork: 'localhost',
   external: {
     deployments: {
@@ -163,6 +181,11 @@ const config: HardhatUserConfig = {
       chainId: networks.mumbai.chain,
       accounts: [MUMBAI_PRIVATE_KEY],
     },
+    fuji: {
+      url: networks.fuji.rpc,
+      chainId: networks.fuji.chain,
+      accounts: [FUJI_PRIVATE_KEY],
+    },
     cxip: {
       url: networks.cxip.rpc,
       chainId: networks.cxip.chain,
@@ -203,6 +226,8 @@ const config: HardhatUserConfig = {
       rinkeby: ETHERSCAN_API_KEY,
       polygon: POLYGONSCAN_API_KEY,
       polygonMumbai: POLYGONSCAN_API_KEY,
+      avalanche: AVALANCHE_API_KEY,
+      avalancheFujiTestnet: AVALANCHE_API_KEY,
     },
   },
   hardhatHolographContractBuilder: {
