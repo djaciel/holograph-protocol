@@ -3,7 +3,12 @@ import fs from 'fs';
 import Web3 from 'web3';
 import crypto from 'crypto';
 import { EthereumProvider, Artifacts, HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DeployFunction, Address, Deployment, DeploymentsExtension } from 'hardhat-deploy-holographed/types';
+import {
+  DeployFunction,
+  Address,
+  Deployment,
+  DeploymentsExtension,
+} from '@holographxyz/hardhat-deploy-holographed/types';
 import { BigNumberish, BytesLike, ContractFactory, Contract, BigNumber } from 'ethers';
 import type { ethers } from 'ethers';
 import type EthersT from 'ethers';

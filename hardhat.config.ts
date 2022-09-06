@@ -2,12 +2,12 @@ declare var global: any;
 import fs from 'fs';
 import '@typechain/hardhat';
 import 'hardhat-gas-reporter';
-import 'hardhat-deploy-holographed';
+import '@holographxyz/hardhat-deploy-holographed';
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import { types, task, HardhatUserConfig } from 'hardhat/config';
-import 'hardhat-holograph-contract-builder';
+import '@holographxyz/hardhat-holograph-contract-builder';
 import networks from './config/networks';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -100,32 +100,32 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'localhost',
   external: {
     deployments: {
-      arbitrum: ['externalDeployments/arbitrum'],
-      arbitrum_rinkeby: ['externalDeployments/arbitrum_rinkeby'],
-      aurora: ['externalDeployments/aurora'],
-      aurora_testnet: ['externalDeployments/aurora_testnet'],
-      avax: ['externalDeployments/avax'],
-      bsc: ['externalDeployments/bsc'],
-      bsc_testnet: ['externalDeployments/bsc_testnet'],
-      cronos: ['externalDeployments/cronos'],
-      cronos_testnet: ['externalDeployments/cronos_testnet'],
-      cxip: ['externalDeployments/cxip'],
-      eth: ['externalDeployments/eth'],
-      eth_goerli: ['externalDeployments/eth_goerli'],
-      eth_kovan: ['externalDeployments/eth_kovan'],
-      eth_rinkeby: ['externalDeployments/eth_rinkeby'],
-      eth_ropsten: ['externalDeployments/eth_ropsten'],
-      ftm: ['externalDeployments/ftm'],
-      ftm_testnet: ['externalDeployments/ftm_testnet'],
-      fuji: ['externalDeployments/fuji'],
-      gno: ['externalDeployments/gno'],
-      gno_sokol: ['externalDeployments/gno_sokol'],
-      localhost: ['externalDeployments/localhost'],
-      localhost2: ['externalDeployments/localhost2'],
-      matic: ['externalDeployments/matic'],
-      mumbai: ['externalDeployments/mumbai'],
-      optimism: ['externalDeployments/optimism'],
-      optimism_kovan: ['externalDeployments/optimism_kovan'],
+      arbitrum: ['deployments/external/arbitrum'],
+      arbitrum_rinkeby: ['deployments/external/arbitrum_rinkeby'],
+      aurora: ['deployments/external/aurora'],
+      aurora_testnet: ['deployments/external/aurora_testnet'],
+      avax: ['deployments/external/avax'],
+      bsc: ['deployments/external/bsc'],
+      bsc_testnet: ['deployments/external/bsc_testnet'],
+      cronos: ['deployments/external/cronos'],
+      cronos_testnet: ['deployments/external/cronos_testnet'],
+      cxip: ['deployments/external/cxip'],
+      eth: ['deployments/external/eth'],
+      eth_goerli: ['deployments/external/eth_goerli'],
+      eth_kovan: ['deployments/external/eth_kovan'],
+      eth_rinkeby: ['deployments/external/eth_rinkeby'],
+      eth_ropsten: ['deployments/external/eth_ropsten'],
+      ftm: ['deployments/external/ftm'],
+      ftm_testnet: ['deployments/external/ftm_testnet'],
+      fuji: ['deployments/external/fuji'],
+      gno: ['deployments/external/gno'],
+      gno_sokol: ['deployments/external/gno_sokol'],
+      localhost: ['deployments/external/localhost'],
+      localhost2: ['deployments/external/localhost2'],
+      matic: ['deployments/external/matic'],
+      mumbai: ['deployments/external/mumbai'],
+      optimism: ['deployments/external/optimism'],
+      optimism_kovan: ['deployments/external/optimism_kovan'],
     },
   },
   networks: {

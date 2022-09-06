@@ -1,19 +1,24 @@
 {
-  "name": "Holograph-Bridge-Protocol",
-  "version": "1.0.2",
-  "description": "Holograph Bridge Protocol",
-  "license": "UNLICENSED",
-  "author": "cxip-labs",
+  "name": "@holographxyz/holograph-protocol",
+  "version": "0.0.1",
+  "description": "Holograph Protocol",
+  "license": "SEE LICENSE IN LICENSE.md",
+  "author": "holographxyz",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/holographxyz/holograph-protocol.git"
+  },
   "main": "index.js",
   "files": [
-    "typechain",
+    "abi",
     "contracts",
-    "deployments"
+    "deployments",
+    "typechain-types"
   ],
   "scripts": {
     "init": "cp sample.env .env",
     "abi": "hardhat abi",
-    "build": "hardhat inject-holograph-address",
+    "build": "hardhat holograph-build-contracts",
     "clean-compile": "yarn run clean ; yarn run compile",
     "clean": "hardhat clean",
     "compile": "hardhat compile",
@@ -29,10 +34,10 @@
     "prettier:fix": "prettier --loglevel error --ignore-path .gitignore --write ."
   },
   "dependencies": {
+    "@holographxyz/hardhat-deploy-holographed": "^0.0.3",
+    "@holographxyz/hardhat-holograph-contract-builder": "^0.0.3",
     "chai-ethers": "^0.0.1",
     "ganache": "^7.2.0",
-    "hardhat-deploy-holographed": "https://github.com/cxip-labs/hardhat-deploy-holographed.git",
-    "hardhat-holograph-contract-builder": "https://github.com/cxip-labs/hardhat-holograph-contract-builder.git",
     "path": "^0.12.7",
     "truffle-hdwallet-provider": "^1.0.17",
     "web3": "^1.7.0",

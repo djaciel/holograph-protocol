@@ -1,6 +1,6 @@
 declare var global: any;
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DeployFunction } from 'hardhat-deploy-holographed/types';
+import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import { LeanHardhatRuntimeEnvironment, hreSplit } from '../scripts/utils/helpers';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {

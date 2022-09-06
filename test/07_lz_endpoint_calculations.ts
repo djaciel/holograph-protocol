@@ -144,10 +144,11 @@ describe('Testing LZ Endpoint costs (L1 & L2)', async function () {
     gasUsage['#1 mint on l2'] = BigNumber.from(0);
 
     payloadThirdNFTl1 =
-      functionHash('erc721in(uint32,address,address,address,uint256,bytes)') +
+      functionHash('erc721in(uint256,uint32,address,address,address,uint256,bytes)') +
       generateInitCode(
-        ['uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
+        ['uint256', 'uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
         [
+          BigNumber.from('2').toHexString(),
           l1.network.holographId,
           l1.cxipErc721Holographer.address,
           l1.deployer.address,
@@ -158,10 +159,11 @@ describe('Testing LZ Endpoint costs (L1 & L2)', async function () {
       ).substring(2);
 
     payloadThirdNFTl2 =
-      functionHash('erc721in(uint32,address,address,address,uint256,bytes)') +
+      functionHash('erc721in(uint256,uint32,address,address,address,uint256,bytes)') +
       generateInitCode(
-        ['uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
+        ['uint256', 'uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
         [
+          BigNumber.from('2').toHexString(),
           l2.network.holographId,
           l1.cxipErc721Holographer.address,
           l2.deployer.address,
@@ -219,10 +221,12 @@ describe('Testing LZ Endpoint costs (L1 & L2)', async function () {
         } as Signature);
 
         let payload: BytesLike =
-          functionHash('deployIn(bytes)') +
+          functionHash('deployIn(uint256,uint32,bytes)') +
           generateInitCode(
-            ['bytes'],
+            ['uint256', 'uint32', 'bytes'],
             [
+              BigNumber.from('1').toHexString(),
+              l1.network.holographId,
               generateInitCode(
                 ['tuple(bytes32,uint32,bytes32,bytes,bytes)', 'tuple(bytes32,bytes32,uint8)', 'address'],
                 [
@@ -301,10 +305,12 @@ describe('Testing LZ Endpoint costs (L1 & L2)', async function () {
         } as Signature);
 
         let payload: BytesLike =
-          functionHash('deployIn(bytes)') +
+          functionHash('deployIn(uint256,uint32,bytes)') +
           generateInitCode(
-            ['bytes'],
+            ['uint256', 'uint32', 'bytes'],
             [
+              BigNumber.from('1').toHexString(),
+              l2.network.holographId,
               generateInitCode(
                 ['tuple(bytes32,uint32,bytes32,bytes,bytes)', 'tuple(bytes32,bytes32,uint8)', 'address'],
                 [
@@ -550,10 +556,11 @@ describe('Testing LZ Endpoint costs (L1 & L2)', async function () {
     describe('Calculate LayerZero gas usage', async function () {
       it('l1 erc721in cost 1', async function () {
         let payload: BytesLike =
-          functionHash('erc721in(uint32,address,address,address,uint256,bytes)') +
+          functionHash('erc721in(uint256,uint32,address,address,address,uint256,bytes)') +
           generateInitCode(
-            ['uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
+            ['uint256', 'uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
             [
+              BigNumber.from('3').toHexString(),
               l1.network.holographId,
               l1.cxipErc721Holographer.address,
               l1.deployer.address,
@@ -579,10 +586,11 @@ describe('Testing LZ Endpoint costs (L1 & L2)', async function () {
 
       it('l1 erc721in cost 2', async function () {
         let payload: BytesLike =
-          functionHash('erc721in(uint32,address,address,address,uint256,bytes)') +
+          functionHash('erc721in(uint256,uint32,address,address,address,uint256,bytes)') +
           generateInitCode(
-            ['uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
+            ['uint256', 'uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
             [
+              BigNumber.from('4').toHexString(),
               l1.network.holographId,
               l1.cxipErc721Holographer.address,
               l1.deployer.address,
@@ -608,10 +616,11 @@ describe('Testing LZ Endpoint costs (L1 & L2)', async function () {
 
       it('l1 erc721in cost 3', async function () {
         let payload: BytesLike =
-          functionHash('erc721in(uint32,address,address,address,uint256,bytes)') +
+          functionHash('erc721in(uint256,uint32,address,address,address,uint256,bytes)') +
           generateInitCode(
-            ['uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
+            ['uint256', 'uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
             [
+              BigNumber.from('5').toHexString(),
               l1.network.holographId,
               l1.cxipErc721Holographer.address,
               l1.deployer.address,
@@ -637,10 +646,11 @@ describe('Testing LZ Endpoint costs (L1 & L2)', async function () {
 
       it('l1 erc721in cost 4', async function () {
         let payload: BytesLike =
-          functionHash('erc721in(uint32,address,address,address,uint256,bytes)') +
+          functionHash('erc721in(uint256,uint32,address,address,address,uint256,bytes)') +
           generateInitCode(
-            ['uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
+            ['uint256', 'uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
             [
+              BigNumber.from('6').toHexString(),
               l1.network.holographId,
               l1.cxipErc721Holographer.address,
               l1.deployer.address,
@@ -666,10 +676,11 @@ describe('Testing LZ Endpoint costs (L1 & L2)', async function () {
 
       it('l1 erc721in cost 5', async function () {
         let payload: BytesLike =
-          functionHash('erc721in(uint32,address,address,address,uint256,bytes)') +
+          functionHash('erc721in(uint256,uint32,address,address,address,uint256,bytes)') +
           generateInitCode(
-            ['uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
+            ['uint256', 'uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
             [
+              BigNumber.from('7').toHexString(),
               l1.network.holographId,
               l1.cxipErc721Holographer.address,
               l1.deployer.address,
