@@ -4,7 +4,6 @@
   <h1>Holograph Protocol</h1>
 </div>
 <p align="center">
-  <a href="https://github.com/holographxyz/holograph-protocol/blob/feature/update-readme/test/badge.svg"><img src="https://github.com/holographxyz/holograph-protocol/blob/feature/update-readme/test/badge.svg" /></a>
 </p>
 
 ## Description
@@ -15,7 +14,7 @@ Holograph provides omnichain NFT infrastructure for the web3 ecosystem. Holograp
 
 ### Getting started
 
-1. This project uses [asdf](https://asdf-vm.com/) for versions management. Install following plugins 
+1. This project uses [asdf](https://asdf-vm.com/) for versions management. Install following plugins
    - Install [asdf Node plugin](https://github.com/asdf-vm/asdf-nodejs): `asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git`
    - Install [asdf yarn plugin](https://github.com/twuni/asdf-yarn): `asdf plugin-add yarn`
 1. Run `asdf install` after to have the correct tool versions.
@@ -59,7 +58,6 @@ root
 └── <a href="./test">test</a>: Hardhat tests for the smart contracts
 </pre>
 
-
 ## Branching Model and Releases
 
 ### Active Branches
@@ -78,10 +76,14 @@ Please read the linked post if you're planning to make frequent PRs into this re
 
 ### The `mainet` branch
 
-The `master` branch contains the code for our latest "stable" mainnet releases.
+The `mainnet` branch contains the code for our latest "stable" mainnet releases.
 Updates from `mainnet` always come from the `testnet` branch.
 We only ever update the `mainnet` branch when we intend to deploy code that has been tested on testnets to all mainnet networks supported by the Holograph protocol.
 Our update process takes the form of a PR merging the `testnet` branch into the `mainnet` branch.
+
+### The `testnet` branch
+
+The `testnet` branch continas the code that is the latest stable testnet release for all supported networks. This branch is deployed and circulated for beta users of the protocol. Updates are merged in from the `develop` branch once they're ready for broad usage.
 
 ### The `develop` branch
 
@@ -94,12 +96,12 @@ Read through [CONTRIBUTING.md](./CONTRIBUTING.md) for a general overview of our 
 
 ## Official Links
 
-* [Website](https://holograph.xyz)
-* [App](https://app.holograph.xyz)
-* [Docs](https://docs.holograph.xyz)
-* [Discord](https://discord.com/invite/holograph)
-* [Twitter](https://twitter.com/holographxyz)
-* [Mirror](https://mirror.xyz/holographxyz.eth)
+- [Website](https://holograph.xyz)
+- [App](https://app.holograph.xyz)
+- [Docs](https://docs.holograph.xyz)
+- [Discord](https://discord.com/invite/holograph)
+- [Twitter](https://twitter.com/holographxyz)
+- [Mirror](https://mirror.xyz/holographxyz.eth)
 
 ## License
 
