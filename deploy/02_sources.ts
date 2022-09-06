@@ -2,7 +2,7 @@ declare var global: any;
 import fs from 'fs';
 import Web3 from 'web3';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DeployFunction } from 'hardhat-deploy-holographed/types';
+import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import {
   Admin,
   CxipERC721,

@@ -2,7 +2,7 @@ declare var global: any;
 import fs from 'fs';
 import { expect, assert } from 'chai';
 import { EthereumProvider, Artifacts, HardhatRuntimeEnvironment } from 'hardhat/types';
-import { Address, Deployment, DeploymentsExtension } from 'hardhat-deploy-holographed/types';
+import { Address, Deployment, DeploymentsExtension } from '@holographxyz/hardhat-deploy-holographed/types';
 import Web3 from 'web3';
 import { BigNumberish, BytesLike, ContractFactory, Contract } from 'ethers';
 import type { ethers } from 'ethers';

@@ -114,51 +114,19 @@ import "./interface/IInitializable.sol";
 import "./interface/IInterfaces.sol";
 import "./interface/ILayerZeroEndpoint.sol";
 
-import "./struct/OperatorJob.sol";
-
 /**
  * @dev This smart contract contains the actual core operator logic.
  */
 contract HolographOperator is Admin, Initializable, IHolographOperator {
   /**
-   * @dev Internal nonce used for randomness.
+   * @dev Internal mapping of hashes for valid operator jobs.
    */
-  uint256 private _jobNonce;
-
-  /**
-   * @dev Internal number used for defining a window for operator to execute the job.
-   */
-  uint16 private _blockTime;
-
-  /**
-   * @dev Minimum amount of tokens needed for bonding.
-   */
-  uint256 private _baseBondAmount;
-
-  /**
-   * @dev The multiplier used for calculating bonding amount for pods.
-   */
-  uint256 private _podMultiplier;
-
-  /**
-   * @dev Internal mapping of operator job details for a specific job hash.
-   */
-  mapping(bytes32 => OperatorJob) private _operatorJobs;
-
-  /**
-   * @dev Multi-dimensional array of available operators.
-   */
-  address[][] private _operatorPods;
-
-  /**
-   * @dev Internal mapping of bonded operators, to prevent double bonding.
-   */
-  mapping(address => bool) private _bondedOperators;
+  mapping(bytes32 => bool) private _availableJobs;
 
   /**
    * @dev Event is emitted for every time that a valid job is available.
    */
-  event AvailableOperatorJob(bytes32 jobHash, bytes payload);
+  event AvailableJob(bytes _payload);
 
   modifier onlyBridge() {
     require(msg.sender == _bridge(), "HOLOGRAPH: bridge only call");
@@ -204,15 +172,6 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
       sstore(0x23e584d4fb363739321c1e56c9bcdc29517a4c57065f8502226c995fd15b2472, interfaces)
       sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
     }
-    _blockTime = 10; // 10 blocks allowed for execution
-    unchecked {
-      _baseBondAmount = 10**18; // one single token unit
-    }
-    _podMultiplier = 4; // 1, 4, 16, 64
-    // set first operator for each pod as zero address
-    _operatorPods = [[address(0)]];
-    // mark zero address as bonded operator, to prevent abuse
-    _bondedOperators[address(0)] = true;
     _setInitialized();
     return IInitializable.init.selector;
   }
@@ -235,44 +194,15 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
         revert(0x80, 0xc4)
       }
     }
-    unchecked {
-      bytes32 jobHash = keccak256(_payload);
-      _jobNonce++;
-      // use job hash, job nonce, block number, and block timestamp for generating a random number
-      uint256 random = uint256(keccak256(abi.encodePacked(jobHash, _jobNonce, block.number, block.timestamp)));
-      // divide by total number of pods, use modulus/remainder
-      uint8 pod = uint8(random % _operatorPods.length);
-      // identify the total number of available operators in pod
-      uint256 podSize = _operatorPods[pod].length;
-      // select a primary operator
-      uint256 operatorIndex = random % podSize;
-      // If operator index is 0, then it's open season! Anyone can execute this job. First come first serve.
-      // pop operator to ensure that they cannot be selected for any other job until this one completes
-      // decrease pod size to accomodate popped operator
-      podSize--;
-      _operatorJobs[jobHash] = OperatorJob(
-        pod,
-        _blockTime,
-        _operatorPods[pod][operatorIndex],
-        block.number,
-        [
-          (random + uint256(blockhash(block.number - 1))) % podSize,
-          (random + uint256(blockhash(block.number - 2))) % podSize,
-          (random + uint256(blockhash(block.number - 3))) % podSize,
-          (random + uint256(blockhash(block.number - 4))) % podSize,
-          (random + uint256(blockhash(block.number - 5))) % podSize
-        ]
-      );
-      _popOperator(pod, operatorIndex);
-      emit AvailableOperatorJob(jobHash, _payload);
-    }
+    _availableJobs[keccak256(_payload)] = true;
+    emit AvailableJob(_payload);
   }
 
   function executeJob(bytes calldata _payload) external payable {
     // we do our operator logic here
     // we will also manage gas/value here
     bytes32 hash = keccak256(_payload);
-    require(_operatorJobs[hash].startBlock > 0, "HOLOGRAPH: invalid job");
+    require(_availableJobs[hash], "HOLOGRAPH: invalid job");
     assembly {
       calldatacopy(0, 0, calldatasize())
       let result := call(
@@ -289,7 +219,7 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
         revert(0, returndatasize())
       }
     }
-    delete _operatorJobs[hash];
+    _availableJobs[hash] = false;
   }
 
   function jobEstimator(
@@ -331,17 +261,6 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
       address(this),
       abi.encodePacked(uint16(1), uint256(52000 + (_payload.length * 25)))
     );
-  }
-
-  function _popOperator(uint8 pod, uint256 operatorIndex) private {
-    unchecked {
-      uint256 lastIndex = _operatorPods[pod].length - 1;
-      if (lastIndex != operatorIndex) {
-        _operatorPods[pod][operatorIndex] = _operatorPods[pod][lastIndex];
-      }
-      delete _operatorPods[pod][lastIndex];
-      _operatorPods[pod].pop();
-    }
   }
 
   function _bridge() private view returns (address bridge) {
@@ -441,37 +360,6 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
     // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
       sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
-    }
-  }
-
-  function getJobDetails(bytes32 jobHash) external view returns (OperatorJob memory) {
-    return _operatorJobs[jobHash];
-  }
-
-  function getPodOperators(uint256 pod) external view returns (address[] memory) {
-    return _operatorPods[pod];
-  }
-
-  function getPodBondAmount(uint256 pod) external view returns (uint256) {
-    return (_podMultiplier**pod) * _baseBondAmount;
-  }
-
-  function bondUtilityToken(
-    address operator,
-    uint256 amount,
-    uint256 pod
-  ) external {
-    require(!_bondedOperators[operator], "HOLOGRAPH: operator is bonded");
-    unchecked {
-      require(((_podMultiplier**pod) * _baseBondAmount) <= amount, "HOLOGRAPH: bond amount too small");
-      // subtract difference and only keep bond amount
-      if (_operatorPods.length < pod + 1) {
-        for (uint256 i = _operatorPods.length; i < pod + 1; i++) {
-          _operatorPods.push([address(0)]);
-        }
-      }
-      _operatorPods[pod].push(operator);
-      _bondedOperators[operator] = true;
     }
   }
 }

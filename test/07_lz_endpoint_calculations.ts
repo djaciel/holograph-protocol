@@ -54,7 +54,7 @@ import {
 } from '../typechain-types';
 import { DeploymentConfigStruct } from '../typechain-types/HolographFactory';
 
-describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
+describe('Testing LZ Endpoint costs (L1 & L2)', async function () {
   const lzReceiveABI = {
     inputs: [
       {
@@ -144,10 +144,11 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
     gasUsage['#1 mint on l2'] = BigNumber.from(0);
 
     payloadThirdNFTl1 =
-      functionHash('erc721in(uint32,address,address,address,uint256,bytes)') +
+      functionHash('erc721in(uint256,uint32,address,address,address,uint256,bytes)') +
       generateInitCode(
-        ['uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
+        ['uint256', 'uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
         [
+          BigNumber.from('2').toHexString(),
           l1.network.holographId,
           l1.cxipErc721Holographer.address,
           l1.deployer.address,
@@ -158,10 +159,11 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
       ).substring(2);
 
     payloadThirdNFTl2 =
-      functionHash('erc721in(uint32,address,address,address,uint256,bytes)') +
+      functionHash('erc721in(uint256,uint32,address,address,address,uint256,bytes)') +
       generateInitCode(
-        ['uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
+        ['uint256', 'uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
         [
+          BigNumber.from('2').toHexString(),
           l2.network.holographId,
           l1.cxipErc721Holographer.address,
           l2.deployer.address,
@@ -177,19 +179,6 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
   beforeEach(async function () {});
 
   afterEach(async function () {});
-
-  describe('Enable operators for l1 and l2', async function () {
-    it('should add 100 operator wallets for each chain', async function () {
-      for (let i = 0, l = 100; i < l; i++) {
-        await l1.operator.bondUtilityToken(randomHex(20), BigNumber.from('1000000000000000000'), 0);
-        await l2.operator.bondUtilityToken(randomHex(20), BigNumber.from('1000000000000000000'), 0);
-      }
-      await expect(l1.operator.bondUtilityToken(randomHex(20), BigNumber.from('1000000000000000000'), 0)).to.not.be
-        .reverted;
-      await expect(l2.operator.bondUtilityToken(randomHex(20), BigNumber.from('1000000000000000000'), 0)).to.not.be
-        .reverted;
-    });
-  });
 
   describe('Deploy cross-chain contracts via bridge deploy', async function () {
     describe('CxipERC721', async function () {
@@ -232,10 +221,12 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
         } as Signature);
 
         let payload: BytesLike =
-          functionHash('deployIn(bytes)') +
+          functionHash('deployIn(uint256,uint32,bytes)') +
           generateInitCode(
-            ['bytes'],
+            ['uint256', 'uint32', 'bytes'],
             [
+              BigNumber.from('1').toHexString(),
+              l1.network.holographId,
               generateInitCode(
                 ['tuple(bytes32,uint32,bytes32,bytes,bytes)', 'tuple(bytes32,bytes32,uint8)', 'address'],
                 [
@@ -265,8 +256,8 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
               lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
             )
         )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload as string), payload);
+          .to.emit(l2.operator, 'AvailableJob')
+          .withArgs(payload);
 
         await expect(l2.operator.executeJob(payload))
           .to.emit(l2.factory, 'BridgeableContractDeployed')
@@ -314,10 +305,12 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
         } as Signature);
 
         let payload: BytesLike =
-          functionHash('deployIn(bytes)') +
+          functionHash('deployIn(uint256,uint32,bytes)') +
           generateInitCode(
-            ['bytes'],
+            ['uint256', 'uint32', 'bytes'],
             [
+              BigNumber.from('1').toHexString(),
+              l2.network.holographId,
               generateInitCode(
                 ['tuple(bytes32,uint32,bytes32,bytes,bytes)', 'tuple(bytes32,bytes32,uint8)', 'address'],
                 [
@@ -347,8 +340,8 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
               lzReceive(l1.web3, [ChainId.hlg2lz(l2.network.holographId), l2.operator.address, 0, payload])
             )
         )
-          .to.emit(l1.operator, 'AvailableOperatorJob')
-          .withArgs(l1.web3.utils.keccak256(payload as string), payload);
+          .to.emit(l1.operator, 'AvailableJob')
+          .withArgs(payload);
 
         await expect(l1.operator.executeJob(payload))
           .to.emit(l1.factory, 'BridgeableContractDeployed')
@@ -440,8 +433,8 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
               lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
             )
         )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload as string), payload);
+          .to.emit(l2.operator, 'AvailableJob')
+          .withArgs(payload);
 
         gasUsage['#3 bridge from l1'] = gasUsage['#3 bridge from l1'].add(await getGasUsage(l2.hre));
 
@@ -475,8 +468,8 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
               lzReceive(l1.web3, [ChainId.hlg2lz(l2.network.holographId), l2.operator.address, 0, payload])
             )
         )
-          .to.emit(l1.operator, 'AvailableOperatorJob')
-          .withArgs(l1.web3.utils.keccak256(payload as string), payload);
+          .to.emit(l1.operator, 'AvailableJob')
+          .withArgs(payload);
 
         gasUsage['#3 bridge from l2'] = gasUsage['#3 bridge from l2'].add(await getGasUsage(l1.hre));
 
@@ -563,10 +556,11 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
     describe('Calculate LayerZero gas usage', async function () {
       it('l1 erc721in cost 1', async function () {
         let payload: BytesLike =
-          functionHash('erc721in(uint32,address,address,address,uint256,bytes)') +
+          functionHash('erc721in(uint256,uint32,address,address,address,uint256,bytes)') +
           generateInitCode(
-            ['uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
+            ['uint256', 'uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
             [
+              BigNumber.from('3').toHexString(),
               l1.network.holographId,
               l1.cxipErc721Holographer.address,
               l1.deployer.address,
@@ -584,18 +578,19 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
               lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
             )
         )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload as string), payload);
+          .to.emit(l2.operator, 'AvailableJob')
+          .withArgs(payload);
 
         await getGasUsage(l2.hre, 'erc721in available job', true);
       });
 
       it('l1 erc721in cost 2', async function () {
         let payload: BytesLike =
-          functionHash('erc721in(uint32,address,address,address,uint256,bytes)') +
+          functionHash('erc721in(uint256,uint32,address,address,address,uint256,bytes)') +
           generateInitCode(
-            ['uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
+            ['uint256', 'uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
             [
+              BigNumber.from('4').toHexString(),
               l1.network.holographId,
               l1.cxipErc721Holographer.address,
               l1.deployer.address,
@@ -613,18 +608,19 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
               lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
             )
         )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload as string), payload);
+          .to.emit(l2.operator, 'AvailableJob')
+          .withArgs(payload);
 
         await getGasUsage(l2.hre, 'erc721in available job', true);
       });
 
       it('l1 erc721in cost 3', async function () {
         let payload: BytesLike =
-          functionHash('erc721in(uint32,address,address,address,uint256,bytes)') +
+          functionHash('erc721in(uint256,uint32,address,address,address,uint256,bytes)') +
           generateInitCode(
-            ['uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
+            ['uint256', 'uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
             [
+              BigNumber.from('5').toHexString(),
               l1.network.holographId,
               l1.cxipErc721Holographer.address,
               l1.deployer.address,
@@ -642,18 +638,19 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
               lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
             )
         )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload as string), payload);
+          .to.emit(l2.operator, 'AvailableJob')
+          .withArgs(payload);
 
         await getGasUsage(l2.hre, 'erc721in available job', true);
       });
 
       it('l1 erc721in cost 4', async function () {
         let payload: BytesLike =
-          functionHash('erc721in(uint32,address,address,address,uint256,bytes)') +
+          functionHash('erc721in(uint256,uint32,address,address,address,uint256,bytes)') +
           generateInitCode(
-            ['uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
+            ['uint256', 'uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
             [
+              BigNumber.from('6').toHexString(),
               l1.network.holographId,
               l1.cxipErc721Holographer.address,
               l1.deployer.address,
@@ -671,18 +668,19 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
               lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
             )
         )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload as string), payload);
+          .to.emit(l2.operator, 'AvailableJob')
+          .withArgs(payload);
 
         await getGasUsage(l2.hre, 'erc721in available job', true);
       });
 
       it('l1 erc721in cost 5', async function () {
         let payload: BytesLike =
-          functionHash('erc721in(uint32,address,address,address,uint256,bytes)') +
+          functionHash('erc721in(uint256,uint32,address,address,address,uint256,bytes)') +
           generateInitCode(
-            ['uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
+            ['uint256', 'uint32', 'address', 'address', 'address', 'uint256', 'bytes'],
             [
+              BigNumber.from('7').toHexString(),
               l1.network.holographId,
               l1.cxipErc721Holographer.address,
               l1.deployer.address,
@@ -700,8 +698,8 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
               lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
             )
         )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload as string), payload);
+          .to.emit(l2.operator, 'AvailableJob')
+          .withArgs(payload);
 
         await getGasUsage(l2.hre, 'erc721in available job', true);
       });
@@ -717,8 +715,8 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
               lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
             )
         )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload as string), payload);
+          .to.emit(l2.operator, 'AvailableJob')
+          .withArgs(payload);
 
         process.stdout.write(
           '\n' +
@@ -741,8 +739,8 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
               lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
             )
         )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload as string), payload);
+          .to.emit(l2.operator, 'AvailableJob')
+          .withArgs(payload);
 
         process.stdout.write(
           '\n' +
@@ -765,8 +763,8 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
               lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
             )
         )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload as string), payload);
+          .to.emit(l2.operator, 'AvailableJob')
+          .withArgs(payload);
 
         process.stdout.write(
           '\n' +
@@ -789,8 +787,8 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
               lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
             )
         )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload as string), payload);
+          .to.emit(l2.operator, 'AvailableJob')
+          .withArgs(payload);
 
         process.stdout.write(
           '\n' +
@@ -813,8 +811,8 @@ describe.only('Testing LZ Endpoint costs (L1 & L2)', async function () {
               lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
             )
         )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload as string), payload);
+          .to.emit(l2.operator, 'AvailableJob')
+          .withArgs(payload);
 
         process.stdout.write(
           '\n' +

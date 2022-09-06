@@ -3,7 +3,7 @@ import fs from 'fs';
 import Web3 from 'web3';
 import { BytesLike, ContractFactory, Contract } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DeployFunction } from 'hardhat-deploy-holographed/types';
+import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import {
   LeanHardhatRuntimeEnvironment,
   hreSplit,

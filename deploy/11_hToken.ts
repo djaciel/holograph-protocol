@@ -2,7 +2,7 @@ declare var global: any;
 import fs from 'fs';
 import { BigNumberish, BytesLike, ContractFactory, Contract } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { DeployFunction } from 'hardhat-deploy-holographed/types';
+import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import {
   LeanHardhatRuntimeEnvironment,

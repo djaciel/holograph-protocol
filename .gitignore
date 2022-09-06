@@ -11,6 +11,8 @@ old_code
 keys.json
 keys2.json
 
+.npmrc
+
 .idea
 .DS_Store
 
