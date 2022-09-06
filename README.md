@@ -4,7 +4,6 @@
   <h1>Holograph Protocol</h1>
 </div>
 <p align="center">
-  <a href="https://github.com/holographxyz/holograph-protocol/blob/feature/update-readme/test/badge.svg"><img src="https://github.com/holographxyz/holograph-protocol/blob/feature/update-readme/test/badge.svg" /></a>
 </p>
 
 ## Description
