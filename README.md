@@ -76,10 +76,14 @@ Please read the linked post if you're planning to make frequent PRs into this re
 
 ### The `mainet` branch
 
-The `master` branch contains the code for our latest "stable" mainnet releases.
+The `mainnet` branch contains the code for our latest "stable" mainnet releases.
 Updates from `mainnet` always come from the `testnet` branch.
 We only ever update the `mainnet` branch when we intend to deploy code that has been tested on testnets to all mainnet networks supported by the Holograph protocol.
 Our update process takes the form of a PR merging the `testnet` branch into the `mainnet` branch.
+
+### The `testnet` branch
+
+The `testnet` branch continas the code that is the latest stable testnet release for all supported networks. This branch is deployed and circulated for beta users of the protocol. Updates are merged in from the `develop` branch once they're ready for broad usage.
 
 ### The `develop` branch
 
