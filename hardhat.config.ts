@@ -80,7 +80,7 @@ const selectDeploymentSalt = (): number => {
       }
       break;
     default:
-      throw new Error('Unknown Environment provided -> ' + currentEnvironment.toString());
+      throw new Error('Unknown Environment provided -> ' + currentEnvironment);
   }
   return salt;
 };
