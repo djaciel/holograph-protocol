@@ -64,7 +64,7 @@ root
 
 | Branch                                                                     | Status                                                                             |
 | -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| [mainnet](https://github.com/holographxyz/holograph-protocol/tree/mainnet) | Accepts PRs from `testnet` or `relase/x.x.x` when we intend to deploy to mainnet.  |
+| [mainnet](https://github.com/holographxyz/holograph-protocol/tree/mainnet) | Accepts PRs from `testnet` or `release/x.x.x` when we intend to deploy to mainnet. |
 | [testnet](https://github.com/holographxyz/holograph-protocol/tree/testnet) | Accepts PRs from `develop` that are ready to be deployed to testnet.               |
 | [develop](https://github.com/holographxyz/holograph-protocol/tree/develop) | Accepts PRs from `feature/xyz` branches that are experimental or in testing stage. |
 | release/x.x.x                                                              | Accepts PRs from `testnet`.                                                        |
@@ -74,7 +74,7 @@ root
 We generally follow [this Git branching model](https://nvie.com/posts/a-successful-git-branching-model/).
 Please read the linked post if you're planning to make frequent PRs into this repository.
 
-### The `mainet` branch
+### The `mainnet` branch
 
 The `mainnet` branch contains the code for our latest "stable" mainnet releases.
 Updates from `mainnet` always come from the `testnet` branch.
