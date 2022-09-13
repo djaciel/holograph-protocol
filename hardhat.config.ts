@@ -127,8 +127,6 @@ task('abi', 'Create standalone ABI files for all smart contracts')
     };
     if (!fs.existsSync('./abi')) {
       fs.mkdirSync('./abi');
-    } else {
-      recursiveDelete('./abi');
     }
     if (!fs.existsSync('./abi/' + currentEnvironment)) {
       fs.mkdirSync('./abi/' + currentEnvironment);
