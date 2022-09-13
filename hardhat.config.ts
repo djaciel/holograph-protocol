@@ -12,16 +12,33 @@ import networks from './config/networks';
 import dotenv from 'dotenv';
 dotenv.config();
 
-const getGitBranch = function () {
-  const acceptableBranches = ['mainnet', 'testnet', 'develop'];
-  const contents = fs.readFileSync('./.git/HEAD', 'utf8');
-  const branch = contents.trim().split('ref: refs/heads/')[1];
-  if (acceptableBranches.includes(branch)) {
-    return branch;
-  } else {
-    return 'develop';
+enum Environment {
+  develop = 'develop',
+  testnet = 'testnet',
+  mainnet = 'mainnet',
+}
+
+const getEnvironment = (): Environment => {
+  let environment = Environment.develop;
+  const acceptableBranches: Set<string> = new Set<string>(['develop', 'testnet', 'mainnet']);
+  const head = './.git/HEAD';
+  const env: string = process.env.HOLOGRAPH_ENVIRONMENT || '';
+  if (env === '') {
+    if (fs.existsSync(head)) {
+      const contents = fs.readFileSync('./.git/HEAD', 'utf8');
+      const branch = contents.trim().split('ref: refs/heads/')[1];
+      if (acceptableBranches.has(branch)) {
+        environment = Environment[branch as keyof typeof Environment];
+      }
+    }
+  } else if (acceptableBranches.has(env)) {
+    environment = Environment[env as keyof typeof Environment];
   }
+
+  return environment;
 };
+
+const currentEnvironment = Environment[getEnvironment()];
 
 const SOLIDITY_VERSION = process.env.SOLIDITY_VERSION || '0.8.13';
 
@@ -41,7 +58,34 @@ const ETHERSCAN_API_KEY: string = process.env.ETHERSCAN_API_KEY || '';
 const POLYGONSCAN_API_KEY: string = process.env.POLYGONSCAN_API_KEY || '';
 const AVALANCHE_API_KEY: string = process.env.AVALANCHE_API_KEY || '';
 
-const DEPLOYMENT_SALT = parseInt(process.env.DEPLOYMENT_SALT || '0');
+const selectDeploymentSalt = (): number => {
+  let salt;
+  switch (currentEnvironment) {
+    case Environment.develop:
+      salt = parseInt(process.env.DEVELOP_DEPLOYMENT_SALT || '1000');
+      if (salt > 999999 || salt < 1000) {
+        throw new Error('DEVELOP_DEPLOYMENT_SALT is out of bounds. Allowed range is [1000-999999]');
+      }
+      break;
+    case Environment.testnet:
+      salt = parseInt(process.env.TESTNET_DEPLOYMENT_SALT || '0');
+      if (salt > 999 || salt < 0) {
+        throw new Error('TESTNET_DEPLOYMENT_SALT is out of bounds. Allowed range is [0-999]');
+      }
+      break;
+    case Environment.mainnet:
+      salt = parseInt(process.env.MAINNET_DEPLOYMENT_SALT || '0');
+      if (salt > 999 || salt < 0) {
+        throw new Error('DEVELOP_DEPLOYMENT_SALT is out of bounds. Allowed range is [0-999]');
+      }
+      break;
+    default:
+      throw new Error('Unknown Environment provided -> ' + currentEnvironment.toString());
+  }
+  return salt;
+};
+
+const DEPLOYMENT_SALT = selectDeploymentSalt();
 
 const DEPLOYMENT_PATH = process.env.DEPLOYMENT_PATH || 'deployments';
 
@@ -86,7 +130,12 @@ task('abi', 'Create standalone ABI files for all smart contracts')
     } else {
       recursiveDelete('./abi');
     }
-    extractABIs('./artifacts/contracts', './abi');
+    if (!fs.existsSync('./abi/' + currentEnvironment)) {
+      fs.mkdirSync('./abi/' + currentEnvironment);
+    } else {
+      recursiveDelete('./abi/' + currentEnvironment);
+    }
+    extractABIs('./artifacts/contracts', './abi/' + currentEnvironment);
   });
 
 /**
@@ -95,7 +144,7 @@ task('abi', 'Create standalone ABI files for all smart contracts')
  */
 const config: HardhatUserConfig = {
   paths: {
-    deployments: DEPLOYMENT_PATH + '/' + getGitBranch(),
+    deployments: DEPLOYMENT_PATH + '/' + currentEnvironment,
   },
   defaultNetwork: 'localhost',
   external: {
