@@ -6,9 +6,95 @@
 <p align="center">
 </p>
 
+## Table of Contents
+
+- [Description](#description)
+- [Specification](#specification)
+- [Architecture](#architecture)
+- [Development](#development)
+- [Directories](#directory-structure)
+- [Branching](#branching-model-and-releases)
+- [Contributing](#contributing)
+- [Links](#official-links)
+- [License](#license)
+
 ## Description
 
 Holograph provides omnichain NFT infrastructure for the web3 ecosystem. Holograph Protocol enables the creation, deployment, minting, & bridging of omnichain NFTs with complete data integrity.
+
+## Specification
+
+Please reference the [documentation](https://docs.holograph.xyz/holograph-protocol/technical-specification) for the full technical specification of the protocol
+
+## Architecture
+
+### Core
+
+#### HolographGenesis
+
+Genesis will be deployed on all blockchains that run and support Holograph Protocol. All main components will be deployed via Genesis. Future blockchains will have a Genesis deployment as well.
+
+#### HolographFactory
+
+Factory enables developers to submit a signed version of the following elements to deploy a “Holographed” smart contract on the blockchain:
+
+- primary deployment chain
+- token type (ERC-20, ERC-721, etc.)
+- event subscriptions
+- custom smart contract bytecode
+- custom initialization code
+
+Any additional blockchains that developers want to support can have the same signed data submitted to Factory, allowing for the creation of an identical “Holographed” contract.
+The primary job of Factory is to:
+
+- allow propagation of exact data across all blockchains
+- ensure a proper standard is selected and used
+- ensure all deployments succeed and work as expected
+- ensure that security is enforced and impenetrable
+
+#### HolographRegistry
+
+Registry is a central on-chain location where all Holograph data is stored. Registry keeps a record of all currently supported standards. New standards can be introduced and enabled as well. Any properly deployed Holographed contracts are also stored as reference. This allows for a definitive way to identify whether a smart contract is secure and properly Holographed. Verifying entities will be able to identify a Holographed contract to ensure the highest level of security and standards.
+
+#### HolographBridge
+
+Bridge is a universal smart contract that functions as the primary entry and exit point for any Holographed tokens to and from all supported blockchains. Bridge validates and ensures integrity and standard enforcement for every Bridge-In and Bridge-Out request. Additionally, Bridge implements a universal standard for sending tokens across blockchains by abstracting away complexities into sub-modules that remove the burden of management for developers. This allows for simple one-click/one-transaction native gas token payment-based interactions for all bridge requests.
+
+#### HolographOperator
+
+Operator's primary job is to know the messaging protocols that are utilized by the Holograph protocol for all cross-chain messages, and to ensure the authenticity and validity of all requests being submitted. Operator ensures that only valid bridge requests are sent/received and allowed to be executed inside of the protocol.
+
+#### Holograph
+
+Holograph is the primary entry-point for all users and developers. A single, universal address across all blockchains will enable developers an easy way to interact with the protocol’s features. Holograph keeps references for all current Registry, Factory, and Bridge implementations. Furthermore, it allows for single interface management of the underlying Holograph Protocol.
+Holograph provides a reference to the name and ID of all supported blockchains. Additionally, it:
+
+- Enables custom smart contract logic that is chain-dependent
+- Frees developers from having to query and monitor the blockchain
+
+### Standards Enforcers
+
+#### Holographer
+
+Holographer exists at the core of all Holographed smart contracts, which is applied whenever a Holographed smart contract is deployed. Holographer pieces together all components and routes all inbound function calls to their proper smart contracts, ensuring security and the enforcement of specified standards. Holographer is isolated on its own private layer and is essentially hard-coded into the blockchain.
+
+#### Enforcer
+
+Enforcer enables and ensures complete standards, compliance, and operability for a given standard type. HolographERC20 and HolographERC721 are perfect examples of such Enforcers. Enforcers store and manage all data within themselves to ensure security, compliance, integrity, and enforcement of all protocols. Communication is established with custom contracts via specific event hooks. The storage/data layer is isolated privately and not directly accessible by custom contracts.
+
+#### PA1D
+
+PA1D is an on-chain royalties contract for non-fungible token types. It supports a universal module that understands and speaks all of the different royalty standards on the blockchain. PA1D is built to be extendable and can have new royalty standards implemented as they are created and agreed upon.
+
+#### Interfaces
+
+The Interfaces contract is used to store and share standardized data. It acts as an external library contract. This allows all the Holograph protocol smart contracts to reference a single instance of data and code.
+
+### External Components
+
+#### Custom Contract
+
+Custom contract is any type of smart contract that was developed outside of Holograph Protocol, and is used to create a Holographed contract. This empowers developers to build their projects however they want. The requirements for enabling a custom contract to be Holograph-able are minimal, and allow for even novice-level developers to implement. Any current and future fungible and non-fungible token type contracts can easily be made Holograph-able.
 
 ## Development
 
