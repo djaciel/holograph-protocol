@@ -72,7 +72,7 @@ const networks: Networks = {
   },
   eth_goerli: {
     chain: 5,
-    rpc: 'https://eth.getblock.io/goerli/?api_key=7bf62a30-d403-4afc-99dc-462dfbfb10de',
+    rpc: process.env.GOERLI_RPC_URL || 'https://eth.getblock.io/goerli/?api_key=7bf62a30-d403-4afc-99dc-462dfbfb10de',
     webSocket: 'wss://eth.getblock.io/goerli/?api_key=7bf62a30-d403-4afc-99dc-462dfbfb10de',
     holographId: 4000000011, // need to set in chain libraries !
     tokenName: 'Ethereum Goerli',
