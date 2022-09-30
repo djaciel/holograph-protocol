@@ -13,6 +13,12 @@ import "./interface/IInitializable.sol";
  * @dev This contract is a binder. It puts together all the variables to make the underlying contracts functional and be bridgeable.
  */
 contract Holographer is Admin, Initializable {
+  bytes32 constant _originChainSlot = precomputeslot("eip1967.Holograph.originChain");
+  bytes32 constant _holographSlot = precomputeslot("eip1967.Holograph.holograph");
+  bytes32 constant _contractTypeSlot = precomputeslot("eip1967.Holograph.contractType");
+  bytes32 constant _sourceContractSlot = precomputeslot("eip1967.Holograph.sourceContract");
+  bytes32 constant _blockHeightSlot = precomputeslot("eip1967.Holograph.blockHeight");
+
   /**
    * @dev Constructor is left empty and only the admin address is set.
    */
@@ -26,11 +32,12 @@ contract Holographer is Admin, Initializable {
       (uint32, address, bytes32, address)
     );
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.admin"), caller())
-      sstore(precomputeslot("eip1967.Holograph.Bridge.originChain"), originChain)
-      sstore(precomputeslot("eip1967.Holograph.Bridge.holograph"), holograph)
-      sstore(precomputeslot("eip1967.Holograph.Bridge.contractType"), contractType)
-      sstore(precomputeslot("eip1967.Holograph.Bridge.sourceContract"), sourceContract)
+      sstore(_adminSlot, caller())
+      sstore(_originChainSlot, originChain)
+      sstore(_holographSlot, holograph)
+      sstore(_contractTypeSlot, contractType)
+      sstore(_sourceContractSlot, sourceContract)
+      sstore(_blockHeightSlot, number())
     }
     (bool success, bytes memory returnData) = getHolographEnforcer().delegatecall(
       abi.encodeWithSignature("init(bytes)", initCode)
@@ -42,24 +49,32 @@ contract Holographer is Admin, Initializable {
   }
 
   /**
-   * @dev Returns a hardcoded address for the custom secure storage contract deployed in parallel with this contract deployment.
+   * @dev Returns the block height of when the smart contract was deployed. Useful for retrieving deployment config for re-deployment on other EVM-compatible chains.
+   */
+  function getDeploymentBlock() public view returns (address holograph) {
+    assembly {
+      holograph := sload(_blockHeightSlot)
+    }
+  }
+
+  /**
+   * @dev Returns a hardcoded address for the Holograph smart contract.
    */
   function getHolograph() public view returns (address holograph) {
     assembly {
-      holograph := sload(precomputeslot("eip1967.Holograph.Bridge.holograph"))
+      holograph := sload(_holographSlot)
     }
   }
 
   /**
    * @dev Returns a hardcoded address for the Holograph smart contract that controls and enforces the ERC standards.
-   * @dev The choice to use this approach was taken to prevent storage slot overrides.
    */
   function getHolographEnforcer() public view returns (address payable) {
     IHolograph holograph;
     bytes32 contractType;
     assembly {
-      holograph := sload(precomputeslot("eip1967.Holograph.Bridge.holograph"))
-      contractType := sload(precomputeslot("eip1967.Holograph.Bridge.contractType"))
+      holograph := sload(_holographSlot)
+      contractType := sload(_contractTypeSlot)
     }
     return payable(IHolographRegistry(holograph.getRegistry()).getContractTypeAddress(contractType));
   }
@@ -69,7 +84,7 @@ contract Holographer is Admin, Initializable {
    */
   function getOriginChain() public view returns (uint32 originChain) {
     assembly {
-      originChain := sload(precomputeslot("eip1967.Holograph.Bridge.originChain"))
+      originChain := sload(_originChainSlot)
     }
   }
 
@@ -78,7 +93,7 @@ contract Holographer is Admin, Initializable {
    */
   function getSourceContract() public view returns (address payable sourceContract) {
     assembly {
-      sourceContract := sload(precomputeslot("eip1967.Holograph.Bridge.sourceContract"))
+      sourceContract := sload(_sourceContractSlot)
     }
   }
 
@@ -88,8 +103,7 @@ contract Holographer is Admin, Initializable {
   receive() external payable {}
 
   /**
-   * @dev Hard-coded registry address and contract type are put inside the fallback to make sure that the contract cannot be modified.
-   * @dev This takes the underlying address source code, runs it, and uses current address for storage.
+   * @dev This takes the Enforcer's source code, runs it, and uses current address for storage slots.
    */
   fallback() external payable {
     address holographEnforcer = getHolographEnforcer();

@@ -106,6 +106,7 @@ import "./abstract/Initializable.sol";
 
 import "./Holographer.sol";
 
+import "./interface/HolographableEnforcer.sol";
 import "./interface/IHolograph.sol";
 import "./interface/IHolographRegistry.sol";
 import "./interface/IInitializable.sol";
@@ -118,7 +119,10 @@ import "./struct/Verification.sol";
  * @dev With the goal of deploying replicate-able non-fungible token smart contracts through this process.
  * @dev This is just the first step. But it is fundamental for achieving cross-chain non-fungible tokens.
  */
-contract HolographFactory is Admin, Initializable {
+contract HolographFactory is Admin, Initializable, HolographableEnforcer {
+  bytes32 constant _holographSlot = 0xb4107f746e9496e8452accc7de63d1c5e14c19f510932daa04077cd49e8bd77a;
+  bytes32 constant _registrySlot = 0xce8e75d5c5227ce29a4ee170160bb296e5dea6934b80a9bd723f7ef1e7c850e7;
+
   /**
    * @dev This event is fired every time that a bridgeable contract is deployed.
    */
@@ -133,13 +137,35 @@ contract HolographFactory is Admin, Initializable {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (address holograph, address registry) = abi.decode(data, (address, address));
     assembly {
-      sstore(0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, origin())
-
-      sstore(0x1eee493315beeac80829afd0aaa340f3821cabe68571a2743478e81638a3d94d, holograph)
-      sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
+      sstore(_adminSlot, origin())
+      sstore(_holographSlot, holograph)
+      sstore(_registrySlot, registry)
     }
     _setInitialized();
     return IInitializable.init.selector;
+  }
+
+  function bridgeIn(
+    uint32,
+    /* fromChain*/
+    bytes calldata payload
+  ) external returns (bytes4) {
+    (DeploymentConfig memory config, Verification memory signature, address signer) = abi.decode(
+      payload,
+      (DeploymentConfig, Verification, address)
+    );
+    deployHolographableContract(config, signature, signer);
+    return HolographableEnforcer.bridgeIn.selector;
+  }
+
+  function bridgeOut(
+    uint32,
+    /* toChain*/
+    address,
+    /* sender*/
+    bytes calldata payload
+  ) external pure returns (bytes4 selector, bytes memory data) {
+    return (HolographableEnforcer.bridgeOut.selector, payload);
   }
 
   /**
@@ -148,10 +174,10 @@ contract HolographFactory is Admin, Initializable {
    * @notice In this function we have incorporated a secure storage function/extension. Keep in mind that this is not required or needed for bridgeable deployments to work. It is just a personal development choice.
    */
   function deployHolographableContract(
-    DeploymentConfig calldata config,
-    Verification calldata signature,
+    DeploymentConfig memory config,
+    Verification memory signature,
     address signer
-  ) external {
+  ) public {
     bytes32 hash = keccak256(
       abi.encodePacked(
         config.contractType,
@@ -177,7 +203,7 @@ contract HolographFactory is Admin, Initializable {
     }
     address holograph;
     assembly {
-      holograph := sload(0x1eee493315beeac80829afd0aaa340f3821cabe68571a2743478e81638a3d94d)
+      holograph := sload(_holographSlot)
     }
     require(
       IInitializable(holographerAddress).init(
@@ -212,34 +238,26 @@ contract HolographFactory is Admin, Initializable {
   }
 
   function getHolograph() external view returns (address holograph) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.holograph')) - 1);
     assembly {
-      holograph := sload(0x1eee493315beeac80829afd0aaa340f3821cabe68571a2743478e81638a3d94d)
+      holograph := sload(_holographSlot)
     }
   }
 
   function setHolograph(address holograph) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.holograph')) - 1);
     assembly {
-      sstore(0x1eee493315beeac80829afd0aaa340f3821cabe68571a2743478e81638a3d94d, holograph)
+      sstore(_holographSlot, holograph)
     }
   }
 
   function getRegistry() public view returns (address registry) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
-      registry := sload(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349)
+      registry := sload(_registrySlot)
     }
   }
 
   function setRegistry(address registry) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
-      sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
+      sstore(_registrySlot, registry)
     }
   }
 }

@@ -114,6 +114,57 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "jobHash",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getJobDetails",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "uint8",
+            "name": "pod",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint16",
+            "name": "blockTimes",
+            "type": "uint16"
+          },
+          {
+            "internalType": "address",
+            "name": "operator",
+            "type": "address"
+          },
+          {
+            "internalType": "uint40",
+            "name": "startBlock",
+            "type": "uint40"
+          },
+          {
+            "internalType": "uint64",
+            "name": "startTimestamp",
+            "type": "uint64"
+          },
+          {
+            "internalType": "uint16[5]",
+            "name": "fallbackOperators",
+            "type": "uint16[5]"
+          }
+        ],
+        "internalType": "struct OperatorJob",
+        "name": "",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "getLZEndpoint",
     "outputs": [
@@ -121,6 +172,49 @@
         "internalType": "address",
         "name": "lZEndpoint",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "pod",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPodBondAmount",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "base",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "current",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "pod",
+        "type": "uint256"
+      }
+    ],
+    "name": "getPodOperators",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "operators",
+        "type": "address[]"
       }
     ],
     "stateMutability": "view",
@@ -160,21 +254,6 @@
   },
   {
     "inputs": [
-      {
-        "internalType": "uint16",
-        "name": "_srcChainId",
-        "type": "uint16"
-      },
-      {
-        "internalType": "bytes",
-        "name": "_srcAddress",
-        "type": "bytes"
-      },
-      {
-        "internalType": "uint64",
-        "name": "_nonce",
-        "type": "uint64"
-      },
       {
         "internalType": "bytes",
         "name": "_payload",
@@ -216,6 +295,16 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "gasLimit",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "gasPrice",
+        "type": "uint256"
+      },
       {
         "internalType": "uint32",
         "name": "toChain",

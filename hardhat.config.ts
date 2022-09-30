@@ -13,14 +13,15 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 enum Environment {
+  experimental = 'experimental',
   develop = 'develop',
   testnet = 'testnet',
   mainnet = 'mainnet',
 }
 
 const getEnvironment = (): Environment => {
-  let environment = Environment.develop;
-  const acceptableBranches: Set<string> = new Set<string>(['develop', 'testnet', 'mainnet']);
+  let environment = Environment.experimental;
+  const acceptableBranches: Set<string> = new Set<string>(['experimental', 'develop', 'testnet', 'mainnet']);
   const head = './.git/HEAD';
   const env: string = process.env.HOLOGRAPH_ENVIRONMENT || '';
   if (env === '') {
@@ -45,14 +46,13 @@ const SOLIDITY_VERSION = process.env.SOLIDITY_VERSION || '0.8.13';
 const MNEMONIC = process.env.MNEMONIC || 'test '.repeat(11) + 'junk';
 const DEPLOYER = process.env.DEPLOYER || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 
-const RINKEBY_PRIVATE_KEY = process.env.RINKEBY_PRIVATE_KEY! || DEPLOYER;
 const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || DEPLOYER;
-
+const GOERLI_PRIVATE_KEY = process.env.GOERLI_PRIVATE_KEY || DEPLOYER;
+const RINKEBY_PRIVATE_KEY = process.env.RINKEBY_PRIVATE_KEY || DEPLOYER;
 const MATIC_PRIVATE_KEY = process.env.MATIC_PRIVATE_KEY || DEPLOYER;
 const MUMBAI_PRIVATE_KEY = process.env.MUMBAI_PRIVATE_KEY || DEPLOYER;
 const FUJI_PRIVATE_KEY = process.env.FUJI_PRIVATE_KEY || DEPLOYER;
-
-const CXIP_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || DEPLOYER;
+const CXIP_PRIVATE_KEY = process.env.CXIP_PRIVATE_KEY || DEPLOYER;
 
 const ETHERSCAN_API_KEY: string = process.env.ETHERSCAN_API_KEY || '';
 const POLYGONSCAN_API_KEY: string = process.env.POLYGONSCAN_API_KEY || '';
@@ -61,6 +61,12 @@ const AVALANCHE_API_KEY: string = process.env.AVALANCHE_API_KEY || '';
 const selectDeploymentSalt = (): number => {
   let salt;
   switch (currentEnvironment) {
+    case Environment.experimental:
+      salt = parseInt(process.env.EXPERIMENTAL_DEPLOYMENT_SALT || '1000000');
+      if (salt > 9999999 || salt < 1000000) {
+        throw new Error('EXPERIMENTAL_DEPLOYMENT_SALT is out of bounds. Allowed range is [1000000-9999999]');
+      }
+      break;
     case Environment.develop:
       salt = parseInt(process.env.DEVELOP_DEPLOYMENT_SALT || '1000');
       if (salt > 999999 || salt < 1000) {
@@ -147,32 +153,32 @@ const config: HardhatUserConfig = {
   defaultNetwork: 'localhost',
   external: {
     deployments: {
-      arbitrum: ['deployments/external/arbitrum'],
-      arbitrum_rinkeby: ['deployments/external/arbitrum_rinkeby'],
-      aurora: ['deployments/external/aurora'],
-      aurora_testnet: ['deployments/external/aurora_testnet'],
-      avax: ['deployments/external/avax'],
-      bsc: ['deployments/external/bsc'],
-      bsc_testnet: ['deployments/external/bsc_testnet'],
-      cronos: ['deployments/external/cronos'],
-      cronos_testnet: ['deployments/external/cronos_testnet'],
-      cxip: ['deployments/external/cxip'],
-      eth: ['deployments/external/eth'],
-      eth_goerli: ['deployments/external/eth_goerli'],
-      eth_kovan: ['deployments/external/eth_kovan'],
-      eth_rinkeby: ['deployments/external/eth_rinkeby'],
-      eth_ropsten: ['deployments/external/eth_ropsten'],
-      ftm: ['deployments/external/ftm'],
-      ftm_testnet: ['deployments/external/ftm_testnet'],
-      fuji: ['deployments/external/fuji'],
-      gno: ['deployments/external/gno'],
-      gno_sokol: ['deployments/external/gno_sokol'],
-      localhost: ['deployments/external/localhost'],
-      localhost2: ['deployments/external/localhost2'],
-      matic: ['deployments/external/matic'],
-      mumbai: ['deployments/external/mumbai'],
-      optimism: ['deployments/external/optimism'],
-      optimism_kovan: ['deployments/external/optimism_kovan'],
+      arbitrum: [DEPLOYMENT_PATH + '/external/arbitrum'],
+      arbitrum_rinkeby: [DEPLOYMENT_PATH + '/external/arbitrum_rinkeby'],
+      aurora: [DEPLOYMENT_PATH + '/external/aurora'],
+      aurora_testnet: [DEPLOYMENT_PATH + '/external/aurora_testnet'],
+      avax: [DEPLOYMENT_PATH + '/external/avax'],
+      bsc: [DEPLOYMENT_PATH + '/external/bsc'],
+      bsc_testnet: [DEPLOYMENT_PATH + '/external/bsc_testnet'],
+      cronos: [DEPLOYMENT_PATH + '/external/cronos'],
+      cronos_testnet: [DEPLOYMENT_PATH + '/external/cronos_testnet'],
+      cxip: [DEPLOYMENT_PATH + '/external/cxip'],
+      eth: [DEPLOYMENT_PATH + '/external/eth'],
+      eth_goerli: [DEPLOYMENT_PATH + '/external/eth_goerli'],
+      eth_kovan: [DEPLOYMENT_PATH + '/external/eth_kovan'],
+      eth_rinkeby: [DEPLOYMENT_PATH + '/external/eth_rinkeby'],
+      eth_ropsten: [DEPLOYMENT_PATH + '/external/eth_ropsten'],
+      ftm: [DEPLOYMENT_PATH + '/external/ftm'],
+      ftm_testnet: [DEPLOYMENT_PATH + '/external/ftm_testnet'],
+      fuji: [DEPLOYMENT_PATH + '/external/fuji'],
+      gno: [DEPLOYMENT_PATH + '/external/gno'],
+      gno_sokol: [DEPLOYMENT_PATH + '/external/gno_sokol'],
+      localhost: [DEPLOYMENT_PATH + '/external/localhost'],
+      localhost2: [DEPLOYMENT_PATH + '/external/localhost2'],
+      matic: [DEPLOYMENT_PATH + '/external/matic'],
+      mumbai: [DEPLOYMENT_PATH + '/external/mumbai'],
+      optimism: [DEPLOYMENT_PATH + '/external/optimism'],
+      optimism_kovan: [DEPLOYMENT_PATH + '/external/optimism_kovan'],
     },
   },
   networks: {
@@ -218,6 +224,11 @@ const config: HardhatUserConfig = {
       chainId: networks.eth_rinkeby.chain,
       accounts: [RINKEBY_PRIVATE_KEY],
     },
+    eth_goerli: {
+      url: networks.eth_goerli.rpc,
+      chainId: networks.eth_goerli.chain,
+      accounts: [GOERLI_PRIVATE_KEY],
+    },
     matic: {
       url: networks.matic.rpc,
       chainId: networks.matic.chain,
@@ -262,15 +273,13 @@ const config: HardhatUserConfig = {
     timeout: 1000 * 60 * 60,
   },
   gasReporter: {
-    enabled: process.env.REPORT_GAS ? true : false,
-    currency: 'USD',
-    gasPrice: 100,
-    coinmarketcap: process.env.COINMARKETCAP_API_KEY,
+    enabled: false,
   },
   etherscan: {
     apiKey: {
       mainnet: ETHERSCAN_API_KEY,
       rinkeby: ETHERSCAN_API_KEY,
+      goerli: ETHERSCAN_API_KEY,
       polygon: POLYGONSCAN_API_KEY,
       polygonMumbai: POLYGONSCAN_API_KEY,
       avalanche: AVALANCHE_API_KEY,

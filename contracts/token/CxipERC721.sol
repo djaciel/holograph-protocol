@@ -151,7 +151,7 @@ contract CxipERC721 is ERC721H {
     // we set this as default type since that's what Mint is currently using
     _uriType = TokenUriType.IPFS;
     address owner = abi.decode(data, (address));
-    _owner = owner;
+    _setOwner(owner);
     // run underlying initializer logic
     return _init(data);
   }

@@ -107,14 +107,16 @@ import "../abstract/Initializable.sol";
 import "../interface/IInitializable.sol";
 
 contract HolographBridgeProxy is Admin, Initializable {
+  bytes32 constant _bridgeSlot = 0xeb87cbb21687feb327e3d58c6c16d552231d12c7a0e8115042a4165fac8a77f9;
+
   constructor() {}
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (address bridge, bytes memory initCode) = abi.decode(data, (address, bytes));
     assembly {
-      sstore(0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f, bridge)
-      sstore(0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, origin())
+      sstore(_adminSlot, origin())
+      sstore(_bridgeSlot, bridge)
     }
     (bool success, bytes memory returnData) = bridge.delegatecall(abi.encodeWithSignature("init(bytes)", initCode));
     bytes4 selector = abi.decode(returnData, (bytes4));
@@ -124,18 +126,14 @@ contract HolographBridgeProxy is Admin, Initializable {
   }
 
   function getBridge() external view returns (address bridge) {
-    // The slot hash has been precomputed for gas optimization
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridge')) - 1);
     assembly {
-      bridge := sload(0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f)
+      bridge := sload(_bridgeSlot)
     }
   }
 
   function setBridge(address bridge) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimization
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridge')) - 1);
     assembly {
-      sstore(0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f, bridge)
+      sstore(_bridgeSlot, bridge)
     }
   }
 
@@ -143,7 +141,7 @@ contract HolographBridgeProxy is Admin, Initializable {
 
   fallback() external payable {
     assembly {
-      let bridge := sload(0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f)
+      let bridge := sload(_bridgeSlot)
       calldatacopy(0, 0, calldatasize())
       let result := delegatecall(gas(), bridge, 0, calldatasize(), 0, 0)
       returndatacopy(0, 0, returndatasize())

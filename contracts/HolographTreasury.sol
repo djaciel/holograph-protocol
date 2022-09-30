@@ -120,6 +120,11 @@ import "./struct/Verification.sol";
  * @dev This smart contract contains the actual core treasury logic.
  */
 contract HolographTreasury is Admin, Initializable, IHolographTreasury {
+  bytes32 constant _bridgeSlot = 0xeb87cbb21687feb327e3d58c6c16d552231d12c7a0e8115042a4165fac8a77f9;
+  bytes32 constant _holographSlot = 0xb4107f746e9496e8452accc7de63d1c5e14c19f510932daa04077cd49e8bd77a;
+  bytes32 constant _operatorSlot = 0x7caba557ad34138fa3b7e43fb574e0e6cc10481c3073e0dffbc560db81b5c60f;
+  bytes32 constant _registrySlot = 0xce8e75d5c5227ce29a4ee170160bb296e5dea6934b80a9bd723f7ef1e7c850e7;
+
   /**
    * @dev Constructor is left empty and only the admin address is set.
    */
@@ -132,12 +137,12 @@ contract HolographTreasury is Admin, Initializable, IHolographTreasury {
       (address, address, address, address)
     );
     assembly {
-      sstore(0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, origin())
+      sstore(_adminSlot, origin())
 
-      sstore(0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f, bridge)
-      sstore(0x1eee493315beeac80829afd0aaa340f3821cabe68571a2743478e81638a3d94d, holograph)
-      sstore(0x7bef7d8d97f57f9aa64de319c8598b5cdc7c3d2715fc02428415a98281ca6bdc, operator)
-      sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
+      sstore(_bridgeSlot, bridge)
+      sstore(_holographSlot, holograph)
+      sstore(_operatorSlot, operator)
+      sstore(_registrySlot, registry)
     }
     _setInitialized();
     return IInitializable.init.selector;
@@ -145,89 +150,73 @@ contract HolographTreasury is Admin, Initializable, IHolographTreasury {
 
   function _bridge() private view returns (address bridge) {
     assembly {
-      bridge := sload(0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f)
+      bridge := sload(_bridgeSlot)
     }
   }
 
   function _holograph() private view returns (address holograph) {
     assembly {
-      holograph := sload(0x1eee493315beeac80829afd0aaa340f3821cabe68571a2743478e81638a3d94d)
+      holograph := sload(_holographSlot)
     }
   }
 
   function _operator() private view returns (address operator) {
     assembly {
-      operator := sload(0x7bef7d8d97f57f9aa64de319c8598b5cdc7c3d2715fc02428415a98281ca6bdc)
+      operator := sload(_operatorSlot)
     }
   }
 
   function _registry() private view returns (address registry) {
     assembly {
-      registry := sload(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349)
+      registry := sload(_registrySlot)
     }
   }
 
   function getBridge() external view returns (address bridge) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridge')) - 1);
     assembly {
-      bridge := sload(0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f)
+      bridge := sload(_bridgeSlot)
     }
   }
 
   function setBridge(address bridge) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridge')) - 1);
     assembly {
-      sstore(0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f, bridge)
+      sstore(_bridgeSlot, bridge)
     }
   }
 
   function getHolograph() external view returns (address holograph) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.holograph')) - 1);
     assembly {
-      holograph := sload(0x1eee493315beeac80829afd0aaa340f3821cabe68571a2743478e81638a3d94d)
+      holograph := sload(_holographSlot)
     }
   }
 
   function setHolograph(address holograph) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.holograph')) - 1);
     assembly {
-      sstore(0x1eee493315beeac80829afd0aaa340f3821cabe68571a2743478e81638a3d94d, holograph)
+      sstore(_holographSlot, holograph)
     }
   }
 
   function getOperator() external view returns (address operator) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.operator')) - 1);
     assembly {
-      operator := sload(0x7bef7d8d97f57f9aa64de319c8598b5cdc7c3d2715fc02428415a98281ca6bdc)
+      operator := sload(_operatorSlot)
     }
   }
 
   function setOperator(address operator) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.operator')) - 1);
     assembly {
-      sstore(0x7bef7d8d97f57f9aa64de319c8598b5cdc7c3d2715fc02428415a98281ca6bdc, operator)
+      sstore(_operatorSlot, operator)
     }
   }
 
   function getRegistry() external view returns (address registry) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
-      registry := sload(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349)
+      registry := sload(_registrySlot)
     }
   }
 
   function setRegistry(address registry) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
-      sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
+      sstore(_registrySlot, registry)
     }
   }
 }

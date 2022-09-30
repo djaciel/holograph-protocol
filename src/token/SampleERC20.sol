@@ -36,7 +36,7 @@ contract SampleERC20 is StrictERC20H {
   function init(bytes memory data) external override returns (bytes4) {
     // do your own custom logic here
     address contractOwner = abi.decode(data, (address));
-    _owner = contractOwner;
+    _setOwner(contractOwner);
     // run underlying initializer logic
     return _init(data);
   }

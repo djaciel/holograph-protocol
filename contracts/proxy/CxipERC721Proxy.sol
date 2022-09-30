@@ -108,14 +108,17 @@ import "../interface/IInitializable.sol";
 import "../interface/IHolographRegistry.sol";
 
 contract CxipERC721Proxy is Admin, Initializable {
+  bytes32 constant _contractTypeSlot = 0x0b671eb65810897366dd82c4cbb7d9dff8beda8484194956e81e89b8a361d9c7;
+  bytes32 constant _registrySlot = 0xce8e75d5c5227ce29a4ee170160bb296e5dea6934b80a9bd723f7ef1e7c850e7;
+
   constructor() {}
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (bytes32 contractType, address registry, bytes memory initCode) = abi.decode(data, (bytes32, address, bytes));
     assembly {
-      sstore(0x927d33f74b40d20ebbbc7fbed0f01deacf3e0b589b248a5cc2fc82aa94928913, contractType)
-      sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
+      sstore(_contractTypeSlot, contractType)
+      sstore(_registrySlot, registry)
     }
     (bool success, bytes memory returnData) = getCxipERC721Source().delegatecall(
       abi.encodeWithSignature("init(bytes)", initCode)
@@ -131,8 +134,8 @@ contract CxipERC721Proxy is Admin, Initializable {
     IHolographRegistry registry;
     bytes32 contractType;
     assembly {
-      registry := sload(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349)
-      contractType := sload(0x927d33f74b40d20ebbbc7fbed0f01deacf3e0b589b248a5cc2fc82aa94928913)
+      registry := sload(_registrySlot)
+      contractType := sload(_contractTypeSlot)
     }
     return registry.getContractTypeAddress(contractType);
   }

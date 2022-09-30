@@ -37,6 +37,9 @@ import "./library/ECDSA.sol";
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
 contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ERC20Holograph {
+  bytes32 constant _holographSlot = precomputeslot("eip1967.Holograph.holograph");
+  bytes32 constant _sourceContractSlot = precomputeslot("eip1967.Holograph.sourceContract");
+
   using Counters for Counters.Counter;
 
   /**
@@ -85,14 +88,36 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
   constructor() {}
 
   /**
+   * @notice Only allow calls from bridge smart contract.
+   */
+  modifier onlyBridge() {
+    require(msg.sender == _holograph().getBridge(), "ERC20: bridge only call");
+    _;
+  }
+
+  /**
+   * @notice Only allow calls from source smart contract.
+   */
+  modifier onlySource() {
+    address sourceContract;
+    assembly {
+      sourceContract := sload(_sourceContractSlot)
+    }
+    require(msg.sender == sourceContract, "ERC20: source only call");
+    _;
+  }
+
+  /**
    * @notice Initializes the collection.
    * @dev Special function to allow a one time initialisation on deployment. Also configures and deploys royalties.
    */
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "ERC20: already initialized");
+    IInitializable sourceContract;
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.reentrant"), 1)
-      sstore(precomputeslot("eip1967.Holograph.Bridge.owner"), caller())
+      sstore(_reentrantSlot, 0x0000000000000000000000000000000000000000000000000000000000000001)
+      sstore(_ownerSlot, caller())
+      sourceContract := sload(_sourceContractSlot)
     }
     (
       string memory contractName,
@@ -109,50 +134,11 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     _decimals = contractDecimals;
     _eventConfig = eventConfig;
     if (!skipInit) {
-      try IHolographer(payable(address(this))).getSourceContract() returns (address payable sourceAddress) {
-        require(
-          IInitializable(sourceAddress).init(initCode) == IInitializable.init.selector,
-          "ERC20: could not init source"
-        );
-      } catch {
-        revert("ERC20: could not init source");
-      }
+      require(sourceContract.init(initCode) == IInitializable.init.selector, "ERC20: could not init source");
     }
     _setInitialized();
     _eip712_init(domainSeperator, domainVersion);
     return IInitializable.init.selector;
-  }
-
-  function owner() public view override returns (address) {
-    return Ownable(source()).owner();
-  }
-
-  /**
-   * @dev Get the source smart contract.
-   */
-  function source() private view returns (address) {
-    return IHolographer(payable(address(this))).getSourceContract();
-  }
-
-  /**
-   * @dev Get the bridge contract address.
-   */
-  function bridge() private view returns (address) {
-    return IHolograph(IHolographer(payable(address(this))).getHolograph()).getBridge();
-  }
-
-  /**
-   * @dev Get the interfaces contract address.
-   */
-  function interfaces() private view returns (address) {
-    return IHolograph(IHolographer(payable(address(this))).getHolograph()).getInterfaces();
-  }
-
-  /**
-   * @dev Get the source smart contract as bridgeable interface.
-   */
-  function SourceERC20() private view returns (HolographedERC20) {
-    return HolographedERC20(source());
   }
 
   /**
@@ -165,17 +151,10 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
    * @dev Any function call that is not covered here, will automatically be sent over to the source contract.
    */
   fallback() external payable {
-    /**
-     * @dev We forward the calldata to source contract via a call request.
-     *  Since this replaces msg.sender with address(this), we inject original msg.sender into calldata.
-     *  This allows us to protect this contract's storage layer from source contract's malicious actions.
-     *  This way a source contract can simultaneously access holographer address and the real msg.sender.
-     */
-    address _target = source();
     assembly {
       calldatacopy(0, 0, calldatasize())
       mstore(calldatasize(), caller())
-      let result := call(gas(), _target, callvalue(), 0, add(calldatasize(), 32), 0, 0)
+      let result := call(gas(), sload(_sourceContractSlot), callvalue(), 0, add(calldatasize(), 32), 0, 0)
       returndatacopy(0, 0, returndatasize())
       switch result
       case 0 {
@@ -196,8 +175,19 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
    *
    * This makes it easier for external smart contracts to easily identify a valid ERC20 token contract.
    */
-  function supportsInterface(bytes4 interfaceId) public view returns (bool) {
-    return IInterfaces(interfaces()).supportsInterface(InterfaceType.ERC20, interfaceId);
+  function supportsInterface(bytes4 interfaceId) external view returns (bool) {
+    IInterfaces interfaces = IInterfaces(_interfaces());
+    ERC165 erc165Contract;
+    assembly {
+      erc165Contract := sload(_sourceContractSlot)
+    }
+    if (
+      interfaces.supportsInterface(InterfaceType.ERC20, interfaceId) || erc165Contract.supportsInterface(interfaceId) // check global interfaces // check if source supports interface
+    ) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   function allowance(address account, address spender) public view returns (uint256) {
@@ -283,57 +273,44 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     return true;
   }
 
-  /**
-   * @dev Allows the bridge to bring in tokens from another blockchain.
-   */
-  function holographBridgeIn(
-    uint32 chainType,
-    address from,
-    address to,
-    uint256 amount,
-    bytes calldata data
-  ) external returns (bytes4) {
-    require(msg.sender == bridge(), "ERC20: only bridge can call");
+  function bridgeIn(uint32 fromChain, bytes calldata payload) external onlyBridge returns (bytes4) {
+    (address from, address to, uint256 amount, bytes memory data) = abi.decode(
+      payload,
+      (address, address, uint256, bytes)
+    );
     _mint(to, amount);
-    //     _mint(bridge(), amount);
-    //     _transfer(bridge(), from, amount);
-    //     if (from != to) {
-    //       _transfer(from, to, amount);
-    //     }
     if (_isEventRegistered(HolographERC20Event.bridgeIn)) {
-      require(SourceERC20().bridgeIn(chainType, from, to, amount, data), "HOLOGRAPH: bridge in failed");
+      require(SourceERC20().bridgeIn(fromChain, from, to, amount, data), "HOLOGRAPH: bridge in failed");
     }
-    return ERC20Holograph.holographBridgeIn.selector;
+    return HolographableEnforcer.bridgeIn.selector;
+  }
+
+  function bridgeOut(
+    uint32 toChain,
+    address sender,
+    bytes calldata payload
+  ) external onlyBridge returns (bytes4 selector, bytes memory data) {
+    (address from, address to, uint256 amount) = abi.decode(payload, (address, address, uint256));
+    if (sender != from) {
+      uint256 currentAllowance = _allowances[from][sender];
+      require(currentAllowance >= amount, "ERC20: amount exceeds allowance");
+      unchecked {
+        _allowances[from][sender] = currentAllowance - amount;
+      }
+    }
+    if (_isEventRegistered(HolographERC20Event.bridgeOut)) {
+      data = SourceERC20().bridgeOut(toChain, from, to, amount);
+    }
+    _burn(from, amount);
+    return (HolographableEnforcer.bridgeOut.selector, abi.encode(from, to, amount, data));
   }
 
   /**
-   * @dev Allows the bridge to take tokens out onto another blockchain.
+   * @dev Allows the bridge to mint tokens (used for hTokens only).
    */
-  function holographBridgeOut(
-    uint32 chainType,
-    address operator,
-    address from,
-    address to,
-    uint256 amount
-  ) external returns (bytes4 selector, bytes memory data) {
-    require(msg.sender == bridge(), "ERC20: only bridge can call");
-    if (operator != from) {
-      uint256 currentAllowance = _allowances[from][operator];
-      require(currentAllowance >= amount, "ERC20: amount exceeds allowance");
-      unchecked {
-        _allowances[from][operator] = currentAllowance - amount;
-      }
-    }
-    //     if (from != to) {
-    //       _transfer(from, to, amount);
-    //     }
-    //     _transfer(to, bridge(), amount);
-    if (_isEventRegistered(HolographERC20Event.bridgeOut)) {
-      data = SourceERC20().bridgeOut(chainType, from, to, amount);
-    }
-    //     _burn(bridge(), amount);
-    _burn(from, amount);
-    return (ERC20Holograph.holographBridgeOut.selector, data);
+  function holographBridgeMint(address to, uint256 amount) external onlyBridge returns (bytes4) {
+    _mint(to, amount);
+    return ERC20Holograph.holographBridgeMint.selector;
   }
 
   function increaseAllowance(address spender, uint256 addedValue) public returns (bool) {
@@ -386,11 +363,9 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     bytes32 s
   ) public {
     require(block.timestamp <= deadline, "ERC20: expired deadline");
-    // keccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)")
-    //  == 0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9
     bytes32 structHash = keccak256(
       abi.encode(
-        0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9,
+        precomputekeccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"),
         account,
         spender,
         amount,
@@ -465,24 +440,21 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
   /**
    * @dev Allows for source smart contract to burn tokens.
    */
-  function sourceBurn(address from, uint256 amount) external {
-    require(msg.sender == source(), "ERC20: only source can burn");
+  function sourceBurn(address from, uint256 amount) external onlySource {
     _burn(from, amount);
   }
 
   /**
    * @dev Allows for source smart contract to mint tokens.
    */
-  function sourceMint(address to, uint256 amount) external {
-    require(msg.sender == source(), "ERC20: only source can mint");
+  function sourceMint(address to, uint256 amount) external onlySource {
     _mint(to, amount);
   }
 
   /**
    * @dev Allows for source smart contract to mint a batch of token amounts.
    */
-  function sourceMintBatch(address[] calldata wallets, uint256[] calldata amounts) external {
-    require(msg.sender == source(), "ERC20: only source can mint");
+  function sourceMintBatch(address[] calldata wallets, uint256[] calldata amounts) external onlySource {
     for (uint256 i = 0; i < wallets.length; i++) {
       _mint(wallets[i], amounts[i]);
     }
@@ -495,8 +467,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     address from,
     address to,
     uint256 amount
-  ) external {
-    require(msg.sender == source(), "ERC20: only source can transfer");
+  ) external onlySource {
     _transfer(from, to, amount);
   }
 
@@ -562,7 +533,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     bytes memory data
   ) private nonReentrant returns (bool) {
     if (_isContract(recipient)) {
-      try ERC165(recipient).supportsInterface(0x01ffc9a7) returns (bool erc165support) {
+      try ERC165(recipient).supportsInterface(ERC165.supportsInterface.selector) returns (bool erc165support) {
         require(erc165support, "ERC20: no ERC165 support");
         // we have erc165 support
         if (ERC165(recipient).supportsInterface(0x534f5876)) {
@@ -640,7 +611,37 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     assembly {
       codehash := extcodehash(contractAddress)
     }
-    return (codehash != 0x0 && codehash != 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470);
+    return (codehash != 0x0 && codehash != precomputekeccak256(""));
+  }
+
+  /**
+   * @dev Get the source smart contract as bridgeable interface.
+   */
+  function SourceERC20() private view returns (HolographedERC20 sourceContract) {
+    assembly {
+      sourceContract := sload(_sourceContractSlot)
+    }
+  }
+
+  /**
+   * @dev Get the interfaces contract address.
+   */
+  function _interfaces() private view returns (address) {
+    return _holograph().getInterfaces();
+  }
+
+  function owner() public view override returns (address) {
+    Ownable ownableContract;
+    assembly {
+      ownableContract := sload(_sourceContractSlot)
+    }
+    return ownableContract.owner();
+  }
+
+  function _holograph() private view returns (IHolograph holograph) {
+    assembly {
+      holograph := sload(_holographSlot)
+    }
   }
 
   function _isEventRegistered(HolographERC20Event _eventName) private view returns (bool) {

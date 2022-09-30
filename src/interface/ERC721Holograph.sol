@@ -8,26 +8,20 @@ import "./ERC721.sol";
 import "./ERC721Enumerable.sol";
 import "./ERC721Metadata.sol";
 import "./ERC721TokenReceiver.sol";
+import "./HolographableEnforcer.sol";
 
-interface ERC721Holograph is ERC165, ERC721, ERC721Enumerable, ERC721Metadata, ERC721TokenReceiver, CollectionURI {
+interface ERC721Holograph is
+  ERC165,
+  ERC721,
+  ERC721Enumerable,
+  ERC721Metadata,
+  ERC721TokenReceiver,
+  CollectionURI,
+  HolographableEnforcer
+{
   function approve(address to, uint256 tokenId) external payable;
 
   function burn(uint256 tokenId) external;
-
-  function holographBridgeIn(
-    uint32 chainType,
-    address from,
-    address to,
-    uint256 tokenId,
-    bytes calldata data
-  ) external returns (bytes4);
-
-  function holographBridgeOut(
-    uint32 chainType,
-    address from,
-    address to,
-    uint256 tokenId
-  ) external returns (bytes4, bytes memory data);
 
   function safeTransferFrom(
     address from,

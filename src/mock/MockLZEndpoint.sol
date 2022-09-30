@@ -9,7 +9,7 @@ contract MockLZEndpoint is Admin {
 
   constructor() {
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.admin"), origin())
+      sstore(_adminSlot, origin())
     }
   }
 

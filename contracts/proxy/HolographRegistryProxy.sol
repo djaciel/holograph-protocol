@@ -107,14 +107,16 @@ import "../abstract/Initializable.sol";
 import "../interface/IInitializable.sol";
 
 contract HolographRegistryProxy is Admin, Initializable {
+  bytes32 constant _registrySlot = 0xce8e75d5c5227ce29a4ee170160bb296e5dea6934b80a9bd723f7ef1e7c850e7;
+
   constructor() {}
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (address registry, bytes memory initCode) = abi.decode(data, (address, bytes));
     assembly {
-      sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
-      sstore(0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, origin())
+      sstore(_adminSlot, origin())
+      sstore(_registrySlot, registry)
     }
     (bool success, bytes memory returnData) = registry.delegatecall(abi.encodeWithSignature("init(bytes)", initCode));
     bytes4 selector = abi.decode(returnData, (bytes4));
@@ -124,18 +126,14 @@ contract HolographRegistryProxy is Admin, Initializable {
   }
 
   function getRegistry() external view returns (address registry) {
-    // The slot hash has been precomputed for gas optimization
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
-      registry := sload(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349)
+      registry := sload(_registrySlot)
     }
   }
 
   function setRegistry(address registry) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimization
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
-      sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
+      sstore(_registrySlot, registry)
     }
   }
 
@@ -143,7 +141,7 @@ contract HolographRegistryProxy is Admin, Initializable {
 
   fallback() external payable {
     assembly {
-      let registry := sload(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349)
+      let registry := sload(_registrySlot)
       calldatacopy(0, 0, calldatasize())
       let result := delegatecall(gas(), registry, 0, calldatasize(), 0, 0)
       returndatacopy(0, 0, returndatasize())

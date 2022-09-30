@@ -77,7 +77,7 @@ const networks: Networks = {
     holographId: 4000000011, // need to set in chain libraries !
     tokenName: 'Ethereum Goerli',
     tokenSymbol: 'ETH',
-    lzEndpoint: '0x0000000000000000000000000000000000000000'.toLowerCase(),
+    lzEndpoint: '0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23'.toLowerCase(),
   },
   bsc: {
     chain: 56,

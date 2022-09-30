@@ -108,7 +108,7 @@ contract MockLZEndpoint is Admin {
 
   constructor() {
     assembly {
-      sstore(0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, origin())
+      sstore(_adminSlot, origin())
     }
   }
 

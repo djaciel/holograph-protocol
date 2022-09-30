@@ -152,6 +152,8 @@ contract Interfaces is Admin, Initializable {
     _chainIdMap[ChainIdType.EVM][250][ChainIdType.HOLOGRAPH] = 5;
     // rinkeby
     _chainIdMap[ChainIdType.EVM][4][ChainIdType.HOLOGRAPH] = 4000000001;
+    // goerli
+    _chainIdMap[ChainIdType.EVM][5][ChainIdType.HOLOGRAPH] = 4000000011;
     // bsc testnet
     _chainIdMap[ChainIdType.EVM][97][ChainIdType.HOLOGRAPH] = 4000000002;
     // fuji
@@ -186,6 +188,8 @@ contract Interfaces is Admin, Initializable {
     _chainIdMap[ChainIdType.HOLOGRAPH][5][ChainIdType.EVM] = 250;
     // rinkeby
     _chainIdMap[ChainIdType.HOLOGRAPH][4000000001][ChainIdType.EVM] = 4;
+    // goerli
+    _chainIdMap[ChainIdType.HOLOGRAPH][4000000011][ChainIdType.EVM] = 5;
     // bsc testnet
     _chainIdMap[ChainIdType.HOLOGRAPH][4000000002][ChainIdType.EVM] = 97;
     // fuji
@@ -220,6 +224,8 @@ contract Interfaces is Admin, Initializable {
     _chainIdMap[ChainIdType.LAYERZERO][12][ChainIdType.HOLOGRAPH] = 5;
     // rinkeby
     _chainIdMap[ChainIdType.LAYERZERO][10001][ChainIdType.HOLOGRAPH] = 4000000001;
+    // goerli
+    _chainIdMap[ChainIdType.LAYERZERO][10021][ChainIdType.HOLOGRAPH] = 4000000011;
     // bsc testnet
     _chainIdMap[ChainIdType.LAYERZERO][10002][ChainIdType.HOLOGRAPH] = 4000000002;
     // fuji
@@ -254,6 +260,8 @@ contract Interfaces is Admin, Initializable {
     _chainIdMap[ChainIdType.HOLOGRAPH][7][ChainIdType.LAYERZERO] = 11;
     // rinkeby
     _chainIdMap[ChainIdType.HOLOGRAPH][4000000001][ChainIdType.LAYERZERO] = 10001;
+    // goerli
+    _chainIdMap[ChainIdType.HOLOGRAPH][4000000011][ChainIdType.LAYERZERO] = 10021;
     // bsc testnet
     _chainIdMap[ChainIdType.HOLOGRAPH][4000000002][ChainIdType.LAYERZERO] = 10002;
     // fuji
@@ -313,7 +321,7 @@ contract Interfaces is Admin, Initializable {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     address contractAdmin = abi.decode(data, (address));
     assembly {
-      sstore(0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, contractAdmin)
+      sstore(_adminSlot, contractAdmin)
     }
 
     // ERC20
@@ -351,16 +359,15 @@ contract Interfaces is Admin, Initializable {
     _supportedInterfaces[InterfaceType.ERC20][ERC20Burnable.burn.selector ^ ERC20Burnable.burnFrom.selector] = true;
 
     // ERC20Safer
-    // bytes4(keccak256(abi.encodePacked('safeTransfer(address,uint256)'))) == 0x423f6cef
     _supportedInterfaces[InterfaceType.ERC20][0x423f6cef] = true;
-    // bytes4(keccak256(abi.encodePacked('safeTransfer(address,uint256,bytes)'))) == 0xeb795549
     _supportedInterfaces[InterfaceType.ERC20][0xeb795549] = true;
-    // bytes4(keccak256(abi.encodePacked('safeTransferFrom(address,address,uint256)'))) == 0x42842e0e
     _supportedInterfaces[InterfaceType.ERC20][0x42842e0e] = true;
-    // bytes4(keccak256(abi.encodePacked('safeTransferFrom(address,address,uint256,bytes)'))) == 0xb88d4fde
     _supportedInterfaces[InterfaceType.ERC20][0xb88d4fde] = true;
     _supportedInterfaces[InterfaceType.ERC20][
-      bytes4(0x423f6cef) ^ bytes4(0xeb795549) ^ bytes4(0x42842e0e) ^ bytes4(0xb88d4fde)
+      bytes4(0x423f6cef) ^
+        bytes4(0xeb795549) ^
+        bytes4(0x42842e0e) ^
+        bytes4(0xb88d4fde)
     ] = true;
 
     // ERC20Permit
@@ -379,10 +386,8 @@ contract Interfaces is Admin, Initializable {
     // ERC721
     _supportedInterfaces[InterfaceType.ERC721][ERC721.balanceOf.selector] = true;
     _supportedInterfaces[InterfaceType.ERC721][ERC721.ownerOf.selector] = true;
-    // bytes4(keccak256(abi.encodePacked('safeTransferFrom(address,address,uint256,bytes)'))) == 0xb88d4fde
-    _supportedInterfaces[InterfaceType.ERC721][0xb88d4fde] = true;
-    // bytes4(keccak256(abi.encodePacked('safeTransferFrom(address,address,uint256)'))) == 0x42842e0e
     _supportedInterfaces[InterfaceType.ERC721][0x42842e0e] = true;
+    _supportedInterfaces[InterfaceType.ERC721][0xb88d4fde] = true;
     _supportedInterfaces[InterfaceType.ERC721][ERC721.transferFrom.selector] = true;
     _supportedInterfaces[InterfaceType.ERC721][ERC721.approve.selector] = true;
     _supportedInterfaces[InterfaceType.ERC721][ERC721.setApprovalForAll.selector] = true;
@@ -391,8 +396,8 @@ contract Interfaces is Admin, Initializable {
     _supportedInterfaces[InterfaceType.ERC721][
       ERC721.balanceOf.selector ^
         ERC721.ownerOf.selector ^
-        0xb88d4fde ^
         0x42842e0e ^
+        0xb88d4fde ^
         ERC721.transferFrom.selector ^
         ERC721.approve.selector ^
         ERC721.setApprovalForAll.selector ^
@@ -431,7 +436,6 @@ contract Interfaces is Admin, Initializable {
     _supportedInterfaces[InterfaceType.ERC721][CollectionURI.contractURI.selector] = true;
 
     // PA1D
-
     _supportedInterfaces[InterfaceType.PA1D][IPA1D.initPA1D.selector] = true;
     _supportedInterfaces[InterfaceType.PA1D][IPA1D.configurePayouts.selector] = true;
     _supportedInterfaces[InterfaceType.PA1D][IPA1D.getPayoutInfo.selector] = true;
@@ -443,6 +447,7 @@ contract Interfaces is Admin, Initializable {
     _supportedInterfaces[InterfaceType.PA1D][IPA1D.royaltyInfo.selector] = true;
     _supportedInterfaces[InterfaceType.PA1D][IPA1D.getFeeBps.selector] = true;
     _supportedInterfaces[InterfaceType.PA1D][IPA1D.getFeeRecipients.selector] = true;
+    _supportedInterfaces[InterfaceType.PA1D][IPA1D.getFeeBps.selector ^ IPA1D.getFeeRecipients.selector] = true;
     _supportedInterfaces[InterfaceType.PA1D][IPA1D.getRoyalties.selector] = true;
     _supportedInterfaces[InterfaceType.PA1D][IPA1D.getFees.selector] = true;
     _supportedInterfaces[InterfaceType.PA1D][IPA1D.tokenCreator.selector] = true;

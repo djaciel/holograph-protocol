@@ -9,14 +9,17 @@ import "../interface/IInitializable.sol";
 import "../interface/IHolographRegistry.sol";
 
 contract CxipERC721Proxy is Admin, Initializable {
+  bytes32 constant _contractTypeSlot = precomputeslot("eip1967.Holograph.contractType");
+  bytes32 constant _registrySlot = precomputeslot("eip1967.Holograph.registry");
+
   constructor() {}
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (bytes32 contractType, address registry, bytes memory initCode) = abi.decode(data, (bytes32, address, bytes));
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.contractType"), contractType)
-      sstore(precomputeslot("eip1967.Holograph.Bridge.registry"), registry)
+      sstore(_contractTypeSlot, contractType)
+      sstore(_registrySlot, registry)
     }
     (bool success, bytes memory returnData) = getCxipERC721Source().delegatecall(
       abi.encodeWithSignature("init(bytes)", initCode)
@@ -32,8 +35,8 @@ contract CxipERC721Proxy is Admin, Initializable {
     IHolographRegistry registry;
     bytes32 contractType;
     assembly {
-      registry := sload(precomputeslot("eip1967.Holograph.Bridge.registry"))
-      contractType := sload(precomputeslot("eip1967.Holograph.Bridge.contractType"))
+      registry := sload(_registrySlot)
+      contractType := sload(_contractTypeSlot)
     }
     return registry.getContractTypeAddress(contractType);
   }

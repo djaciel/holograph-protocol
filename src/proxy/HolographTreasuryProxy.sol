@@ -8,14 +8,16 @@ import "../abstract/Initializable.sol";
 import "../interface/IInitializable.sol";
 
 contract HolographTreasuryProxy is Admin, Initializable {
+  bytes32 constant _treasurySlot = precomputeslot("eip1967.Holograph.treasury");
+
   constructor() {}
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (address treasury, bytes memory initCode) = abi.decode(data, (address, bytes));
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.treasury"), treasury)
-      sstore(precomputeslot("eip1967.Holograph.Bridge.admin"), origin())
+      sstore(_adminSlot, origin())
+      sstore(_treasurySlot, treasury)
     }
     (bool success, bytes memory returnData) = treasury.delegatecall(abi.encodeWithSignature("init(bytes)", initCode));
     bytes4 selector = abi.decode(returnData, (bytes4));
@@ -25,18 +27,14 @@ contract HolographTreasuryProxy is Admin, Initializable {
   }
 
   function getTreasury() external view returns (address treasury) {
-    // The slot hash has been precomputed for gas optimization
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.treasury')) - 1);
     assembly {
-      treasury := sload(precomputeslot("eip1967.Holograph.Bridge.treasury"))
+      treasury := sload(_treasurySlot)
     }
   }
 
   function setTreasury(address treasury) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimization
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.treasury')) - 1);
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.treasury"), treasury)
+      sstore(_treasurySlot, treasury)
     }
   }
 
@@ -44,7 +42,7 @@ contract HolographTreasuryProxy is Admin, Initializable {
 
   fallback() external payable {
     assembly {
-      let treasury := sload(precomputeslot("eip1967.Holograph.Bridge.treasury"))
+      let treasury := sload(_treasurySlot)
       calldatacopy(0, 0, calldatasize())
       let result := delegatecall(gas(), treasury, 0, calldatasize(), 0, 0)
       returndatacopy(0, 0, returndatasize())

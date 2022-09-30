@@ -19,6 +19,16 @@ import "./interface/IPA1D.sol";
  * @dev This smart contract is not intended to be used directly. Apply it to any of your ERC721 or ERC1155 smart contracts through a delegatecall fallback.
  */
 contract PA1D is Admin, Owner, Initializable {
+  bytes32 constant _defaultBpSlot = precomputeslot("eip1967.Holograph.PA1D.defaultBp");
+  bytes32 constant _defaultReceiverSlot = precomputeslot("eip1967.Holograph.PA1D.defaultReceiver");
+  bytes32 constant _initializedPaidSlot = precomputeslot("eip1967.Holograph.PA1D.initialized");
+  bytes32 constant _payoutAddressesSlot = precomputeslot("eip1967.Holograph.PA1D.payout.addresses");
+  bytes32 constant _payoutBpsSlot = precomputeslot("eip1967.Holograph.PA1D.payout.bps");
+
+  string constant _bpString = "eip1967.Holograph.PA1D.bp";
+  string constant _receiverString = "eip1967.Holograph.PA1D.receiver";
+  string constant _tokenAddressString = "eip1967.Holograph.PA1D.tokenAddress";
+
   /**
    * @notice Event emitted when setting/updating royalty info/fees. This is used by Rarible V1.
    * @dev Emits event in order to comply with Rarible V1 royalty spec.
@@ -45,8 +55,8 @@ contract PA1D is Admin, Owner, Initializable {
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "PA1D: already initialized");
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.admin"), caller())
-      sstore(precomputeslot("eip1967.Holograph.Bridge.owner"), caller())
+      sstore(_adminSlot, caller())
+      sstore(_ownerSlot, caller())
     }
     (address receiver, uint256 bp) = abi.decode(data, (address, uint256));
     setRoyalties(0, payable(receiver), bp);
@@ -57,14 +67,14 @@ contract PA1D is Admin, Owner, Initializable {
   function initPA1D(bytes memory data) external returns (bytes4) {
     uint256 initialized;
     assembly {
-      initialized := sload(precomputeslot("eip1967.Holograph.PA1D.initialized"))
+      initialized := sload(_initializedPaidSlot)
     }
     require(initialized == 0, "PA1D: already initialized");
     (address receiver, uint256 bp) = abi.decode(data, (address, uint256));
     setRoyalties(0, payable(receiver), bp);
     initialized = 1;
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.PA1D.initialized"), initialized)
+      sstore(_initializedPaidSlot, initialized)
     }
     return IInitializable.init.selector;
   }
@@ -86,13 +96,8 @@ contract PA1D is Admin, Owner, Initializable {
    * @return receiver Wallet or smart contract that will receive the initial royalty payouts.
    */
   function _getDefaultReceiver() private view returns (address payable receiver) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.defaultReceiver')) - 1);
     assembly {
-      receiver := sload(
-        /* slot */
-        precomputeslot("eip1967.Holograph.PA1D.defaultReceiver")
-      )
+      receiver := sload(_defaultReceiverSlot)
     }
   }
 
@@ -101,14 +106,8 @@ contract PA1D is Admin, Owner, Initializable {
    * @param receiver Wallet or smart contract that will receive the initial royalty payouts.
    */
   function _setDefaultReceiver(address receiver) private {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.defaultReceiver')) - 1);
     assembly {
-      sstore(
-        /* slot */
-        precomputeslot("eip1967.Holograph.PA1D.defaultReceiver"),
-        receiver
-      )
+      sstore(_defaultReceiverSlot, receiver)
     }
   }
 
@@ -117,13 +116,8 @@ contract PA1D is Admin, Owner, Initializable {
    * @return bp Royalty base points(percentage) for royalty payouts.
    */
   function _getDefaultBp() private view returns (uint256 bp) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.defaultBp')) - 1);
     assembly {
-      bp := sload(
-        /* slot */
-        precomputeslot("eip1967.Holograph.PA1D.defaultBp")
-      )
+      bp := sload(_defaultBpSlot)
     }
   }
 
@@ -132,14 +126,8 @@ contract PA1D is Admin, Owner, Initializable {
    * @param bp Uint256 of royalty percentage, provided in base points format.
    */
   function _setDefaultBp(uint256 bp) private {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.defaultBp')) - 1);
     assembly {
-      sstore(
-        /* slot */
-        precomputeslot("eip1967.Holograph.PA1D.defaultBp"),
-        bp
-      )
+      sstore(_defaultBpSlot, bp)
     }
   }
 
@@ -148,7 +136,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @return receiver Wallet or smart contract that will receive the royalty payouts for a particular token id.
    */
   function _getReceiver(uint256 tokenId) private view returns (address payable receiver) {
-    bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.receiver", tokenId))) - 1);
+    bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked(_receiverString, tokenId))) - 1);
     assembly {
       receiver := sload(slot)
     }
@@ -160,7 +148,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @param receiver Wallet or smart contract that will receive the royalty payouts for a particular token id.
    */
   function _setReceiver(uint256 tokenId, address receiver) private {
-    bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.receiver", tokenId))) - 1);
+    bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked(_receiverString, tokenId))) - 1);
     assembly {
       sstore(slot, receiver)
     }
@@ -171,7 +159,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @return bp Royalty base points(percentage) for the royalty payouts of a specific token id.
    */
   function _getBp(uint256 tokenId) private view returns (uint256 bp) {
-    bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.bp", tokenId))) - 1);
+    bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked(_bpString, tokenId))) - 1);
     assembly {
       bp := sload(slot)
     }
@@ -183,7 +171,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @param bp Uint256 of royalty percentage, provided in base points format, for a particular token id.
    */
   function _setBp(uint256 tokenId, uint256 bp) private {
-    bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.bp", tokenId))) - 1);
+    bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked(_bpString, tokenId))) - 1);
     assembly {
       sstore(slot, bp)
     }
@@ -191,8 +179,7 @@ contract PA1D is Admin, Owner, Initializable {
 
   function _getPayoutAddresses() private view returns (address payable[] memory addresses) {
     // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.payout.addresses')) - 1);
-    bytes32 slot = precomputeslot("eip1967.Holograph.PA1D.payout.addresses");
+    bytes32 slot = _payoutAddressesSlot;
     uint256 length;
     assembly {
       length := sload(slot)
@@ -209,9 +196,7 @@ contract PA1D is Admin, Owner, Initializable {
   }
 
   function _setPayoutAddresses(address payable[] memory addresses) private {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.payout.addresses')) - 1);
-    bytes32 slot = precomputeslot("eip1967.Holograph.PA1D.payout.addresses");
+    bytes32 slot = _payoutAddressesSlot;
     uint256 length = addresses.length;
     assembly {
       sstore(slot, length)
@@ -227,9 +212,7 @@ contract PA1D is Admin, Owner, Initializable {
   }
 
   function _getPayoutBps() private view returns (uint256[] memory bps) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.payout.bps')) - 1);
-    bytes32 slot = precomputeslot("eip1967.Holograph.PA1D.payout.bps");
+    bytes32 slot = _payoutBpsSlot;
     uint256 length;
     assembly {
       length := sload(slot)
@@ -246,9 +229,7 @@ contract PA1D is Admin, Owner, Initializable {
   }
 
   function _setPayoutBps(uint256[] memory bps) private {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.PA1D.payout.bps')) - 1);
-    bytes32 slot = precomputeslot("eip1967.Holograph.PA1D.payout.bps");
+    bytes32 slot = _payoutBpsSlot;
     uint256 length = bps.length;
     assembly {
       sstore(slot, length)
@@ -264,14 +245,14 @@ contract PA1D is Admin, Owner, Initializable {
   }
 
   function _getTokenAddress(string memory tokenName) private view returns (address tokenAddress) {
-    bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.tokenAddress", tokenName))) - 1);
+    bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked(_tokenAddressString, tokenName))) - 1);
     assembly {
       tokenAddress := sload(slot)
     }
   }
 
   function _setTokenAddress(string memory tokenName, address tokenAddress) private {
-    bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked("eip1967.Holograph.PA1D.tokenAddress", tokenName))) - 1);
+    bytes32 slot = bytes32(uint256(keccak256(abi.encodePacked(_tokenAddressString, tokenName))) - 1);
     assembly {
       sstore(slot, tokenAddress)
     }
@@ -418,53 +399,6 @@ contract PA1D is Admin, Owner, Initializable {
   function getTokensPayout(address[] memory tokenAddresses) public {
     _validatePayoutRequestor();
     _payoutTokens(tokenAddresses);
-  }
-
-  /**
-   * @notice Inform about supported interfaces(eip-165).
-   * @dev Provides the supported interface ids that this contract implements.
-   * @param interfaceId Bytes4 of the interface, derived through bytes4(keccak256('sampleFunction(uin256,address)')).
-   * @return True if function is supported/implemented, false if not.
-   */
-  function supportsInterface(bytes4 interfaceId) public pure returns (bool) {
-    if (
-      // EIP2981
-      // bytes4(keccak256('royaltyInfo(uint256,uint256)')) == 0x2a55205a
-      interfaceId == 0x2a55205a ||
-      // Rarible V1
-      // bytes4(keccak256('getFeeBps(uint256)')) == 0xb7799584
-      interfaceId == 0xb7799584 ||
-      // Rarible V1
-      // bytes4(keccak256('getFeeRecipients(uint256)')) == 0xb9c4d9fb
-      interfaceId == 0xb9c4d9fb ||
-      // Rarible V2(not being used since it creates a conflict with Manifold royalties)
-      // bytes4(keccak256('getRoyalties(uint256)')) == 0xcad96cca
-      // interfaceId == 0xcad96cca ||
-      // Manifold
-      // bytes4(keccak256('getRoyalties(uint256)')) == 0xbb3bafd6
-      interfaceId == 0xbb3bafd6 ||
-      // Foundation
-      // bytes4(keccak256('getFees(uint256)')) == 0xd5a06d4c
-      interfaceId == 0xd5a06d4c ||
-      // SuperRare
-      // bytes4(keccak256('tokenCreator(address,uint256)')) == 0xb85ed7e4
-      interfaceId == 0xb85ed7e4 ||
-      // SuperRare
-      // bytes4(keccak256('calculateRoyaltyFee(address,uint256,uint256)')) == 0x860110f5
-      interfaceId == 0x860110f5 ||
-      // Zora
-      // bytes4(keccak256('marketContract()')) == 0xa1794bcd
-      interfaceId == 0xa1794bcd ||
-      // Zora
-      // bytes4(keccak256('tokenCreators(uint256)')) == 0xe0fd045f
-      interfaceId == 0xe0fd045f ||
-      // Zora
-      // bytes4(keccak256('bidSharesForToken(uint256)')) == 0xf9ce0582
-      interfaceId == 0xf9ce0582
-    ) {
-      return true;
-    }
-    return false;
   }
 
   /**

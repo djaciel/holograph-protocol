@@ -5,10 +5,8 @@
 import "../abstract/Initializable.sol";
 
 abstract contract ERC1155H is Initializable {
-  /**
-   * @dev Address of initial creator/owner of the collection.
-   */
-  address internal _owner;
+  bytes32 constant _holographerSlot = precomputeslot("eip1967.Holograph.holographer");
+  bytes32 constant _ownerSlot = precomputeslot("eip1967.Holograph.owner");
 
   modifier onlyHolographer() {
     require(msg.sender == holographer(), "ERC1155: holographer only");
@@ -17,9 +15,9 @@ abstract contract ERC1155H is Initializable {
 
   modifier onlyOwner() {
     if (msg.sender == holographer()) {
-      require(msgSender() == _owner, "ERC1155: owner only function");
+      require(msgSender() == _getOwner(), "ERC1155: owner only function");
     } else {
-      require(msg.sender == _owner, "ERC1155: owner only function");
+      require(msg.sender == _getOwner(), "ERC1155: owner only function");
     }
     _;
   }
@@ -44,7 +42,7 @@ abstract contract ERC1155H is Initializable {
     require(!_isInitialized(), "ERC1155: already initialized");
     address _holographer = msg.sender;
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.holographer"), _holographer)
+      sstore(_holographerSlot, _holographer)
     }
     _setInitialized();
     return IInitializable.init.selector;
@@ -64,7 +62,7 @@ abstract contract ERC1155H is Initializable {
    */
   function holographer() internal view returns (address _holographer) {
     assembly {
-      _holographer := sload(precomputeslot("eip1967.Holograph.Bridge.holographer"))
+      _holographer := sload(_holographerSlot)
     }
   }
 
@@ -72,20 +70,35 @@ abstract contract ERC1155H is Initializable {
     return false;
   }
 
+  /**
+   * @dev Address of initial creator/owner of the collection.
+   */
   function owner() external view returns (address) {
-    return _owner;
+    return _getOwner();
   }
 
   function isOwner() external view returns (bool) {
     if (msg.sender == holographer()) {
-      return msgSender() == _owner;
+      return msgSender() == _getOwner();
     } else {
-      return msg.sender == _owner;
+      return msg.sender == _getOwner();
     }
   }
 
   function isOwner(address wallet) external view returns (bool) {
-    return wallet == _owner;
+    return wallet == _getOwner();
+  }
+
+  function _getOwner() internal view returns (address ownerAddress) {
+    assembly {
+      ownerAddress := sload(_ownerSlot)
+    }
+  }
+
+  function _setOwner(address ownerAddress) internal {
+    assembly {
+      sstore(_ownerSlot, ownerAddress)
+    }
   }
 
   /**
@@ -98,7 +111,7 @@ abstract contract ERC1155H is Initializable {
    */
   fallback() external payable {
     assembly {
-      switch eq(sload(precomputeslot("eip1967.Holograph.Bridge.holographer")), caller())
+      switch eq(sload(_holographerSlot), caller())
       case 1 {
         mstore(0x80, 0x0000000000000000000000000000000000000000000000000000000000000001)
         return(0x80, 0x20)

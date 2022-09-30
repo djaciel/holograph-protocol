@@ -28,21 +28,6 @@
   {
     "inputs": [
       {
-        "internalType": "uint16",
-        "name": "_srcChainId",
-        "type": "uint16"
-      },
-      {
-        "internalType": "bytes",
-        "name": "_srcAddress",
-        "type": "bytes"
-      },
-      {
-        "internalType": "uint64",
-        "name": "_nonce",
-        "type": "uint64"
-      },
-      {
         "internalType": "bytes",
         "name": "_payload",
         "type": "bytes"
@@ -83,6 +68,16 @@
   },
   {
     "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "gas",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "gasPrice",
+        "type": "uint256"
+      },
       {
         "internalType": "uint32",
         "name": "toChain",

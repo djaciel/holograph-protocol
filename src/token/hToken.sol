@@ -19,7 +19,7 @@ contract hToken is ERC20H {
   /**
    * @dev Sample fee for unwrapping.
    */
-  uint16 private _feeBp; // 100.00%
+  uint16 private _feeBp; // 10000 == 100.00%
 
   /**
    * @dev List of supported Wrapped Tokens (equivalent), on current-chain.
@@ -58,7 +58,7 @@ contract hToken is ERC20H {
    */
   function init(bytes memory data) external override returns (bytes4) {
     (address contractOwner, uint16 fee) = abi.decode(data, (address, uint16));
-    _owner = contractOwner;
+    _setOwner(contractOwner);
     _feeBp = fee;
     // run underlying initializer logic
     return _init(data);

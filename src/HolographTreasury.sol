@@ -21,6 +21,11 @@ import "./struct/Verification.sol";
  * @dev This smart contract contains the actual core treasury logic.
  */
 contract HolographTreasury is Admin, Initializable, IHolographTreasury {
+  bytes32 constant _bridgeSlot = precomputeslot("eip1967.Holograph.bridge");
+  bytes32 constant _holographSlot = precomputeslot("eip1967.Holograph.holograph");
+  bytes32 constant _operatorSlot = precomputeslot("eip1967.Holograph.operator");
+  bytes32 constant _registrySlot = precomputeslot("eip1967.Holograph.registry");
+
   /**
    * @dev Constructor is left empty and only the admin address is set.
    */
@@ -33,12 +38,12 @@ contract HolographTreasury is Admin, Initializable, IHolographTreasury {
       (address, address, address, address)
     );
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.admin"), origin())
+      sstore(_adminSlot, origin())
 
-      sstore(precomputeslot("eip1967.Holograph.Bridge.bridge"), bridge)
-      sstore(precomputeslot("eip1967.Holograph.Bridge.holograph"), holograph)
-      sstore(precomputeslot("eip1967.Holograph.Bridge.operator"), operator)
-      sstore(precomputeslot("eip1967.Holograph.Bridge.registry"), registry)
+      sstore(_bridgeSlot, bridge)
+      sstore(_holographSlot, holograph)
+      sstore(_operatorSlot, operator)
+      sstore(_registrySlot, registry)
     }
     _setInitialized();
     return IInitializable.init.selector;
@@ -46,89 +51,73 @@ contract HolographTreasury is Admin, Initializable, IHolographTreasury {
 
   function _bridge() private view returns (address bridge) {
     assembly {
-      bridge := sload(precomputeslot("eip1967.Holograph.Bridge.bridge"))
+      bridge := sload(_bridgeSlot)
     }
   }
 
   function _holograph() private view returns (address holograph) {
     assembly {
-      holograph := sload(precomputeslot("eip1967.Holograph.Bridge.holograph"))
+      holograph := sload(_holographSlot)
     }
   }
 
   function _operator() private view returns (address operator) {
     assembly {
-      operator := sload(precomputeslot("eip1967.Holograph.Bridge.operator"))
+      operator := sload(_operatorSlot)
     }
   }
 
   function _registry() private view returns (address registry) {
     assembly {
-      registry := sload(precomputeslot("eip1967.Holograph.Bridge.registry"))
+      registry := sload(_registrySlot)
     }
   }
 
   function getBridge() external view returns (address bridge) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridge')) - 1);
     assembly {
-      bridge := sload(precomputeslot("eip1967.Holograph.Bridge.bridge"))
+      bridge := sload(_bridgeSlot)
     }
   }
 
   function setBridge(address bridge) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridge')) - 1);
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.bridge"), bridge)
+      sstore(_bridgeSlot, bridge)
     }
   }
 
   function getHolograph() external view returns (address holograph) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.holograph')) - 1);
     assembly {
-      holograph := sload(precomputeslot("eip1967.Holograph.Bridge.holograph"))
+      holograph := sload(_holographSlot)
     }
   }
 
   function setHolograph(address holograph) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.holograph')) - 1);
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.holograph"), holograph)
+      sstore(_holographSlot, holograph)
     }
   }
 
   function getOperator() external view returns (address operator) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.operator')) - 1);
     assembly {
-      operator := sload(precomputeslot("eip1967.Holograph.Bridge.operator"))
+      operator := sload(_operatorSlot)
     }
   }
 
   function setOperator(address operator) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.operator')) - 1);
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.operator"), operator)
+      sstore(_operatorSlot, operator)
     }
   }
 
   function getRegistry() external view returns (address registry) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
-      registry := sload(precomputeslot("eip1967.Holograph.Bridge.registry"))
+      registry := sload(_registrySlot)
     }
   }
 
   function setRegistry(address registry) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.registry"), registry)
+      sstore(_registrySlot, registry)
     }
   }
 }

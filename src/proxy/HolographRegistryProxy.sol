@@ -8,14 +8,16 @@ import "../abstract/Initializable.sol";
 import "../interface/IInitializable.sol";
 
 contract HolographRegistryProxy is Admin, Initializable {
+  bytes32 constant _registrySlot = precomputeslot("eip1967.Holograph.registry");
+
   constructor() {}
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (address registry, bytes memory initCode) = abi.decode(data, (address, bytes));
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.registry"), registry)
-      sstore(precomputeslot("eip1967.Holograph.Bridge.admin"), origin())
+      sstore(_adminSlot, origin())
+      sstore(_registrySlot, registry)
     }
     (bool success, bytes memory returnData) = registry.delegatecall(abi.encodeWithSignature("init(bytes)", initCode));
     bytes4 selector = abi.decode(returnData, (bytes4));
@@ -25,18 +27,14 @@ contract HolographRegistryProxy is Admin, Initializable {
   }
 
   function getRegistry() external view returns (address registry) {
-    // The slot hash has been precomputed for gas optimization
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
-      registry := sload(precomputeslot("eip1967.Holograph.Bridge.registry"))
+      registry := sload(_registrySlot)
     }
   }
 
   function setRegistry(address registry) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimization
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.registry"), registry)
+      sstore(_registrySlot, registry)
     }
   }
 
@@ -44,7 +42,7 @@ contract HolographRegistryProxy is Admin, Initializable {
 
   fallback() external payable {
     assembly {
-      let registry := sload(precomputeslot("eip1967.Holograph.Bridge.registry"))
+      let registry := sload(_registrySlot)
       calldatacopy(0, 0, calldatasize())
       let result := delegatecall(gas(), registry, 0, calldatasize(), 0, 0)
       returndatacopy(0, 0, returndatasize())

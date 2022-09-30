@@ -1,0 +1,107 @@
+[
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "nonce",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint32",
+        "name": "fromChain",
+        "type": "uint32"
+      },
+      {
+        "internalType": "address",
+        "name": "holographableContract",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "hToken",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "hTokenRecipient",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "hTokenValue",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "bridgeInRequest",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "toChain",
+        "type": "uint32"
+      },
+      {
+        "internalType": "address",
+        "name": "holographableContract",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "gasLimit",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "gasPrice",
+        "type": "uint256"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "bridgeOutRequest",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "toChain",
+        "type": "uint32"
+      },
+      {
+        "internalType": "address",
+        "name": "holographableContract",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "getBridgeOutRequestPayload",
+    "outputs": [
+      {
+        "internalType": "bytes",
+        "name": "samplePayload",
+        "type": "bytes"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
