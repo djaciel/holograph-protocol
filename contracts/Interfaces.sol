@@ -152,6 +152,8 @@ contract Interfaces is Admin, Initializable {
     _chainIdMap[ChainIdType.EVM][250][ChainIdType.HOLOGRAPH] = 5;
     // rinkeby
     _chainIdMap[ChainIdType.EVM][4][ChainIdType.HOLOGRAPH] = 4000000001;
+    // goerli
+    _chainIdMap[ChainIdType.EVM][5][ChainIdType.HOLOGRAPH] = 4000000011;
     // bsc testnet
     _chainIdMap[ChainIdType.EVM][97][ChainIdType.HOLOGRAPH] = 4000000002;
     // fuji
@@ -186,6 +188,8 @@ contract Interfaces is Admin, Initializable {
     _chainIdMap[ChainIdType.HOLOGRAPH][5][ChainIdType.EVM] = 250;
     // rinkeby
     _chainIdMap[ChainIdType.HOLOGRAPH][4000000001][ChainIdType.EVM] = 4;
+    // goerli
+    _chainIdMap[ChainIdType.HOLOGRAPH][4000000011][ChainIdType.EVM] = 5;
     // bsc testnet
     _chainIdMap[ChainIdType.HOLOGRAPH][4000000002][ChainIdType.EVM] = 97;
     // fuji
@@ -220,6 +224,8 @@ contract Interfaces is Admin, Initializable {
     _chainIdMap[ChainIdType.LAYERZERO][12][ChainIdType.HOLOGRAPH] = 5;
     // rinkeby
     _chainIdMap[ChainIdType.LAYERZERO][10001][ChainIdType.HOLOGRAPH] = 4000000001;
+    // goerli
+    _chainIdMap[ChainIdType.LAYERZERO][10021][ChainIdType.HOLOGRAPH] = 4000000011;
     // bsc testnet
     _chainIdMap[ChainIdType.LAYERZERO][10002][ChainIdType.HOLOGRAPH] = 4000000002;
     // fuji
@@ -254,6 +260,8 @@ contract Interfaces is Admin, Initializable {
     _chainIdMap[ChainIdType.HOLOGRAPH][7][ChainIdType.LAYERZERO] = 11;
     // rinkeby
     _chainIdMap[ChainIdType.HOLOGRAPH][4000000001][ChainIdType.LAYERZERO] = 10001;
+    // goerli
+    _chainIdMap[ChainIdType.HOLOGRAPH][4000000011][ChainIdType.LAYERZERO] = 10021;
     // bsc testnet
     _chainIdMap[ChainIdType.HOLOGRAPH][4000000002][ChainIdType.LAYERZERO] = 10002;
     // fuji

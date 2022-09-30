@@ -25,6 +25,9 @@ const ChainId = {
       // rinkeby
       case 4:
         return 4000000001;
+      // goerli
+      case 5:
+        return 4000000011;
       // bsc testnet
       case 97:
         return 4000000002;
@@ -79,6 +82,9 @@ const ChainId = {
       // rinkeby
       case 4000000001:
         return 4;
+      // goerli
+      case 4000000011:
+        return 5;
       // bsc testnet
       case 4000000002:
         return 97;
@@ -133,6 +139,9 @@ const ChainId = {
       // rinkeby
       case 10001:
         return 4000000001;
+      // goerli
+      case 10021:
+        return 4000000011;
       // bsc testnet
       case 10002:
         return 4000000002;
@@ -187,6 +196,9 @@ const ChainId = {
       // rinkeby
       case 4000000001:
         return 10001;
+      // goerli
+      case 4000000011:
+        return 10021;
       // bsc testnet
       case 4000000002:
         return 10002;
@@ -214,12 +226,6 @@ const ChainId = {
       default:
         return 0;
     }
-  },
-  syn2hlg: function (synChainId: number): number {
-    return 0;
-  },
-  hlg2syn: function (hlgChainId: number): number {
-    return 0;
   },
 };
 
