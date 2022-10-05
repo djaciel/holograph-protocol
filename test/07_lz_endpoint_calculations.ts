@@ -45,7 +45,7 @@
 //  HolographRegistry,
 //  HolographRegistryProxy,
 //  HToken,
-//  Interfaces,
+//  HolographInterfaces,
 //  MockERC721Receiver,
 //  Owner,
 //  PA1D,

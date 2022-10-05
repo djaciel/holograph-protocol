@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@holographxyz/hardhat-deploy-holographed": "^0.0.3",
-    "@holographxyz/hardhat-holograph-contract-builder": "https://github.com/holographxyz/hardhat-holograph-contract-builder.git",
+    "@holographxyz/hardhat-holograph-contract-builder": "^0.0.3",
     "chai-ethers": "^0.0.1",
     "ganache": "^7.2.0",
     "path": "^0.12.7",

@@ -39,10 +39,6 @@
     "inputs": [
       {
         "internalType": "uint256",
-<<<<<<< HEAD:abi/develop/HolographBridge.json
-        "name": "",
-        "type": "uint256"
-=======
         "name": "nonce",
         "type": "uint256"
       },
@@ -135,8 +131,20 @@
         "internalType": "struct Verification",
         "name": "signature",
         "type": "tuple"
->>>>>>> develop:abi/HolographBridge.json
       },
+      {
+        "internalType": "address",
+        "name": "signer",
+        "type": "address"
+      }
+    ],
+    "name": "deployOut",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
       {
         "internalType": "uint32",
         "name": "fromChain",
@@ -144,22 +152,22 @@
       },
       {
         "internalType": "address",
-        "name": "holographableContract",
+        "name": "token",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "hToken",
+        "name": "from",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "hTokenRecipient",
+        "name": "to",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "hTokenValue",
+        "name": "amount",
         "type": "uint256"
       },
       {
@@ -168,7 +176,7 @@
         "type": "bytes"
       }
     ],
-    "name": "bridgeInRequest",
+    "name": "erc20in",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -225,17 +233,55 @@
       },
       {
         "internalType": "address",
-        "name": "holographableContract",
+        "name": "token",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
         "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "gasLimit",
+        "name": "amount",
         "type": "uint256"
+      }
+    ],
+    "name": "erc20out",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "fromChain",
+        "type": "uint32"
+      },
+      {
+        "internalType": "address",
+        "name": "collection",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
       },
       {
         "internalType": "uint256",
-        "name": "gasPrice",
+        "name": "tokenId",
         "type": "uint256"
       },
       {
@@ -244,22 +290,9 @@
         "type": "bytes"
       }
     ],
-    "name": "bridgeOutRequest",
+    "name": "erc721in",
     "outputs": [],
-    "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getAdmin",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "adminAddress",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -314,21 +347,51 @@
       },
       {
         "internalType": "address",
-        "name": "holographableContract",
+        "name": "collection",
         "type": "address"
       },
       {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      }
+    ],
+    "name": "erc721out",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "bytes",
-        "name": "data",
+        "name": "_payload",
         "type": "bytes"
       }
     ],
-    "name": "getBridgeOutRequestPayload",
+    "name": "executeJob",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getAdmin",
     "outputs": [
       {
-        "internalType": "bytes",
-        "name": "samplePayload",
-        "type": "bytes"
+        "internalType": "address",
+        "name": "adminAddress",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -368,19 +431,6 @@
         "internalType": "address",
         "name": "interfaces",
         "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getJobNonce",
-    "outputs": [
-      {
-        "internalType": "uint256",
-        "name": "jobNonce",
-        "type": "uint256"
       }
     ],
     "stateMutability": "view",

@@ -54,19 +54,6 @@
   },
   {
     "inputs": [],
-    "name": "getDeploymentBlock",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "holograph",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "getHolograph",
     "outputs": [
       {

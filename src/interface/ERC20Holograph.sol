@@ -9,7 +9,7 @@ import "./ERC20Permit.sol";
 import "./ERC20Receiver.sol";
 import "./ERC20Safer.sol";
 import "./ERC165.sol";
-import "./HolographableEnforcer.sol";
+import "./Holographable.sol";
 
 interface ERC20Holograph is
   ERC165,
@@ -19,7 +19,7 @@ interface ERC20Holograph is
   ERC20Receiver,
   ERC20Safer,
   ERC20Permit,
-  HolographableEnforcer
+  Holographable
 {
   function holographBridgeMint(address to, uint256 amount) external returns (bytes4);
 

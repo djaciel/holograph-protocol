@@ -1,133 +1,35 @@
-// SPDX-License-Identifier: UNLICENSED
-/*
+/*HOLOGRAPH_LICENSE_HEADER*/
 
-                         ┌───────────┐
-                         │ HOLOGRAPH │
-                         └───────────┘
-╔═════════════════════════════════════════════════════════════╗
-║                                                             ║
-║                            / ^ \                            ║
-║                            ~~*~~            ¸               ║
-║                         [ '<>:<>' ]         │░░░            ║
-║               ╔╗           _/"\_           ╔╣               ║
-║             ┌─╬╬─┐          """          ┌─╬╬─┐             ║
-║          ┌─┬┘ ╠╣ └┬─┐       \_/       ┌─┬┘ ╠╣ └┬─┐          ║
-║       ┌─┬┘ │  ╠╣  │ └┬─┐           ┌─┬┘ │  ╠╣  │ └┬─┐       ║
-║    ┌─┬┘ │  │  ╠╣  │  │ └┬─┐     ┌─┬┘ │  │  ╠╣  │  │ └┬─┐    ║
-║ ┌─┬┘ │  │  │  ╠╣  │  │  │ └┬┐ ┌┬┘ │  │  │  ╠╣  │  │  │ └┬─┐ ║
-╠┬┘ │  │  │  │  ╠╣  │  │  │  │└¤┘│  │  │  │  ╠╣  │  │  │  │ └┬╣
-║│  │  │  │  │  ╠╣  │  │  │  │   │  │  │  │  ╠╣  │  │  │  │  │║
-╠╩══╩══╩══╩══╩══╬╬══╩══╩══╩══╩═══╩══╩══╩══╩══╬╬══╩══╩══╩══╩══╩╣
-╠┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╣
-║               ╠╣                           ╠╣               ║
-║               ╠╣                           ╠╣               ║
-║    ,          ╠╣     ,        ,'      *    ╠╣               ║
-║~~~~~^~~~~~~~~┌╬╬┐~~~^~~~~~~~~^^~~~~~~~~^~~┌╬╬┐~~~~~~~^~~~~~~║
-╚══════════════╩╩╩╩═════════════════════════╩╩╩╩══════════════╝
-     - one protocol, one bridge = infinite possibilities -
+/*SOLIDITY_COMPILER_VERSION*/
 
+import "../abstract/Admin.sol";
+import "../abstract/EIP712.sol";
+import "../abstract/Initializable.sol";
+import "../abstract/NonReentrant.sol";
+import "../abstract/Owner.sol";
 
- ***************************************************************
+import "../enum/HolographERC20Event.sol";
+import "../enum/InterfaceType.sol";
 
- DISCLAIMER: U.S Patent Pending
+import "../interface/ERC20.sol";
+import "../interface/ERC20Burnable.sol";
+import "../interface/ERC20Holograph.sol";
+import "../interface/ERC20Metadata.sol";
+import "../interface/ERC20Permit.sol";
+import "../interface/ERC20Receiver.sol";
+import "../interface/ERC20Safer.sol";
+import "../interface/ERC165.sol";
+import "../interface/Holographable.sol";
+import "../interface/HolographedERC20.sol";
+import "../interface/IHolograph.sol";
+import "../interface/IHolographer.sol";
+import "../interface/IHolographRegistry.sol";
+import "../interface/IInitializable.sol";
+import "../interface/IHolographInterfaces.sol";
+import "../interface/Ownable.sol";
 
- LICENSE: Holograph Limited Public License (H-LPL)
-
- https://holograph.xyz/licenses/h-lpl/1.0.0
-
- This license governs use of the accompanying software. If you
- use the software, you accept this license. If you do not accept
- the license, you are not permitted to use the software.
-
- 1. Definitions
-
- The terms "reproduce," "reproduction," "derivative works," and
- "distribution" have the same meaning here as under U.S.
- copyright law. A "contribution" is the original software, or
- any additions or changes to the software. A "contributor" is
- any person that distributes its contribution under this
- license. "Licensed patents" are a contributor’s patent claims
- that read directly on its contribution.
-
- 2. Grant of Rights
-
- A) Copyright Grant- Subject to the terms of this license,
- including the license conditions and limitations in sections 3
- and 4, each contributor grants you a non-exclusive, worldwide,
- royalty-free copyright license to reproduce its contribution,
- prepare derivative works of its contribution, and distribute
- its contribution or any derivative works that you create.
- B) Patent Grant- Subject to the terms of this license,
- including the license conditions and limitations in section 3,
- each contributor grants you a non-exclusive, worldwide,
- royalty-free license under its licensed patents to make, have
- made, use, sell, offer for sale, import, and/or otherwise
- dispose of its contribution in the software or derivative works
- of the contribution in the software.
-
- 3. Conditions and Limitations
-
- A) No Trademark License- This license does not grant you rights
- to use any contributors’ name, logo, or trademarks.
- B) If you bring a patent claim against any contributor over
- patents that you claim are infringed by the software, your
- patent license from such contributor is terminated with
- immediate effect.
- C) If you distribute any portion of the software, you must
- retain all copyright, patent, trademark, and attribution
- notices that are present in the software.
- D) If you distribute any portion of the software in source code
- form, you may do so only under this license by including a
- complete copy of this license with your distribution. If you
- distribute any portion of the software in compiled or object
- code form, you may only do so under a license that complies
- with this license.
- E) The software is licensed “as-is.” You bear all risks of
- using it. The contributors give no express warranties,
- guarantees, or conditions. You may have additional consumer
- rights under your local laws which this license cannot change.
- To the extent permitted under your local laws, the contributors
- exclude all implied warranties, including those of
- merchantability, fitness for a particular purpose and
- non-infringement.
-
- 4. (F) Platform Limitation- The licenses granted in sections
- 2.A & 2.B extend only to the software or derivative works that
- you create that run on a Holograph system product.
-
- ***************************************************************
-
-*/
-
-pragma solidity 0.8.13;
-
-import "./abstract/Admin.sol";
-import "./abstract/EIP712.sol";
-import "./abstract/Initializable.sol";
-import "./abstract/NonReentrant.sol";
-import "./abstract/Owner.sol";
-
-import "./enum/HolographERC20Event.sol";
-import "./enum/InterfaceType.sol";
-
-import "./interface/ERC20.sol";
-import "./interface/ERC20Burnable.sol";
-import "./interface/ERC20Holograph.sol";
-import "./interface/ERC20Metadata.sol";
-import "./interface/ERC20Permit.sol";
-import "./interface/ERC20Receiver.sol";
-import "./interface/ERC20Safer.sol";
-import "./interface/ERC165.sol";
-import "./interface/HolographedERC20.sol";
-import "./interface/IHolograph.sol";
-import "./interface/IHolographer.sol";
-import "./interface/IHolographRegistry.sol";
-import "./interface/IInitializable.sol";
-import "./interface/IInterfaces.sol";
-import "./interface/Ownable.sol";
-
-import "./library/Counters.sol";
-import "./library/ECDSA.sol";
+import "../library/Counters.sol";
+import "../library/ECDSA.sol";
 
 /**
  * @title Holograph Bridgeable ERC-20 Token
@@ -136,8 +38,8 @@ import "./library/ECDSA.sol";
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
 contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ERC20Holograph {
-  bytes32 constant _holographSlot = 0xb4107f746e9496e8452accc7de63d1c5e14c19f510932daa04077cd49e8bd77a;
-  bytes32 constant _sourceContractSlot = 0x27d542086d1e831d40b749e7f5509a626c3047a36d160781c40d5acc83e5b074;
+  bytes32 constant _holographSlot = precomputeslot("eip1967.Holograph.holograph");
+  bytes32 constant _sourceContractSlot = precomputeslot("eip1967.Holograph.sourceContract");
 
   using Counters for Counters.Counter;
 
@@ -275,7 +177,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
    * This makes it easier for external smart contracts to easily identify a valid ERC20 token contract.
    */
   function supportsInterface(bytes4 interfaceId) external view returns (bool) {
-    IInterfaces interfaces = IInterfaces(_interfaces());
+    IHolographInterfaces interfaces = IHolographInterfaces(_interfaces());
     ERC165 erc165Contract;
     assembly {
       erc165Contract := sload(_sourceContractSlot)
@@ -381,7 +283,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     if (_isEventRegistered(HolographERC20Event.bridgeIn)) {
       require(SourceERC20().bridgeIn(fromChain, from, to, amount, data), "HOLOGRAPH: bridge in failed");
     }
-    return HolographableEnforcer.bridgeIn.selector;
+    return Holographable.bridgeIn.selector;
   }
 
   function bridgeOut(
@@ -401,7 +303,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
       data = SourceERC20().bridgeOut(toChain, from, to, amount);
     }
     _burn(from, amount);
-    return (HolographableEnforcer.bridgeOut.selector, abi.encode(from, to, amount, data));
+    return (Holographable.bridgeOut.selector, abi.encode(from, to, amount, data));
   }
 
   /**
@@ -464,7 +366,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     require(block.timestamp <= deadline, "ERC20: expired deadline");
     bytes32 structHash = keccak256(
       abi.encode(
-        0x6e71edae12b1b97f4d1f60370fef10105fa2faae0126114a169c64845d6126c9,
+        precomputekeccak256("Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"),
         account,
         spender,
         amount,
@@ -710,7 +612,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, ER
     assembly {
       codehash := extcodehash(contractAddress)
     }
-    return (codehash != 0x0 && codehash != 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470);
+    return (codehash != 0x0 && codehash != precomputekeccak256(""));
   }
 
   /**

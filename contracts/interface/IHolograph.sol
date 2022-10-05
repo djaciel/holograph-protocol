@@ -102,15 +102,39 @@
 pragma solidity 0.8.13;
 
 interface IHolograph {
-  function getChainType() external view returns (uint32 chainType);
+  function getBridge() external view returns (address bridge);
 
-  function getBridge() external view returns (address bridgeAddress);
+  function setBridge(address bridge) external;
 
-  function getFactory() external view returns (address factoryAddress);
+  function getChainId() external view returns (uint256 chainId);
 
-  function getInterfaces() external view returns (address interfacesAddress);
+  function setChainId(uint256 chainId) external;
 
-  function getOperator() external view returns (address operatorAddress);
+  function getFactory() external view returns (address factory);
 
-  function getRegistry() external view returns (address registryAddress);
+  function setFactory(address factory) external;
+
+  function getHolographChainId() external view returns (uint32 holographChainId);
+
+  function setHolographChainId(uint32 holographChainId) external;
+
+  function getInterfaces() external view returns (address interfaces);
+
+  function setInterfaces(address interfaces) external;
+
+  function getOperator() external view returns (address operator);
+
+  function setOperator(address operator) external;
+
+  function getRegistry() external view returns (address registry);
+
+  function setRegistry(address registry) external;
+
+  function getTreasury() external view returns (address treasury);
+
+  function setTreasury(address treasury) external;
+
+  function getUtilityToken() external view returns (address utilityToken);
+
+  function setUtilityToken(address utilityToken) external;
 }

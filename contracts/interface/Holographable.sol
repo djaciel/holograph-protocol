@@ -101,7 +101,7 @@
 
 pragma solidity 0.8.13;
 
-interface HolographableEnforcer {
+interface Holographable {
   function bridgeIn(uint32 fromChain, bytes calldata payload) external returns (bytes4);
 
   function bridgeOut(

@@ -5,7 +5,7 @@
     "outputs": [
       {
         "internalType": "address",
-        "name": "bridgeAddress",
+        "name": "bridge",
         "type": "address"
       }
     ],
@@ -14,12 +14,12 @@
   },
   {
     "inputs": [],
-    "name": "getChainType",
+    "name": "getChainId",
     "outputs": [
       {
-        "internalType": "uint32",
-        "name": "chainType",
-        "type": "uint32"
+        "internalType": "uint256",
+        "name": "chainId",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -31,8 +31,21 @@
     "outputs": [
       {
         "internalType": "address",
-        "name": "factoryAddress",
+        "name": "factory",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getHolographChainId",
+    "outputs": [
+      {
+        "internalType": "uint32",
+        "name": "holographChainId",
+        "type": "uint32"
       }
     ],
     "stateMutability": "view",
@@ -44,7 +57,7 @@
     "outputs": [
       {
         "internalType": "address",
-        "name": "interfacesAddress",
+        "name": "interfaces",
         "type": "address"
       }
     ],
@@ -57,7 +70,7 @@
     "outputs": [
       {
         "internalType": "address",
-        "name": "operatorAddress",
+        "name": "operator",
         "type": "address"
       }
     ],
@@ -70,11 +83,154 @@
     "outputs": [
       {
         "internalType": "address",
-        "name": "registryAddress",
+        "name": "registry",
         "type": "address"
       }
     ],
     "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getTreasury",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "treasury",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getUtilityToken",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "utilityToken",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "bridge",
+        "type": "address"
+      }
+    ],
+    "name": "setBridge",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "chainId",
+        "type": "uint256"
+      }
+    ],
+    "name": "setChainId",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "factory",
+        "type": "address"
+      }
+    ],
+    "name": "setFactory",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint32",
+        "name": "holographChainId",
+        "type": "uint32"
+      }
+    ],
+    "name": "setHolographChainId",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "interfaces",
+        "type": "address"
+      }
+    ],
+    "name": "setInterfaces",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "operator",
+        "type": "address"
+      }
+    ],
+    "name": "setOperator",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "registry",
+        "type": "address"
+      }
+    ],
+    "name": "setRegistry",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "treasury",
+        "type": "address"
+      }
+    ],
+    "name": "setTreasury",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "utilityToken",
+        "type": "address"
+      }
+    ],
+    "name": "setUtilityToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
     "type": "function"
   }
 ]

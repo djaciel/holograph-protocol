@@ -2,27 +2,27 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-import "./abstract/Admin.sol";
-import "./abstract/Initializable.sol";
-import "./abstract/Owner.sol";
+import "../abstract/Admin.sol";
+import "../abstract/Initializable.sol";
+import "../abstract/Owner.sol";
 
-import "./enum/HolographERC721Event.sol";
-import "./enum/InterfaceType.sol";
+import "../enum/HolographERC721Event.sol";
+import "../enum/InterfaceType.sol";
 
-import "./interface/ERC165.sol";
-import "./interface/ERC721.sol";
-import "./interface/ERC721Holograph.sol";
-import "./interface/ERC721Metadata.sol";
-import "./interface/ERC721TokenReceiver.sol";
-import "./interface/HolographableEnforcer.sol";
-import "./interface/HolographedERC721.sol";
-import "./interface/IHolograph.sol";
-import "./interface/IHolographer.sol";
-import "./interface/IHolographRegistry.sol";
-import "./interface/IInitializable.sol";
-import "./interface/IInterfaces.sol";
-import "./interface/IPA1D.sol";
-import "./interface/Ownable.sol";
+import "../interface/ERC165.sol";
+import "../interface/ERC721.sol";
+import "../interface/ERC721Holograph.sol";
+import "../interface/ERC721Metadata.sol";
+import "../interface/ERC721TokenReceiver.sol";
+import "../interface/Holographable.sol";
+import "../interface/HolographedERC721.sol";
+import "../interface/IHolograph.sol";
+import "../interface/IHolographer.sol";
+import "../interface/IHolographRegistry.sol";
+import "../interface/IInitializable.sol";
+import "../interface/IHolographInterfaces.sol";
+import "../interface/IPA1D.sol";
+import "../interface/Ownable.sol";
 
 /**
  * @title Holograph Bridgeable ERC-721 Collection
@@ -131,7 +131,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    * @return string The URI.
    */
   function contractURI() external view returns (string memory) {
-    return IInterfaces(_interfaces()).contractURI(_name, "", "", _bps, address(this));
+    return IHolographInterfaces(_interfaces()).contractURI(_name, "", "", _bps, address(this));
   }
 
   /**
@@ -149,7 +149,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
    * @return bool True if supported.
    */
   function supportsInterface(bytes4 interfaceId) external view returns (bool) {
-    IInterfaces interfaces = IInterfaces(_interfaces());
+    IHolographInterfaces interfaces = IHolographInterfaces(_interfaces());
     ERC165 erc165Contract;
     assembly {
       erc165Contract := sload(_sourceContractSlot)
@@ -266,7 +266,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
     if (_isEventRegistered(HolographERC721Event.bridgeIn)) {
       require(SourceERC721().bridgeIn(fromChain, from, to, tokenId, data), "HOLOGRAPH: bridge in failed");
     }
-    return HolographableEnforcer.bridgeIn.selector;
+    return Holographable.bridgeIn.selector;
   }
 
   function bridgeOut(
@@ -282,7 +282,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
       data = SourceERC721().bridgeOut(toChain, from, to, tokenId);
     }
     _burn(from, tokenId);
-    return (HolographableEnforcer.bridgeOut.selector, abi.encode(from, to, tokenId, data));
+    return (Holographable.bridgeOut.selector, abi.encode(from, to, tokenId, data));
   }
 
   /**
@@ -771,7 +771,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
   }
 
   function _chain() private view returns (uint32) {
-    uint32 currentChain = IHolograph(IHolographer(payable(address(this))).getHolograph()).getChainType();
+    uint32 currentChain = IHolograph(IHolographer(payable(address(this))).getHolograph()).getHolographChainId();
     if (currentChain != IHolographer(payable(address(this))).getOriginChain()) {
       return currentChain;
     }
@@ -862,7 +862,7 @@ contract HolographERC721 is Admin, Owner, ERC721Holograph, Initializable {
   fallback() external payable {
     // we check if royalties support the function, send there, otherwise revert to source
     address _target;
-    if (IInterfaces(_interfaces()).supportsInterface(InterfaceType.PA1D, msg.sig)) {
+    if (IHolographInterfaces(_interfaces()).supportsInterface(InterfaceType.PA1D, msg.sig)) {
       _target = _royalties();
       assembly {
         calldatacopy(0, 0, calldatasize())

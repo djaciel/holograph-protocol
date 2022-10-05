@@ -8,12 +8,10 @@ import "./abstract/Initializable.sol";
 import "./enum/ChainIdType.sol";
 
 import "./interface/ERC20Holograph.sol";
-import "./interface/IHolograph.sol";
-import "./interface/IHolographBridge.sol";
 import "./interface/IHolographOperator.sol";
 import "./interface/IHolographRegistry.sol";
 import "./interface/IInitializable.sol";
-import "./interface/IInterfaces.sol";
+import "./interface/IHolographInterfaces.sol";
 import "./interface/ILayerZeroEndpoint.sol";
 import "./interface/Ownable.sol";
 
@@ -24,12 +22,11 @@ import "./struct/OperatorJob.sol";
  */
 contract HolographOperator is Admin, Initializable, IHolographOperator {
   bytes32 constant _bridgeSlot = precomputeslot("eip1967.Holograph.bridge");
-  bytes32 constant _deadAddressSlot = precomputeslot("eip1967.Holograph.deadAddress");
-  bytes32 constant _holographSlot = precomputeslot("eip1967.Holograph.holograph");
   bytes32 constant _interfacesSlot = precomputeslot("eip1967.Holograph.interfaces");
   bytes32 constant _jobNonceSlot = precomputeslot("eip1967.Holograph.jobNonce");
   bytes32 constant _lZEndpointSlot = precomputeslot("eip1967.Holograph.lZEndpoint");
   bytes32 constant _registrySlot = precomputeslot("eip1967.Holograph.registry");
+  bytes32 constant _utilityTokenSlot = precomputeslot("eip1967.Holograph.utilityToken");
 
   /**
    * @dev Internal number (in seconds), used for defining a window for operator to execute the job.
@@ -87,20 +84,23 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
   mapping(address => uint256) private _bondedOperators;
 
   /**
+   * @dev Internal mapping of bonded operators, to prevent double bonding.
+   */
+  mapping(address => uint256) private _operatorPodIndex;
+
+  /**
    * @dev Internal mapping of bonded operator amounts.
    */
   mapping(address => uint256) private _bondedAmounts;
-
-  /**
-   * @dev Event is emitted for every time that a valid job is available.
-   */
-  event AvailableOperatorJob(bytes32 jobHash, bytes payload);
 
   modifier onlyBridge() {
     require(msg.sender == _bridge(), "HOLOGRAPH: bridge only call");
     _;
   }
 
+  /**
+   * @dev Allow calls only from LayerZero endpoint contract.
+   */
   modifier onlyLZ() {
     assembly {
       // check if lzEndpoint
@@ -121,24 +121,27 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
   }
 
   /**
-   * @dev Constructor is left empty and only the admin address is set.
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract.
    */
   constructor() {}
 
+  /**
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract.
+   */
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
-    (address bridge, address holograph, address interfaces, address registry) = abi.decode(
+    (address bridge, address interfaces, address registry, address utilityToken) = abi.decode(
       data,
       (address, address, address, address)
     );
     assembly {
-      // sstore(_deadAddressSlot, 0x000000000000000000000000000000000000000000000000000000000000dead)
       sstore(_adminSlot, origin())
-
       sstore(_bridgeSlot, bridge)
-      sstore(_holographSlot, holograph)
       sstore(_interfacesSlot, interfaces)
       sstore(_registrySlot, registry)
+      sstore(_utilityTokenSlot, utilityToken)
     }
     _blockTime = 10; // 10 blocks allowed for execution
     unchecked {
@@ -195,7 +198,9 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
       // decrease pod size to accomodate popped operator
       _operatorTempStorage[_operatorTempStorageCounter] = _operatorPods[pod][operatorIndex];
       _popOperator(pod, operatorIndex);
-      podSize--;
+      if (podSize > 1) {
+        podSize--;
+      }
       _operatorJobs[jobHash] = uint256(
         ((pod + 1) << 248) |
           (uint256(_operatorTempStorageCounter) << 216) |
@@ -258,6 +263,7 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
         if (currentBondAmount >= _bondedAmounts[job.operator]) {
           // if enough bond amount leftover, put operator back in
           _operatorPods[pod].push(job.operator);
+          _operatorPodIndex[job.operator] = _operatorPods[pod].length - 1;
           _bondedOperators[job.operator] = job.pod;
         } else {
           // return rest of bond amount to operator
@@ -268,6 +274,7 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
       } else {
         // put operator back in
         _operatorPods[pod].push(msg.sender);
+        _operatorPodIndex[job.operator] = _operatorPods[pod].length - 1;
         _bondedOperators[msg.sender] = job.pod;
       }
     }
@@ -289,21 +296,19 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
     delete _operatorJobs[hash];
   }
 
-  function jobEstimator(bytes calldata _payload) external payable {
+  function jobEstimator(bytes calldata _payload) external payable returns (uint256) {
     assembly {
-      switch eq(sload(_deadAddressSlot), caller())
-      case 0 {
-        mstore(0x80, 0x08c379a000000000000000000000000000000000000000000000000000000000)
-        mstore(0xa0, 0x0000002000000000000000000000000000000000000000000000000000000000)
-        mstore(0xc0, 0x000000484f4c4f47524150483a2074657374206f6e6c792063616c6c00000000)
-        mstore(0xe0, 0x0000000000000000000000000000000000000000000000000000000000000000)
-        revert(0x80, 0xc4)
-      }
+      calldatacopy(0, _payload.offset, sub(_payload.length, 0x40))
+      // we purposefully trigger a revert to be made
+      mstore8(0xE3, 0x00)
       let result := call(gas(), sload(_bridgeSlot), callvalue(), 0, sub(_payload.length, 0x40), 0, 0)
-      if eq(result, 0) {
+      // we purposefully revert if for some reason the call went through still
+      if eq(result, 1) {
         returndatacopy(0, 0, returndatasize())
         revert(0, returndatasize())
       }
+      mstore(0x00, gas())
+      return(0x00, 0x20)
     }
   }
 
@@ -330,127 +335,6 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
       address(this),
       abi.encodePacked(uint16(1), uint256(52000 + (_payload.length * 25)))
     );
-  }
-
-  /**
-   * @dev Internal nonce used for randomness.
-   *      We increment it on each return.
-   */
-  function _jobNonce() private returns (uint256 jobNonce) {
-    assembly {
-      jobNonce := add(sload(_jobNonceSlot), 0x0000000000000000000000000000000000000000000000000000000000000001)
-      sstore(_jobNonceSlot, jobNonce)
-    }
-  }
-
-  function _popOperator(uint256 pod, uint256 operatorIndex) private {
-    if (operatorIndex > 0) {
-      unchecked {
-        address operator = _operatorPods[pod][operatorIndex];
-        // remove operator pod reference
-        _bondedOperators[operator] = 0;
-        uint256 lastIndex = _operatorPods[pod].length - 1;
-        if (lastIndex != operatorIndex) {
-          _operatorPods[pod][operatorIndex] = _operatorPods[pod][lastIndex];
-        }
-        delete _operatorPods[pod][lastIndex];
-        _operatorPods[pod].pop();
-      }
-    }
-  }
-
-  function _bridge() private view returns (address bridge) {
-    assembly {
-      bridge := sload(_bridgeSlot)
-    }
-  }
-
-  function _holograph() private view returns (address holograph) {
-    assembly {
-      holograph := sload(_holographSlot)
-    }
-  }
-
-  function _interfaces() private view returns (IInterfaces interfaces) {
-    assembly {
-      interfaces := sload(_interfacesSlot)
-    }
-  }
-
-  function _registry() private view returns (address registry) {
-    assembly {
-      registry := sload(_registrySlot)
-    }
-  }
-
-  function _RBH(
-    uint256 random,
-    uint256 podSize,
-    uint256 n
-  ) private view returns (uint256) {
-    unchecked {
-      return (random + uint256(blockhash(block.number - n))) % podSize;
-    }
-  }
-
-  function getLZEndpoint() external view returns (address lZEndpoint) {
-    assembly {
-      lZEndpoint := sload(_lZEndpointSlot)
-    }
-  }
-
-  function setLZEndpoint(address lZEndpoint) external onlyAdmin {
-    assembly {
-      sstore(_lZEndpointSlot, lZEndpoint)
-    }
-  }
-
-  function getBridge() external view returns (address bridge) {
-    assembly {
-      bridge := sload(_bridgeSlot)
-    }
-  }
-
-  function setBridge(address bridge) external onlyAdmin {
-    assembly {
-      sstore(_bridgeSlot, bridge)
-    }
-  }
-
-  function getHolograph() external view returns (address holograph) {
-    assembly {
-      holograph := sload(_holographSlot)
-    }
-  }
-
-  function setHolograph(address holograph) external onlyAdmin {
-    assembly {
-      sstore(_holographSlot, holograph)
-    }
-  }
-
-  function getInterfaces() external view returns (address interfaces) {
-    assembly {
-      interfaces := sload(_interfacesSlot)
-    }
-  }
-
-  function setInterfaces(address interfaces) external onlyAdmin {
-    assembly {
-      sstore(_interfacesSlot, interfaces)
-    }
-  }
-
-  function getRegistry() external view returns (address registry) {
-    assembly {
-      registry := sload(_registrySlot)
-    }
-  }
-
-  function setRegistry(address registry) external onlyAdmin {
-    assembly {
-      sstore(_registrySlot, registry)
-    }
   }
 
   function getJobDetails(bytes32 jobHash) public view returns (OperatorJob memory) {
@@ -496,6 +380,170 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
     }
   }
 
+  function getPodBondAmount(uint256 pod) external view returns (uint256 base, uint256 current) {
+    base = _getBaseBondAmount(pod - 1);
+    current = _getCurrentBondAmount(pod - 1);
+  }
+
+  function getBondedPod(address operator) external view returns (uint256 pod) {
+    return _bondedOperators[operator];
+  }
+
+  // add top-up option
+
+  function bondUtilityToken(
+    address operator,
+    uint256 amount,
+    uint256 pod
+  ) external {
+    require(_bondedOperators[operator] == 0, "HOLOGRAPH: operator is bonded");
+    unchecked {
+      uint256 current = _getCurrentBondAmount(pod - 1);
+      require(current <= amount, "HOLOGRAPH: bond amount too small");
+      // subtract difference and only keep bond amount
+      if (_operatorPods.length < pod) {
+        for (uint256 i = _operatorPods.length; i <= pod; i++) {
+          _operatorPods.push([address(0)]);
+        }
+      }
+      require(_operatorPods[pod - 1].length < type(uint16).max, "HOLOGRAPH: too many operators");
+      // we extract utility token amount from msg sender
+      require(_utilityToken().transferFrom(msg.sender, address(this), amount), "HOLOGRAPH: token transfer failed");
+      _operatorPods[pod - 1].push(operator);
+      _operatorPodIndex[operator] = _operatorPods[pod - 1].length - 1;
+      _bondedOperators[operator] = pod;
+      _bondedAmounts[operator] = amount;
+    }
+  }
+
+  function unbondUtilityToken(address operator, address recipient) external {
+    require(_bondedOperators[operator] != 0, "HOLOGRAPH: operator not bonded");
+    if (msg.sender != operator) {
+      require(_isContract(operator), "HOLOGRAPH: operator not contract");
+      // check that operator is ownable contract
+      require(Ownable(operator).isOwner(msg.sender), "HOLOGRAPH: sender not owner");
+    }
+    uint256 amount = _bondedAmounts[operator];
+    // here we subtract our fee for unbonding
+    require(_utilityToken().transfer(recipient, amount), "HOLOGRAPH: token transfer failed");
+    //// we need to track operator pod index for easy removal
+    _popOperator(_bondedOperators[operator] - 1, _operatorPodIndex[operator]);
+    _bondedOperators[operator] = 0;
+    _bondedAmounts[operator] = 0;
+  }
+
+  function getLZEndpoint() external view returns (address lZEndpoint) {
+    assembly {
+      lZEndpoint := sload(_lZEndpointSlot)
+    }
+  }
+
+  function setLZEndpoint(address lZEndpoint) external onlyAdmin {
+    assembly {
+      sstore(_lZEndpointSlot, lZEndpoint)
+    }
+  }
+
+  function getBridge() external view returns (address bridge) {
+    assembly {
+      bridge := sload(_bridgeSlot)
+    }
+  }
+
+  function setBridge(address bridge) external onlyAdmin {
+    assembly {
+      sstore(_bridgeSlot, bridge)
+    }
+  }
+
+  function getInterfaces() external view returns (address interfaces) {
+    assembly {
+      interfaces := sload(_interfacesSlot)
+    }
+  }
+
+  function setInterfaces(address interfaces) external onlyAdmin {
+    assembly {
+      sstore(_interfacesSlot, interfaces)
+    }
+  }
+
+  function getRegistry() external view returns (address registry) {
+    assembly {
+      registry := sload(_registrySlot)
+    }
+  }
+
+  function setRegistry(address registry) external onlyAdmin {
+    assembly {
+      sstore(_registrySlot, registry)
+    }
+  }
+
+  function getUtilityToken() external view returns (address utilityToken) {
+    assembly {
+      utilityToken := sload(_utilityTokenSlot)
+    }
+  }
+
+  function setUtilityToken(address utilityToken) external onlyAdmin {
+    assembly {
+      sstore(_utilityTokenSlot, utilityToken)
+    }
+  }
+
+  function _bridge() private view returns (address bridge) {
+    assembly {
+      bridge := sload(_bridgeSlot)
+    }
+  }
+
+  function _interfaces() private view returns (IHolographInterfaces interfaces) {
+    assembly {
+      interfaces := sload(_interfacesSlot)
+    }
+  }
+
+  function _registry() private view returns (address registry) {
+    assembly {
+      registry := sload(_registrySlot)
+    }
+  }
+
+  function _utilityToken() private view returns (ERC20Holograph utilityToken) {
+    assembly {
+      utilityToken := sload(_utilityTokenSlot)
+    }
+  }
+
+  /**
+   * @dev Internal nonce used for randomness.
+   *      We increment it on each return.
+   */
+  function _jobNonce() private returns (uint256 jobNonce) {
+    assembly {
+      jobNonce := add(sload(_jobNonceSlot), 0x0000000000000000000000000000000000000000000000000000000000000001)
+      sstore(_jobNonceSlot, jobNonce)
+    }
+  }
+
+  function _popOperator(uint256 pod, uint256 operatorIndex) private {
+    if (operatorIndex > 0) {
+      unchecked {
+        address operator = _operatorPods[pod][operatorIndex];
+        // remove operator pod reference
+        _bondedOperators[operator] = 0;
+        _operatorPodIndex[operator] = 0;
+        uint256 lastIndex = _operatorPods[pod].length - 1;
+        if (lastIndex != operatorIndex) {
+          _operatorPods[pod][operatorIndex] = _operatorPods[pod][lastIndex];
+        }
+        delete _operatorPods[pod][lastIndex];
+        _operatorPods[pod].pop();
+      }
+    }
+  }
+
   function _getBaseBondAmount(uint256 pod) private view returns (uint256) {
     return (_podMultiplier**pod) * _baseBondAmount;
   }
@@ -515,59 +563,13 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
     return current;
   }
 
-  function getPodBondAmount(uint256 pod) external view returns (uint256 base, uint256 current) {
-    base = _getBaseBondAmount(pod - 1);
-    current = _getCurrentBondAmount(pod - 1);
-  }
-
-  function getBondedPod(address operator) external view returns (uint256 pod) {
-    return _bondedOperators[operator];
-  }
-
-  // add top-up option
-
-  function unbondUtilityToken(address operator, address recipient) external {
-    require(_bondedOperators[operator] != 0, "HOLOGRAPH: operator not bonded");
-    if (msg.sender != operator) {
-      require(_isContract(operator), "HOLOGRAPH: operator not contract");
-      // check that operator is ownable contract
-      require(Ownable(operator).isOwner(msg.sender), "HOLOGRAPH: sender not owner");
-    }
-    address utilityToken = IHolographRegistry(_registry()).getUtilityToken();
-    uint256 amount = _bondedAmounts[operator];
-    // here we subtract our fee for unbonding
-    require(ERC20Holograph(utilityToken).transfer(recipient, amount), "HOLOGRAPH: token transfer failed");
-    //// we need to track operator pod index for easy removal
-    // _popOperator(_bondedOperators[operator] - 1, operatorPodIndex);
-    _bondedOperators[operator] = 0;
-    _bondedAmounts[operator] = 0;
-  }
-
-  function bondUtilityToken(
-    address operator,
-    uint256 amount,
-    uint256 pod
-  ) external {
-    require(_bondedOperators[operator] == 0, "HOLOGRAPH: operator is bonded");
+  function _RBH(
+    uint256 random,
+    uint256 podSize,
+    uint256 n
+  ) private view returns (uint256) {
     unchecked {
-      uint256 current = _getCurrentBondAmount(pod);
-      require(current <= amount, "HOLOGRAPH: bond amount too small");
-      // subtract difference and only keep bond amount
-      if (_operatorPods.length < pod) {
-        for (uint256 i = _operatorPods.length; i <= pod; i++) {
-          _operatorPods.push([address(0)]);
-        }
-      }
-      require(_operatorPods[pod - 1].length < type(uint16).max, "HOLOGRAPH: too many operators");
-      address utilityToken = IHolographRegistry(_registry()).getUtilityToken();
-      // we extract utility token amount from msg sender
-      require(
-        ERC20Holograph(utilityToken).transferFrom(msg.sender, address(this), amount),
-        "HOLOGRAPH: token transfer failed"
-      );
-      _operatorPods[pod - 1].push(operator);
-      _bondedOperators[operator] = pod;
-      _bondedAmounts[operator] = amount;
+      return (random + uint256(blockhash(block.number - n))) % podSize;
     }
   }
 

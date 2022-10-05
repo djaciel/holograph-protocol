@@ -1,16 +1,115 @@
-/*HOLOGRAPH_LICENSE_HEADER*/
+// SPDX-License-Identifier: UNLICENSED
+/*
 
-/*SOLIDITY_COMPILER_VERSION*/
+                         ┌───────────┐
+                         │ HOLOGRAPH │
+                         └───────────┘
+╔═════════════════════════════════════════════════════════════╗
+║                                                             ║
+║                            / ^ \                            ║
+║                            ~~*~~            ¸               ║
+║                         [ '<>:<>' ]         │░░░            ║
+║               ╔╗           _/"\_           ╔╣               ║
+║             ┌─╬╬─┐          """          ┌─╬╬─┐             ║
+║          ┌─┬┘ ╠╣ └┬─┐       \_/       ┌─┬┘ ╠╣ └┬─┐          ║
+║       ┌─┬┘ │  ╠╣  │ └┬─┐           ┌─┬┘ │  ╠╣  │ └┬─┐       ║
+║    ┌─┬┘ │  │  ╠╣  │  │ └┬─┐     ┌─┬┘ │  │  ╠╣  │  │ └┬─┐    ║
+║ ┌─┬┘ │  │  │  ╠╣  │  │  │ └┬┐ ┌┬┘ │  │  │  ╠╣  │  │  │ └┬─┐ ║
+╠┬┘ │  │  │  │  ╠╣  │  │  │  │└¤┘│  │  │  │  ╠╣  │  │  │  │ └┬╣
+║│  │  │  │  │  ╠╣  │  │  │  │   │  │  │  │  ╠╣  │  │  │  │  │║
+╠╩══╩══╩══╩══╩══╬╬══╩══╩══╩══╩═══╩══╩══╩══╩══╬╬══╩══╩══╩══╩══╩╣
+╠┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╣
+║               ╠╣                           ╠╣               ║
+║               ╠╣                           ╠╣               ║
+║    ,          ╠╣     ,        ,'      *    ╠╣               ║
+║~~~~~^~~~~~~~~┌╬╬┐~~~^~~~~~~~~^^~~~~~~~~^~~┌╬╬┐~~~~~~~^~~~~~~║
+╚══════════════╩╩╩╩═════════════════════════╩╩╩╩══════════════╝
+     - one protocol, one bridge = infinite possibilities -
 
-import "./abstract/Admin.sol";
-import "./abstract/Initializable.sol";
-import "./abstract/Owner.sol";
 
-import "./library/Zora.sol";
+ ***************************************************************
 
-import "./interface/ERC20.sol";
-import "./interface/IInitializable.sol";
-import "./interface/IPA1D.sol";
+ DISCLAIMER: U.S Patent Pending
+
+ LICENSE: Holograph Limited Public License (H-LPL)
+
+ https://holograph.xyz/licenses/h-lpl/1.0.0
+
+ This license governs use of the accompanying software. If you
+ use the software, you accept this license. If you do not accept
+ the license, you are not permitted to use the software.
+
+ 1. Definitions
+
+ The terms "reproduce," "reproduction," "derivative works," and
+ "distribution" have the same meaning here as under U.S.
+ copyright law. A "contribution" is the original software, or
+ any additions or changes to the software. A "contributor" is
+ any person that distributes its contribution under this
+ license. "Licensed patents" are a contributor’s patent claims
+ that read directly on its contribution.
+
+ 2. Grant of Rights
+
+ A) Copyright Grant- Subject to the terms of this license,
+ including the license conditions and limitations in sections 3
+ and 4, each contributor grants you a non-exclusive, worldwide,
+ royalty-free copyright license to reproduce its contribution,
+ prepare derivative works of its contribution, and distribute
+ its contribution or any derivative works that you create.
+ B) Patent Grant- Subject to the terms of this license,
+ including the license conditions and limitations in section 3,
+ each contributor grants you a non-exclusive, worldwide,
+ royalty-free license under its licensed patents to make, have
+ made, use, sell, offer for sale, import, and/or otherwise
+ dispose of its contribution in the software or derivative works
+ of the contribution in the software.
+
+ 3. Conditions and Limitations
+
+ A) No Trademark License- This license does not grant you rights
+ to use any contributors’ name, logo, or trademarks.
+ B) If you bring a patent claim against any contributor over
+ patents that you claim are infringed by the software, your
+ patent license from such contributor is terminated with
+ immediate effect.
+ C) If you distribute any portion of the software, you must
+ retain all copyright, patent, trademark, and attribution
+ notices that are present in the software.
+ D) If you distribute any portion of the software in source code
+ form, you may do so only under this license by including a
+ complete copy of this license with your distribution. If you
+ distribute any portion of the software in compiled or object
+ code form, you may only do so under a license that complies
+ with this license.
+ E) The software is licensed “as-is.” You bear all risks of
+ using it. The contributors give no express warranties,
+ guarantees, or conditions. You may have additional consumer
+ rights under your local laws which this license cannot change.
+ To the extent permitted under your local laws, the contributors
+ exclude all implied warranties, including those of
+ merchantability, fitness for a particular purpose and
+ non-infringement.
+
+ 4. (F) Platform Limitation- The licenses granted in sections
+ 2.A & 2.B extend only to the software or derivative works that
+ you create that run on a Holograph system product.
+
+ ***************************************************************
+
+*/
+
+pragma solidity 0.8.13;
+
+import "../abstract/Admin.sol";
+import "../abstract/Initializable.sol";
+import "../abstract/Owner.sol";
+
+import "../library/Zora.sol";
+
+import "../interface/ERC20.sol";
+import "../interface/IInitializable.sol";
+import "../interface/IPA1D.sol";
 
 /**
  * @title PA1D (CXIP)
@@ -19,11 +118,11 @@ import "./interface/IPA1D.sol";
  * @dev This smart contract is not intended to be used directly. Apply it to any of your ERC721 or ERC1155 smart contracts through a delegatecall fallback.
  */
 contract PA1D is Admin, Owner, Initializable {
-  bytes32 constant _defaultBpSlot = precomputeslot("eip1967.Holograph.PA1D.defaultBp");
-  bytes32 constant _defaultReceiverSlot = precomputeslot("eip1967.Holograph.PA1D.defaultReceiver");
-  bytes32 constant _initializedPaidSlot = precomputeslot("eip1967.Holograph.PA1D.initialized");
-  bytes32 constant _payoutAddressesSlot = precomputeslot("eip1967.Holograph.PA1D.payout.addresses");
-  bytes32 constant _payoutBpsSlot = precomputeslot("eip1967.Holograph.PA1D.payout.bps");
+  bytes32 constant _defaultBpSlot = 0x3ab91e3c2ba71a57537d782545f8feb1d402b604f5e070fa6c3b911fc2f18f75;
+  bytes32 constant _defaultReceiverSlot = 0xfd430e1c7265cc31dbd9a10ce657e68878a41cfe179c80cd68c5edf961516848;
+  bytes32 constant _initializedPaidSlot = 0x33a44e907d5bf333e203bebc20bb8c91c00375213b80f466a908f3d50b337c6c;
+  bytes32 constant _payoutAddressesSlot = 0x700a541bc37f227b0d36d34e7b77cc0108bde768297c6f80f448f380387371df;
+  bytes32 constant _payoutBpsSlot = 0x7a62e8104cd2cc2ef6bd3a26bcb71428108fbe0e0ead6a5bfb8676781e2ed28d;
 
   string constant _bpString = "eip1967.Holograph.PA1D.bp";
   string constant _receiverString = "eip1967.Holograph.PA1D.receiver";

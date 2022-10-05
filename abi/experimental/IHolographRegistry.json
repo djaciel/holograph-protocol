@@ -48,8 +48,58 @@
     "outputs": [
       {
         "internalType": "address",
-        "name": "hToken",
+        "name": "",
         "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getHolograph",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "holograph",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "index",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "length",
+        "type": "uint256"
+      }
+    ],
+    "name": "getHolographableContracts",
+    "outputs": [
+      {
+        "internalType": "address[]",
+        "name": "contracts",
+        "type": "address[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "getHolographableContractsLength",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -176,6 +226,32 @@
       }
     ],
     "name": "setHToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "holograph",
+        "type": "address"
+      }
+    ],
+    "name": "setHolograph",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "tokenContract",
+        "type": "address"
+      }
+    ],
+    "name": "setUtilityToken",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

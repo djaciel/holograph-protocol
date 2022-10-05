@@ -83,7 +83,7 @@
     "name": "getHolographEnforcer",
     "outputs": [
       {
-        "internalType": "address payable",
+        "internalType": "address",
         "name": "",
         "type": "address"
       }
@@ -109,7 +109,7 @@
     "name": "getSourceContract",
     "outputs": [
       {
-        "internalType": "address payable",
+        "internalType": "address",
         "name": "sourceContract",
         "type": "address"
       }

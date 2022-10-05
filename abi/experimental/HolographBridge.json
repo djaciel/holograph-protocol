@@ -68,6 +68,11 @@
         "type": "uint256"
       },
       {
+        "internalType": "bool",
+        "name": "doNotRevert",
+        "type": "bool"
+      },
+      {
         "internalType": "bytes",
         "name": "data",
         "type": "bytes"
@@ -75,7 +80,7 @@
     ],
     "name": "bridgeInRequest",
     "outputs": [],
-    "stateMutability": "nonpayable",
+    "stateMutability": "payable",
     "type": "function"
   },
   {
@@ -150,7 +155,7 @@
         "type": "bytes"
       }
     ],
-    "stateMutability": "view",
+    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -173,19 +178,6 @@
       {
         "internalType": "address",
         "name": "holograph",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getInterfaces",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "interfaces",
         "type": "address"
       }
     ],
@@ -254,6 +246,40 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint32",
+        "name": "toChain",
+        "type": "uint32"
+      },
+      {
+        "internalType": "address",
+        "name": "holographableContract",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "revertedBridgeOutRequest",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "revertReason",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "adminAddress",
         "type": "address"
       }
@@ -285,19 +311,6 @@
       }
     ],
     "name": "setHolograph",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "interfaces",
-        "type": "address"
-      }
-    ],
-    "name": "setInterfaces",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

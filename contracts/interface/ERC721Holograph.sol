@@ -107,7 +107,7 @@ import "./ERC721.sol";
 import "./ERC721Enumerable.sol";
 import "./ERC721Metadata.sol";
 import "./ERC721TokenReceiver.sol";
-import "./HolographableEnforcer.sol";
+import "./Holographable.sol";
 
 interface ERC721Holograph is
   ERC165,
@@ -116,7 +116,7 @@ interface ERC721Holograph is
   ERC721Metadata,
   ERC721TokenReceiver,
   CollectionURI,
-  HolographableEnforcer
+  Holographable
 {
   function approve(address to, uint256 tokenId) external payable;
 

@@ -8,7 +8,6 @@
     "anonymous": false,
     "inputs": [
       {
-<<<<<<< HEAD:abi/experimental/HolographFactory.json
         "indexed": true,
         "internalType": "address",
         "name": "contractAddress",
@@ -43,16 +42,6 @@
         "internalType": "address",
         "name": "target",
         "type": "address"
-=======
-        "internalType": "uint256",
-        "name": "nonce",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint32",
-        "name": "fromChain",
-        "type": "uint32"
->>>>>>> develop:abi/develop/IHolographBridge.json
       },
       {
         "internalType": "bytes",
@@ -191,23 +180,9 @@
     "type": "function"
   },
   {
-<<<<<<< HEAD:abi/experimental/HolographFactory.json
     "inputs": [],
     "name": "getAdmin",
     "outputs": [
-=======
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "nonce",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint32",
-        "name": "fromChain",
-        "type": "uint32"
-      },
->>>>>>> develop:abi/develop/IHolographBridge.json
       {
         "internalType": "address",
         "name": "adminAddress",
@@ -246,39 +221,6 @@
   {
     "inputs": [
       {
-<<<<<<< HEAD:abi/experimental/HolographFactory.json
-=======
-        "internalType": "uint256",
-        "name": "nonce",
-        "type": "uint256"
-      },
-      {
-        "internalType": "uint32",
-        "name": "fromChain",
-        "type": "uint32"
-      },
-      {
-        "internalType": "address",
-        "name": "collection",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "from",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "to",
-        "type": "address"
-      },
-      {
-        "internalType": "uint256",
-        "name": "tokenId",
-        "type": "uint256"
-      },
-      {
->>>>>>> develop:abi/develop/IHolographBridge.json
         "internalType": "bytes",
         "name": "data",
         "type": "bytes"

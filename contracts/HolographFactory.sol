@@ -104,35 +104,29 @@ pragma solidity 0.8.13;
 import "./abstract/Admin.sol";
 import "./abstract/Initializable.sol";
 
-import "./Holographer.sol";
+import "./enforcers/Holographer.sol";
 
-import "./interface/HolographableEnforcer.sol";
-import "./interface/IHolograph.sol";
+import "./interface/Holographable.sol";
+import "./interface/IHolographFactory.sol";
 import "./interface/IHolographRegistry.sol";
 import "./interface/IInitializable.sol";
 
 import "./struct/DeploymentConfig.sol";
 import "./struct/Verification.sol";
 
-/**
- * @dev This smart contract demonstrates a clear and concise way that we plan to deploy smart contracts.
- * @dev With the goal of deploying replicate-able non-fungible token smart contracts through this process.
- * @dev This is just the first step. But it is fundamental for achieving cross-chain non-fungible tokens.
- */
-contract HolographFactory is Admin, Initializable, HolographableEnforcer {
+contract HolographFactory is Admin, Initializable, Holographable, IHolographFactory {
   bytes32 constant _holographSlot = 0xb4107f746e9496e8452accc7de63d1c5e14c19f510932daa04077cd49e8bd77a;
   bytes32 constant _registrySlot = 0xce8e75d5c5227ce29a4ee170160bb296e5dea6934b80a9bd723f7ef1e7c850e7;
 
   /**
-   * @dev This event is fired every time that a bridgeable contract is deployed.
-   */
-  event BridgeableContractDeployed(address indexed contractAddress, bytes32 indexed hash);
-
-  /**
-   * @dev Constructor is left empty and only the admin address is set.
+   * @dev Constructor is left empty and init is used instead.
    */
   constructor() {}
 
+  /**
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract.
+   */
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (address holograph, address registry) = abi.decode(data, (address, address));
@@ -146,26 +140,23 @@ contract HolographFactory is Admin, Initializable, HolographableEnforcer {
   }
 
   function bridgeIn(
-    uint32,
-    /* fromChain*/
+    uint32, /* fromChain*/
     bytes calldata payload
   ) external returns (bytes4) {
     (DeploymentConfig memory config, Verification memory signature, address signer) = abi.decode(
       payload,
       (DeploymentConfig, Verification, address)
     );
-    deployHolographableContract(config, signature, signer);
-    return HolographableEnforcer.bridgeIn.selector;
+    IHolographFactory(address(this)).deployHolographableContract(config, signature, signer);
+    return Holographable.bridgeIn.selector;
   }
 
   function bridgeOut(
-    uint32,
-    /* toChain*/
-    address,
-    /* sender*/
+    uint32, /* toChain*/
+    address, /* sender*/
     bytes calldata payload
   ) external pure returns (bytes4 selector, bytes memory data) {
-    return (HolographableEnforcer.bridgeOut.selector, payload);
+    return (Holographable.bridgeOut.selector, payload);
   }
 
   /**
@@ -177,7 +168,13 @@ contract HolographFactory is Admin, Initializable, HolographableEnforcer {
     DeploymentConfig memory config,
     Verification memory signature,
     address signer
-  ) public {
+  ) external {
+    address registry;
+    address holograph;
+    assembly {
+      holograph := sload(_holographSlot)
+      registry := sload(_registrySlot)
+    }
     bytes32 hash = keccak256(
       abi.encodePacked(
         config.contractType,
@@ -189,7 +186,7 @@ contract HolographFactory is Admin, Initializable, HolographableEnforcer {
       )
     );
     require(_verifySigner(signature.r, signature.s, signature.v, hash, signer), "HOLOGRAPH: invalid signature");
-    require(!IHolographRegistry(getRegistry()).isHolographedHashDeployed(hash), "HOLOGRAPH: already deployed");
+    require(!IHolographRegistry(registry).isHolographedHashDeployed(hash), "HOLOGRAPH: already deployed");
     uint256 saltInt = uint256(hash);
     address sourceContractAddress;
     bytes memory sourceByteCode = config.byteCode;
@@ -201,18 +198,38 @@ contract HolographFactory is Admin, Initializable, HolographableEnforcer {
     assembly {
       holographerAddress := create2(0, add(holographerBytecode, 0x20), mload(holographerBytecode), saltInt)
     }
-    address holograph;
-    assembly {
-      holograph := sload(_holographSlot)
-    }
     require(
       IInitializable(holographerAddress).init(
         abi.encode(abi.encode(config.chainType, holograph, config.contractType, sourceContractAddress), config.initCode)
       ) == IInitializable.init.selector,
       "initialization failed"
     );
-    IHolographRegistry(getRegistry()).factoryDeployedHash(hash, holographerAddress);
+    IHolographRegistry(registry).factoryDeployedHash(hash, holographerAddress);
     emit BridgeableContractDeployed(holographerAddress, hash);
+  }
+
+  function getHolograph() external view returns (address holograph) {
+    assembly {
+      holograph := sload(_holographSlot)
+    }
+  }
+
+  function setHolograph(address holograph) external onlyAdmin {
+    assembly {
+      sstore(_holographSlot, holograph)
+    }
+  }
+
+  function getRegistry() external view returns (address registry) {
+    assembly {
+      registry := sload(_registrySlot)
+    }
+  }
+
+  function setRegistry(address registry) external onlyAdmin {
+    assembly {
+      sstore(_registrySlot, registry)
+    }
   }
 
   function _isContract(address contractAddress) private view returns (bool) {
@@ -235,29 +252,5 @@ contract HolographFactory is Admin, Initializable, HolographableEnforcer {
     }
     return (ecrecover(hash, v, r, s) == signer ||
       ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)), v, r, s) == signer);
-  }
-
-  function getHolograph() external view returns (address holograph) {
-    assembly {
-      holograph := sload(_holographSlot)
-    }
-  }
-
-  function setHolograph(address holograph) external onlyAdmin {
-    assembly {
-      sstore(_holographSlot, holograph)
-    }
-  }
-
-  function getRegistry() public view returns (address registry) {
-    assembly {
-      registry := sload(_registrySlot)
-    }
-  }
-
-  function setRegistry(address registry) external onlyAdmin {
-    assembly {
-      sstore(_registrySlot, registry)
-    }
   }
 }

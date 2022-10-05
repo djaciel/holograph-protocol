@@ -137,19 +137,6 @@
   },
   {
     "inputs": [],
-    "name": "getHolograph",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "holograph",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
     "name": "getInterfaces",
     "outputs": [
       {
@@ -311,6 +298,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getUtilityToken",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "utilityToken",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "bytes",
@@ -338,7 +338,13 @@
       }
     ],
     "name": "jobEstimator",
-    "outputs": [],
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
     "stateMutability": "payable",
     "type": "function"
   },
@@ -433,19 +439,6 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "holograph",
-        "type": "address"
-      }
-    ],
-    "name": "setHolograph",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "interfaces",
         "type": "address"
       }
@@ -477,6 +470,19 @@
       }
     ],
     "name": "setRegistry",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "utilityToken",
+        "type": "address"
+      }
+    ],
+    "name": "setUtilityToken",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

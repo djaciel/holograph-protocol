@@ -1,10 +1,15 @@
+declare var global: any;
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
+import { NetworkType } from '../scripts/utils/helpers';
+import networks from '../config/networks';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts } = hre;
 
-  if (hre.network.name != 'localhost' && hre.network.name != 'localhost2') {
+  const currentNetworkType: NetworkType = networks[hre.network.name].type;
+
+  if (currentNetworkType != NetworkType.local) {
     let contracts: string[] = [
       'Holograph',
       'HolographBridge',
@@ -20,7 +25,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       'HolographRegistryProxy',
       'HolographTreasury',
       'HolographTreasuryProxy',
-      'Interfaces',
+      'HolographInterfaces',
       'PA1D',
       'CxipERC721',
       'CxipERC721Proxy',

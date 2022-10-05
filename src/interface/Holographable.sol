@@ -2,7 +2,7 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-interface HolographableEnforcer {
+interface Holographable {
   function bridgeIn(uint32 fromChain, bytes calldata payload) external returns (bytes4);
 
   function bridgeOut(

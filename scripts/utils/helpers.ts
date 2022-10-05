@@ -29,8 +29,15 @@ import {
   getUnnamedSigners,
 } from '@nomiclabs/hardhat-ethers/internal/helpers';
 import type * as ProviderProxyT from '@nomiclabs/hardhat-ethers/internal/provider-proxy';
-import { DeploymentConfigStruct } from '../../typechain-types/HolographFactory';
 import networks from '../../config/networks';
+
+export type DeploymentConfigStruct = {
+  contractType: BytesLike;
+  chainType: BigNumberish;
+  salt: BytesLike;
+  byteCode: BytesLike;
+  initCode: BytesLike;
+};
 
 export interface LeanHardhatRuntimeEnvironment {
   networkName: string;
@@ -46,13 +53,21 @@ export interface LeanHardhatRuntimeEnvironment {
   deploymentSalt: string;
 }
 
+export enum NetworkType {
+  local = 'local',
+  testnet = 'testnet',
+  mainnet = 'mainnet',
+}
+
 export interface Network {
+  type: NetworkType;
   chain: number;
   rpc: string;
   holographId: number;
   tokenName: string;
   tokenSymbol: string;
-  lzEndpoint?: string;
+  lzEndpoint: string;
+  lzId: number;
   webSocket?: string;
 }
 

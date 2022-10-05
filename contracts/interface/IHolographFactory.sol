@@ -105,15 +105,22 @@ import "../struct/DeploymentConfig.sol";
 import "../struct/Verification.sol";
 
 interface IHolographFactory {
+  /**
+   * @dev This event is fired every time that a bridgeable contract is deployed.
+   */
   event BridgeableContractDeployed(address indexed contractAddress, bytes32 indexed hash);
 
-  function getBridgeRegistry() external view returns (address bridgeRegistry);
-
-  function getSecureStorage() external view returns (address secureStorage);
-
   function deployHolographableContract(
-    DeploymentConfig calldata config,
-    Verification calldata signature,
+    DeploymentConfig memory config,
+    Verification memory signature,
     address signer
   ) external;
+
+  function getHolograph() external view returns (address holograph);
+
+  function setHolograph(address holograph) external;
+
+  function getRegistry() external view returns (address registry);
+
+  function setRegistry(address registry) external;
 }

@@ -40,7 +40,7 @@ import {
   HolographRegistry,
   HolographRegistryProxy,
   HToken,
-  Interfaces,
+  HolographInterfaces,
   MockERC721Receiver,
   Owner,
   PA1D,
@@ -186,9 +186,9 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
       });
     });
 
-    describe('Interfaces', async function () {
+    describe('HolographInterfaces', async function () {
       it('contract addresses should match', async function () {
-        expect(l1.interfaces.address).to.equal(l2.interfaces.address);
+        expect(l1.holographInterfaces.address).to.equal(l2.holographInterfaces.address);
       });
     });
 
@@ -617,11 +617,11 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
     describe('Chain IDs', async function () {
       it('l1 chain id should be correct', async function () {
-        expect(await l1.holograph.getChainType()).to.equal(l1.network.holographId);
+        expect(await l1.holograph.getHolographChainId()).to.equal(l1.network.holographId);
       });
 
       it('l2 chain id should be correct', async function () {
-        expect(await l2.holograph.getChainType()).to.equal(l2.network.holographId);
+        expect(await l2.holograph.getHolographChainId()).to.equal(l2.network.holographId);
       });
     });
   });

@@ -106,7 +106,7 @@ import "../abstract/ERC721H.sol";
 import "../enum/TokenUriType.sol";
 
 import "../interface/ERC721Holograph.sol";
-import "../interface/IInterfaces.sol";
+import "../interface/IHolographInterfaces.sol";
 import "../interface/IHolograph.sol";
 import "../interface/IHolographer.sol";
 
@@ -168,7 +168,9 @@ contract CxipERC721 is ERC721H {
     return
       string(
         abi.encodePacked(
-          IInterfaces(IHolograph(IHolographer(holographer()).getHolograph()).getInterfaces()).getUriPrepend(uriType),
+          IHolographInterfaces(IHolograph(IHolographer(holographer()).getHolograph()).getInterfaces()).getUriPrepend(
+            uriType
+          ),
           _tokenURIs[_tokenId][uriType]
         )
       );

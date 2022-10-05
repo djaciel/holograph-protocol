@@ -82,7 +82,7 @@ const selectDeploymentSalt = (): number => {
     case Environment.mainnet:
       salt = parseInt(process.env.MAINNET_DEPLOYMENT_SALT || '0');
       if (salt > 999 || salt < 0) {
-        throw new Error('DEVELOP_DEPLOYMENT_SALT is out of bounds. Allowed range is [0-999]');
+        throw new Error('MAINNET_DEPLOYMENT_SALT is out of bounds. Allowed range is [0-999]');
       }
       break;
     default:
