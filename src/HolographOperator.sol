@@ -329,7 +329,7 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
     // need to recalculate the gas amounts for LZ to deliver message
     lZEndpoint.send{value: msg.value}(
       uint16(_interfaces().getChainId(ChainIdType.HOLOGRAPH, uint256(toChain), ChainIdType.LAYERZERO)),
-      abi.encodePacked(address(this)),
+      abi.encodePacked(address(this), address(this)),
       abi.encodePacked(_payload, gasLimit, gasPrice),
       payable(msgSender),
       address(this),

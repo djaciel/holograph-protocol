@@ -175,10 +175,7 @@ contract HolographInterfaces is Admin, Initializable {
     _supportedInterfaces[InterfaceType.ERC20][0x42842e0e] = true;
     _supportedInterfaces[InterfaceType.ERC20][0xb88d4fde] = true;
     _supportedInterfaces[InterfaceType.ERC20][
-      bytes4(0x423f6cef) ^
-        bytes4(0xeb795549) ^
-        bytes4(0x42842e0e) ^
-        bytes4(0xb88d4fde)
+      bytes4(0x423f6cef) ^ bytes4(0xeb795549) ^ bytes4(0x42842e0e) ^ bytes4(0xb88d4fde)
     ] = true;
 
     // ERC20Permit
