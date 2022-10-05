@@ -156,7 +156,7 @@ contract HolographOperator is Admin, Initializable, IHolographOperator {
     }
     lZEndpoint.send{value: msg.value}(
       uint16(_interfaces().getChainId(ChainIdType.HOLOGRAPH, uint256(toChain), ChainIdType.LAYERZERO)),
-      abi.encodePacked(address(this)),
+      abi.encodePacked(address(this),address(this)),
       _payload,
       payable(msgSender),
       address(this),
