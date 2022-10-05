@@ -16,6 +16,7 @@
     "typechain-types"
   ],
   "scripts": {
+    "dev:iterate": "yarn compile & yarn typechain",
     "init": "cp sample.env .env",
     "abi": "hardhat abi",
     "build": "hardhat holograph-build-contracts",

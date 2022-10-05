@@ -124,6 +124,38 @@ To manually run just the build task use `yarn run build`.
 
 _If you need the smart contracts ABI files for dApp integrations, use `yarn run abi` to get a complete list of all ABI's inside of the `abi` directory._
 
+### Development with live interaction & manual testing (supports Metamask)
+
+Alternatively you can do live development & testing with Ganache GUI and Remix IDE.  
+This solution also supports connecting Metamask to the Ganache's "Custom RPC Provider" and Remix IDE can then use "Injected Provider - Metamask".
+
+Prerequisites
+- Ganache https://trufflesuite.com/ganache/
+- Remix daemon https://www.npmjs.com/package/@remix-project/remixd
+- Remix IDE https://remix.ethereum.org/
+- (optional) Metamask browser extension
+
+#### How
+
+1. Run `remixd` daemon on the built `/contracts` folder (not `/src/contracts`)
+
+   ```
+   remixd -s contracts
+   ```
+
+2. Run Ganache GUI and spin up a local blockchain (using workspace)
+3. Open Remix IDE
+   1. On the "**File explorer**" card change "Workspaces" -> "- connect to localhost -"
+   2. On the "**Deploy & Run Transactions**" card pick "Environment" -> "Ganache Provider"  
+   The localhost port is usually `7545` or `8545`
+4. After making changes to the contracts in `/src/contracts` run `yarn dev:iterate` to update `/contracts`  
+   *(Watch script is coming later)*
+5. Development
+   1. In "**File Explorer**" card open each relevant contract as a tab
+   2. Enable "**Auto compile**" in "Solidity Compiler" card
+   3. Interact with the contracts on "Deploy & run transactions" tab  
+      To deploy a contract, first focus its tab in the IDE as this changes the "CONTRACT" dropdown.
+
 ### Making Changes
 
 **Before pushing your work to the repo, make sure to prepare your code**
