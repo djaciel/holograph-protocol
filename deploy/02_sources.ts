@@ -231,7 +231,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   } else if (currentNetworkType == NetworkType.testnet) {
     primaryNetwork = networks.eth_goerli;
   } else if (currentNetworkType == NetworkType.mainnet) {
-    primaryNetwork = networks.eth_goerli;
+    primaryNetwork = networks.eth;
   } else {
     throw new Error('cannot identity current NetworkType');
   }
@@ -632,6 +632,17 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ),
       futureRegistryProxyAddress
     );
+    let holographRegistry = (await hre.ethers.getContractAt(
+      'HolographRegistry',
+      futureRegistryProxyAddress
+    )) as HolographRegistry;
+    if ((await holographRegistry.getUtilityToken()) != futureHlgAddress) {
+      hre.deployments.log('Updating UtilityToken reference');
+      let tx = await holographRegistry.setUtilityToken(futureHlgAddress, {
+        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+      });
+      await tx.wait();
+    }
   } else {
     hre.deployments.log('"HolographRegistryProxy" is already deployed. Checking configs.');
     let holographRegistryProxy = (await hre.ethers.getContractAt(
@@ -652,6 +663,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     if ((await holographRegistry.getHolograph()) != futureHolographAddress) {
       hre.deployments.log('Updating Holograph reference');
       let tx = await holographRegistry.setHolograph(futureHolographAddress, {
+        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+      });
+      await tx.wait();
+    }
+    if ((await holographRegistry.getUtilityToken()) != futureHlgAddress) {
+      hre.deployments.log('Updating UtilityToken reference');
+      let tx = await holographRegistry.setUtilityToken(futureHlgAddress, {
         nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
       });
       await tx.wait();

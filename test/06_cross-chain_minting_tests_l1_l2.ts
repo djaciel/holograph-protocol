@@ -319,7 +319,11 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           )
         )
           .to.emit(l1.mockLZEndpoint, 'LzEvent')
-          .withArgs(ChainId.hlg2lz(l2.network.holographId), l1.operator.address.toLowerCase(), payload);
+          .withArgs(
+            ChainId.hlg2lz(l2.network.holographId),
+            '0x' + remove0x(l1.operator.address.toLowerCase()).repeat(2),
+            payload
+          );
 
         await expect(
           l2.mockLZEndpoint
@@ -434,7 +438,11 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           )
         )
           .to.emit(l2.mockLZEndpoint, 'LzEvent')
-          .withArgs(ChainId.hlg2lz(l1.network.holographId), l2.operator.address.toLowerCase(), payload);
+          .withArgs(
+            ChainId.hlg2lz(l1.network.holographId),
+            '0x' + remove0x(l2.operator.address.toLowerCase()).repeat(2),
+            payload
+          );
 
         await expect(
           l1.mockLZEndpoint
@@ -551,7 +559,11 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           )
         )
           .to.emit(l1.mockLZEndpoint, 'LzEvent')
-          .withArgs(ChainId.hlg2lz(l2.network.holographId), l1.operator.address.toLowerCase(), payload);
+          .withArgs(
+            ChainId.hlg2lz(l2.network.holographId),
+            '0x' + remove0x(l1.operator.address.toLowerCase()).repeat(2),
+            payload
+          );
 
         await expect(
           l2.mockLZEndpoint
@@ -666,7 +678,11 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           )
         )
           .to.emit(l2.mockLZEndpoint, 'LzEvent')
-          .withArgs(ChainId.hlg2lz(l1.network.holographId), l2.operator.address.toLowerCase(), payload);
+          .withArgs(
+            ChainId.hlg2lz(l1.network.holographId),
+            '0x' + remove0x(l2.operator.address.toLowerCase()).repeat(2),
+            payload
+          );
 
         await expect(
           l1.mockLZEndpoint
@@ -785,7 +801,11 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           )
         )
           .to.emit(l1.mockLZEndpoint, 'LzEvent')
-          .withArgs(ChainId.hlg2lz(l2.network.holographId), l1.operator.address.toLowerCase(), payload);
+          .withArgs(
+            ChainId.hlg2lz(l2.network.holographId),
+            '0x' + remove0x(l1.operator.address.toLowerCase()).repeat(2),
+            payload
+          );
 
         await expect(
           l2.mockLZEndpoint
@@ -902,7 +922,11 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           )
         )
           .to.emit(l2.mockLZEndpoint, 'LzEvent')
-          .withArgs(ChainId.hlg2lz(l1.network.holographId), l2.operator.address.toLowerCase(), payload);
+          .withArgs(
+            ChainId.hlg2lz(l1.network.holographId),
+            '0x' + remove0x(l2.operator.address.toLowerCase()).repeat(2),
+            payload
+          );
 
         await expect(
           l1.mockLZEndpoint
@@ -1028,7 +1052,11 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           )
         )
           .to.emit(l1.mockLZEndpoint, 'LzEvent')
-          .withArgs(ChainId.hlg2lz(l2.network.holographId), l1.operator.address.toLowerCase(), payload);
+          .withArgs(
+            ChainId.hlg2lz(l2.network.holographId),
+            '0x' + remove0x(l1.operator.address.toLowerCase()).repeat(2),
+            payload
+          );
 
         await expect(
           l2.mockLZEndpoint
@@ -1152,7 +1180,11 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           )
         )
           .to.emit(l2.mockLZEndpoint, 'LzEvent')
-          .withArgs(ChainId.hlg2lz(l1.network.holographId), l2.operator.address.toLowerCase(), payload);
+          .withArgs(
+            ChainId.hlg2lz(l1.network.holographId),
+            '0x' + remove0x(l2.operator.address.toLowerCase()).repeat(2),
+            payload
+          );
 
         await expect(
           l1.mockLZEndpoint
@@ -1311,7 +1343,11 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
               )
           )
             .to.emit(l1.mockLZEndpoint, 'LzEvent')
-            .withArgs(ChainId.hlg2lz(l2.network.holographId), l1.operator.address.toLowerCase(), payload);
+            .withArgs(
+              ChainId.hlg2lz(l2.network.holographId),
+              '0x' + remove0x(l1.operator.address.toLowerCase()).repeat(2),
+              payload
+            );
 
           gasUsage['#3 bridge from l1'] = gasUsage['#3 bridge from l1'].add(await getGasUsage(l1.hre));
 
@@ -1401,7 +1437,11 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
               )
           )
             .to.emit(l2.mockLZEndpoint, 'LzEvent')
-            .withArgs(ChainId.hlg2lz(l1.network.holographId), l2.operator.address.toLowerCase(), payload);
+            .withArgs(
+              ChainId.hlg2lz(l1.network.holographId),
+              '0x' + remove0x(l2.operator.address.toLowerCase()).repeat(2),
+              payload
+            );
 
           gasUsage['#3 bridge from l2'] = gasUsage['#3 bridge from l2'].add(await getGasUsage(l2.hre));
 

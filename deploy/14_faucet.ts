@@ -9,6 +9,7 @@ import {
   genesisDeriveFutureAddress,
   generateErc20Config,
   generateInitCode,
+  NetworkType,
 } from '../scripts/utils/helpers';
 import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
 import networks from '../config/networks';
@@ -23,47 +24,34 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const salt = hre.deploymentSalt;
 
-  const holographRegistryProxy = await hre.ethers.getContract('HolographRegistryProxy');
-  const holographRegistry = ((await hre.ethers.getContract('HolographRegistry')) as Contract).attach(
-    holographRegistryProxy.address
-  );
+  const holograph = await hre.ethers.getContract('Holograph');
+  const hlgTokenAddress = await holograph.getUtilityToken();
 
-  let sampleErc20Config = await generateErc20Config(
-    network,
-    deployer.address,
-    'SampleERC20',
-    'Sample ERC20 Token (' + hre.networkName + ')',
-    'SMPL',
-    'Sample ERC20 Token',
-    '1',
-    18,
-    ConfigureEvents([HolographERC20Event.bridgeIn, HolographERC20Event.bridgeOut]),
-    generateInitCode(['address', 'uint16'], [deployer.address, 0]),
-    salt
-  );
-  let sampleErc20Address = await holographRegistry.getHolographedHashAddress(sampleErc20Config.erc20ConfigHash);
+  const currentNetworkType: NetworkType = network.type;
 
-  const futureFaucetAddress = await genesisDeriveFutureAddress(
-    hre,
-    salt,
-    'Faucet',
-    generateInitCode(['address', 'address'], [deployer.address, sampleErc20Address])
-  );
-  hre.deployments.log('the future "Faucet" address is', futureFaucetAddress);
-
-  // Faucet
-  let faucetDeployedCode: string = await hre.provider.send('eth_getCode', [futureFaucetAddress, 'latest']);
-  if (faucetDeployedCode == '0x' || faucetDeployedCode == '') {
-    hre.deployments.log('"Faucet" bytecode not found, need to deploy"');
-    let faucet = await genesisDeployHelper(
+  if (currentNetworkType == NetworkType.local || currentNetworkType == NetworkType.testnet) {
+    const futureFaucetAddress = await genesisDeriveFutureAddress(
       hre,
       salt,
       'Faucet',
-      generateInitCode(['address', 'address'], [deployer.address, sampleErc20Address]),
-      futureFaucetAddress
+      generateInitCode(['address', 'address'], [deployer.address, hlgTokenAddress])
     );
-  } else {
-    hre.deployments.log('"Faucet" is already deployed.');
+    hre.deployments.log('the future "Faucet" address is', futureFaucetAddress);
+
+    // Faucet
+    let faucetDeployedCode: string = await hre.provider.send('eth_getCode', [futureFaucetAddress, 'latest']);
+    if (faucetDeployedCode == '0x' || faucetDeployedCode == '') {
+      hre.deployments.log('"Faucet" bytecode not found, need to deploy"');
+      let faucet = await genesisDeployHelper(
+        hre,
+        salt,
+        'Faucet',
+        generateInitCode(['address', 'address'], [deployer.address, hlgTokenAddress]),
+        futureFaucetAddress
+      );
+    } else {
+      hre.deployments.log('"Faucet" is already deployed.');
+    }
   }
 };
 

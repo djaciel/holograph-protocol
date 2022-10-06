@@ -329,7 +329,7 @@ export default async function (l2?: boolean): Promise<PreTest> {
 
   utilityTokenHolographer = (await hre.ethers.getContractAt(
     'Holographer',
-    await registry.getUtilityToken()
+    await holograph.getUtilityToken()
   )) as Holographer;
   utilityTokenEnforcer = (await hre.ethers.getContractAt(
     'HolographERC20',
