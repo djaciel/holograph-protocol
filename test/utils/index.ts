@@ -180,6 +180,7 @@ export default async function (l2?: boolean): Promise<PreTest> {
     'HolographERC20',
     'HolographERC721',
     'CxipERC721',
+    'LayerZeroModule',
     'MockLZEndpoint',
     'LayerZero',
     'ERC20Mock',

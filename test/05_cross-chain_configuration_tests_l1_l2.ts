@@ -604,14 +604,14 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
   });
 
   describe('Verify chain configs', async function () {
-    describe('LayerZero endpoints', async function () {
+    describe('MessagingModule endpoints', async function () {
       it('should not be empty', async function () {
-        expect(await l1.operator.getLZEndpoint()).to.not.equal(zeroAddress());
+        expect(await l1.operator.getMessagingModule()).to.not.equal(zeroAddress());
 
-        expect(await l2.operator.getLZEndpoint()).to.not.equal(zeroAddress());
+        expect(await l2.operator.getMessagingModule()).to.not.equal(zeroAddress());
       });
       it('should be same address on both chains', async function () {
-        expect(await l1.operator.getLZEndpoint()).to.equal(await l2.operator.getLZEndpoint());
+        expect(await l1.operator.getMessagingModule()).to.equal(await l2.operator.getMessagingModule());
       });
     });
 

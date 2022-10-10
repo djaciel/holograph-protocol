@@ -5,6 +5,10 @@
     "type": "constructor"
   },
   {
+    "stateMutability": "payable",
+    "type": "fallback"
+  },
+  {
     "inputs": [],
     "name": "admin",
     "outputs": [
@@ -33,24 +37,6 @@
     "name": "adminCall",
     "outputs": [],
     "stateMutability": "payable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "bytes32",
-        "name": "hash",
-        "type": "bytes32"
-      },
-      {
-        "internalType": "address",
-        "name": "contractAddress",
-        "type": "address"
-      }
-    ],
-    "name": "factoryDeployedHash",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
@@ -174,12 +160,31 @@
     "type": "function"
   },
   {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "contractType",
+        "type": "bytes32"
+      }
+    ],
+    "name": "getReservedContractTypeAddress",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "cotractTypeAddress",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [],
     "name": "getUtilityToken",
     "outputs": [
       {
         "internalType": "address",
-        "name": "tokenContract",
+        "name": "utilityToken",
         "type": "address"
       }
     ],
@@ -190,7 +195,7 @@
     "inputs": [
       {
         "internalType": "bytes",
-        "name": "data",
+        "name": "initPayload",
         "type": "bytes"
       }
     ],
@@ -327,12 +332,35 @@
   {
     "inputs": [
       {
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      },
+      {
         "internalType": "address",
-        "name": "tokenContract",
+        "name": "contractAddress",
         "type": "address"
       }
     ],
-    "name": "setUtilityToken",
+    "name": "setHolographedHashAddress",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "bytes32",
+        "name": "hash",
+        "type": "bytes32"
+      },
+      {
+        "internalType": "bool",
+        "name": "reserved",
+        "type": "bool"
+      }
+    ],
+    "name": "setReservedContractTypeAddress",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
@@ -350,9 +378,26 @@
         "type": "bool[]"
       }
     ],
-    "name": "updateReservedContractTypes",
+    "name": "setReservedContractTypeAddresses",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "utilityToken",
+        "type": "address"
+      }
+    ],
+    "name": "setUtilityToken",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "stateMutability": "payable",
+    "type": "receive"
   }
 ]

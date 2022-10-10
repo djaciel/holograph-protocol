@@ -5,9 +5,12 @@
 import "../abstract/Admin.sol";
 import "../abstract/Initializable.sol";
 
-import "../interface/IInitializable.sol";
+import "../interface/InitializableInterface.sol";
 
 contract HolographTreasuryProxy is Admin, Initializable {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.treasury')) - 1)
+   */
   bytes32 constant _treasurySlot = precomputeslot("eip1967.Holograph.treasury");
 
   constructor() {}
@@ -21,9 +24,9 @@ contract HolographTreasuryProxy is Admin, Initializable {
     }
     (bool success, bytes memory returnData) = treasury.delegatecall(abi.encodeWithSignature("init(bytes)", initCode));
     bytes4 selector = abi.decode(returnData, (bytes4));
-    require(success && selector == IInitializable.init.selector, "initialization failed");
+    require(success && selector == InitializableInterface.init.selector, "initialization failed");
     _setInitialized();
-    return IInitializable.init.selector;
+    return InitializableInterface.init.selector;
   }
 
   function getTreasury() external view returns (address treasury) {

@@ -102,9 +102,10 @@
 pragma solidity 0.8.13;
 
 abstract contract NonReentrant {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.reentrant')) - 1)
+   */
   bytes32 constant _reentrantSlot = 0x04b524dd539523930d3901481aa9455d7752b49add99e1647adb8b09a3137279;
-
-  constructor() {}
 
   modifier nonReentrant() {
     require(getStatus() != 2, "HOLOGRAPH: reentrant call");
@@ -112,6 +113,8 @@ abstract contract NonReentrant {
     _;
     setStatus(1);
   }
+
+  constructor() {}
 
   function getStatus() internal view returns (uint256 status) {
     assembly {

@@ -102,14 +102,17 @@
 pragma solidity 0.8.13;
 
 abstract contract Admin {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.admin')) - 1)
+   */
   bytes32 constant _adminSlot = 0x3f106594dc74eeef980dae234cde8324dc2497b13d27a0c59e55bd2ca10a07c9;
-
-  constructor() {}
 
   modifier onlyAdmin() {
     require(msg.sender == getAdmin(), "HOLOGRAPH: admin only function");
     _;
   }
+
+  constructor() {}
 
   function admin() public view returns (address) {
     return getAdmin();

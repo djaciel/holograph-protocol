@@ -5,41 +5,59 @@
 import "./abstract/Admin.sol";
 import "./abstract/Initializable.sol";
 
-import "./enforcers/Holographer.sol";
+import "./enforcer/Holographer.sol";
 
 import "./interface/Holographable.sol";
-import "./interface/IHolographFactory.sol";
-import "./interface/IHolographRegistry.sol";
-import "./interface/IInitializable.sol";
+import "./interface/HolographFactoryInterface.sol";
+import "./interface/HolographRegistryInterface.sol";
+import "./interface/InitializableInterface.sol";
 
 import "./struct/DeploymentConfig.sol";
 import "./struct/Verification.sol";
 
-contract HolographFactory is Admin, Initializable, Holographable, IHolographFactory {
+/**
+ * @title Holograph Factory
+ * @author https://github.com/holographxyz
+ * @notice Deploy holographable contracts
+ * @dev The contract provides methods that allow for the creation of Holograph Protocol compliant smart contracts, that are capable of minting holographable assets
+ */
+contract HolographFactory is Admin, Initializable, Holographable, HolographFactoryInterface {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.holograph')) - 1)
+   */
   bytes32 constant _holographSlot = precomputeslot("eip1967.Holograph.holograph");
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.registry')) - 1)
+   */
   bytes32 constant _registrySlot = precomputeslot("eip1967.Holograph.registry");
 
   /**
-   * @dev Constructor is left empty and init is used instead.
+   * @dev Constructor is left empty and init is used instead
    */
   constructor() {}
 
   /**
    * @notice Used internally to initialize the contract instead of through a constructor
-   * @dev This function is called by the deployer/factory when creating a contract.
+   * @dev This function is called by the deployer/factory when creating a contract
+   * @param initPayload abi encoded payload to use for contract initilaization
    */
-  function init(bytes memory data) external override returns (bytes4) {
+  function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
-    (address holograph, address registry) = abi.decode(data, (address, address));
+    (address holograph, address registry) = abi.decode(initPayload, (address, address));
     assembly {
       sstore(_adminSlot, origin())
       sstore(_holographSlot, holograph)
       sstore(_registrySlot, registry)
     }
     _setInitialized();
-    return IInitializable.init.selector;
+    return InitializableInterface.init.selector;
   }
 
+  /**
+   * @notice Deploy holographable contract via bridge request
+   * @dev This function directly forwards the calldata to the deployHolographableContract function
+   *      It is used to allow for Holograph Bridge to make cross-chain deployments
+   */
   function bridgeIn(
     uint32, /* fromChain*/
     bytes calldata payload
@@ -48,10 +66,15 @@ contract HolographFactory is Admin, Initializable, Holographable, IHolographFact
       payload,
       (DeploymentConfig, Verification, address)
     );
-    IHolographFactory(address(this)).deployHolographableContract(config, signature, signer);
+    HolographFactoryInterface(address(this)).deployHolographableContract(config, signature, signer);
     return Holographable.bridgeIn.selector;
   }
 
+  /**
+   * @notice Deploy holographable contract via bridge request
+   * @dev This function directly returns the calldata
+   *      It is used to allow for Holograph Bridge to make cross-chain deployments
+   */
   function bridgeOut(
     uint32, /* toChain*/
     address, /* sender*/
@@ -61,9 +84,11 @@ contract HolographFactory is Admin, Initializable, Holographable, IHolographFact
   }
 
   /**
-   * @dev A sample function of the deployment of bridgeable smart contracts.
-   * @dev The used variables and formatting is not the final or decisive version, but the general idea is directly portrayed.
-   * @notice In this function we have incorporated a secure storage function/extension. Keep in mind that this is not required or needed for bridgeable deployments to work. It is just a personal development choice.
+   * @notice Deploy a holographable smart contract
+   * @dev Using this function allows to deploy smart contracts that have the same address across all EVM chains
+   * @param config contract deployement configurations
+   * @param signature that was created by the wallet that created the original payload
+   * @param signer address of wallet that created the payload
    */
   function deployHolographableContract(
     DeploymentConfig memory config,
@@ -76,6 +101,9 @@ contract HolographFactory is Admin, Initializable, Holographable, IHolographFact
       holograph := sload(_holographSlot)
       registry := sload(_registrySlot)
     }
+    /**
+     * @dev the configuration is encoded and hashed along with signer address
+     */
     bytes32 hash = keccak256(
       abi.encodePacked(
         config.contractType,
@@ -86,53 +114,97 @@ contract HolographFactory is Admin, Initializable, Holographable, IHolographFact
         signer
       )
     );
+    /**
+     * @dev the hash is validated against signature
+     *      this is to guarantee that the original creator's configuration has not been altered
+     */
     require(_verifySigner(signature.r, signature.s, signature.v, hash, signer), "HOLOGRAPH: invalid signature");
-    require(!IHolographRegistry(registry).isHolographedHashDeployed(hash), "HOLOGRAPH: already deployed");
+    /**
+     * @dev check that this contract has not already been deployed on this chain
+     */
+    require(!HolographRegistryInterface(registry).isHolographedHashDeployed(hash), "HOLOGRAPH: already deployed");
+    /**
+     * @dev convert hash into uint256 which will be used as the salt for create2
+     */
     uint256 saltInt = uint256(hash);
     address sourceContractAddress;
     bytes memory sourceByteCode = config.byteCode;
     assembly {
+      /**
+       * @dev deploy the user created smart contract first
+       */
       sourceContractAddress := create2(0, add(sourceByteCode, 0x20), mload(sourceByteCode), saltInt)
     }
     bytes memory holographerBytecode = type(Holographer).creationCode;
     address holographerAddress;
     assembly {
+      /**
+       * @dev deploy the Holographer contract
+       */
       holographerAddress := create2(0, add(holographerBytecode, 0x20), mload(holographerBytecode), saltInt)
     }
+    /**
+     * @dev initialize the Holographer contract
+     */
     require(
-      IInitializable(holographerAddress).init(
+      InitializableInterface(holographerAddress).init(
         abi.encode(abi.encode(config.chainType, holograph, config.contractType, sourceContractAddress), config.initCode)
-      ) == IInitializable.init.selector,
+      ) == InitializableInterface.init.selector,
       "initialization failed"
     );
-    IHolographRegistry(registry).factoryDeployedHash(hash, holographerAddress);
+    /**
+     * @dev update the Holograph Registry with deployed contract address
+     */
+    HolographRegistryInterface(registry).setHolographedHashAddress(hash, holographerAddress);
+    /**
+     * @dev emit an event that on-chain indexers can easily read
+     */
     emit BridgeableContractDeployed(holographerAddress, hash);
   }
 
+  /**
+   * @notice Get the Holograph Protocol contract
+   * @dev Used for storing a reference to all the primary modules and variables of the protocol
+   */
   function getHolograph() external view returns (address holograph) {
     assembly {
       holograph := sload(_holographSlot)
     }
   }
 
+  /**
+   * @notice Update the Holograph Protocol contract address
+   * @param holograph address of the Holograph Protocol smart contract to use
+   */
   function setHolograph(address holograph) external onlyAdmin {
     assembly {
       sstore(_holographSlot, holograph)
     }
   }
 
+  /**
+   * @notice Get the Holograph Registry module
+   * @dev This module stores a reference for all deployed holographable smart contracts
+   */
   function getRegistry() external view returns (address registry) {
     assembly {
       registry := sload(_registrySlot)
     }
   }
 
+  /**
+   * @notice Update the Holograph Registry module address
+   * @param registry address of the Holograph Registry smart contract to use
+   */
   function setRegistry(address registry) external onlyAdmin {
     assembly {
       sstore(_registrySlot, registry)
     }
   }
 
+  /**
+   * @dev Internal function used for checking if a contract has been deployed at address
+   */
   function _isContract(address contractAddress) private view returns (bool) {
     bytes32 codehash;
     assembly {
@@ -141,6 +213,9 @@ contract HolographFactory is Admin, Initializable, Holographable, IHolographFact
     return (codehash != 0x0 && codehash != precomputekeccak256(""));
   }
 
+  /**
+   * @dev Internal function used for verifying a signature
+   */
   function _verifySigner(
     bytes32 r,
     bytes32 s,
@@ -151,7 +226,24 @@ contract HolographFactory is Admin, Initializable, Holographable, IHolographFact
     if (v < 27) {
       v += 27;
     }
-    return (ecrecover(hash, v, r, s) == signer ||
-      ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)), v, r, s) == signer);
+    /**
+     * @dev signature is checked against EIP-191 first, then directly, to support legacy wallets
+     */
+    return (ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)), v, r, s) == signer ||
+      ecrecover(hash, v, r, s) == signer);
+  }
+
+  /**
+   * @dev Purposefully reverts to prevent having any type of ether transfered into the contract
+   */
+  receive() external payable {
+    revert();
+  }
+
+  /**
+   * @dev Purposefully reverts to prevent any calls to undefined functions
+   */
+  fallback() external payable {
+    revert();
   }
 }

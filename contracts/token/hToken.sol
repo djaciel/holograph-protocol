@@ -104,9 +104,9 @@ pragma solidity 0.8.13;
 import "../abstract/ERC20H.sol";
 
 import "../interface/ERC20.sol";
-import "../interface/ERC20Holograph.sol";
-import "../interface/IHolograph.sol";
-import "../interface/IHolographer.sol";
+import "../interface/HolographERC20Interface.sol";
+import "../interface/HolographInterface.sol";
+import "../interface/HolographerInterface.sol";
 
 /**
  * @title Holograph token (aka hToken), used to wrap and bridge native tokens across blockchains.
@@ -146,21 +146,21 @@ contract hToken is ERC20H {
   event TokenWithdrawal(address indexed token, address indexed to, uint256 amount);
 
   /**
-   * @notice Constructor is empty and not utilised.
-   * @dev To make exact CREATE2 deployment possible, constructor is left empty. We utilize the "init" function instead.
+   * @dev Constructor is left empty and init is used instead
    */
   constructor() {}
 
   /**
-   * @notice Initializes the token.
-   * @dev Special function to allow a one time initialisation on deployment.
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract
+   * @param initPayload abi encoded payload to use for contract initilaization
    */
-  function init(bytes memory data) external override returns (bytes4) {
-    (address contractOwner, uint16 fee) = abi.decode(data, (address, uint16));
+  function init(bytes memory initPayload) external override returns (bytes4) {
+    (address contractOwner, uint16 fee) = abi.decode(initPayload, (address, uint16));
     _setOwner(contractOwner);
     _feeBp = fee;
     // run underlying initializer logic
-    return _init(data);
+    return _init(initPayload);
   }
 
   /**
@@ -169,8 +169,8 @@ contract hToken is ERC20H {
    */
   function holographNativeToken(address recipient) external payable onlyHolographer {
     require(
-      (IHolographer(holographer()).getOriginChain() ==
-        IHolograph(IHolographer(holographer()).getHolograph()).getHolographChainId()),
+      (HolographerInterface(holographer()).getOriginChain() ==
+        HolographInterface(HolographerInterface(holographer()).getHolograph()).getHolographChainId()),
       "hToken: not native token"
     );
     require(msg.value > 0, "hToken: no value received");
@@ -178,7 +178,7 @@ contract hToken is ERC20H {
     if (recipient == address(0)) {
       recipient = sender;
     }
-    ERC20Holograph(holographer()).sourceMint(recipient, msg.value);
+    HolographERC20Interface(holographer()).sourceMint(recipient, msg.value);
     emit Deposit(sender, msg.value);
   }
 
@@ -190,12 +190,12 @@ contract hToken is ERC20H {
     address sender = msgSender();
     require(ERC20(address(this)).balanceOf(sender) >= amount, "hToken: not enough hToken(s)");
     require(
-      (IHolographer(holographer()).getOriginChain() ==
-        IHolograph(IHolographer(holographer()).getHolograph()).getHolographChainId()),
+      (HolographerInterface(holographer()).getOriginChain() ==
+        HolographInterface(HolographerInterface(holographer()).getHolograph()).getHolographChainId()),
       "hToken: not on native chain"
     );
     require(address(this).balance >= amount, "hToken: not enough native tokens");
-    ERC20Holograph(holographer()).sourceBurn(sender, amount);
+    HolographERC20Interface(holographer()).sourceBurn(sender, amount);
     // HERE WE NEED TO ADD FEE MECHANISM TO EXTRACT xx.xxxx% FROM NATIVE TOKEN AMOUNT
     // THIS SHOULD GO SOMEWHERE TO REWARD CAPITAL PROVIDERS
     uint256 fee = (amount / 10000) * _feeBp;
@@ -233,7 +233,7 @@ contract hToken is ERC20H {
     if (recipient == address(0)) {
       recipient = sender;
     }
-    ERC20Holograph(holographer()).sourceMint(recipient, amount);
+    HolographERC20Interface(holographer()).sourceMint(recipient, amount);
     emit TokenDeposit(token, sender, amount);
   }
 
@@ -264,14 +264,14 @@ contract hToken is ERC20H {
     uint256 currentBalance = erc20.balanceOf(address(this));
     uint256 difference = currentBalance - previousBalance;
     require(difference == adjustedAmount, "hToken: incorrect new balance");
-    ERC20Holograph(holographer()).sourceBurn(sender, amount);
+    HolographERC20Interface(holographer()).sourceBurn(sender, amount);
     emit TokenWithdrawal(token, recipient, adjustedAmount);
   }
 
   function availableNativeTokens() external view onlyHolographer returns (uint256) {
     if (
-      IHolographer(holographer()).getOriginChain() ==
-      IHolograph(IHolographer(holographer()).getHolograph()).getHolographChainId()
+      HolographerInterface(holographer()).getOriginChain() ==
+      HolographInterface(HolographerInterface(holographer()).getHolograph()).getHolographChainId()
     ) {
       return address(this).balance;
     } else {

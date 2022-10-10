@@ -104,9 +104,12 @@ pragma solidity 0.8.13;
 import "../abstract/Admin.sol";
 import "../abstract/Initializable.sol";
 
-import "../interface/IInitializable.sol";
+import "../interface/InitializableInterface.sol";
 
 contract HolographTreasuryProxy is Admin, Initializable {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.treasury')) - 1)
+   */
   bytes32 constant _treasurySlot = 0x4215e7a38d75164ca078bbd61d0992cdeb1ba16f3b3ead5944966d3e4080e8b6;
 
   constructor() {}
@@ -120,9 +123,9 @@ contract HolographTreasuryProxy is Admin, Initializable {
     }
     (bool success, bytes memory returnData) = treasury.delegatecall(abi.encodeWithSignature("init(bytes)", initCode));
     bytes4 selector = abi.decode(returnData, (bytes4));
-    require(success && selector == IInitializable.init.selector, "initialization failed");
+    require(success && selector == InitializableInterface.init.selector, "initialization failed");
     _setInitialized();
-    return IInitializable.init.selector;
+    return InitializableInterface.init.selector;
   }
 
   function getTreasury() external view returns (address treasury) {

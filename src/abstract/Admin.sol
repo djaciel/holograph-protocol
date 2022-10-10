@@ -3,14 +3,17 @@
 /*SOLIDITY_COMPILER_VERSION*/
 
 abstract contract Admin {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.admin')) - 1)
+   */
   bytes32 constant _adminSlot = precomputeslot("eip1967.Holograph.admin");
-
-  constructor() {}
 
   modifier onlyAdmin() {
     require(msg.sender == getAdmin(), "HOLOGRAPH: admin only function");
     _;
   }
+
+  constructor() {}
 
   function admin() public view returns (address) {
     return getAdmin();

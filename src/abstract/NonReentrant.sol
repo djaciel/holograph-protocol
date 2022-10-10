@@ -3,9 +3,10 @@
 /*SOLIDITY_COMPILER_VERSION*/
 
 abstract contract NonReentrant {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.reentrant')) - 1)
+   */
   bytes32 constant _reentrantSlot = precomputeslot("eip1967.Holograph.reentrant");
-
-  constructor() {}
 
   modifier nonReentrant() {
     require(getStatus() != 2, "HOLOGRAPH: reentrant call");
@@ -13,6 +14,8 @@ abstract contract NonReentrant {
     _;
     setStatus(1);
   }
+
+  constructor() {}
 
   function getStatus() internal view returns (uint256 status) {
     assembly {

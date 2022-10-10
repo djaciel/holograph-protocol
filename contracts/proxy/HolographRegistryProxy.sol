@@ -104,9 +104,12 @@ pragma solidity 0.8.13;
 import "../abstract/Admin.sol";
 import "../abstract/Initializable.sol";
 
-import "../interface/IInitializable.sol";
+import "../interface/InitializableInterface.sol";
 
 contract HolographRegistryProxy is Admin, Initializable {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.registry')) - 1)
+   */
   bytes32 constant _registrySlot = 0xce8e75d5c5227ce29a4ee170160bb296e5dea6934b80a9bd723f7ef1e7c850e7;
 
   constructor() {}
@@ -120,9 +123,9 @@ contract HolographRegistryProxy is Admin, Initializable {
     }
     (bool success, bytes memory returnData) = registry.delegatecall(abi.encodeWithSignature("init(bytes)", initCode));
     bytes4 selector = abi.decode(returnData, (bytes4));
-    require(success && selector == IInitializable.init.selector, "initialization failed");
+    require(success && selector == InitializableInterface.init.selector, "initialization failed");
     _setInitialized();
-    return IInitializable.init.selector;
+    return InitializableInterface.init.selector;
   }
 
   function getRegistry() external view returns (address registry) {

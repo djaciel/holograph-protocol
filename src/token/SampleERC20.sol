@@ -4,7 +4,7 @@
 
 import "../abstract/StrictERC20H.sol";
 
-import "../interface/ERC20Holograph.sol";
+import "../interface/HolographERC20Interface.sol";
 
 /**
  * @title Sample ERC-20 token that is bridgeable via Holograph
@@ -24,28 +24,28 @@ contract SampleERC20 is StrictERC20H {
   bool private _dummy;
 
   /**
-   * @notice Constructor is empty and not utilised.
-   * @dev To make exact CREATE2 deployment possible, constructor is left empty. We utilize the "init" function instead.
+   * @dev Constructor is left empty and init is used instead
    */
   constructor() {}
 
   /**
-   * @notice Initializes the collection.
-   * @dev Special function to allow a one time initialisation on deployment.
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract
+   * @param initPayload abi encoded payload to use for contract initilaization
    */
-  function init(bytes memory data) external override returns (bytes4) {
+  function init(bytes memory initPayload) external override returns (bytes4) {
     // do your own custom logic here
-    address contractOwner = abi.decode(data, (address));
+    address contractOwner = abi.decode(initPayload, (address));
     _setOwner(contractOwner);
     // run underlying initializer logic
-    return _init(data);
+    return _init(initPayload);
   }
 
   /**
    * @dev Sample mint where anyone can mint any amounts of tokens.
    */
   function mint(address to, uint256 amount) external onlyHolographer onlyOwner {
-    ERC20Holograph(holographer()).sourceMint(to, amount);
+    HolographERC20Interface(holographer()).sourceMint(to, amount);
     if (_walletSalts[to] == bytes32(0)) {
       _walletSalts[to] = keccak256(
         abi.encodePacked(to, amount, block.timestamp, block.number, blockhash(block.number - 1))

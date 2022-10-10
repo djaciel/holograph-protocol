@@ -291,6 +291,8 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         let estimatedPayload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
           l2.network.holographId,
           l2.factory.address,
+          '0x' + 'ff'.repeat(32),
+          '0x' + 'ff'.repeat(32),
           data
         );
         // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
@@ -303,10 +305,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         );
         // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
 
-        let gasLimit: BytesLike = remove0x(estimatedGas.toHexString()).padStart(64, '0');
-        let gasPrice: BytesLike = remove0x(BigNumber.from('1').toHexString()).padStart(64, '0');
-        // cut out the gasLimit and gasPrice appended to end of string, add the new ones instead
-        let payload: BytesLike = estimatedPayload.slice(0, -128) + gasLimit + gasPrice;
+        let payload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
+          l2.network.holographId,
+          l2.factory.address,
+          estimatedGas,
+          BigNumber.from('1'),
+          data
+        );
         // process.stdout.write('\n' + 'payload: ' + payload + '\n');
 
         await expect(
@@ -321,7 +326,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           .to.emit(l1.mockLZEndpoint, 'LzEvent')
           .withArgs(
             ChainId.hlg2lz(l2.network.holographId),
-            '0x' + remove0x(l1.operator.address.toLowerCase()).repeat(2),
+            '0x' + remove0x((await l1.operator.getMessagingModule()).toLowerCase()).repeat(2),
             payload
           );
 
@@ -329,8 +334,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           l2.mockLZEndpoint
             .connect(l2.lzEndpoint)
             .adminCall(
-              l2.operator.address,
-              lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
+              await l2.operator.getMessagingModule(),
+              lzReceive(l2.web3, [
+                ChainId.hlg2lz(l1.network.holographId),
+                await l1.operator.getMessagingModule(),
+                0,
+                payload,
+              ])
             )
         )
           .to.emit(l2.operator, 'AvailableOperatorJob')
@@ -410,6 +420,8 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         let estimatedPayload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
           l1.network.holographId,
           l1.factory.address,
+          '0x' + 'ff'.repeat(32),
+          '0x' + 'ff'.repeat(32),
           data
         );
         // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
@@ -422,10 +434,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         );
         // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
 
-        let gasLimit: BytesLike = remove0x(estimatedGas.toHexString()).padStart(64, '0');
-        let gasPrice: BytesLike = remove0x(BigNumber.from('1').toHexString()).padStart(64, '0');
-        // cut out the gasLimit and gasPrice appended to end of string, add the new ones instead
-        let payload: BytesLike = estimatedPayload.slice(0, -128) + gasLimit + gasPrice;
+        let payload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
+          l1.network.holographId,
+          l1.factory.address,
+          estimatedGas,
+          BigNumber.from('1'),
+          data
+        );
         // process.stdout.write('\n' + 'payload: ' + payload + '\n');
 
         await expect(
@@ -440,7 +455,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           .to.emit(l2.mockLZEndpoint, 'LzEvent')
           .withArgs(
             ChainId.hlg2lz(l1.network.holographId),
-            '0x' + remove0x(l2.operator.address.toLowerCase()).repeat(2),
+            '0x' + remove0x((await l2.operator.getMessagingModule()).toLowerCase()).repeat(2),
             payload
           );
 
@@ -448,8 +463,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           l1.mockLZEndpoint
             .connect(l1.lzEndpoint)
             .adminCall(
-              l1.operator.address,
-              lzReceive(l1.web3, [ChainId.hlg2lz(l2.network.holographId), l2.operator.address, 0, payload])
+              await l1.operator.getMessagingModule(),
+              lzReceive(l1.web3, [
+                ChainId.hlg2lz(l2.network.holographId),
+                await l2.operator.getMessagingModule(),
+                0,
+                payload,
+              ])
             )
         )
           .to.emit(l1.operator, 'AvailableOperatorJob')
@@ -531,6 +551,8 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         let estimatedPayload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
           l2.network.holographId,
           l2.factory.address,
+          '0x' + 'ff'.repeat(32),
+          '0x' + 'ff'.repeat(32),
           data
         );
         // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
@@ -543,10 +565,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         );
         // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
 
-        let gasLimit: BytesLike = remove0x(estimatedGas.toHexString()).padStart(64, '0');
-        let gasPrice: BytesLike = remove0x(BigNumber.from('1').toHexString()).padStart(64, '0');
-        // cut out the gasLimit and gasPrice appended to end of string, add the new ones instead
-        let payload: BytesLike = estimatedPayload.slice(0, -128) + gasLimit + gasPrice;
+        let payload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
+          l2.network.holographId,
+          l2.factory.address,
+          estimatedGas,
+          BigNumber.from('1'),
+          data
+        );
         //process.stdout.write('\n' + 'payload: ' + payload + '\n');
 
         await expect(
@@ -561,7 +586,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           .to.emit(l1.mockLZEndpoint, 'LzEvent')
           .withArgs(
             ChainId.hlg2lz(l2.network.holographId),
-            '0x' + remove0x(l1.operator.address.toLowerCase()).repeat(2),
+            '0x' + remove0x((await l1.operator.getMessagingModule()).toLowerCase()).repeat(2),
             payload
           );
 
@@ -569,8 +594,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           l2.mockLZEndpoint
             .connect(l2.lzEndpoint)
             .adminCall(
-              l2.operator.address,
-              lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
+              await l2.operator.getMessagingModule(),
+              lzReceive(l2.web3, [
+                ChainId.hlg2lz(l1.network.holographId),
+                await l1.operator.getMessagingModule(),
+                0,
+                payload,
+              ])
             )
         )
           .to.emit(l2.operator, 'AvailableOperatorJob')
@@ -650,6 +680,8 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         let estimatedPayload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
           l1.network.holographId,
           l1.factory.address,
+          '0x' + 'ff'.repeat(32),
+          '0x' + 'ff'.repeat(32),
           data
         );
         // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
@@ -662,10 +694,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         );
         // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
 
-        let gasLimit: BytesLike = remove0x(estimatedGas.toHexString()).padStart(64, '0');
-        let gasPrice: BytesLike = remove0x(BigNumber.from('1').toHexString()).padStart(64, '0');
-        // cut out the gasLimit and gasPrice appended to end of string, add the new ones instead
-        let payload: BytesLike = estimatedPayload.slice(0, -128) + gasLimit + gasPrice;
+        let payload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
+          l1.network.holographId,
+          l1.factory.address,
+          estimatedGas,
+          BigNumber.from('1'),
+          data
+        );
         // process.stdout.write('\n' + 'payload: ' + payload + '\n');
 
         await expect(
@@ -680,7 +715,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           .to.emit(l2.mockLZEndpoint, 'LzEvent')
           .withArgs(
             ChainId.hlg2lz(l1.network.holographId),
-            '0x' + remove0x(l2.operator.address.toLowerCase()).repeat(2),
+            '0x' + remove0x((await l2.operator.getMessagingModule()).toLowerCase()).repeat(2),
             payload
           );
 
@@ -688,8 +723,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           l1.mockLZEndpoint
             .connect(l1.lzEndpoint)
             .adminCall(
-              l1.operator.address,
-              lzReceive(l1.web3, [ChainId.hlg2lz(l2.network.holographId), l2.operator.address, 0, payload])
+              await l1.operator.getMessagingModule(),
+              lzReceive(l1.web3, [
+                ChainId.hlg2lz(l2.network.holographId),
+                await l2.operator.getMessagingModule(),
+                0,
+                payload,
+              ])
             )
         )
           .to.emit(l1.operator, 'AvailableOperatorJob')
@@ -773,6 +813,8 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         let estimatedPayload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
           l2.network.holographId,
           l2.factory.address,
+          '0x' + 'ff'.repeat(32),
+          '0x' + 'ff'.repeat(32),
           data
         );
         // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
@@ -785,10 +827,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         );
         // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
 
-        let gasLimit: BytesLike = remove0x(estimatedGas.toHexString()).padStart(64, '0');
-        let gasPrice: BytesLike = remove0x(BigNumber.from('1').toHexString()).padStart(64, '0');
-        // cut out the gasLimit and gasPrice appended to end of string, add the new ones instead
-        let payload: BytesLike = estimatedPayload.slice(0, -128) + gasLimit + gasPrice;
+        let payload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
+          l2.network.holographId,
+          l2.factory.address,
+          estimatedGas,
+          BigNumber.from('1'),
+          data
+        );
         // process.stdout.write('\n' + 'payload: ' + payload + '\n');
 
         await expect(
@@ -803,7 +848,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           .to.emit(l1.mockLZEndpoint, 'LzEvent')
           .withArgs(
             ChainId.hlg2lz(l2.network.holographId),
-            '0x' + remove0x(l1.operator.address.toLowerCase()).repeat(2),
+            '0x' + remove0x((await l1.operator.getMessagingModule()).toLowerCase()).repeat(2),
             payload
           );
 
@@ -811,8 +856,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           l2.mockLZEndpoint
             .connect(l2.lzEndpoint)
             .adminCall(
-              l2.operator.address,
-              lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
+              await l2.operator.getMessagingModule(),
+              lzReceive(l2.web3, [
+                ChainId.hlg2lz(l1.network.holographId),
+                await l1.operator.getMessagingModule(),
+                0,
+                payload,
+              ])
             )
         )
           .to.emit(l2.operator, 'AvailableOperatorJob')
@@ -894,6 +944,8 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         let estimatedPayload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
           l1.network.holographId,
           l1.factory.address,
+          '0x' + 'ff'.repeat(32),
+          '0x' + 'ff'.repeat(32),
           data
         );
         // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
@@ -906,10 +958,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         );
         // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
 
-        let gasLimit: BytesLike = remove0x(estimatedGas.toHexString()).padStart(64, '0');
-        let gasPrice: BytesLike = remove0x(BigNumber.from('1').toHexString()).padStart(64, '0');
-        // cut out the gasLimit and gasPrice appended to end of string, add the new ones instead
-        let payload: BytesLike = estimatedPayload.slice(0, -128) + gasLimit + gasPrice;
+        let payload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
+          l1.network.holographId,
+          l1.factory.address,
+          estimatedGas,
+          BigNumber.from('1'),
+          data
+        );
         // process.stdout.write('\n' + 'payload: ' + payload + '\n');
 
         await expect(
@@ -924,7 +979,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           .to.emit(l2.mockLZEndpoint, 'LzEvent')
           .withArgs(
             ChainId.hlg2lz(l1.network.holographId),
-            '0x' + remove0x(l2.operator.address.toLowerCase()).repeat(2),
+            '0x' + remove0x((await l2.operator.getMessagingModule()).toLowerCase()).repeat(2),
             payload
           );
 
@@ -932,8 +987,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           l1.mockLZEndpoint
             .connect(l1.lzEndpoint)
             .adminCall(
-              l1.operator.address,
-              lzReceive(l1.web3, [ChainId.hlg2lz(l2.network.holographId), l2.operator.address, 0, payload])
+              await l1.operator.getMessagingModule(),
+              lzReceive(l1.web3, [
+                ChainId.hlg2lz(l2.network.holographId),
+                await l2.operator.getMessagingModule(),
+                0,
+                payload,
+              ])
             )
         )
           .to.emit(l1.operator, 'AvailableOperatorJob')
@@ -1024,6 +1084,8 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         let estimatedPayload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
           l2.network.holographId,
           l2.factory.address,
+          '0x' + 'ff'.repeat(32),
+          '0x' + 'ff'.repeat(32),
           data
         );
         // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
@@ -1036,10 +1098,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         );
         // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
 
-        let gasLimit: BytesLike = remove0x(estimatedGas.toHexString()).padStart(64, '0');
-        let gasPrice: BytesLike = remove0x(BigNumber.from('1').toHexString()).padStart(64, '0');
-        // cut out the gasLimit and gasPrice appended to end of string, add the new ones instead
-        let payload: BytesLike = estimatedPayload.slice(0, -128) + gasLimit + gasPrice;
+        let payload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
+          l2.network.holographId,
+          l2.factory.address,
+          estimatedGas,
+          BigNumber.from('1'),
+          data
+        );
         // process.stdout.write('\n' + 'payload: ' + payload + '\n');
 
         await expect(
@@ -1054,7 +1119,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           .to.emit(l1.mockLZEndpoint, 'LzEvent')
           .withArgs(
             ChainId.hlg2lz(l2.network.holographId),
-            '0x' + remove0x(l1.operator.address.toLowerCase()).repeat(2),
+            '0x' + remove0x((await l1.operator.getMessagingModule()).toLowerCase()).repeat(2),
             payload
           );
 
@@ -1062,8 +1127,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           l2.mockLZEndpoint
             .connect(l2.lzEndpoint)
             .adminCall(
-              l2.operator.address,
-              lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
+              await l2.operator.getMessagingModule(),
+              lzReceive(l2.web3, [
+                ChainId.hlg2lz(l1.network.holographId),
+                await l1.operator.getMessagingModule(),
+                0,
+                payload,
+              ])
             )
         )
           .to.emit(l2.operator, 'AvailableOperatorJob')
@@ -1152,6 +1222,8 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         let estimatedPayload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
           l1.network.holographId,
           l1.factory.address,
+          '0x' + 'ff'.repeat(32),
+          '0x' + 'ff'.repeat(32),
           data
         );
         // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
@@ -1164,10 +1236,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         );
         // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
 
-        let gasLimit: BytesLike = remove0x(estimatedGas.toHexString()).padStart(64, '0');
-        let gasPrice: BytesLike = remove0x(BigNumber.from('1').toHexString()).padStart(64, '0');
-        // cut out the gasLimit and gasPrice appended to end of string, add the new ones instead
-        let payload: BytesLike = estimatedPayload.slice(0, -128) + gasLimit + gasPrice;
+        let payload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
+          l1.network.holographId,
+          l1.factory.address,
+          estimatedGas,
+          BigNumber.from('1'),
+          data
+        );
         // process.stdout.write('\n' + 'payload: ' + payload + '\n');
 
         await expect(
@@ -1182,7 +1257,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           .to.emit(l2.mockLZEndpoint, 'LzEvent')
           .withArgs(
             ChainId.hlg2lz(l1.network.holographId),
-            '0x' + remove0x(l2.operator.address.toLowerCase()).repeat(2),
+            '0x' + remove0x((await l2.operator.getMessagingModule()).toLowerCase()).repeat(2),
             payload
           );
 
@@ -1190,8 +1265,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           l1.mockLZEndpoint
             .connect(l1.lzEndpoint)
             .adminCall(
-              l1.operator.address,
-              lzReceive(l1.web3, [ChainId.hlg2lz(l2.network.holographId), l2.operator.address, 0, payload])
+              await l1.operator.getMessagingModule(),
+              lzReceive(l1.web3, [
+                ChainId.hlg2lz(l2.network.holographId),
+                await l2.operator.getMessagingModule(),
+                0,
+                payload,
+              ])
             )
         )
           .to.emit(l1.operator, 'AvailableOperatorJob')
@@ -1314,7 +1394,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
           let estimatedPayload: BytesLike = await l1.bridge
             .connect(l1.deployer)
-            .callStatic.getBridgeOutRequestPayload(l2.network.holographId, l1.sampleErc721Holographer.address, data);
+            .callStatic.getBridgeOutRequestPayload(
+              l2.network.holographId,
+              l1.sampleErc721Holographer.address,
+              '0x' + 'ff'.repeat(32),
+              '0x' + 'ff'.repeat(32),
+              data
+            );
           // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
 
           let estimatedGas: BigNumber = BigNumber.from('10000000').sub(
@@ -1325,10 +1411,15 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           );
           // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
 
-          let gasLimit: BytesLike = remove0x(estimatedGas.toHexString()).padStart(64, '0');
-          let gasPrice: BytesLike = remove0x(BigNumber.from('1').toHexString()).padStart(64, '0');
-          // cut out the gasLimit and gasPrice appended to end of string, add the new ones instead
-          let payload: BytesLike = estimatedPayload.slice(0, -128) + gasLimit + gasPrice;
+          let payload: BytesLike = await l1.bridge
+            .connect(l1.deployer)
+            .callStatic.getBridgeOutRequestPayload(
+              l2.network.holographId,
+              l1.sampleErc721Holographer.address,
+              estimatedGas,
+              BigNumber.from('1'),
+              data
+            );
           // process.stdout.write('\n' + 'payload: ' + payload + '\n');
 
           await expect(
@@ -1345,7 +1436,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
             .to.emit(l1.mockLZEndpoint, 'LzEvent')
             .withArgs(
               ChainId.hlg2lz(l2.network.holographId),
-              '0x' + remove0x(l1.operator.address.toLowerCase()).repeat(2),
+              '0x' + remove0x((await l1.operator.getMessagingModule()).toLowerCase()).repeat(2),
               payload
             );
 
@@ -1359,8 +1450,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
             l2.mockLZEndpoint
               .connect(l2.lzEndpoint)
               .adminCall(
-                l2.operator.address,
-                lzReceive(l2.web3, [ChainId.hlg2lz(l1.network.holographId), l1.operator.address, 0, payload])
+                await l2.operator.getMessagingModule(),
+                lzReceive(l2.web3, [
+                  ChainId.hlg2lz(l1.network.holographId),
+                  await l1.operator.getMessagingModule(),
+                  0,
+                  payload,
+                ])
               )
           )
             .to.emit(l2.operator, 'AvailableOperatorJob')
@@ -1408,7 +1504,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
           let estimatedPayload: BytesLike = await l2.bridge
             .connect(l2.deployer)
-            .callStatic.getBridgeOutRequestPayload(l1.network.holographId, l1.sampleErc721Holographer.address, data);
+            .callStatic.getBridgeOutRequestPayload(
+              l1.network.holographId,
+              l1.sampleErc721Holographer.address,
+              '0x' + 'ff'.repeat(32),
+              '0x' + 'ff'.repeat(32),
+              data
+            );
           // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
 
           let estimatedGas: BigNumber = BigNumber.from('10000000').sub(
@@ -1419,10 +1521,15 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           );
           // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
 
-          let gasLimit: BytesLike = remove0x(estimatedGas.toHexString()).padStart(64, '0');
-          let gasPrice: BytesLike = remove0x(BigNumber.from('1').toHexString()).padStart(64, '0');
-          // cut out the gasLimit and gasPrice appended to end of string, add the new ones instead
-          let payload: BytesLike = estimatedPayload.slice(0, -128) + gasLimit + gasPrice;
+          let payload: BytesLike = await l2.bridge
+            .connect(l2.deployer)
+            .callStatic.getBridgeOutRequestPayload(
+              l1.network.holographId,
+              l1.sampleErc721Holographer.address,
+              estimatedGas,
+              BigNumber.from('1'),
+              data
+            );
           // process.stdout.write('\n' + 'payload: ' + payload + '\n');
 
           await expect(
@@ -1439,7 +1546,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
             .to.emit(l2.mockLZEndpoint, 'LzEvent')
             .withArgs(
               ChainId.hlg2lz(l1.network.holographId),
-              '0x' + remove0x(l2.operator.address.toLowerCase()).repeat(2),
+              '0x' + remove0x((await l2.operator.getMessagingModule()).toLowerCase()).repeat(2),
               payload
             );
 
@@ -1453,8 +1560,13 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
             l1.mockLZEndpoint
               .connect(l1.lzEndpoint)
               .adminCall(
-                l1.operator.address,
-                lzReceive(l1.web3, [ChainId.hlg2lz(l2.network.holographId), l2.operator.address, 0, payload])
+                await l1.operator.getMessagingModule(),
+                lzReceive(l1.web3, [
+                  ChainId.hlg2lz(l2.network.holographId),
+                  await l2.operator.getMessagingModule(),
+                  0,
+                  payload,
+                ])
               )
           )
             .to.emit(l1.operator, 'AvailableOperatorJob')

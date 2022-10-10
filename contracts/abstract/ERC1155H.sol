@@ -104,7 +104,13 @@ pragma solidity 0.8.13;
 import "../abstract/Initializable.sol";
 
 abstract contract ERC1155H is Initializable {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.holographer')) - 1)
+   */
   bytes32 constant _holographerSlot = 0xe9fcff60011c1a99f7b7244d1f2d9da93d79ea8ef3654ce590d775575255b2bd;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.owner')) - 1)
+   */
   bytes32 constant _ownerSlot = 0xb56711ba6bd3ded7639fc335ee7524fe668a79d7558c85992e3f8494cf772777;
 
   modifier onlyHolographer() {
@@ -122,21 +128,21 @@ abstract contract ERC1155H is Initializable {
   }
 
   /**
-   * @notice Constructor is empty and not utilised.
-   * @dev To make exact CREATE2 deployment possible, constructor is left empty. We utilize the "init" function instead.
+   * @dev Constructor is left empty and init is used instead
    */
   constructor() {}
 
   /**
-   * @notice Initializes the collection.
-   * @dev Special function to allow a one time initialisation on deployment. Also configures and deploys royalties.
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract
+   * @param initPayload abi encoded payload to use for contract initilaization
    */
-  function init(bytes memory data) external virtual override returns (bytes4) {
-    return _init(data);
+  function init(bytes memory initPayload) external virtual override returns (bytes4) {
+    return _init(initPayload);
   }
 
   function _init(
-    bytes memory /* data*/
+    bytes memory /* initPayload*/
   ) internal returns (bytes4) {
     require(!_isInitialized(), "ERC1155: already initialized");
     address _holographer = msg.sender;
@@ -144,7 +150,7 @@ abstract contract ERC1155H is Initializable {
       sstore(_holographerSlot, _holographer)
     }
     _setInitialized();
-    return IInitializable.init.selector;
+    return InitializableInterface.init.selector;
   }
 
   /**

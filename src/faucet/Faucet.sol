@@ -3,12 +3,12 @@
 /*SOLIDITY_COMPILER_VERSION*/
 
 import "../abstract/Initializable.sol";
-import "../interface/ERC20Holograph.sol";
-import "../interface/IInitializable.sol";
+import "../interface/HolographERC20Interface.sol";
+import "../interface/InitializableInterface.sol";
 
 contract Faucet is Initializable {
   address public owner;
-  ERC20Holograph public token;
+  HolographERC20Interface public token;
 
   uint256 public faucetDripAmount = 100 ether;
   uint256 public faucetCooldown = 24 hours;
@@ -16,22 +16,22 @@ contract Faucet is Initializable {
   mapping(address => uint256) lastAccessTime;
 
   /**
-   * @notice Constructor is empty and not utilised.
-   * @dev To make exact CREATE2 deployment possible, constructor is left empty. We utilize the "init" function instead.
+   * @dev Constructor is left empty and init is used instead
    */
   constructor() {}
 
   /**
-   * @notice Initializes the token.
-   * @dev Special function to allow a one time initialisation on deployment.
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract
+   * @param initPayload abi encoded payload to use for contract initilaization
    */
-  function init(bytes memory data) external override returns (bytes4) {
+  function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "Faucet contract is already initialized");
-    (address _contractOwner, address _tokenInstance) = abi.decode(data, (address, address));
-    token = ERC20Holograph(_tokenInstance);
+    (address _contractOwner, address _tokenInstance) = abi.decode(initPayload, (address, address));
+    token = HolographERC20Interface(_tokenInstance);
     owner = _contractOwner;
     _setInitialized();
-    return IInitializable.init.selector;
+    return InitializableInterface.init.selector;
   }
 
   /// @notice Get tokens from faucet's own balance. Rate limited.

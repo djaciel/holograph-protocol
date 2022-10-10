@@ -84,7 +84,7 @@
     "inputs": [
       {
         "internalType": "bytes",
-        "name": "data",
+        "name": "initPayload",
         "type": "bytes"
       }
     ],
@@ -169,7 +169,7 @@
     "name": "token",
     "outputs": [
       {
-        "internalType": "contract ERC20Holograph",
+        "internalType": "contract HolographERC20Interface",
         "name": "",
         "type": "address"
       }

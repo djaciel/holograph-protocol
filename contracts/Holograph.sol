@@ -104,36 +104,64 @@ pragma solidity 0.8.13;
 import "./abstract/Admin.sol";
 import "./abstract/Initializable.sol";
 
-import "./interface/IInitializable.sol";
-import "./interface/IHolograph.sol";
+import "./interface/InitializableInterface.sol";
+import "./interface/HolographInterface.sol";
 
 /**
  * @title Holograph Protocol
  * @author https://github.com/holographxyz
- * @notice This is the primary Holograph Protocol smart contract.
- * @dev This contract stores a reference to all the primary modules and variables of the protocol.
+ * @notice This is the primary Holograph Protocol smart contract
+ * @dev This contract stores a reference to all the primary modules and variables of the protocol
  */
-contract Holograph is Admin, Initializable, IHolograph {
+contract Holograph is Admin, Initializable, HolographInterface {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.bridge')) - 1)
+   */
   bytes32 constant _bridgeSlot = 0xeb87cbb21687feb327e3d58c6c16d552231d12c7a0e8115042a4165fac8a77f9;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.chainId')) - 1)
+   */
   bytes32 constant _chainIdSlot = 0x7651bfc11f7485d07ab2b41c1312e2007c8cb7efb0f7352a6dee4a1153eebab2;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.factory')) - 1)
+   */
   bytes32 constant _factorySlot = 0xa49f20855ba576e09d13c8041c8039fa655356ea27f6c40f1ec46a4301cd5b23;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.holographChainId')) - 1)
+   */
   bytes32 constant _holographChainIdSlot = 0xd840a780c26e07edc6e1ee2eaa6f134ed5488dbd762614116653cee8542a3844;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.interfaces')) - 1)
+   */
   bytes32 constant _interfacesSlot = 0xbd3084b8c09da87ad159c247a60e209784196be2530cecbbd8f337fdd1848827;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.operator')) - 1)
+   */
   bytes32 constant _operatorSlot = 0x7caba557ad34138fa3b7e43fb574e0e6cc10481c3073e0dffbc560db81b5c60f;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.registry')) - 1)
+   */
   bytes32 constant _registrySlot = 0xce8e75d5c5227ce29a4ee170160bb296e5dea6934b80a9bd723f7ef1e7c850e7;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.treasury')) - 1)
+   */
   bytes32 constant _treasurySlot = 0x4215e7a38d75164ca078bbd61d0992cdeb1ba16f3b3ead5944966d3e4080e8b6;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.utilityToken')) - 1)
+   */
   bytes32 constant _utilityTokenSlot = 0xbf76518d46db472b71aa7677a0908b8016f3dee568415ffa24055f9a670f9c37;
 
   /**
-   * @dev Constructor is left empty and init is used instead.
+   * @dev Constructor is left empty and init is used instead
    */
   constructor() {}
 
   /**
-   * @notice Used internally to initialize the contract instead of through a constructor.
-   * @dev This function is called by the deployer/factory when creating a contract.
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract
+   * @param initPayload abi encoded payload to use for contract initilaization
    */
-  function init(bytes memory data) external override returns (bytes4) {
+  function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (
       uint32 holographChainId,
@@ -144,13 +172,13 @@ contract Holograph is Admin, Initializable, IHolograph {
       address registry,
       address treasury,
       address utilityToken
-    ) = abi.decode(data, (uint32, address, address, address, address, address, address, address));
+    ) = abi.decode(initPayload, (uint32, address, address, address, address, address, address, address));
     assembly {
       sstore(_adminSlot, origin())
-      sstore(_bridgeSlot, bridge)
       sstore(_chainIdSlot, chainid())
-      sstore(_factorySlot, factory)
       sstore(_holographChainIdSlot, holographChainId)
+      sstore(_bridgeSlot, bridge)
+      sstore(_factorySlot, factory)
       sstore(_interfacesSlot, interfaces)
       sstore(_operatorSlot, operator)
       sstore(_registrySlot, registry)
@@ -158,12 +186,12 @@ contract Holograph is Admin, Initializable, IHolograph {
       sstore(_utilityTokenSlot, utilityToken)
     }
     _setInitialized();
-    return IInitializable.init.selector;
+    return InitializableInterface.init.selector;
   }
 
   /**
-   * @notice Get the address of the Holograph Bridge module.
-   * @dev Used for beaming holographable assets cross-chain.
+   * @notice Get the address of the Holograph Bridge module
+   * @dev Used for beaming holographable assets cross-chain
    */
   function getBridge() external view returns (address bridge) {
     assembly {
@@ -172,7 +200,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Update the Holograph Bridge module address.
+   * @notice Update the Holograph Bridge module address
+   * @param bridge address of the Holograph Bridge smart contract to use
    */
   function setBridge(address bridge) external onlyAdmin {
     assembly {
@@ -181,8 +210,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Get the chain ID that the Protocol was deployed on.
-   * @dev Useful for checking if/when a hard fork occurs.
+   * @notice Get the chain ID that the Protocol was deployed on
+   * @dev Useful for checking if/when a hard fork occurs
    */
   function getChainId() external view returns (uint256 chainId) {
     assembly {
@@ -191,8 +220,9 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Update the chain ID.
-   * @dev Useful for updating once a hard fork has been mitigated.
+   * @notice Update the chain ID
+   * @dev Useful for updating once a hard fork has been mitigated
+   * @param chainId EVM chain ID to use
    */
   function setChainId(uint256 chainId) external onlyAdmin {
     assembly {
@@ -201,8 +231,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Get the address of the Holograph Factory module.
-   * @dev Used for deploying holographable smart contracts.
+   * @notice Get the address of the Holograph Factory module
+   * @dev Used for deploying holographable smart contracts
    */
   function getFactory() external view returns (address factory) {
     assembly {
@@ -211,7 +241,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Update the Holograph Factory module address.
+   * @notice Update the Holograph Factory module address
+   * @param factory address of the Holograph Factory smart contract to use
    */
   function setFactory(address factory) external onlyAdmin {
     assembly {
@@ -220,8 +251,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Get the Holograph chain Id.
-   * @dev Holograph uses an internal chain id mapping.
+   * @notice Get the Holograph chain Id
+   * @dev Holograph uses an internal chain id mapping
    */
   function getHolographChainId() external view returns (uint32 holographChainId) {
     assembly {
@@ -230,8 +261,9 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Update the Holograph chain ID.
-   * @dev Useful for updating once a hard fork was mitigated.
+   * @notice Update the Holograph chain ID
+   * @dev Useful for updating once a hard fork was mitigated
+   * @param holographChainId Holograph chain ID to use
    */
   function setHolographChainId(uint32 holographChainId) external onlyAdmin {
     assembly {
@@ -240,8 +272,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Get the address of the Holograph Interfaces module.
-   * @dev Holograph uses this contract to store data that needs to be accessed by a large portion of the modules.
+   * @notice Get the address of the Holograph Interfaces module
+   * @dev Holograph uses this contract to store data that needs to be accessed by a large portion of the modules
    */
   function getInterfaces() external view returns (address interfaces) {
     assembly {
@@ -250,7 +282,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Update the Holograph Interfaces module address.
+   * @notice Update the Holograph Interfaces module address
+   * @param interfaces address of the Holograph Interfaces smart contract to use
    */
   function setInterfaces(address interfaces) external onlyAdmin {
     assembly {
@@ -259,8 +292,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Get the address of the Holograph Operator module.
-   * @dev All cross-chain Holograph Bridge beams are handled by the Holograph Operator module.
+   * @notice Get the address of the Holograph Operator module
+   * @dev All cross-chain Holograph Bridge beams are handled by the Holograph Operator module
    */
   function getOperator() external view returns (address operator) {
     assembly {
@@ -269,7 +302,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Update the Holograph Operator module address.
+   * @notice Update the Holograph Operator module address
+   * @param operator address of the Holograph Operator smart contract to use
    */
   function setOperator(address operator) external onlyAdmin {
     assembly {
@@ -278,8 +312,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Get the Holograph Registry module.
-   * @dev This module stores a reference for all deployed holographable smart contracts.
+   * @notice Get the Holograph Registry module
+   * @dev This module stores a reference for all deployed holographable smart contracts
    */
   function getRegistry() external view returns (address registry) {
     assembly {
@@ -288,7 +322,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Update the Holograph Registry module address.
+   * @notice Update the Holograph Registry module address
+   * @param registry address of the Holograph Registry smart contract to use
    */
   function setRegistry(address registry) external onlyAdmin {
     assembly {
@@ -297,8 +332,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Get the Holograph Treasury module.
-   * @dev All of the Holograph Protocol assets are stored and managed by this module.
+   * @notice Get the Holograph Treasury module
+   * @dev All of the Holograph Protocol assets are stored and managed by this module
    */
   function getTreasury() external view returns (address treasury) {
     assembly {
@@ -307,7 +342,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Update the Holograph Treasury module address.
+   * @notice Update the Holograph Treasury module address
+   * @param treasury address of the Holograph Treasury smart contract to use
    */
   function setTreasury(address treasury) external onlyAdmin {
     assembly {
@@ -316,8 +352,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Get the Holograph Protocol Utility Token address.
-   * @dev This is the official utility token of the Holograph Protocol.
+   * @notice Get the Holograph Utility Token address
+   * @dev This is the official utility token of the Holograph Protocol
    */
   function getUtilityToken() external view returns (address utilityToken) {
     assembly {
@@ -326,7 +362,8 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @notice Update the Holograph Protocol Utility Token address.
+   * @notice Update the Holograph Utility Token address
+   * @param utilityToken address of the Holograph Utility Token smart contract to use
    */
   function setUtilityToken(address utilityToken) external onlyAdmin {
     assembly {
@@ -335,14 +372,14 @@ contract Holograph is Admin, Initializable, IHolograph {
   }
 
   /**
-   * @dev Purposefully reverts to prevent having any type of ether transfered into the contract.
+   * @dev Purposefully reverts to prevent having any type of ether transfered into the contract
    */
   receive() external payable {
     revert();
   }
 
   /**
-   * @dev Purposefully reverts to prevent any calls to undefined functions.
+   * @dev Purposefully reverts to prevent any calls to undefined functions
    */
   fallback() external payable {
     revert();

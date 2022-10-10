@@ -3,14 +3,15 @@
 /*SOLIDITY_COMPILER_VERSION*/
 
 abstract contract Owner {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.owner')) - 1)
+   */
   bytes32 constant _ownerSlot = precomputeslot("eip1967.Holograph.owner");
 
   /**
    * @dev Event emitted when contract owner is changed.
    */
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-  constructor() {}
 
   modifier onlyOwner() virtual {
     require(msg.sender == getOwner(), "HOLOGRAPH: owner only function");
@@ -20,6 +21,8 @@ abstract contract Owner {
   function owner() public view virtual returns (address) {
     return getOwner();
   }
+
+  constructor() {}
 
   function getOwner() public view returns (address ownerAddress) {
     assembly {

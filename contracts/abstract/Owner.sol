@@ -102,14 +102,15 @@
 pragma solidity 0.8.13;
 
 abstract contract Owner {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.owner')) - 1)
+   */
   bytes32 constant _ownerSlot = 0xb56711ba6bd3ded7639fc335ee7524fe668a79d7558c85992e3f8494cf772777;
 
   /**
    * @dev Event emitted when contract owner is changed.
    */
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-  constructor() {}
 
   modifier onlyOwner() virtual {
     require(msg.sender == getOwner(), "HOLOGRAPH: owner only function");
@@ -119,6 +120,8 @@ abstract contract Owner {
   function owner() public view virtual returns (address) {
     return getOwner();
   }
+
+  constructor() {}
 
   function getOwner() public view returns (address ownerAddress) {
     assembly {

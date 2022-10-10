@@ -28,13 +28,16 @@ const getEnvironment = (): Environment => {
     if (fs.existsSync(head)) {
       const contents = fs.readFileSync('./.git/HEAD', 'utf8');
       const branch = contents.trim().split('ref: refs/heads/')[1];
+      console.log('GitBranch:', branch);
       if (acceptableBranches.has(branch)) {
         environment = Environment[branch as keyof typeof Environment];
       }
     }
   } else if (acceptableBranches.has(env)) {
+    console.log('HOLOGRAPH_ENVIRONMENT:', env);
     environment = Environment[env as keyof typeof Environment];
   }
+  console.log('Environment:', environment);
 
   return environment;
 };
