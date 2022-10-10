@@ -46,6 +46,8 @@ describe('Testing the Holograph Faucet', async () => {
   });
 
   describe('Default drip flow', async () => {
+    // TODO: Add test to check for the `Faucet is empty` Error
+
     it('isAllowedToWithdraw(): User is allowed to withdraw for the first time', async function () {
       expect(await FAUCET.isAllowedToWithdraw(l1.wallet1.address)).to.be.true;
     });
@@ -66,6 +68,8 @@ describe('Testing the Holograph Faucet', async () => {
   });
 
   describe('Owner drip flow', async () => {
+    // TODO: Add test to check for the `Faucet is empty` Error
+
     it('grantTokens(): Owner can grant tokens', async function () {
       await FAUCET['grantTokens(address)'](l1.wallet1.address);
       dripCount++;
@@ -78,6 +82,10 @@ describe('Testing the Holograph Faucet', async () => {
       dripCount += factor;
       expect(await ERC20.balanceOf(l1.wallet1.address)).to.equal(DEFAULT_DRIP_AMOUNT.mul(2 + factor));
     });
+
+    it('grantTokens(): Non Owner should fail to grant tokens')
+
+    it('grantTokens(): Should fail if contract has insufficient funds')
   });
 
   describe('Owner can adjust Withdraw Cooldown', async () => {
@@ -148,5 +156,7 @@ describe('Testing the Holograph Faucet', async () => {
       );
       expect(await ERC20.balanceOf(FAUCET.address)).to.equal(0);
     });
+
+    it('withdrawAllTokens(): Non Owner should fail to Withdraw All Tokens')
   });
 });
