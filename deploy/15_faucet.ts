@@ -1,5 +1,5 @@
 declare var global: any;
-import { Contract } from 'ethers';
+import { Contract, BigNumber } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -49,8 +49,23 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         generateInitCode(['address', 'address'], [deployer.address, hlgTokenAddress]),
         futureFaucetAddress
       );
+      const hlgContract = (await hre.ethers.getContract('HolographERC20')).attach(hlgTokenAddress);
+      const transferTx = await hlgContract.transfer(futureFaucetAddress, BigNumber.from('1000000000000000000000000'), {
+        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+      });
+      await transferTx.wait();
     } else {
       hre.deployments.log('"Faucet" is already deployed.');
+    }
+    if (currentNetworkType == NetworkType.testnet) {
+      const faucetContract = await hre.ethers.getContract('Faucet');
+      if ((await faucetContract.token()) != hlgTokenAddress) {
+        const tx = await faucetContract.setToken(hlgTokenAddress, {
+          nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+        });
+        await tx.wait();
+        hre.deployments.log('Updated HLG reference');
+      }
     }
   }
 };

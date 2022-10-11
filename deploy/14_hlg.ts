@@ -124,11 +124,15 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       );
     }
     if ((await holograph.getUtilityToken()) != hlgTokenAddress) {
-      const setHTokenTx = await holograph.setUtilityToken(hlgTokenAddress);
+      const setHTokenTx = await holograph.setUtilityToken(hlgTokenAddress, {
+        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+      });
       await setHTokenTx.wait();
     }
     if ((await holographRegistry.getUtilityToken()) != hlgTokenAddress) {
-      const setHTokenTx2 = await holographRegistry.setUtilityToken(hlgTokenAddress);
+      const setHTokenTx2 = await holographRegistry.setUtilityToken(hlgTokenAddress, {
+        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+      });
       await setHTokenTx2.wait();
     }
 

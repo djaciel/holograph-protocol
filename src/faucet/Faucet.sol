@@ -42,6 +42,11 @@ contract Faucet is Initializable {
     token.transfer(msg.sender, faucetDripAmount);
   }
 
+  /// @notice Update token address
+  function setToken(address tokenAddress) external onlyOwner {
+    token = HolographERC20Interface(tokenAddress);
+  }
+
   /// @notice Grant tokens to receiver from faucet's own balance. Not rate limited.
   function grantTokens(address _address) external onlyOwner {
     require(token.balanceOf(address(this)) >= faucetDripAmount, "Faucet is empty");
