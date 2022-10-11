@@ -302,9 +302,9 @@ contract HolographRegistry is Admin, Initializable, HolographRegistryInterface {
   /**
    * @dev Returns the reserved contract address for a contract type
    */
-  function getReservedContractTypeAddress(bytes32 contractType) external view returns (address cotractTypeAddress) {
+  function getReservedContractTypeAddress(bytes32 contractType) external view returns (address contractTypeAddress) {
     if (_reservedTypes[contractType]) {
-      cotractTypeAddress = _contractTypeAddresses[contractType];
+      contractTypeAddress = _contractTypeAddresses[contractType];
     }
   }
 

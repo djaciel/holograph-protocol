@@ -30,6 +30,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       'CxipERC721',
       'CxipERC721Proxy',
       'Faucet',
+      'LayerZeroModule',
     ];
     for (let i: number = 0, l: number = contracts.length; i < l; i++) {
       let contract: string = contracts[i];

@@ -16,6 +16,7 @@ import {
   Network,
   NetworkType,
   genesisDeriveFutureAddress,
+  remove0x,
 } from '../scripts/utils/helpers';
 import { HolographERC20Event, ConfigureEvents, AllEventsEnabled } from '../scripts/utils/events';
 import networks from '../config/networks';
@@ -34,7 +35,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const chainId = '0x' + network.holographId.toString(16).padStart(8, '0');
 
   const holograph = await hre.ethers.getContract('Holograph');
-  let hlgTokenAddress = (await holograph.getUtilityToken()).toLowerCase();
+  let hlgTokenAddress = await holograph.getUtilityToken();
 
   const holographFactoryProxy = await hre.ethers.getContract('HolographFactoryProxy');
   const holographFactory = ((await hre.ethers.getContract('HolographFactory')) as Contract).attach(
@@ -73,25 +74,22 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'Holograph Utility Token',
     '1',
     18,
-    ConfigureEvents([HolographERC20Event.bridgeIn, HolographERC20Event.bridgeOut]),
+    ConfigureEvents([]),
     generateInitCode(['address'], [deployer.address]),
     salt
   );
 
   const holographerBytecode: BytesLike = (await hre.ethers.getContractFactory('Holographer')).bytecode;
-  const futureHlgAddress =
-    '0x' +
-    web3.utils
-      .keccak256(
-        '0xff' +
-          holographFactoryProxy.address.substring(2) +
-          (erc20ConfigHash as string).substring(2) +
-          web3.utils.keccak256(holographerBytecode).substring(2)
-      )
-      .substring(26);
+  const futureHlgAddress = hre.ethers.utils.getCreate2Address(
+    holographFactoryProxy.address,
+    erc20ConfigHash,
+    hre.ethers.utils.keccak256(holographerBytecode)
+  );
   hre.deployments.log('the future "HolographUtilityToken" address is', futureHlgAddress);
 
   let hlgDeployedCode: string = await hre.provider.send('eth_getCode', [futureHlgAddress, 'latest']);
+  hre.deployments.log('hlgTokenAddress', hlgTokenAddress);
+  hre.deployments.log('futureHlgAddress', futureHlgAddress);
   if (hlgDeployedCode == '0x' || hlgDeployedCode == '' || hlgTokenAddress != futureHlgAddress) {
     hre.deployments.log('need to deploy "HLG" for chain:', chainId);
 
@@ -119,17 +117,17 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     if (!eventFound) {
       throw new Error('BridgeableContractDeployed event not fired');
     }
-    hlgTokenAddress = deployResult.events[eventIndex].args[0].toLowerCase();
+    hlgTokenAddress = deployResult.events[eventIndex].args[0];
     if (hlgTokenAddress != futureHlgAddress) {
       throw new Error(
         `Seems like hlgTokenAddress ${hlgTokenAddress} and futureHlgAddress ${futureHlgAddress} do not match!`
       );
     }
-    if ((await holograph.getUtilityToken()).toLowerCase() != hlgTokenAddress) {
+    if ((await holograph.getUtilityToken()) != hlgTokenAddress) {
       const setHTokenTx = await holograph.setUtilityToken(hlgTokenAddress);
       await setHTokenTx.wait();
     }
-    if ((await holographRegistry.getUtilityToken()).toLowerCase() != hlgTokenAddress) {
+    if ((await holographRegistry.getUtilityToken()) != hlgTokenAddress) {
       const setHTokenTx2 = await holographRegistry.setUtilityToken(hlgTokenAddress);
       await setHTokenTx2.wait();
     }

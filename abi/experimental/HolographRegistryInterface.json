@@ -118,7 +118,7 @@
     "outputs": [
       {
         "internalType": "address",
-        "name": "cotractTypeAddress",
+        "name": "contractTypeAddress",
         "type": "address"
       }
     ],

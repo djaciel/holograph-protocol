@@ -29,7 +29,7 @@ interface HolographRegistryInterface {
 
   function setHToken(uint32 chainId, address hToken) external;
 
-  function getReservedContractTypeAddress(bytes32 contractType) external view returns (address cotractTypeAddress);
+  function getReservedContractTypeAddress(bytes32 contractType) external view returns (address contractTypeAddress);
 
   function setReservedContractTypeAddress(bytes32 hash, bool reserved) external;
 

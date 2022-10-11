@@ -245,22 +245,17 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'Holograph Utility Token',
     '1',
     18,
-    ConfigureEvents([HolographERC20Event.bridgeIn, HolographERC20Event.bridgeOut]),
+    ConfigureEvents([]),
     generateInitCode(['address'], [deployer.address]),
     salt
   );
 
   const holographerBytecode: BytesLike = (await hre.ethers.getContractFactory('Holographer')).bytecode;
-  const futureHlgAddress =
-    '0x' +
-    web3.utils
-      .keccak256(
-        '0xff' +
-          futureFactoryProxyAddress.substring(2) +
-          (erc20ConfigHash as string).substring(2) +
-          web3.utils.keccak256(holographerBytecode).substring(2)
-      )
-      .substring(26);
+  const futureHlgAddress = hre.ethers.utils.getCreate2Address(
+    futureFactoryProxyAddress,
+    erc20ConfigHash,
+    hre.ethers.utils.keccak256(holographerBytecode)
+  );
   hre.deployments.log('the future "HolographUtilityToken" address is', futureHlgAddress);
 
   // Holograph

@@ -122,7 +122,11 @@ contract HolographFactory is Admin, Initializable, Holographable, HolographFacto
     /**
      * @dev check that this contract has not already been deployed on this chain
      */
-    require(!HolographRegistryInterface(registry).isHolographedHashDeployed(hash), "HOLOGRAPH: already deployed");
+    bytes memory holographerBytecode = type(Holographer).creationCode;
+    address holographerAddress = address(
+      uint160(uint256(keccak256(abi.encodePacked(bytes1(0xff), address(this), hash, keccak256(holographerBytecode)))))
+    );
+    require(!_isContract(holographerAddress), "HOLOGRAPH: already deployed");
     /**
      * @dev convert hash into uint256 which will be used as the salt for create2
      */
@@ -135,8 +139,6 @@ contract HolographFactory is Admin, Initializable, Holographable, HolographFacto
        */
       sourceContractAddress := create2(0, add(sourceByteCode, 0x20), mload(sourceByteCode), saltInt)
     }
-    bytes memory holographerBytecode = type(Holographer).creationCode;
-    address holographerAddress;
     assembly {
       /**
        * @dev deploy the Holographer contract

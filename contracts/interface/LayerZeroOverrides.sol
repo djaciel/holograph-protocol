@@ -101,40 +101,63 @@
 
 pragma solidity 0.8.13;
 
-interface HolographRegistryInterface {
-  function isHolographedContract(address smartContract) external view returns (bool);
+interface LayerZeroOverrides {
+  // @dev defaultAppConfig struct
+  struct ApplicationConfiguration {
+    uint16 inboundProofLibraryVersion;
+    uint64 inboundBlockConfirmations;
+    address relayer;
+    uint16 outboundProofType;
+    uint64 outboundBlockConfirmations;
+    address oracle;
+  }
 
-  function isHolographedHashDeployed(bytes32 hash) external view returns (bool);
+  struct DstPrice {
+    uint128 dstPriceRatio; // 10^10
+    uint128 dstGasPriceInWei;
+  }
 
-  function referenceContractTypeAddress(address contractAddress) external returns (bytes32);
+  struct DstConfig {
+    uint128 dstNativeAmtCap;
+    uint64 baseGas;
+    uint64 gasPerByte;
+  }
 
-  function getContractTypeAddress(bytes32 contractType) external view returns (address);
+  // @dev using this to retrieve UltraLightNodeV2 address
+  function defaultSendLibrary() external view returns (address);
 
-  function setContractTypeAddress(bytes32 contractType, address contractAddress) external;
+  // @dev using this to extract defaultAppConfig
+  function getAppConfig(uint16 destinationChainId, address userApplicationAddress)
+    external
+    view
+    returns (ApplicationConfiguration memory);
 
-  function getHolograph() external view returns (address holograph);
+  // @dev using this to extract defaultAppConfig directly from storage slot
+  function defaultAppConfig(uint16 destinationChainId)
+    external
+    view
+    returns (
+      uint16 inboundProofLibraryVersion,
+      uint64 inboundBlockConfirmations,
+      address relayer,
+      uint16 outboundProofType,
+      uint64 outboundBlockConfirmations,
+      address oracle
+    );
 
-  function setHolograph(address holograph) external;
+  // @dev access the mapping to get base price fee
+  function dstPriceLookup(uint16 destinationChainId)
+    external
+    view
+    returns (uint128 dstPriceRatio, uint128 dstGasPriceInWei);
 
-  function getHolographableContracts(uint256 index, uint256 length) external view returns (address[] memory contracts);
-
-  function getHolographableContractsLength() external view returns (uint256);
-
-  function getHolographedHashAddress(bytes32 hash) external view returns (address);
-
-  function setHolographedHashAddress(bytes32 hash, address contractAddress) external;
-
-  function getHToken(uint32 chainId) external view returns (address);
-
-  function setHToken(uint32 chainId, address hToken) external;
-
-  function getReservedContractTypeAddress(bytes32 contractType) external view returns (address contractTypeAddress);
-
-  function setReservedContractTypeAddress(bytes32 hash, bool reserved) external;
-
-  function setReservedContractTypeAddresses(bytes32[] calldata hashes, bool[] calldata reserved) external;
-
-  function getUtilityToken() external view returns (address utilityToken);
-
-  function setUtilityToken(address utilityToken) external;
+  // @dev access the mapping to get base gas and gas per byte
+  function dstConfigLookup(uint16 destinationChainId, uint16 outboundProofType)
+    external
+    view
+    returns (
+      uint128 dstNativeAmtCap,
+      uint64 baseGas,
+      uint64 gasPerByte
+    );
 }
