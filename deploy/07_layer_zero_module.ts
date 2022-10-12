@@ -83,7 +83,29 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   } else {
     hre.deployments.log(`MessagingModule is already registered to: ${await holographOperator.getMessagingModule()}`);
   }
-  // TODO: check that getBaseGas and getGasPerByte are correctly set
+
+  const lzModule = (await hre.ethers.getContract('LayerZeroModule')) as Contract;
+
+  if (!(await lzModule.getBaseGas()).eq(BASEGAS)) {
+    const lzTx = await lzModule
+      .setBaseGas(BASEGAS, {
+        nonce: await hre.ethers.provider.getTransactionCount(deployer),
+      })
+      .catch(error);
+    hre.deployments.log('Transaction hash:', lzTx.hash);
+    await lzTx.wait();
+    hre.deployments.log('Updated LayerZero baseGas');
+  }
+  if (!(await lzModule.getGasPerByte()).eq(GASPERBYTE)) {
+    const lzTx = await lzModule
+      .setGasPerByte(GASPERBYTE, {
+        nonce: await hre.ethers.provider.getTransactionCount(deployer),
+      })
+      .catch(error);
+    hre.deployments.log('Transaction hash:', lzTx.hash);
+    await lzTx.wait();
+    hre.deployments.log('Updated LayerZero gasPerByte');
+  }
 };
 
 export default func;
