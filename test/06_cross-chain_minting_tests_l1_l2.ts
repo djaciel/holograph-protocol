@@ -61,7 +61,7 @@ type KeyOf<T extends object> = Extract<keyof T, string>;
 function executeJobGas(payload: string, verbose?: boolean): BigNumber {
   const payloadBytes = Math.floor(remove0x(payload).length * 0.5);
   const gasPerByte = 30;
-  const baseGas = 110000;
+  const baseGas = 150000;
   if (verbose) {
     process.stdout.write('\n' + ' '.repeat(10) + 'payload length is ' + payloadBytes + '\n');
     process.stdout.write(' '.repeat(10) + 'payload adds ' + payloadBytes * gasPerByte + '\n');
@@ -69,7 +69,7 @@ function executeJobGas(payload: string, verbose?: boolean): BigNumber {
   return BigNumber.from(payloadBytes * gasPerByte + baseGas);
 }
 
-describe('Testing cross-chain minting (L1 & L2)', async function () {
+describe.only('Testing cross-chain minting (L1 & L2)', async function () {
   const GWEI: BigNumber = BigNumber.from('1000000000');
   const TESTGASLIMIT: BigNumber = BigNumber.from('10000000');
   const GASPRICE: BigNumber = BigNumber.from('1000000000');
@@ -264,9 +264,9 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           l1.network,
           l1.deployer.address,
           'hToken',
-          l1.network.tokenName + ' (Holographed)',
+          l1.network.tokenName + ' (Holographed #' + l1.network.holographId.toString() + ')',
           'h' + l1.network.tokenSymbol,
-          l1.network.tokenName + ' (Holographed)',
+          l1.network.tokenName + ' (Holographed #' + l1.network.holographId.toString() + ')',
           '1',
           18,
           ConfigureEvents([]),
@@ -402,9 +402,9 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           l2.network,
           l2.deployer.address,
           'hToken',
-          l2.network.tokenName + ' (Holographed)',
+          l2.network.tokenName + ' (Holographed #' + l2.network.holographId.toString() + ')',
           'h' + l2.network.tokenSymbol,
-          l2.network.tokenName + ' (Holographed)',
+          l2.network.tokenName + ' (Holographed #' + l2.network.holographId.toString() + ')',
           '1',
           18,
           ConfigureEvents([]),
@@ -1547,7 +1547,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
                 ]),
                 {
                   gasPrice: GASPRICE,
-                  gasLimit: executeJobGas(payload).mul(BigNumber.from('2')),
+                  gasLimit: executeJobGas(payload),
                 }
               )
           )
@@ -1666,7 +1666,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
                 ]),
                 {
                   gasPrice: GASPRICE,
-                  gasLimit: executeJobGas(payload).mul(BigNumber.from('2')),
+                  gasLimit: executeJobGas(payload),
                 }
               )
           )

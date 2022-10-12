@@ -26,7 +26,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const holograph = await hre.ethers.getContract('Holograph');
 
-  const BASEGAS: string = BigNumber.from('110000').toHexString();
+  const BASEGAS: string = BigNumber.from('150000').toHexString();
   const GASPERBYTE: string = BigNumber.from('30').toHexString();
 
   const futureLayerZeroModuleAddress = await genesisDeriveFutureAddress(

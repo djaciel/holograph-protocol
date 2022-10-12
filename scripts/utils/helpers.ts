@@ -1,6 +1,7 @@
 declare var global: any;
 import fs from 'fs';
 import Web3 from 'web3';
+import { AbiItem } from 'web3-utils';
 import crypto from 'crypto';
 import { EthereumProvider, Artifacts, HardhatRuntimeEnvironment } from 'hardhat/types';
 import {
@@ -36,6 +37,7 @@ import {
 } from '@nomiclabs/hardhat-ethers/internal/helpers';
 import type * as ProviderProxyT from '@nomiclabs/hardhat-ethers/internal/provider-proxy';
 import networks from '../../config/networks';
+import { PreTest } from '../../test/utils/index';
 
 export type DeploymentConfigStruct = {
   contractType: BytesLike;
@@ -645,6 +647,119 @@ const ownerCall = async function (
   return receipt;
 };
 
+const beamSomething = async function (
+  origin: PreTest,
+  destination: PreTest,
+  holographableContract: Contract,
+  wallet: SignerWithAddress,
+  bridgeOutRequest: BytesLike
+): Promise<void> {
+  const GWEI: BigNumber = BigNumber.from('1000000000');
+  const TESTGASLIMIT: BigNumber = BigNumber.from('10000000');
+  const GASPRICE: BigNumber = BigNumber.from('1000000000');
+  const GASPERBYTE: number = 31;
+  const BASEGAS: number = 130000;
+
+  const lzReceiveABI = {
+    inputs: [
+      {
+        internalType: 'uint16',
+        name: '',
+        type: 'uint16',
+      },
+      {
+        internalType: 'bytes',
+        name: '_srcAddress',
+        type: 'bytes',
+      },
+      {
+        internalType: 'uint64',
+        name: '',
+        type: 'uint64',
+      },
+      {
+        internalType: 'bytes',
+        name: '_payload',
+        type: 'bytes',
+      },
+    ],
+    name: 'lzReceive',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  } as AbiItem;
+  const lzReceive = function (web3: Web3, params: any[]): BytesLike {
+    return origin.web3.eth.abi.encodeFunctionCall(lzReceiveABI, params);
+  };
+
+  function executeJobGas(payload: string): BigNumber {
+    const payloadBytes = Math.floor(remove0x(payload).length * 0.5);
+    return BigNumber.from(payloadBytes * GASPERBYTE + BASEGAS);
+  }
+
+  let estimatedPayload: BytesLike = await origin.bridge
+    .connect(wallet)
+    .callStatic.getBridgeOutRequestPayload(
+      destination.network.holographId,
+      holographableContract.address,
+      '0x' + 'ff'.repeat(32),
+      '0x' + 'ff'.repeat(32),
+      bridgeOutRequest
+    );
+
+  let estimatedGas: BigNumber = TESTGASLIMIT.sub(
+    await destination.operator.callStatic.jobEstimator(estimatedPayload, {
+      gasPrice: GASPRICE,
+      gasLimit: TESTGASLIMIT,
+    })
+  );
+
+  let payload: BytesLike = await origin.bridge
+    .connect(wallet)
+    .callStatic.getBridgeOutRequestPayload(
+      destination.network.holographId,
+      holographableContract.address,
+      estimatedGas,
+      GWEI,
+      bridgeOutRequest
+    );
+
+  let fees = await origin.bridge.callStatic.getMessageFee(destination.network.holographId, estimatedGas, GWEI, payload);
+  let total: BigNumber = fees[0].add(fees[1]);
+
+  await origin.bridge
+    .connect(wallet)
+    .bridgeOutRequest(
+      destination.network.holographId,
+      holographableContract.address,
+      estimatedGas,
+      GWEI,
+      bridgeOutRequest,
+      { value: total }
+    );
+
+  await destination.mockLZEndpoint
+    .connect(destination.lzEndpoint)
+    .adminCall(
+      await destination.operator.getMessagingModule(),
+      lzReceive(destination.web3, [
+        await origin.holographInterfaces.getChainId(2, origin.network.holographId, 3),
+        await origin.operator.getMessagingModule(),
+        0,
+        payload,
+      ]),
+      { gasPrice: GASPRICE, gasLimit: executeJobGas(payload) }
+    );
+
+  let jobDetails = await destination.operator.getJobDetails(destination.web3.utils.keccak256(payload));
+
+  destination.operator.connect(wallet).executeJob(payload, {
+    gasPrice: GASPRICE,
+    gasLimit: estimatedGas.add(estimatedGas.div(BigNumber.from('3'))),
+  });
+  return;
+};
+
 export {
   isDefined,
   bytesToHex,
@@ -674,4 +789,5 @@ export {
   getGasUsage,
   adminCall,
   ownerCall,
+  beamSomething,
 };
