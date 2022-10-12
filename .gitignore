@@ -17,5 +17,7 @@ typechain-types
 coverage
 coverage.json
 
+gasReport.txt
+
 editor.bbprojectd
 yarn-error.log

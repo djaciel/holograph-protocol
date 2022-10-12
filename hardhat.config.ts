@@ -276,7 +276,14 @@ const config: HardhatUserConfig = {
     timeout: 1000 * 60 * 60,
   },
   gasReporter: {
-    enabled: false,
+    enabled: true,
+    // enabled: process.env.COINMARKETCAP_API_KEY !== undefined,
+    outputFile: './gasReport.txt', // comment line to get the report on terminal
+    noColors: true, // comment line to get the report on terminal
+    currency: 'USD',
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY || '',
+    token: 'ETH',
+    gasPriceApi: 'https://api.bscscan.com/api?module=proxy&action=eth_gasPrice',
   },
   etherscan: {
     apiKey: {
