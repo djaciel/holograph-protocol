@@ -43,5 +43,4 @@ contract Mock is Initializable {
       }
     }
   }
-
 }

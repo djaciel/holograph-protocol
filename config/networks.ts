@@ -13,6 +13,7 @@ const networks: Networks = {
     tokenSymbol: 'HRD',
     lzEndpoint: '0x0000000000000000000000000000000000000000'.toLowerCase(),
     lzId: 0,
+    active: false,
   },
   localhost: {
     type: NetworkType.local,
@@ -23,6 +24,7 @@ const networks: Networks = {
     tokenSymbol: 'LH',
     lzEndpoint: '0x0000000000000000000000000000000000000000'.toLowerCase(),
     lzId: 65535,
+    active: true,
   },
   localhost2: {
     type: NetworkType.local,
@@ -33,6 +35,7 @@ const networks: Networks = {
     tokenSymbol: 'LH2',
     lzEndpoint: '0x0000000000000000000000000000000000000000'.toLowerCase(),
     lzId: 65534,
+    active: true,
   },
   // TEST NETWORKS
   celo_testnet: {
@@ -44,6 +47,7 @@ const networks: Networks = {
     tokenSymbol: 'CELO',
     lzEndpoint: '0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1'.toLowerCase(),
     lzId: 10125,
+    active: false,
   },
   moonbeam_testnet: {
     type: NetworkType.testnet,
@@ -54,6 +58,7 @@ const networks: Networks = {
     tokenSymbol: 'DEV',
     lzEndpoint: '0xb23b28012ee92E8dE39DEb57Af31722223034747'.toLowerCase(),
     lzId: 10126,
+    active: false,
   },
   harmony_testnet: {
     type: NetworkType.testnet,
@@ -64,6 +69,7 @@ const networks: Networks = {
     tokenSymbol: 'ONE',
     lzEndpoint: '0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1'.toLowerCase(),
     lzId: 10133,
+    active: false,
   },
   optimism_goerli: {
     type: NetworkType.testnet,
@@ -74,6 +80,7 @@ const networks: Networks = {
     tokenSymbol: 'ETH',
     lzEndpoint: '0xae92d5aD7583AD66E49A0c67BAd18F6ba52dDDc1'.toLowerCase(),
     lzId: 10132,
+    active: false,
   },
   arbitrum_goerli: {
     type: NetworkType.testnet,
@@ -84,6 +91,7 @@ const networks: Networks = {
     tokenSymbol: 'AGOR',
     lzEndpoint: '0x6aB5Ae6822647046626e83ee6dB8187151E1d5ab'.toLowerCase(),
     lzId: 10143,
+    active: false,
   },
   aurora_testnet: {
     type: NetworkType.testnet,
@@ -94,6 +102,7 @@ const networks: Networks = {
     tokenSymbol: 'tETH',
     lzEndpoint: '0x0000000000000000000000000000000000000000'.toLowerCase(),
     lzId: 0,
+    active: false,
   },
   cronos_testnet: {
     type: NetworkType.testnet,
@@ -104,6 +113,7 @@ const networks: Networks = {
     tokenSymbol: 'tCRO',
     lzEndpoint: '0x0000000000000000000000000000000000000000'.toLowerCase(),
     lzId: 0,
+    active: false,
   },
   eth_goerli: {
     type: NetworkType.testnet,
@@ -115,6 +125,7 @@ const networks: Networks = {
     tokenSymbol: 'ETH',
     lzEndpoint: '0xbfD2135BFfbb0B5378b56643c2Df8a87552Bfa23'.toLowerCase(),
     lzId: 10121,
+    active: true,
   },
   eth_kovan: {
     type: NetworkType.testnet,
@@ -125,6 +136,7 @@ const networks: Networks = {
     tokenSymbol: 'KOV',
     lzEndpoint: '0x0000000000000000000000000000000000000000'.toLowerCase(),
     lzId: 0,
+    active: false,
   },
   eth_ropsten: {
     type: NetworkType.testnet,
@@ -136,6 +148,7 @@ const networks: Networks = {
     tokenSymbol: 'ROP',
     lzEndpoint: '0x0000000000000000000000000000000000000000'.toLowerCase(),
     lzId: 0,
+    active: false,
   },
   gno_sokol: {
     type: NetworkType.testnet,
@@ -146,6 +159,7 @@ const networks: Networks = {
     tokenSymbol: 'xDAI',
     lzEndpoint: '0x0000000000000000000000000000000000000000'.toLowerCase(),
     lzId: 0,
+    active: false,
   },
   optimism_kovan: {
     type: NetworkType.testnet,
@@ -156,6 +170,7 @@ const networks: Networks = {
     tokenSymbol: 'KOR',
     lzEndpoint: '0x72aB53a133b27Fa428ca7Dc263080807AfEc91b5'.toLowerCase(),
     lzId: 10111,
+    active: false,
   },
   arbitrum_rinkeby: {
     type: NetworkType.testnet,
@@ -166,6 +181,7 @@ const networks: Networks = {
     tokenSymbol: 'ARETH',
     lzEndpoint: '0x4D747149A57923Beb89f22E6B7B97f7D8c087A00'.toLowerCase(),
     lzId: 10110,
+    active: false,
   },
   ftm_testnet: {
     type: NetworkType.testnet,
@@ -176,6 +192,7 @@ const networks: Networks = {
     tokenSymbol: 'FTM',
     lzEndpoint: '0x7dcAD72640F835B0FA36EFD3D6d3ec902C7E5acf'.toLowerCase(),
     lzId: 10112,
+    active: false,
   },
   mumbai: {
     type: NetworkType.testnet,
@@ -188,6 +205,7 @@ const networks: Networks = {
     tokenSymbol: 'MATIC',
     lzEndpoint: '0xf69186dfBa60DdB133E91E9A4B5673624293d8F8'.toLowerCase(),
     lzId: 10109,
+    active: true,
   },
   fuji: {
     type: NetworkType.testnet,
@@ -200,6 +218,7 @@ const networks: Networks = {
     tokenSymbol: 'AVAX',
     lzEndpoint: '0x93f54D755A063cE7bB9e6Ac47Eccc8e33411d706'.toLowerCase(),
     lzId: 10106,
+    active: true,
   },
   bsc_testnet: {
     type: NetworkType.testnet,
@@ -211,6 +230,7 @@ const networks: Networks = {
     tokenSymbol: 'tBNB',
     lzEndpoint: '0x6Fcb97553D41516Cb228ac03FdC8B9a0a9df04A1'.toLowerCase(),
     lzId: 10102,
+    active: true,
   },
   eth_rinkeby: {
     type: NetworkType.testnet,
@@ -222,6 +242,7 @@ const networks: Networks = {
     tokenSymbol: 'RIN',
     lzEndpoint: '0x79a63d6d8BBD5c6dfc774dA79bCcD948EAcb53FA'.toLowerCase(),
     lzId: 10101,
+    active: true,
   },
   cxip: {
     type: NetworkType.testnet,
@@ -232,6 +253,7 @@ const networks: Networks = {
     tokenSymbol: 'CXIP',
     lzEndpoint: '0x0000000000000000000000000000000000000000'.toLowerCase(),
     lzId: 0,
+    active: false,
   },
   // LIVE NETWORKS
   eth: {
@@ -244,6 +266,7 @@ const networks: Networks = {
     tokenSymbol: 'ETH',
     lzEndpoint: '0x66A71Dcef29A0fFBDBE3c6a460a3B5BC225Cd675'.toLowerCase(),
     lzId: 101,
+    active: true,
   },
   bsc: {
     type: NetworkType.mainnet,
@@ -255,6 +278,7 @@ const networks: Networks = {
     tokenSymbol: 'BNB',
     lzEndpoint: '0x3c2269811836af69497E5F486A85D7316753cf62'.toLowerCase(),
     lzId: 0,
+    active: true,
   },
   avax: {
     type: NetworkType.mainnet,
@@ -266,6 +290,7 @@ const networks: Networks = {
     tokenSymbol: 'AVAX',
     lzEndpoint: '0x3c2269811836af69497E5F486A85D7316753cf62'.toLowerCase(),
     lzId: 0,
+    active: true,
   },
   matic: {
     type: NetworkType.mainnet,
@@ -277,6 +302,7 @@ const networks: Networks = {
     tokenSymbol: 'MATIC',
     lzEndpoint: '0x3c2269811836af69497E5F486A85D7316753cf62'.toLowerCase(),
     lzId: 0,
+    active: true,
   },
   ftm: {
     type: NetworkType.mainnet,
@@ -288,6 +314,7 @@ const networks: Networks = {
     tokenSymbol: 'FTM',
     lzEndpoint: '0xb6319cC6c8c27A8F5dAF0dD3DF91EA35C4720dd7'.toLowerCase(),
     lzId: 0,
+    active: false,
   },
   arbitrum: {
     type: NetworkType.mainnet,
@@ -299,6 +326,7 @@ const networks: Networks = {
     tokenSymbol: 'ETH',
     lzEndpoint: '0x3c2269811836af69497E5F486A85D7316753cf62'.toLowerCase(),
     lzId: 0,
+    active: false,
   },
   optimism: {
     type: NetworkType.mainnet,
@@ -309,6 +337,7 @@ const networks: Networks = {
     tokenSymbol: 'ETH',
     lzEndpoint: '0x3c2269811836af69497E5F486A85D7316753cf62'.toLowerCase(),
     lzId: 0,
+    active: false,
   },
   gno: {
     type: NetworkType.mainnet,
@@ -319,6 +348,7 @@ const networks: Networks = {
     tokenSymbol: 'GNO',
     lzEndpoint: '0x0000000000000000000000000000000000000000'.toLowerCase(),
     lzId: 0,
+    active: false,
   },
   cronos: {
     type: NetworkType.mainnet,
@@ -329,6 +359,7 @@ const networks: Networks = {
     tokenSymbol: 'CRO',
     lzEndpoint: '0x0000000000000000000000000000000000000000'.toLowerCase(),
     lzId: 0,
+    active: false,
   },
   aurora: {
     type: NetworkType.mainnet,
@@ -339,6 +370,7 @@ const networks: Networks = {
     tokenSymbol: 'ETH',
     lzEndpoint: '0x0000000000000000000000000000000000000000'.toLowerCase(),
     lzId: 0,
+    active: false,
   },
   harmony: {
     type: NetworkType.mainnet,
@@ -349,6 +381,7 @@ const networks: Networks = {
     tokenSymbol: 'ONE',
     lzEndpoint: '0x9740FF91F1985D8d2B71494aE1A2f723bb3Ed9E4'.toLowerCase(),
     lzId: 116,
+    active: false,
   },
   moonbeam: {
     type: NetworkType.mainnet,
@@ -359,6 +392,7 @@ const networks: Networks = {
     tokenSymbol: 'GLMR',
     lzEndpoint: '0x9740FF91F1985D8d2B71494aE1A2f723bb3Ed9E4'.toLowerCase(),
     lzId: 126,
+    active: false,
   },
   celo: {
     type: NetworkType.mainnet,
@@ -369,6 +403,7 @@ const networks: Networks = {
     tokenSymbol: 'CELO',
     lzEndpoint: '0x0000000000000000000000000000000000000000'.toLowerCase(),
     lzId: 0,
+    active: false,
   },
   swimmer: {
     type: NetworkType.mainnet,
@@ -379,6 +414,7 @@ const networks: Networks = {
     tokenSymbol: 'TUS',
     lzEndpoint: '0x9740FF91F1985D8d2B71494aE1A2f723bb3Ed9E4'.toLowerCase(),
     lzId: 114,
+    active: false,
   },
   dfk: {
     type: NetworkType.mainnet,
@@ -389,6 +425,7 @@ const networks: Networks = {
     tokenSymbol: 'JEWEL',
     lzEndpoint: '0x9740FF91F1985D8d2B71494aE1A2f723bb3Ed9E4'.toLowerCase(),
     lzId: 115,
+    active: false,
   },
 };
 

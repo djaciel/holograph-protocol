@@ -173,6 +173,28 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
   }
 
   /**
+   * @dev temp function, used for quicker updates/resets during development
+   *      NOT PART OF FINAL CODE !!!
+   */
+  function resetOperator(
+    uint256 blockTime,
+    uint256 baseBondAmount,
+    uint256 podMultiplier,
+    uint256 operatorThreshold,
+    uint256 operatorThresholdStep,
+    uint256 operatorThresholdDivisor
+  ) external onlyAdmin {
+    _blockTime = blockTime;
+    _baseBondAmount = baseBondAmount;
+    _podMultiplier = podMultiplier;
+    _operatorThreshold = operatorThreshold;
+    _operatorThresholdStep = operatorThresholdStep;
+    _operatorThresholdDivisor = operatorThresholdDivisor;
+    _operatorPods = [[address(0)]];
+    _bondedOperators[address(0)] = 1;
+  }
+
+  /**
    * @notice Execute an available operator job
    * @dev When making this call, if operating criteria is not met, the call will revert
    * @param bridgeInRequestPayload the entire cross chain message payload
@@ -293,51 +315,61 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
     /**
      * @dev execute the job
      */
-    bool failed;
-    assembly {
-      calldatacopy(0, bridgeInRequestPayload.offset, sub(bridgeInRequestPayload.length, 0x40))
-      /**
-       * @dev gas limit is set to ensure that
-       */
-      let result := call(gasLimit, sload(_bridgeSlot), callvalue(), 0, sub(bridgeInRequestPayload.length, 0x40), 0, 0)
-      if eq(result, 0) {
-        /**
-         * @dev get next free memory pointer
-         */
-        let fmp := mload(0x40)
-        /**
-         * @dev update free memory pointer to reserve the about to be used memory
-         */
-        mstore(0x40, add(fmp, add(returndatasize(), 0x20)))
-        /**
-         * @dev store job payload hash as first value
-         */
-        mstore(fmp, mload(hash))
-        /**
-         * @dev add revert data to the rest of allocated memory
-         */
-        returndatacopy(add(fmp, 0x20), 0, returndatasize())
-        /**
-         * @dev emit event FailedOperatorJob with in-memory data
-         */
-        log1(fmp, add(returndatasize(), 0x20), 0x4749dc6d92b657f5c9164b5139572a187274812cb66d99aa4177b24ffc904124)
-        failed := 0x00000000000000000000000000000000000000000000000000000000000001
-      }
-    }
-    if (failed) {
-      /**
-       * @dev add job to list of failed/recoverable jobs
-       */
+    try
+      HolographOperatorInterface(address(this)).nonRevertingBridgeCall{value: msg.value}(
+        msg.sender,
+        bridgeInRequestPayload
+      )
+    {
+      /// @dev do nothing
+    } catch {
       _failedJobs[hash] = true;
+      emit FailedOperatorJob(hash);
     }
     /**
-     * @dev reward operator (with HLG) for executing the job
+     * @dev every executed job (even if failed) increments total message counter by one
      */
     ++_inboundMessageCounter;
-    //// we need to decide on a reward for operating here
-    // uint256 reward = ???;
-    //// operator gets sent the reward
-    // _bondedOperators[msg.sender] += reward;
+    /**
+     * @dev reward operator (with HLG) for executing the job
+     * @dev this is out of scope and is purposefully omitted from code
+     */
+    ////  _bondedOperators[msg.sender] += reward;
+  }
+
+  /*
+   * @dev Purposefully made to be external so that Operator can call it during executeJob function
+   *      Check the executeJob function to understand it's implementation
+   */
+  function nonRevertingBridgeCall(address msgSender, bytes calldata payload) external payable {
+    require(msg.sender == address(this), "HOLOGRAPH: operator only call");
+    assembly {
+      /**
+       * @dev remove gas price from end
+       */
+      calldatacopy(0, payload.offset, sub(payload.length, 0x20))
+      /**
+       * @dev hToken recipient is injected right before making the call
+       */
+      mstore(0x84, msgSender)
+      /**
+       * @dev make non-reverting call
+       */
+      let result := call(
+        /// @dev gas limit is retrieved from last 32 bytes of payload in-memory value
+        mload(sub(payload.length, 0x40)),
+        /// @dev destination is bridge contract
+        sload(_bridgeSlot),
+        /// @dev any value is passed along
+        callvalue(),
+        /// @dev data is retrieved from 0 index memory position
+        0,
+        /// @dev everything except for last 32 bytes (gas limit) is sent
+        sub(payload.length, 0x40),
+        0,
+        0
+      )
+    }
   }
 
   /**
@@ -452,6 +484,11 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
     bytes calldata bridgeOutPayload
   ) external payable {
     require(msg.sender == _bridge(), "HOLOGRAPH: bridge only call");
+    CrossChainMessageInterface messagingModule = _messagingModule();
+    uint256 hlgFee = messagingModule.getHlgFee(toChain, gasLimit, gasPrice);
+    address hToken = _registry().getHToken(_holograph().getHolographChainId());
+    require(hlgFee < msg.value, "HOLOGRAPH: not enough value");
+    payable(hToken).transfer(hlgFee);
     bytes memory encodedData = abi.encodeWithSelector(
       HolographBridgeInterface.bridgeInRequest.selector,
       /**
@@ -469,7 +506,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
       /**
        * @dev get the current chain's hToken for native gas token
        */
-      _registry().getHToken(_holograph().getHolographChainId()),
+      hToken,
       /**
        * @dev recipient will be defined when operator picks up the job
        */
@@ -477,7 +514,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
       /**
        * @dev value is set to zero for now
        */
-      0,
+      hlgFee,
       /**
        * @dev specify that function call should not revert
        */
@@ -495,11 +532,48 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
      * @dev Send the data to the current Holograph Messaging Module
      *      This will be changed to dynamically select which messaging module to use based on destination network
      */
-    _messagingModule().send(gasLimit, gasPrice, toChain, msgSender, msg.value, encodedData);
+    messagingModule.send{value: msg.value - hlgFee}(
+      gasLimit,
+      gasPrice,
+      toChain,
+      msgSender,
+      msg.value - hlgFee,
+      encodedData
+    );
     /**
      * @dev for easy indexing, an event is emitted with the payload hash for status tracking
      */
     emit CrossChainMessageSent(keccak256(encodedData));
+  }
+
+  /**
+   * @notice Get the fees associated with sending specific payload
+   * @dev Will provide exact costs on protocol and message side, combine the two to get total
+   * @dev @param toChain holograph chain id of destination chain for payload
+   * @dev @param gasLimit amount of gas to provide for executing payload on destination chain
+   * @dev @param gasPrice maximum amount to pay for gas price, can be set to 0 and will be chose automatically
+   * @dev @param crossChainPayload the entire packet being sent cross-chain
+   * @return hlgFee the amount (in wei) of native gas token that will cost for finalizing job on destiantion chain
+   * @return msgFee the amount (in wei) of native gas token that will cost for sending message to destiantion chain
+   */
+  function getMessageFee(
+    uint32,
+    uint256,
+    uint256,
+    bytes calldata
+  ) external view returns (uint256, uint256) {
+    assembly {
+      calldatacopy(0, 0, calldatasize())
+      let result := staticcall(gas(), sload(_messagingModuleSlot), 0, calldatasize(), 0, 0)
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
+        revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
+      }
+    }
   }
 
   /**
@@ -979,7 +1053,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    */
   function _getCurrentBondAmount(uint256 pod) private view returns (uint256) {
     uint256 current = (_podMultiplier**pod) * _baseBondAmount;
-    if (_operatorPods.length < pod) {
+    if (pod >= _operatorPods.length) {
       return current;
     }
     uint256 threshold = _operatorThreshold / (2**pod);

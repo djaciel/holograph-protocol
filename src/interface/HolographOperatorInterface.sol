@@ -18,7 +18,7 @@ interface HolographOperatorInterface {
   /**
    * @dev Event is emitted if an operator job execution fails
    */
-  event FailedOperatorJob(bytes32 jobHash, bytes revertReason);
+  event FailedOperatorJob(bytes32 jobHash);
 
   /**
    * @notice Execute an available operator job
@@ -26,6 +26,8 @@ interface HolographOperatorInterface {
    * @param bridgeInRequestPayload the entire cross chain message payload
    */
   function executeJob(bytes calldata bridgeInRequestPayload) external payable;
+
+  function nonRevertingBridgeCall(address msgSender, bytes calldata payload) external payable;
 
   /**
    * @notice Receive a cross-chain message
@@ -62,6 +64,23 @@ interface HolographOperatorInterface {
     address holographableContract,
     bytes calldata bridgeOutPayload
   ) external payable;
+
+  /**
+   * @notice Get the fees associated with sending specific payload
+   * @dev Will provide exact costs on protocol and message side, combine the two to get total
+   * @param toChain holograph chain id of destination chain for payload
+   * @param gasLimit amount of gas to provide for executing payload on destination chain
+   * @param gasPrice maximum amount to pay for gas price, can be set to 0 and will be chose automatically
+   * @param crossChainPayload the entire packet being sent cross-chain
+   * @return hlgFee the amount (in wei) of native gas token that will cost for finalizing job on destiantion chain
+   * @return msgFee the amount (in wei) of native gas token that will cost for sending message to destiantion chain
+   */
+  function getMessageFee(
+    uint32 toChain,
+    uint256 gasLimit,
+    uint256 gasPrice,
+    bytes calldata crossChainPayload
+  ) external view returns (uint256 hlgFee, uint256 msgFee);
 
   /**
    * @notice Get the details for an available operator job
