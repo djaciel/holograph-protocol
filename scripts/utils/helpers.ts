@@ -692,8 +692,8 @@ const beamSomething = async function (
     return origin.web3.eth.abi.encodeFunctionCall(lzReceiveABI, params);
   };
 
-  function executeJobGas(payload: string): BigNumber {
-    const payloadBytes = Math.floor(remove0x(payload).length * 0.5);
+  function executeJobGas(payload: BytesLike): BigNumber {
+    const payloadBytes = Math.floor(remove0x(payload as string).length * 0.5);
     return BigNumber.from(payloadBytes * GASPERBYTE + BASEGAS);
   }
 
@@ -751,7 +751,7 @@ const beamSomething = async function (
       { gasPrice: GASPRICE, gasLimit: executeJobGas(payload) }
     );
 
-  let jobDetails = await destination.operator.getJobDetails(destination.web3.utils.keccak256(payload));
+  let jobDetails = await destination.operator.getJobDetails(destination.web3.utils.keccak256(payload as string));
 
   destination.operator.connect(wallet).executeJob(payload, {
     gasPrice: GASPRICE,
