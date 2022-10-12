@@ -83,9 +83,9 @@ describe('Testing the Holograph Faucet', async () => {
       expect(await ERC20.balanceOf(l1.wallet1.address)).to.equal(DEFAULT_DRIP_AMOUNT.mul(2 + factor));
     });
 
-    it('grantTokens(): Non Owner should fail to grant tokens')
+    it('grantTokens(): Non Owner should fail to grant tokens');
 
-    it('grantTokens(): Should fail if contract has insufficient funds')
+    it('grantTokens(): Should fail if contract has insufficient funds');
   });
 
   describe('Owner can adjust Withdraw Cooldown', async () => {
@@ -157,6 +157,6 @@ describe('Testing the Holograph Faucet', async () => {
       expect(await ERC20.balanceOf(FAUCET.address)).to.equal(0);
     });
 
-    it('withdrawAllTokens(): Non Owner should fail to Withdraw All Tokens')
+    it('withdrawAllTokens(): Non Owner should fail to Withdraw All Tokens');
   });
 });
