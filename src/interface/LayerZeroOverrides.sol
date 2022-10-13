@@ -61,4 +61,23 @@ interface LayerZeroOverrides {
       uint64 baseGas,
       uint64 gasPerByte
     );
+
+  // @dev send message to LayerZero Endpoint
+  function send(
+    uint16 _dstChainId,
+    bytes calldata _destination,
+    bytes calldata _payload,
+    address payable _refundAddress,
+    address _zroPaymentAddress,
+    bytes calldata _adapterParams
+  ) external payable;
+
+  // @dev estimate LayerZero message cost
+  function estimateFees(
+    uint16 _dstChainId,
+    address _userApplication,
+    bytes calldata _payload,
+    bool _payInZRO,
+    bytes calldata _adapterParam
+  ) external view returns (uint256 nativeFee, uint256 zroFee);
 }

@@ -50,10 +50,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         futureFaucetAddress
       );
       const hlgContract = (await hre.ethers.getContract('HolographERC20')).attach(hlgTokenAddress);
-      const transferTx = await hlgContract.transfer(futureFaucetAddress, BigNumber.from('1000000000000000000000000'), {
-        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
-      });
-      await transferTx.wait();
+      if (currentNetworkType == NetworkType.testnet) {
+        const transferTx = await hlgContract.transfer(
+          futureFaucetAddress,
+          BigNumber.from('1000000000000000000000000'),
+          {
+            nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+          }
+        );
+        await transferTx.wait();
+      }
     } else {
       hre.deployments.log('"Faucet" is already deployed.');
     }

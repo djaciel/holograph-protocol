@@ -375,6 +375,14 @@ contract HolographBridge is Admin, Initializable, HolographBridgeInterface {
       jobNonce := sload(_jobNonceSlot)
     }
     /**
+     * @dev extract hlgFee from operator
+     */
+    uint256 fee = 0;
+    if (gasPrice < type(uint256).max && gasLimit < type(uint256).max) {
+      (uint256 hlgFee, ) = _operator().getMessageFee(toChain, gasLimit, gasPrice, bridgeOutPayload);
+      fee = hlgFee;
+    }
+    /**
      * @dev the data is abi encoded into actual bridgeOutRequest payload bytes
      */
     bytes memory encodedData = abi.encodeWithSelector(
@@ -387,10 +395,7 @@ contract HolographBridge is Admin, Initializable, HolographBridgeInterface {
       holographableContract,
       _registry().getHToken(_holograph().getHolographChainId()),
       address(0),
-      /**
-       * @dev hToken value is set to zero since this value is not needed for jobEstimate calculations
-       */
-      0,
+      fee,
       true,
       payload
     );
@@ -398,6 +403,36 @@ contract HolographBridge is Admin, Initializable, HolographBridgeInterface {
      * @dev this abi encodes the data just like in Holograph Operator
      */
     samplePayload = abi.encodePacked(encodedData, gasLimit, gasPrice);
+  }
+
+  /**
+   * @notice Get the fees associated with sending specific payload
+   * @dev Will provide exact costs on protocol and message side, combine the two to get total
+   * @dev @param toChain holograph chain id of destination chain for payload
+   * @dev @param gasLimit amount of gas to provide for executing payload on destination chain
+   * @dev @param gasPrice maximum amount to pay for gas price, can be set to 0 and will be chose automatically
+   * @dev @param crossChainPayload the entire packet being sent cross-chain
+   * @return hlgFee the amount (in wei) of native gas token that will cost for finalizing job on destiantion chain
+   * @return msgFee the amount (in wei) of native gas token that will cost for sending message to destiantion chain
+   */
+  function getMessageFee(
+    uint32,
+    uint256,
+    uint256,
+    bytes calldata
+  ) external view returns (uint256, uint256) {
+    assembly {
+      calldatacopy(0, 0, calldatasize())
+      let result := staticcall(gas(), sload(_operatorSlot), 0, calldatasize(), 0, 0)
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
+        revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
+      }
+    }
   }
 
   /**

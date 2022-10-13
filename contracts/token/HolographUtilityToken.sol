@@ -128,7 +128,7 @@ contract HolographUtilityToken is ERC20H {
   function init(bytes memory initPayload) external override returns (bytes4) {
     address contractOwner = abi.decode(initPayload, (address));
     _setOwner(contractOwner);
-    HolographERC20Interface(msg.sender).sourceMint(contractOwner, 1000000 * (10**18));
+    HolographERC20Interface(msg.sender).sourceMint(contractOwner, 10000000 * (10**18));
     // run underlying initializer logic
     return _init(initPayload);
   }

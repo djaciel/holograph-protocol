@@ -9,8 +9,14 @@ import {
   Deployment,
   DeploymentsExtension,
 } from '@holographxyz/hardhat-deploy-holographed/types';
-import { BigNumberish, BytesLike, ContractFactory, Contract, BigNumber } from 'ethers';
-import type { ethers } from 'ethers';
+import { ethers, BigNumberish, BytesLike, ContractFactory, Contract, BigNumber, PopulatedTransaction } from 'ethers';
+import {
+  Block,
+  BlockWithTransactions,
+  TransactionReceipt,
+  TransactionResponse,
+  TransactionRequest,
+} from '@ethersproject/abstract-provider';
 import type EthersT from 'ethers';
 import { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -68,6 +74,7 @@ export interface Network {
   tokenSymbol: string;
   lzEndpoint: string;
   lzId: number;
+  active: boolean;
   webSocket?: string;
 }
 
@@ -614,6 +621,30 @@ const getGasUsage = async function (
   return gasUsed;
 };
 
+const adminCall = async function (
+  admin: Contract,
+  target: Contract,
+  methodName: string,
+  args: any[]
+): Promise<TransactionReceipt> {
+  let rawTx: PopulatedTransaction = await target.populateTransaction[methodName](...args);
+  let tx = await admin.adminCall(target.address, rawTx.data);
+  let receipt: TransactionReceipt = await tx.wait();
+  return receipt;
+};
+
+const ownerCall = async function (
+  owner: Contract,
+  target: Contract,
+  methodName: string,
+  args: any[]
+): Promise<TransactionReceipt> {
+  let rawTx: PopulatedTransaction = await target.populateTransaction[methodName](...args);
+  let tx = await owner.ownerCall(target.address, rawTx.data);
+  let receipt: TransactionReceipt = await tx.wait();
+  return receipt;
+};
+
 export {
   isDefined,
   bytesToHex,
@@ -641,4 +672,6 @@ export {
   getHolographedContractHash,
   sleep,
   getGasUsage,
+  adminCall,
+  ownerCall,
 };

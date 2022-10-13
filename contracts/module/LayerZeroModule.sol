@@ -110,8 +110,8 @@ import "../interface/CrossChainMessageInterface.sol";
 import "../interface/HolographOperatorInterface.sol";
 import "../interface/InitializableInterface.sol";
 import "../interface/HolographInterfacesInterface.sol";
-import "../interface/LayerZeroEndpointInterface.sol";
 import "../interface/LayerZeroModuleInterface.sol";
+import "../interface/LayerZeroOverrides.sol";
 
 /**
  * @title Holograph LayerZero Module
@@ -136,6 +136,14 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.operator')) - 1)
    */
   bytes32 constant _operatorSlot = 0x7caba557ad34138fa3b7e43fb574e0e6cc10481c3073e0dffbc560db81b5c60f;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.operator')) - 1)
+   */
+  bytes32 constant _baseGasSlot = 0x1eaa99919d5563fbfdd75d9d906ff8de8cf52beab1ed73875294c8a0c9e9d83a;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.operator')) - 1)
+   */
+  bytes32 constant _gasPerByteSlot = 0x99d8b07d37c89d4c4f4fa0fd9b7396caeb5d1d4e58b41c61c71e3cf7d424a625;
 
   /**
    * @dev Constructor is left empty and init is used instead
@@ -149,12 +157,17 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
    */
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
-    (address bridge, address interfaces, address operator) = abi.decode(initPayload, (address, address, address));
+    (address bridge, address interfaces, address operator, uint256 baseGas, uint256 gasPerByte) = abi.decode(
+      initPayload,
+      (address, address, address, uint256, uint256)
+    );
     assembly {
       sstore(_adminSlot, origin())
       sstore(_bridgeSlot, bridge)
       sstore(_interfacesSlot, interfaces)
       sstore(_operatorSlot, operator)
+      sstore(_baseGasSlot, baseGas)
+      sstore(_gasPerByteSlot, gasPerByte)
     }
     _setInitialized();
     return InitializableInterface.init.selector;
@@ -220,7 +233,7 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
     bytes calldata crossChainPayload
   ) external payable {
     require(msg.sender == address(_operator()), "HOLOGRAPH: operator only call");
-    LayerZeroEndpointInterface lZEndpoint;
+    LayerZeroOverrides lZEndpoint;
     assembly {
       lZEndpoint := sload(_lZEndpointSlot)
     }
@@ -231,8 +244,63 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
       crossChainPayload,
       payable(msgSender),
       address(this),
-      abi.encodePacked(uint16(1), uint256(52000 + (crossChainPayload.length * 25)))
+      abi.encodePacked(uint16(1), uint256(_baseGas() + (crossChainPayload.length * _gasPerByte())))
     );
+  }
+
+  function getMessageFee(
+    uint32 toChain,
+    uint256 gasLimit,
+    uint256 gasPrice,
+    bytes calldata crossChainPayload
+  ) external view returns (uint256 hlgFee, uint256 msgFee) {
+    uint16 lzDestChain = uint16(
+      _interfaces().getChainId(ChainIdType.HOLOGRAPH, uint256(toChain), ChainIdType.LAYERZERO)
+    );
+    LayerZeroOverrides lz;
+    assembly {
+      lz := sload(_lZEndpointSlot)
+    }
+    // convert holograph chain id to lz chain id
+    (uint128 dstPriceRatio, uint128 dstGasPriceInWei) = _getPricing(lz, lzDestChain);
+    if (gasPrice == 0) {
+      gasPrice = dstGasPriceInWei;
+    }
+    bytes memory adapterParams = abi.encodePacked(
+      uint16(1),
+      uint256(_baseGas() + (crossChainPayload.length * _gasPerByte()))
+    );
+    (uint256 nativeFee, ) = lz.estimateFees(lzDestChain, address(this), crossChainPayload, false, adapterParams);
+    return (((gasPrice * (gasLimit + (gasLimit / 10))) * dstPriceRatio) / (10**10), nativeFee);
+  }
+
+  function getHlgFee(
+    uint32 toChain,
+    uint256 gasLimit,
+    uint256 gasPrice
+  ) external view returns (uint256 hlgFee) {
+    LayerZeroOverrides lz;
+    assembly {
+      lz := sload(_lZEndpointSlot)
+    }
+    uint16 lzDestChain = uint16(
+      _interfaces().getChainId(ChainIdType.HOLOGRAPH, uint256(toChain), ChainIdType.LAYERZERO)
+    );
+    (uint128 dstPriceRatio, uint128 dstGasPriceInWei) = _getPricing(lz, lzDestChain);
+    if (gasPrice == 0) {
+      gasPrice = dstGasPriceInWei;
+    }
+    return ((gasPrice * (gasLimit + (gasLimit / 10))) * dstPriceRatio) / (10**10);
+  }
+
+  function _getPricing(LayerZeroOverrides lz, uint16 lzDestChain)
+    private
+    view
+    returns (uint128 dstPriceRatio, uint128 dstGasPriceInWei)
+  {
+    return
+      LayerZeroOverrides(LayerZeroOverrides(lz.defaultSendLibrary()).getAppConfig(lzDestChain, address(this)).relayer)
+        .dstPriceLookup(lzDestChain);
   }
 
   /**
@@ -354,5 +422,63 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
    */
   fallback() external payable {
     revert();
+  }
+
+  /**
+   * @notice Get the baseGas value
+   * @dev Cross-chain messages require at least this much gas
+   */
+  function getBaseGas() external view returns (uint256 baseGas) {
+    assembly {
+      baseGas := sload(_baseGasSlot)
+    }
+  }
+
+  /**
+   * @notice Update the baseGas value
+   * @param baseGas minimum gas amount that a message requires
+   */
+  function setBaseGas(uint256 baseGas) external onlyAdmin {
+    assembly {
+      sstore(_baseGasSlot, baseGas)
+    }
+  }
+
+  /**
+   * @dev Internal function used for getting the baseGas value
+   */
+  function _baseGas() private view returns (uint256 baseGas) {
+    assembly {
+      baseGas := sload(_baseGasSlot)
+    }
+  }
+
+  /**
+   * @notice Get the gasPerByte value
+   * @dev Cross-chain messages require at least this much gas (per payload byte)
+   */
+  function getGasPerByte() external view returns (uint256 gasPerByte) {
+    assembly {
+      gasPerByte := sload(_gasPerByteSlot)
+    }
+  }
+
+  /**
+   * @notice Update the gasPerByte value
+   * @param gasPerByte minimum gas amount (per payload byte) that a message requires
+   */
+  function setGasPerByte(uint256 gasPerByte) external onlyAdmin {
+    assembly {
+      sstore(_gasPerByteSlot, gasPerByte)
+    }
+  }
+
+  /**
+   * @dev Internal function used for getting the gasPerByte value
+   */
+  function _gasPerByte() private view returns (uint256 gasPerByte) {
+    assembly {
+      gasPerByte := sload(_gasPerByteSlot)
+    }
   }
 }

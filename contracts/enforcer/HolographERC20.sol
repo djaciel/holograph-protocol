@@ -524,10 +524,12 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
     bytes memory data
   ) public returns (bool) {
     if (account != msg.sender) {
-      uint256 currentAllowance = _allowances[account][msg.sender];
-      require(currentAllowance >= amount, "ERC20: amount exceeds allowance");
-      unchecked {
-        _allowances[account][msg.sender] = currentAllowance - amount;
+      if (msg.sender != _holograph().getBridge() && msg.sender != _holograph().getOperator()) {
+        uint256 currentAllowance = _allowances[account][msg.sender];
+        require(currentAllowance >= amount, "ERC20: amount exceeds allowance");
+        unchecked {
+          _allowances[account][msg.sender] = currentAllowance - amount;
+        }
       }
     }
     if (_isEventRegistered(HolographERC20Event.beforeSafeTransfer)) {
@@ -592,10 +594,12 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
     uint256 amount
   ) public returns (bool) {
     if (account != msg.sender) {
-      uint256 currentAllowance = _allowances[account][msg.sender];
-      require(currentAllowance >= amount, "ERC20: amount exceeds allowance");
-      unchecked {
-        _allowances[account][msg.sender] = currentAllowance - amount;
+      if (msg.sender != _holograph().getBridge() && msg.sender != _holograph().getOperator()) {
+        uint256 currentAllowance = _allowances[account][msg.sender];
+        require(currentAllowance >= amount, "ERC20: amount exceeds allowance");
+        unchecked {
+          _allowances[account][msg.sender] = currentAllowance - amount;
+        }
       }
     }
     if (_isEventRegistered(HolographERC20Event.beforeTransfer)) {
