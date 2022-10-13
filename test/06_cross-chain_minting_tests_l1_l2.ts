@@ -69,7 +69,7 @@ function executeJobGas(payload: string, verbose?: boolean): BigNumber {
   return BigNumber.from(payloadBytes * gasPerByte + baseGas);
 }
 
-describe.only('Testing cross-chain minting (L1 & L2)', async function () {
+describe('Testing cross-chain minting (L1 & L2)', async function () {
   const GWEI: BigNumber = BigNumber.from('1000000000');
   const TESTGASLIMIT: BigNumber = BigNumber.from('10000000');
   const GASPRICE: BigNumber = BigNumber.from('1000000000');

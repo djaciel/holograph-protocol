@@ -132,6 +132,7 @@ export interface PreTest {
   cxipErc721Holographer: Holographer;
   cxipErc721Enforcer: HolographERC721;
   faucet: Faucet;
+  sampleErc721Hash: Erc721Config;
 }
 
 const animatedLoader = function (text: string) {
@@ -493,6 +494,7 @@ export default async function (l2?: boolean): Promise<PreTest> {
     sampleErc721Enforcer,
     cxipErc721Holographer,
     cxipErc721Enforcer,
+    sampleErc721Hash,
     faucet,
   } as PreTest;
 }
