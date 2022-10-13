@@ -65,7 +65,7 @@ describe('Holograph Registry Contract', async function () {
 
   describe('constructor', async function () {
     it('should successfully deploy', async function () {
-      expect(holographRegistry.address).to.not.equal(zeroAddress());
+      expect(holographRegistry.address).to.not.equal(zeroAddress);
     });
   });
 
@@ -173,7 +173,7 @@ describe('Holograph Registry Contract', async function () {
     it('should return 0x0 for invalid hash', async function () {
       const contractHash = getContractType();
       const address = await l1.registry.getHolographedHashAddress(contractHash);
-      expect(address).to.equal(zeroAddress());
+      expect(address).to.equal(zeroAddress);
     });
     it('Should allow external contract to call fn', async function () {
       await testExternalCallToFunction(
@@ -332,7 +332,7 @@ describe('Holograph Registry Contract', async function () {
     });
     it('should return 0x0 for invalid chainId', async function () {
       const hTokenAddr = await holographRegistry.connect(deployer).getHToken(invalidChainId);
-      expect(hTokenAddr).to.equal(zeroAddress());
+      expect(hTokenAddr).to.equal(zeroAddress);
     });
     it('Should allow external contract to call fn', async function () {
       await testExternalCallToFunction(

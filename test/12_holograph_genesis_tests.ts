@@ -1,7 +1,7 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { expect } from 'chai';
 import { ethers } from 'hardhat';
-import { generateInitCode, zeroAddress } from '../scripts/utils/helpers';
+import { generateInitCode, zeroAddress, ownerCall, remove0x } from '../scripts/utils/helpers';
 
 describe('Holograph Genesis Contract', async () => {
   let HolographGenesis: any;
@@ -14,13 +14,14 @@ describe('Holograph Genesis Contract', async () => {
   let deployer: SignerWithAddress;
   let newDeployer: SignerWithAddress;
   let anotherNewDeployer: SignerWithAddress;
-  let mockSigner: SignerWithAddress;
+  let mockOwner: SignerWithAddress;
 
   before(async () => {
     accounts = await ethers.getSigners();
     deployer = accounts[0];
     newDeployer = accounts[1];
     anotherNewDeployer = accounts[2];
+    mockOwner = accounts[3];
 
     HolographGenesis = await ethers.getContractFactory('HolographGenesis');
     holographGenesis = await HolographGenesis.deploy();
@@ -33,8 +34,8 @@ describe('Holograph Genesis Contract', async () => {
     Mock = await ethers.getContractFactory('Mock');
     mock = await Mock.deploy();
     await mock.deployed();
-
-    mockSigner = await ethers.getSigner(mock.address);
+    mock = mock.connect(mockOwner);
+    await mock.init(generateInitCode(['bytes32'], ['0x' + 'ff'.repeat(32)]));
   });
 
   describe('constructor', async () => {
@@ -106,11 +107,16 @@ describe('Holograph Genesis Contract', async () => {
       ).to.revertedWith('HOLOGRAPH: deployment failed');
     });
 
-    it.skip('should fail if contract init code does not match the init selector', async () => {
+    it('should fail if contract init code does not match the init selector', async () => {
       const chainId = (await ethers.provider.getNetwork()).chainId;
       await expect(
-        holographGenesisChild.deploy(chainId, `0x${'00'.repeat(11) + '03'}`, Mock.bytecode, '0x')
-      ).to.revertedWith('HOLOGRAPH: init code does not match init selector');
+        holographGenesisChild.deploy(
+          chainId,
+          `0x${'00'.repeat(11) + '03'}`,
+          Mock.bytecode,
+          generateInitCode(['bytes32'], ['0x00000000000000000000000000000000000000000000000000000000000000'])
+        )
+      ).to.revertedWith('HOLOGRAPH: initialization failed');
     });
   });
 
@@ -123,18 +129,24 @@ describe('Holograph Genesis Contract', async () => {
     });
 
     it('should fail non-deployer wallet to add approved deployers', async () => {
-      await expect(holographGenesis.connect(mockSigner).approveDeployer(newDeployer.address, true)).to.be.revertedWith(
+      await expect(holographGenesis.connect(mockOwner).approveDeployer(newDeployer.address, true)).to.be.revertedWith(
         'HOLOGRAPH: deployer not approved'
       );
     });
 
-    it.skip('Should allow external contract to call fn', async () => {
-      let tx = await holographGenesis.approveDeployer(mockSigner.address, true);
+    it('Should allow external contract to call fn', async () => {
+      let tx = await holographGenesis.approveDeployer(mock.address, true);
       await tx.wait();
-      expect(await holographGenesis.isApprovedDeployer(mockSigner.address)).to.equal(true);
-      expect(await holographGenesis.connect(mockSigner).approveDeployer(anotherNewDeployer.address, true)).to.equal(
-        true
-      );
+      expect(await holographGenesis.isApprovedDeployer(mock.address)).to.equal(true);
+      await expect(
+        mock.mockCall(
+          holographGenesis.address,
+          (
+            await holographGenesis.populateTransaction.approveDeployer(anotherNewDeployer.address, true)
+          ).data
+        )
+      ).to.not.be.reverted;
+      expect(await holographGenesis.isApprovedDeployer(anotherNewDeployer.address)).to.equal(true);
     });
 
     it('should allow inherited contract to call fn', async () => {
@@ -157,8 +169,10 @@ describe('Holograph Genesis Contract', async () => {
     });
 
     it('Should allow external contract to call fn', async () => {
-      const isApprovedDeployer = await holographGenesis.connect(mockSigner).isApprovedDeployer(deployer.address);
-      expect(isApprovedDeployer).to.equal(true);
+      // setting fallback address
+      await mock.setStorage(0, '0x' + remove0x(holographGenesis.address).padStart(64, '0'));
+      // this triggers mock contract fallback which then directly calls the real target contract
+      expect(await holographGenesis.attach(mock.address).isApprovedDeployer(deployer.address)).to.equal(true);
     });
 
     it('should allow inherited contract to call fn', async () => {

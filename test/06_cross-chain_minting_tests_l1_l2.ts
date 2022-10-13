@@ -22,6 +22,9 @@ import {
   LeanHardhatRuntimeEnvironment,
   getGasUsage,
   remove0x,
+  KeyOf,
+  executeJobGas,
+  adminCall,
 } from '../scripts/utils/helpers';
 import {
   HolographERC20Event,
@@ -56,54 +59,10 @@ import {
 } from '../typechain-types';
 import { DeploymentConfigStruct } from '../typechain-types/HolographFactory';
 
-type KeyOf<T extends object> = Extract<keyof T, string>;
-
-function executeJobGas(payload: string, verbose?: boolean): BigNumber {
-  const payloadBytes = Math.floor(remove0x(payload).length * 0.5);
-  const gasPerByte = 30;
-  const baseGas = 150000;
-  if (verbose) {
-    process.stdout.write('\n' + ' '.repeat(10) + 'payload length is ' + payloadBytes + '\n');
-    process.stdout.write(' '.repeat(10) + 'payload adds ' + payloadBytes * gasPerByte + '\n');
-  }
-  return BigNumber.from(payloadBytes * gasPerByte + baseGas);
-}
-
 describe('Testing cross-chain minting (L1 & L2)', async function () {
   const GWEI: BigNumber = BigNumber.from('1000000000');
   const TESTGASLIMIT: BigNumber = BigNumber.from('10000000');
   const GASPRICE: BigNumber = BigNumber.from('1000000000');
-  const lzReceiveABI = {
-    inputs: [
-      {
-        internalType: 'uint16',
-        name: '',
-        type: 'uint16',
-      },
-      {
-        internalType: 'bytes',
-        name: '_srcAddress',
-        type: 'bytes',
-      },
-      {
-        internalType: 'uint64',
-        name: '',
-        type: 'uint64',
-      },
-      {
-        internalType: 'bytes',
-        name: '_payload',
-        type: 'bytes',
-      },
-    ],
-    name: 'lzReceive',
-    outputs: [],
-    stateMutability: 'payable',
-    type: 'function',
-  } as AbiItem;
-  const lzReceive = function (web3: Web3, params: any[]): BytesLike {
-    return l1.web3.eth.abi.encodeFunctionCall(lzReceiveABI, params);
-  };
 
   let l1: PreTest;
   let l2: PreTest;
@@ -185,7 +144,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           l1.network.holographId, // fromChain
           l1.sampleErc721Holographer.address, // holographableContract
           l1.hTokenHolographer.address, // hToken
-          zeroAddress(), // hTokenRecipient
+          zeroAddress, // hTokenRecipient
           0, // hTokenValue
           generateInitCode(
             ['address', 'address', 'uint256', 'bytes'],
@@ -276,7 +235,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         let hTokenErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
 
-        expect(hTokenErc20Address).to.equal(zeroAddress());
+        expect(hTokenErc20Address).to.equal(zeroAddress);
 
         hTokenErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
 
@@ -347,21 +306,16 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
         await expect(
-          l2.mockLZEndpoint
-            .connect(l2.lzEndpoint)
-            .adminCall(
-              await l2.operator.getMessagingModule(),
-              lzReceive(l2.web3, [
-                ChainId.hlg2lz(l1.network.holographId),
-                await l1.operator.getMessagingModule(),
-                0,
-                payload,
-              ]),
-              {
-                gasPrice: GASPRICE,
-                gasLimit: executeJobGas(payload),
-              }
-            )
+          adminCall(l2.mockLZEndpoint.connect(l2.lzEndpoint), l2.lzModule, 'lzReceive', [
+            ChainId.hlg2lz(l1.network.holographId),
+            await l1.operator.getMessagingModule(),
+            0,
+            payload,
+            {
+              gasPrice: GASPRICE,
+              gasLimit: executeJobGas(payload),
+            },
+          ])
         )
           .to.emit(l2.operator, 'AvailableOperatorJob')
           .withArgs(l2.web3.utils.keccak256(payload), payload);
@@ -371,7 +325,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
         let operator: SignerWithAddress = l2.deployer;
         let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress()) {
+        if (targetOperator != zeroAddress) {
           // we need to specify an operator
           let wallet: SignerWithAddress;
           for (let i = 0, l = wallets.length; i < l; i++) {
@@ -414,7 +368,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         let hTokenErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
 
-        expect(hTokenErc20Address).to.equal(zeroAddress());
+        expect(hTokenErc20Address).to.equal(zeroAddress);
 
         hTokenErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
 
@@ -485,21 +439,16 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
         await expect(
-          l1.mockLZEndpoint
-            .connect(l1.lzEndpoint)
-            .adminCall(
-              await l1.operator.getMessagingModule(),
-              lzReceive(l1.web3, [
-                ChainId.hlg2lz(l2.network.holographId),
-                await l2.operator.getMessagingModule(),
-                0,
-                payload,
-              ]),
-              {
-                gasPrice: GASPRICE,
-                gasLimit: executeJobGas(payload),
-              }
-            )
+          adminCall(l1.mockLZEndpoint.connect(l1.lzEndpoint), l1.lzModule, 'lzReceive', [
+            ChainId.hlg2lz(l2.network.holographId),
+            await l2.operator.getMessagingModule(),
+            0,
+            payload,
+            {
+              gasPrice: GASPRICE,
+              gasLimit: executeJobGas(payload),
+            },
+          ])
         )
           .to.emit(l1.operator, 'AvailableOperatorJob')
           .withArgs(l1.web3.utils.keccak256(payload), payload);
@@ -509,7 +458,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
         let operator: SignerWithAddress = l1.deployer;
         let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress()) {
+        if (targetOperator != zeroAddress) {
           // we need to specify an operator
           let wallet: SignerWithAddress;
           for (let i = 0, l = wallets.length; i < l; i++) {
@@ -554,7 +503,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         let sampleErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
 
-        expect(sampleErc20Address).to.equal(zeroAddress());
+        expect(sampleErc20Address).to.equal(zeroAddress);
 
         sampleErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
 
@@ -625,21 +574,16 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
         await expect(
-          l2.mockLZEndpoint
-            .connect(l2.lzEndpoint)
-            .adminCall(
-              await l2.operator.getMessagingModule(),
-              lzReceive(l2.web3, [
-                ChainId.hlg2lz(l1.network.holographId),
-                await l1.operator.getMessagingModule(),
-                0,
-                payload,
-              ]),
-              {
-                gasPrice: GASPRICE,
-                gasLimit: executeJobGas(payload),
-              }
-            )
+          adminCall(l2.mockLZEndpoint.connect(l2.lzEndpoint), l2.lzModule, 'lzReceive', [
+            ChainId.hlg2lz(l1.network.holographId),
+            await l1.operator.getMessagingModule(),
+            0,
+            payload,
+            {
+              gasPrice: GASPRICE,
+              gasLimit: executeJobGas(payload),
+            },
+          ])
         )
           .to.emit(l2.operator, 'AvailableOperatorJob')
           .withArgs(l2.web3.utils.keccak256(payload), payload);
@@ -649,7 +593,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
         let operator: SignerWithAddress = l2.deployer;
         let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress()) {
+        if (targetOperator != zeroAddress) {
           // we need to specify an operator
           let wallet: SignerWithAddress;
           for (let i = 0, l = wallets.length; i < l; i++) {
@@ -692,7 +636,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         let sampleErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
 
-        expect(sampleErc20Address).to.equal(zeroAddress());
+        expect(sampleErc20Address).to.equal(zeroAddress);
 
         sampleErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
 
@@ -763,21 +707,16 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
         await expect(
-          l1.mockLZEndpoint
-            .connect(l1.lzEndpoint)
-            .adminCall(
-              await l1.operator.getMessagingModule(),
-              lzReceive(l1.web3, [
-                ChainId.hlg2lz(l2.network.holographId),
-                await l2.operator.getMessagingModule(),
-                0,
-                payload,
-              ]),
-              {
-                gasPrice: GASPRICE,
-                gasLimit: executeJobGas(payload),
-              }
-            )
+          adminCall(l1.mockLZEndpoint.connect(l1.lzEndpoint), l1.lzModule, 'lzReceive', [
+            ChainId.hlg2lz(l2.network.holographId),
+            await l2.operator.getMessagingModule(),
+            0,
+            payload,
+            {
+              gasPrice: GASPRICE,
+              gasLimit: executeJobGas(payload),
+            },
+          ])
         )
           .to.emit(l1.operator, 'AvailableOperatorJob')
           .withArgs(l1.web3.utils.keccak256(payload), payload);
@@ -787,7 +726,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
         let operator: SignerWithAddress = l1.deployer;
         let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress()) {
+        if (targetOperator != zeroAddress) {
           // we need to specify an operator
           let wallet: SignerWithAddress;
           for (let i = 0, l = wallets.length; i < l; i++) {
@@ -834,7 +773,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         let sampleErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
 
-        expect(sampleErc721Address).to.equal(zeroAddress());
+        expect(sampleErc721Address).to.equal(zeroAddress);
 
         sampleErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
 
@@ -905,21 +844,16 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
         await expect(
-          l2.mockLZEndpoint
-            .connect(l2.lzEndpoint)
-            .adminCall(
-              await l2.operator.getMessagingModule(),
-              lzReceive(l2.web3, [
-                ChainId.hlg2lz(l1.network.holographId),
-                await l1.operator.getMessagingModule(),
-                0,
-                payload,
-              ]),
-              {
-                gasPrice: GASPRICE,
-                gasLimit: executeJobGas(payload),
-              }
-            )
+          adminCall(l2.mockLZEndpoint.connect(l2.lzEndpoint), l2.lzModule, 'lzReceive', [
+            ChainId.hlg2lz(l1.network.holographId),
+            await l1.operator.getMessagingModule(),
+            0,
+            payload,
+            {
+              gasPrice: GASPRICE,
+              gasLimit: executeJobGas(payload),
+            },
+          ])
         )
           .to.emit(l2.operator, 'AvailableOperatorJob')
           .withArgs(l2.web3.utils.keccak256(payload), payload);
@@ -929,7 +863,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
         let operator: SignerWithAddress = l2.deployer;
         let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress()) {
+        if (targetOperator != zeroAddress) {
           // we need to specify an operator
           let wallet: SignerWithAddress;
           for (let i = 0, l = wallets.length; i < l; i++) {
@@ -974,7 +908,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         let sampleErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
 
-        expect(sampleErc721Address).to.equal(zeroAddress());
+        expect(sampleErc721Address).to.equal(zeroAddress);
 
         sampleErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
 
@@ -1045,21 +979,16 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
         await expect(
-          l1.mockLZEndpoint
-            .connect(l1.lzEndpoint)
-            .adminCall(
-              await l1.operator.getMessagingModule(),
-              lzReceive(l1.web3, [
-                ChainId.hlg2lz(l2.network.holographId),
-                await l2.operator.getMessagingModule(),
-                0,
-                payload,
-              ]),
-              {
-                gasPrice: GASPRICE,
-                gasLimit: executeJobGas(payload),
-              }
-            )
+          adminCall(l1.mockLZEndpoint.connect(l1.lzEndpoint), l1.lzModule, 'lzReceive', [
+            ChainId.hlg2lz(l2.network.holographId),
+            await l2.operator.getMessagingModule(),
+            0,
+            payload,
+            {
+              gasPrice: GASPRICE,
+              gasLimit: executeJobGas(payload),
+            },
+          ])
         )
           .to.emit(l1.operator, 'AvailableOperatorJob')
           .withArgs(l1.web3.utils.keccak256(payload), payload);
@@ -1069,7 +998,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
         let operator: SignerWithAddress = l1.deployer;
         let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress()) {
+        if (targetOperator != zeroAddress) {
           // we need to specify an operator
           let wallet: SignerWithAddress;
           for (let i = 0, l = wallets.length; i < l; i++) {
@@ -1123,7 +1052,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         let cxipErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
 
-        expect(cxipErc721Address).to.equal(zeroAddress());
+        expect(cxipErc721Address).to.equal(zeroAddress);
 
         cxipErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
 
@@ -1194,21 +1123,16 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
         await expect(
-          l2.mockLZEndpoint
-            .connect(l2.lzEndpoint)
-            .adminCall(
-              await l2.operator.getMessagingModule(),
-              lzReceive(l2.web3, [
-                ChainId.hlg2lz(l1.network.holographId),
-                await l1.operator.getMessagingModule(),
-                0,
-                payload,
-              ]),
-              {
-                gasPrice: GASPRICE,
-                gasLimit: executeJobGas(payload),
-              }
-            )
+          adminCall(l2.mockLZEndpoint.connect(l2.lzEndpoint), l2.lzModule, 'lzReceive', [
+            ChainId.hlg2lz(l1.network.holographId),
+            await l1.operator.getMessagingModule(),
+            0,
+            payload,
+            {
+              gasPrice: GASPRICE,
+              gasLimit: executeJobGas(payload),
+            },
+          ])
         )
           .to.emit(l2.operator, 'AvailableOperatorJob')
           .withArgs(l2.web3.utils.keccak256(payload), payload);
@@ -1218,7 +1142,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
         let operator: SignerWithAddress = l2.deployer;
         let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress()) {
+        if (targetOperator != zeroAddress) {
           // we need to specify an operator
           let wallet: SignerWithAddress;
           for (let i = 0, l = wallets.length; i < l; i++) {
@@ -1270,7 +1194,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         let cxipErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
 
-        expect(cxipErc721Address).to.equal(zeroAddress());
+        expect(cxipErc721Address).to.equal(zeroAddress);
 
         cxipErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
 
@@ -1341,21 +1265,16 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
         process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
         await expect(
-          l1.mockLZEndpoint
-            .connect(l1.lzEndpoint)
-            .adminCall(
-              await l1.operator.getMessagingModule(),
-              lzReceive(l1.web3, [
-                ChainId.hlg2lz(l2.network.holographId),
-                await l2.operator.getMessagingModule(),
-                0,
-                payload,
-              ]),
-              {
-                gasPrice: GASPRICE,
-                gasLimit: executeJobGas(payload),
-              }
-            )
+          adminCall(l1.mockLZEndpoint.connect(l1.lzEndpoint), l1.lzModule, 'lzReceive', [
+            ChainId.hlg2lz(l2.network.holographId),
+            await l2.operator.getMessagingModule(),
+            0,
+            payload,
+            {
+              gasPrice: GASPRICE,
+              gasLimit: executeJobGas(payload),
+            },
+          ])
         )
           .to.emit(l1.operator, 'AvailableOperatorJob')
           .withArgs(l1.web3.utils.keccak256(payload), payload);
@@ -1365,7 +1284,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
         let operator: SignerWithAddress = l1.deployer;
         let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress()) {
+        if (targetOperator != zeroAddress) {
           // we need to specify an operator
           let wallet: SignerWithAddress;
           for (let i = 0, l = wallets.length; i < l; i++) {
@@ -1419,7 +1338,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
               .mint(l1.deployer.address, firstNFTl1, tokenURIs[1])
           )
             .to.emit(l1.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address), 'Transfer')
-            .withArgs(zeroAddress(), l1.deployer.address, firstNFTl1);
+            .withArgs(zeroAddress, l1.deployer.address, firstNFTl1);
 
           gasUsage['#1 mint on l1'] = gasUsage['#1 mint on l1'].add(await getGasUsage(l1.hre));
         });
@@ -1431,7 +1350,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
               .mint(l1.deployer.address, firstNFTl1, tokenURIs[1])
           )
             .to.emit(l2.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address), 'Transfer')
-            .withArgs(zeroAddress(), l1.deployer.address, firstNFTl2);
+            .withArgs(zeroAddress, l1.deployer.address, firstNFTl2);
 
           gasUsage['#1 mint on l2'] = gasUsage['#1 mint on l2'].add(await getGasUsage(l1.hre));
         });
@@ -1443,7 +1362,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
               .mint(l1.deployer.address, secondNFTl1, tokenURIs[2])
           )
             .to.emit(l1.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address), 'Transfer')
-            .withArgs(zeroAddress(), l1.deployer.address, secondNFTl1);
+            .withArgs(zeroAddress, l1.deployer.address, secondNFTl1);
 
           await expect(
             l2.sampleErc721
@@ -1451,7 +1370,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
               .mint(l1.deployer.address, secondNFTl1, tokenURIs[2])
           )
             .to.emit(l2.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address), 'Transfer')
-            .withArgs(zeroAddress(), l1.deployer.address, secondNFTl2);
+            .withArgs(zeroAddress, l1.deployer.address, secondNFTl2);
 
           await expect(
             l1.sampleErc721
@@ -1459,7 +1378,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
               .mint(l1.deployer.address, thirdNFTl1, tokenURIs[3])
           )
             .to.emit(l1.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address), 'Transfer')
-            .withArgs(zeroAddress(), l1.deployer.address, thirdNFTl1);
+            .withArgs(zeroAddress, l1.deployer.address, thirdNFTl1);
 
           await expect(
             l2.sampleErc721
@@ -1467,7 +1386,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
               .mint(l1.deployer.address, thirdNFTl1, tokenURIs[3])
           )
             .to.emit(l2.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address), 'Transfer')
-            .withArgs(zeroAddress(), l1.deployer.address, thirdNFTl2);
+            .withArgs(zeroAddress, l1.deployer.address, thirdNFTl2);
         });
       });
 
@@ -1535,21 +1454,16 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
           process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
           await expect(
-            l2.mockLZEndpoint
-              .connect(l2.lzEndpoint)
-              .adminCall(
-                await l2.operator.getMessagingModule(),
-                lzReceive(l2.web3, [
-                  ChainId.hlg2lz(l1.network.holographId),
-                  await l1.operator.getMessagingModule(),
-                  0,
-                  payload,
-                ]),
-                {
-                  gasPrice: GASPRICE,
-                  gasLimit: executeJobGas(payload),
-                }
-              )
+            adminCall(l2.mockLZEndpoint.connect(l2.lzEndpoint), l2.lzModule, 'lzReceive', [
+              ChainId.hlg2lz(l1.network.holographId),
+              await l1.operator.getMessagingModule(),
+              0,
+              payload,
+              {
+                gasPrice: GASPRICE,
+                gasLimit: executeJobGas(payload),
+              },
+            ])
           )
             .to.emit(l2.operator, 'AvailableOperatorJob')
             .withArgs(l2.web3.utils.keccak256(payload), payload);
@@ -1561,7 +1475,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
           let operator: SignerWithAddress = l2.deployer;
           let targetOperator = jobDetails[2].toLowerCase();
-          if (targetOperator != zeroAddress()) {
+          if (targetOperator != zeroAddress) {
             // we need to specify an operator
             let wallet: SignerWithAddress;
             for (let i = 0, l = wallets.length; i < l; i++) {
@@ -1580,7 +1494,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
             })
           )
             .to.emit(l2.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address), 'Transfer')
-            .withArgs(zeroAddress(), l2.deployer.address, thirdNFTl1.toHexString());
+            .withArgs(zeroAddress, l2.deployer.address, thirdNFTl1.toHexString());
           process.stdout.write(' '.repeat(10) + 'estimatedGas for executeJob is ' + estimatedGas.toString());
           await getGasUsage(l2.hre, 'actual gas usage was', true);
 
@@ -1654,21 +1568,16 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
 
           process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
           await expect(
-            l1.mockLZEndpoint
-              .connect(l1.lzEndpoint)
-              .adminCall(
-                await l1.operator.getMessagingModule(),
-                lzReceive(l1.web3, [
-                  ChainId.hlg2lz(l2.network.holographId),
-                  await l2.operator.getMessagingModule(),
-                  0,
-                  payload,
-                ]),
-                {
-                  gasPrice: GASPRICE,
-                  gasLimit: executeJobGas(payload),
-                }
-              )
+            adminCall(l1.mockLZEndpoint.connect(l1.lzEndpoint), l1.lzModule, 'lzReceive', [
+              ChainId.hlg2lz(l2.network.holographId),
+              await l2.operator.getMessagingModule(),
+              0,
+              payload,
+              {
+                gasPrice: GASPRICE,
+                gasLimit: executeJobGas(payload),
+              },
+            ])
           )
             .to.emit(l1.operator, 'AvailableOperatorJob')
             .withArgs(l1.web3.utils.keccak256(payload), payload);
@@ -1680,7 +1589,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
           let operator: SignerWithAddress = l1.deployer;
           let targetOperator = jobDetails[2].toLowerCase();
-          if (targetOperator != zeroAddress()) {
+          if (targetOperator != zeroAddress) {
             // we need to specify an operator
             let wallet: SignerWithAddress;
             for (let i = 0, l = wallets.length; i < l; i++) {
@@ -1699,7 +1608,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
             })
           )
             .to.emit(l1.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address), 'Transfer')
-            .withArgs(zeroAddress(), l1.deployer.address, thirdNFTl2.toHexString());
+            .withArgs(zeroAddress, l1.deployer.address, thirdNFTl2.toHexString());
           process.stdout.write(' '.repeat(10) + 'estimatedGas for executeJob is ' + estimatedGas.toString());
           await getGasUsage(l1.hre, 'actual gas usage was', true);
 

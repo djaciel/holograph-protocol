@@ -69,14 +69,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ['uint32', 'address', 'address', 'address', 'address', 'address', 'address', 'address', 'address'],
       [
         '0x' + networks[hre.networkName].holographId.toString(16).padStart(8, '0'),
-        zeroAddress(),
-        zeroAddress(),
-        zeroAddress(),
-        zeroAddress(),
-        zeroAddress(),
-        zeroAddress(),
-        zeroAddress(),
-        zeroAddress(),
+        zeroAddress,
+        zeroAddress,
+        zeroAddress,
+        zeroAddress,
+        zeroAddress,
+        zeroAddress,
+        zeroAddress,
+        zeroAddress,
       ]
     )
   );
@@ -86,10 +86,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre,
     salt,
     'HolographBridge',
-    generateInitCode(
-      ['address', 'address', 'address', 'address'],
-      [zeroAddress(), zeroAddress(), zeroAddress(), zeroAddress()]
-    )
+    generateInitCode(['address', 'address', 'address', 'address'], [zeroAddress, zeroAddress, zeroAddress, zeroAddress])
   );
   hre.deployments.log('the future "HolographBridge" address is', futureBridgeAddress);
 
@@ -100,10 +97,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     generateInitCode(
       ['address', 'bytes'],
       [
-        zeroAddress(),
+        zeroAddress,
         generateInitCode(
           ['address', 'address', 'address', 'address', 'address'],
-          [zeroAddress(), zeroAddress(), zeroAddress(), zeroAddress(), zeroAddress()]
+          [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress]
         ),
       ]
     )
@@ -114,7 +111,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre,
     salt,
     'HolographFactory',
-    generateInitCode(['address', 'address', 'address'], [zeroAddress(), zeroAddress(), zeroAddress()])
+    generateInitCode(['address', 'address', 'address'], [zeroAddress, zeroAddress, zeroAddress])
   );
   hre.deployments.log('the future "HolographFactory" address is', futureFactoryAddress);
 
@@ -124,10 +121,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'HolographFactoryProxy',
     generateInitCode(
       ['address', 'bytes'],
-      [
-        zeroAddress(),
-        generateInitCode(['address', 'address', 'address'], [zeroAddress(), zeroAddress(), zeroAddress()]),
-      ]
+      [zeroAddress, generateInitCode(['address', 'address', 'address'], [zeroAddress, zeroAddress, zeroAddress])]
     )
   );
   hre.deployments.log('the future "HolographFactoryProxy" address is', futureFactoryProxyAddress);
@@ -138,7 +132,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'HolographOperator',
     generateInitCode(
       ['address', 'address', 'address', 'address', 'address'],
-      [zeroAddress(), zeroAddress(), zeroAddress(), zeroAddress(), zeroAddress()]
+      [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress]
     )
   );
   hre.deployments.log('the future "HolographOperator" address is', futureOperatorAddress);
@@ -150,10 +144,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     generateInitCode(
       ['address', 'bytes'],
       [
-        zeroAddress(),
+        zeroAddress,
         generateInitCode(
           ['address', 'address', 'address', 'address', 'address'],
-          [zeroAddress(), zeroAddress(), zeroAddress(), zeroAddress(), zeroAddress()]
+          [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress]
         ),
       ]
     )
@@ -164,7 +158,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre,
     salt,
     'HolographRegistry',
-    generateInitCode(['address', 'bytes32[]'], [zeroAddress(), []])
+    generateInitCode(['address', 'bytes32[]'], [zeroAddress, []])
   );
   hre.deployments.log('the future "HolographRegistry" address is', futureRegistryAddress);
 
@@ -172,10 +166,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre,
     salt,
     'HolographRegistryProxy',
-    generateInitCode(
-      ['address', 'bytes'],
-      [zeroAddress(), generateInitCode(['address', 'bytes32[]'], [zeroAddress(), []])]
-    )
+    generateInitCode(['address', 'bytes'], [zeroAddress, generateInitCode(['address', 'bytes32[]'], [zeroAddress, []])])
   );
   hre.deployments.log('the future "HolographRegistryProxy" address is', futureRegistryProxyAddress);
 
@@ -183,10 +174,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre,
     salt,
     'HolographTreasury',
-    generateInitCode(
-      ['address', 'address', 'address', 'address'],
-      [zeroAddress(), zeroAddress(), zeroAddress(), zeroAddress()]
-    )
+    generateInitCode(['address', 'address', 'address', 'address'], [zeroAddress, zeroAddress, zeroAddress, zeroAddress])
   );
   hre.deployments.log('the future "HolographTreasury" address is', futureTreasuryAddress);
 
@@ -197,10 +185,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     generateInitCode(
       ['address', 'bytes'],
       [
-        zeroAddress(),
+        zeroAddress,
         generateInitCode(
           ['address', 'address', 'address', 'address'],
-          [zeroAddress(), zeroAddress(), zeroAddress(), zeroAddress()]
+          [zeroAddress, zeroAddress, zeroAddress, zeroAddress]
         ),
       ]
     )
@@ -211,7 +199,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre,
     salt,
     'HolographInterfaces',
-    generateInitCode(['address'], [zeroAddress()])
+    generateInitCode(['address'], [zeroAddress])
   );
   hre.deployments.log('the future "HolographInterfaces" address is', futureHolographInterfacesAddress);
 
@@ -219,7 +207,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre,
     salt,
     'PA1D',
-    generateInitCode(['address', 'uint256'], [zeroAddress(), '0x' + '00'.repeat(32)])
+    generateInitCode(['address', 'uint256'], [zeroAddress, '0x' + '00'.repeat(32)])
   );
   hre.deployments.log('the future "PA1D" address is', futureRoyaltiesAddress);
 
@@ -345,7 +333,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       'HolographBridge',
       generateInitCode(
         ['address', 'address', 'address', 'address'],
-        [zeroAddress(), zeroAddress(), zeroAddress(), zeroAddress()]
+        [zeroAddress, zeroAddress, zeroAddress, zeroAddress]
       ),
       futureBridgeAddress
     );
@@ -428,7 +416,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre,
       salt,
       'HolographFactory',
-      generateInitCode(['address', 'address', 'address'], [zeroAddress(), zeroAddress(), zeroAddress()]),
+      generateInitCode(['address', 'address', 'address'], [zeroAddress, zeroAddress, zeroAddress]),
       futureFactoryAddress
     );
   } else {
@@ -501,7 +489,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       'HolographOperator',
       generateInitCode(
         ['address', 'address', 'address', 'address', 'address'],
-        [zeroAddress(), zeroAddress(), zeroAddress(), zeroAddress(), zeroAddress()]
+        [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress]
       ),
       futureOperatorAddress
     );
@@ -600,7 +588,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre,
       salt,
       'HolographRegistry',
-      generateInitCode(['address', 'bytes32[]'], [zeroAddress(), []]),
+      generateInitCode(['address', 'bytes32[]'], [zeroAddress, []]),
       futureRegistryAddress
     );
   } else {
@@ -694,7 +682,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       'HolographTreasury',
       generateInitCode(
         ['address', 'address', 'address', 'address'],
-        [zeroAddress(), zeroAddress(), zeroAddress(), zeroAddress()]
+        [zeroAddress, zeroAddress, zeroAddress, zeroAddress]
       ),
       futureTreasuryAddress
     );

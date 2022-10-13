@@ -302,7 +302,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let hTokenErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
 
-        expect(hTokenErc20Address).to.equal(zeroAddress());
+        expect(hTokenErc20Address).to.equal(zeroAddress);
 
         hTokenErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
 
@@ -337,7 +337,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let hTokenErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
 
-        expect(hTokenErc20Address).to.equal(zeroAddress());
+        expect(hTokenErc20Address).to.equal(zeroAddress);
 
         hTokenErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
 
@@ -374,7 +374,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let sampleErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
 
-        expect(sampleErc20Address).to.equal(zeroAddress());
+        expect(sampleErc20Address).to.equal(zeroAddress);
 
         sampleErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
 
@@ -411,7 +411,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let sampleErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
 
-        expect(sampleErc20Address).to.equal(zeroAddress());
+        expect(sampleErc20Address).to.equal(zeroAddress);
 
         sampleErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
 
@@ -452,7 +452,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let sampleErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
 
-        expect(sampleErc721Address).to.equal(zeroAddress());
+        expect(sampleErc721Address).to.equal(zeroAddress);
 
         sampleErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
 
@@ -491,7 +491,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let sampleErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
 
-        expect(sampleErc721Address).to.equal(zeroAddress());
+        expect(sampleErc721Address).to.equal(zeroAddress);
 
         sampleErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
 
@@ -539,7 +539,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let cxipErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
 
-        expect(cxipErc721Address).to.equal(zeroAddress());
+        expect(cxipErc721Address).to.equal(zeroAddress);
 
         cxipErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
 
@@ -583,7 +583,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let cxipErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
 
-        expect(cxipErc721Address).to.equal(zeroAddress());
+        expect(cxipErc721Address).to.equal(zeroAddress);
 
         cxipErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
 
@@ -606,9 +606,9 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
   describe('Verify chain configs', async function () {
     describe('MessagingModule endpoints', async function () {
       it('should not be empty', async function () {
-        expect(await l1.operator.getMessagingModule()).to.not.equal(zeroAddress());
+        expect(await l1.operator.getMessagingModule()).to.not.equal(zeroAddress);
 
-        expect(await l2.operator.getMessagingModule()).to.not.equal(zeroAddress());
+        expect(await l2.operator.getMessagingModule()).to.not.equal(zeroAddress);
       });
       it('should be same address on both chains', async function () {
         expect(await l1.operator.getMessagingModule()).to.equal(await l2.operator.getMessagingModule());

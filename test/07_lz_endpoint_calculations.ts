@@ -220,7 +220,7 @@
 //
 //        let cxipErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
 //
-//        expect(cxipErc721Address).to.equal(zeroAddress());
+//        expect(cxipErc721Address).to.equal(zeroAddress);
 //
 //        cxipErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
 //
@@ -302,7 +302,7 @@
 //
 //        let cxipErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
 //
-//        expect(cxipErc721Address).to.equal(zeroAddress());
+//        expect(cxipErc721Address).to.equal(zeroAddress);
 //
 //        cxipErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
 //
@@ -382,7 +382,7 @@
 //      it('l1 should mint token #1 as #1 on l1', async function () {
 //        await expect(l1.cxipErc721.attach(l1.cxipErc721Holographer.address).cxipMint(firstNFTl1, 1, tokenURIs[1]))
 //          .to.emit(l1.cxipErc721Enforcer.attach(l1.cxipErc721Holographer.address), 'Transfer')
-//          .withArgs(zeroAddress(), l1.deployer.address, firstNFTl1);
+//          .withArgs(zeroAddress, l1.deployer.address, firstNFTl1);
 //
 //        gasUsage['#1 mint on l1'] = gasUsage['#1 mint on l1'].add(await getGasUsage(l1.hre));
 //      });
@@ -390,7 +390,7 @@
 //      it('l1 should mint token #1 not as #1 on l2', async function () {
 //        await expect(l2.cxipErc721.attach(l1.cxipErc721Holographer.address).cxipMint(firstNFTl1, 1, tokenURIs[1]))
 //          .to.emit(l2.cxipErc721Enforcer.attach(l1.cxipErc721Holographer.address), 'Transfer')
-//          .withArgs(zeroAddress(), l1.deployer.address, firstNFTl2);
+//          .withArgs(zeroAddress, l1.deployer.address, firstNFTl2);
 //
 //        gasUsage['#1 mint on l2'] = gasUsage['#1 mint on l2'].add(await getGasUsage(l1.hre));
 //      });
@@ -398,19 +398,19 @@
 //      it('mint tokens #2 and #3 on l1 and l2', async function () {
 //        await expect(l1.cxipErc721.attach(l1.cxipErc721Holographer.address).cxipMint(secondNFTl1, 1, tokenURIs[2]))
 //          .to.emit(l1.cxipErc721Enforcer.attach(l1.cxipErc721Holographer.address), 'Transfer')
-//          .withArgs(zeroAddress(), l1.deployer.address, secondNFTl1);
+//          .withArgs(zeroAddress, l1.deployer.address, secondNFTl1);
 //
 //        await expect(l2.cxipErc721.attach(l1.cxipErc721Holographer.address).cxipMint(secondNFTl1, 1, tokenURIs[2]))
 //          .to.emit(l2.cxipErc721Enforcer.attach(l1.cxipErc721Holographer.address), 'Transfer')
-//          .withArgs(zeroAddress(), l1.deployer.address, secondNFTl2);
+//          .withArgs(zeroAddress, l1.deployer.address, secondNFTl2);
 //
 //        await expect(l1.cxipErc721.attach(l1.cxipErc721Holographer.address).cxipMint(thirdNFTl1, 1, tokenURIs[3]))
 //          .to.emit(l1.cxipErc721Enforcer.attach(l1.cxipErc721Holographer.address), 'Transfer')
-//          .withArgs(zeroAddress(), l1.deployer.address, thirdNFTl1);
+//          .withArgs(zeroAddress, l1.deployer.address, thirdNFTl1);
 //
 //        await expect(l2.cxipErc721.attach(l1.cxipErc721Holographer.address).cxipMint(thirdNFTl1, 1, tokenURIs[3]))
 //          .to.emit(l2.cxipErc721Enforcer.attach(l1.cxipErc721Holographer.address), 'Transfer')
-//          .withArgs(zeroAddress(), l1.deployer.address, thirdNFTl2);
+//          .withArgs(zeroAddress, l1.deployer.address, thirdNFTl2);
 //      });
 //    });
 //
@@ -490,7 +490,7 @@
 //
 //        await expect(l2.operator.executeJob(payload))
 //          .to.emit(l2.cxipErc721Enforcer.attach(l1.cxipErc721Holographer.address), 'Transfer')
-//          .withArgs(zeroAddress(), l2.deployer.address, thirdNFTl1.toHexString());
+//          .withArgs(zeroAddress, l2.deployer.address, thirdNFTl1.toHexString());
 //
 //        gasUsage['#3 bridge from l1'] = gasUsage['#3 bridge from l1'].add(await getGasUsage(l2.hre));
 //
@@ -504,7 +504,7 @@
 //
 //        await expect(l1.operator.executeJob(payload))
 //          .to.emit(l1.cxipErc721Enforcer.attach(l1.cxipErc721Holographer.address), 'Transfer')
-//          .withArgs(zeroAddress(), l1.deployer.address, thirdNFTl2.toHexString());
+//          .withArgs(zeroAddress, l1.deployer.address, thirdNFTl2.toHexString());
 //
 //        gasUsage['#3 bridge from l2'] = gasUsage['#3 bridge from l2'].add(await getGasUsage(l1.hre));
 //

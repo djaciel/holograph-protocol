@@ -276,7 +276,8 @@ const config: HardhatUserConfig = {
     timeout: 1000 * 60 * 60,
   },
   gasReporter: {
-    enabled: true,
+    // I prefer my command line tools to not try to connect to a 3rd party site while I am loading private keys into it
+    enabled: process.env.PRIVACY_MODE ? false : true,
     // enabled: process.env.COINMARKETCAP_API_KEY !== undefined,
     outputFile: './gasReport.txt', // comment line to get the report on terminal
     noColors: true, // comment line to get the report on terminal

@@ -65,7 +65,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre,
     salt,
     'CxipERC721',
-    generateInitCode(['address'], [zeroAddress()])
+    generateInitCode(['address'], [zeroAddress])
   );
   hre.deployments.log('the future "CxipERC721" address is', futureCxipErc721Address);
 
@@ -77,7 +77,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre,
       salt,
       'CxipERC721',
-      generateInitCode(['address'], [zeroAddress()]),
+      generateInitCode(['address'], [zeroAddress]),
       futureCxipErc721Address
     );
   } else {

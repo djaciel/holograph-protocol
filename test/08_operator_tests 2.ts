@@ -117,10 +117,10 @@
 //    it('should bond to pod index 0', async function () {
 //      await expect(l1.operator.bondUtilityToken(l1.deployer.address, BigNumber.from('1000000000000000000'), 0)).to.not
 //        .be.reverted;
-//      expect(await l1.operator.getPodOperators(0)).to.deep.equal([zeroAddress(), l1.deployer.address]);
-//      // expect(await l1.operator.getPodOperators(1)).to.deep.equal([zeroAddress()]);
-//      // expect(await l1.operator.getPodOperators(2)).to.deep.equal([zeroAddress()]);
-//      // expect(await l1.operator.getPodOperators(3)).to.deep.equal([zeroAddress()]);
+//      expect(await l1.operator.getPodOperators(0)).to.deep.equal([zeroAddress, l1.deployer.address]);
+//      // expect(await l1.operator.getPodOperators(1)).to.deep.equal([zeroAddress]);
+//      // expect(await l1.operator.getPodOperators(2)).to.deep.equal([zeroAddress]);
+//      // expect(await l1.operator.getPodOperators(3)).to.deep.equal([zeroAddress]);
 //      await expect(l1.operator.getPodOperators(4)).to.be.reverted;
 //    });
 //    it('should bond 10 wallets to pods', async function () {

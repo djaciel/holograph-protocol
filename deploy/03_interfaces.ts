@@ -72,7 +72,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre,
     salt,
     'HolographInterfaces',
-    generateInitCode(['address'], [zeroAddress()])
+    generateInitCode(['address'], [zeroAddress])
   );
   hre.deployments.log('the future "HolographInterfaces" address is', futureHolographInterfacesAddress);
 

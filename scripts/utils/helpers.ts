@@ -325,9 +325,7 @@ const generateDeployCode = function (chainId: string, salt: string, byteCode: st
   );
 };
 
-const zeroAddress = function (): string {
-  return '0x' + '00'.repeat(20);
-};
+const zeroAddress: string = '0x' + '00'.repeat(20);
 
 const isContractDeployed = function (contract: Contract | null): boolean {
   return !(
@@ -335,7 +333,7 @@ const isContractDeployed = function (contract: Contract | null): boolean {
     !contract?.address ||
     contract?.address == null ||
     contract?.address == '' ||
-    contract?.address == zeroAddress()
+    contract?.address == zeroAddress
   );
 };
 
@@ -374,7 +372,7 @@ const genesisDeployHelper = async function (
   salt: string,
   name: string,
   initCode: string,
-  contractAddress: string = zeroAddress()
+  contractAddress: string = zeroAddress
 ): Promise<Contract> {
   const chainId: string = BigNumber.from(networks[hre.networkName].chain).toHexString();
   const { deployments, getNamedAccounts, ethers } = hre;
@@ -628,9 +626,18 @@ const adminCall = async function (
   target: Contract,
   methodName: string,
   args: any[]
-): Promise<TransactionReceipt> {
+): Promise<TransactionResponse> {
   let rawTx: PopulatedTransaction = await target.populateTransaction[methodName](...args);
-  let tx = await admin.adminCall(target.address, rawTx.data);
+  return admin.adminCall(target.address, rawTx.data);
+};
+
+const adminCallFull = async function (
+  admin: Contract,
+  target: Contract,
+  methodName: string,
+  args: any[]
+): Promise<TransactionReceipt> {
+  let tx = await adminCall(admin, target, methodName, args);
   let receipt: TransactionReceipt = await tx.wait();
   return receipt;
 };
@@ -640,9 +647,18 @@ const ownerCall = async function (
   target: Contract,
   methodName: string,
   args: any[]
-): Promise<TransactionReceipt> {
+): Promise<TransactionResponse> {
   let rawTx: PopulatedTransaction = await target.populateTransaction[methodName](...args);
-  let tx = await owner.ownerCall(target.address, rawTx.data);
+  return owner.ownerCall(target.address, rawTx.data);
+};
+
+const ownerCallFull = async function (
+  owner: Contract,
+  target: Contract,
+  methodName: string,
+  args: any[]
+): Promise<TransactionReceipt> {
+  let tx = await ownerCall(owner, target, methodName, args);
   let receipt: TransactionReceipt = await tx.wait();
   return receipt;
 };
@@ -760,7 +776,22 @@ const beamSomething = async function (
   return;
 };
 
+type KeyOf<T extends object> = Extract<keyof T, string>;
+
+const executeJobGas = function (payload: string, verbose?: boolean): BigNumber {
+  const payloadBytes = Math.floor(remove0x(payload).length * 0.5);
+  const gasPerByte = 30;
+  const baseGas = 150000;
+  if (verbose) {
+    process.stdout.write('\n' + ' '.repeat(10) + 'payload length is ' + payloadBytes + '\n');
+    process.stdout.write(' '.repeat(10) + 'payload adds ' + payloadBytes * gasPerByte + '\n');
+  }
+  return BigNumber.from(payloadBytes * gasPerByte + baseGas);
+};
+
 export {
+  executeJobGas,
+  KeyOf,
   isDefined,
   bytesToHex,
   hexToBytes,
@@ -788,6 +819,8 @@ export {
   sleep,
   getGasUsage,
   adminCall,
+  adminCallFull,
   ownerCall,
+  ownerCallFull,
   beamSomething,
 };

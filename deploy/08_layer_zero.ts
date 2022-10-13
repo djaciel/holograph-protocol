@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const currentNetworkType: NetworkType = networks[hre.networkName].type;
 
   let lzEndpoint = networks[hre.networkName].lzEndpoint.toLowerCase();
-  if (currentNetworkType == NetworkType.local && lzEndpoint == zeroAddress()) {
+  if (currentNetworkType == NetworkType.local && lzEndpoint == zeroAddress) {
     lzEndpoint = (await hre.getNamedAccounts()).lzEndpoint;
     const mockLZEndpoint = await deploy('MockLZEndpoint', {
       from: lzEndpoint,

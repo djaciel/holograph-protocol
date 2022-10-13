@@ -35,7 +35,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'LayerZeroModule',
     generateInitCode(
       ['address', 'address', 'address', 'uint256', 'uint256'],
-      [zeroAddress(), zeroAddress(), zeroAddress(), 0, 0]
+      [zeroAddress, zeroAddress, zeroAddress, 0, 0]
     )
   );
   hre.deployments.log('the future "LayerZeroModule" address is', futureLayerZeroModuleAddress);
