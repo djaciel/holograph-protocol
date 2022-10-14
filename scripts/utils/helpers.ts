@@ -789,6 +789,10 @@ const executeJobGas = function (payload: string, verbose?: boolean): BigNumber {
   return BigNumber.from(payloadBytes * gasPerByte + baseGas);
 };
 
+const HASH = function (input: string | BytesLike, prepend: boolean = true): string {
+  return (prepend ? '0x' : '') + remove0x(web3.utils.keccak256(input as string));
+};
+
 export {
   executeJobGas,
   KeyOf,
@@ -823,4 +827,5 @@ export {
   ownerCall,
   ownerCallFull,
   beamSomething,
+  HASH,
 };

@@ -136,10 +136,18 @@ interface HolographOperatorInterface {
   function getPodBondAmounts(uint256 pod) external view returns (uint256 base, uint256 current);
 
   /**
+   * @notice Get an operator's currently bonded amount
+   * @dev Useful for checking how much an operator has bonded
+   * @param operator address of operator to check
+   * @return amount total number of utility token bonded
+   */
+  function getBondedAmount(address operator) external view returns (uint256 amount);
+
+  /**
    * @notice Get an operator's currently bonded pod
    * @dev Useful for checking if an operator is currently bonded
    * @param operator address of operator to check
-   * @return pod number that operator is bonded on, returns zero if not bonded
+   * @return pod number that operator is bonded on, returns zero if not bonded or selected for job
    */
   function getBondedPod(address operator) external view returns (uint256 pod);
 

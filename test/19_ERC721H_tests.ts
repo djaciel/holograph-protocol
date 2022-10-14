@@ -5,6 +5,7 @@ import { ERC721H, MockExternalCall, MockExternalCall__factory } from '../typecha
 import { functionHash, generateInitCode } from '../scripts/utils/helpers';
 import setup, { PreTest } from './utils';
 import { HOLOGRAPHER_ALREADY_INITIALIZED_ERROR_MSG } from './utils/error_constants';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 describe('ERC721H Contract', async function () {
   let erc721H: ERC721H;
@@ -25,6 +26,14 @@ describe('ERC721H Contract', async function () {
     const encodedFunctionData = iface.encodeFunctionData(fnName, args);
     await expect(mockExternalCall.connect(l1.deployer).callExternalFn(erc721H.address, encodedFunctionData)).to.not.be
       .reverted;
+  }
+
+  function testPrivateFunction(functionName: string, user?: SignerWithAddress) {
+    const sender = user ?? l1.deployer;
+    const contract = erc721H.connect(sender) as any;
+    const method = contract[functionName];
+    expect(typeof method).to.equal('undefined');
+    expect(erc721H.connect(sender)).to.not.have.property(functionName);
   }
 
   describe('init()', async function () {
@@ -81,6 +90,30 @@ describe('ERC721H Contract', async function () {
         'supportsInterface',
         [validInterface]
       );
+    });
+  });
+
+  describe('_holographer()', async () => {
+    it('is private function', async () => {
+      testPrivateFunction('_holographer');
+    });
+  });
+
+  describe('_msgSender()', async () => {
+    it('is private function', async () => {
+      testPrivateFunction('_msgSender');
+    });
+  });
+
+  describe('_getOwner()', async () => {
+    it('is private function', async () => {
+      testPrivateFunction('_getOwner');
+    });
+  });
+
+  describe('_setOwner()', async () => {
+    it('is private function', async () => {
+      testPrivateFunction('_setOwner');
     });
   });
 });
