@@ -824,6 +824,8 @@ describe('Holograph Operator Contract', async () => {
       ).to.be.revertedWith('HOLOGRAPH: gas spike detected');
     });
     it('Should fail if fallback is invalid', async () => {
+      // this test will sometimes fail due to JS logic bug
+      // fix coming soon
       let payloadHash: string = availableJobs[0] as string;
       let payload: string = availableJobs[1] as string;
       let operatorJob = await l1.operator.getJobDetails(payloadHash);
@@ -836,6 +838,8 @@ describe('Holograph Operator Contract', async () => {
       );
     });
     it('Should succeed if fallback is valid (operator slashed)', async () => {
+      // this test will fail if above test hits the JS bug
+      // fix coming soon
       let bondRequirements: BigNumber[] = await l1.operator.getPodBondAmounts(1);
       let payloadHash: string = availableJobs.shift() as string;
       let payload: string = availableJobs.shift() as string;
