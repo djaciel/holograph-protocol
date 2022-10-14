@@ -67,6 +67,10 @@ import networks from '../../config/networks';
 
 let hre1: HardhatRuntimeEnvironment = require('hardhat');
 
+export const generateRandomSalt = () => {
+  return '0x' + Date.now().toString(16).padStart(64, '0');
+};
+
 export interface PreTest {
   hre: LeanHardhatRuntimeEnvironment;
   hre2: LeanHardhatRuntimeEnvironment;
