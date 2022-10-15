@@ -10,7 +10,7 @@ Genesis will be deployed on all blockchains that run and support Holograph Proto
 
 ### HolographFactory.sol
 
-Factory enables developers to submit a signed version of the following elements to deploy a *Holographed* smart contract on the blockchain:
+Factory enables developers to submit a signed version of the following elements to deploy a _Holographed_ smart contract on the blockchain:
 
 - primary deployment chain
 - token type (ERC-20, ERC-721, etc.)
@@ -18,7 +18,7 @@ Factory enables developers to submit a signed version of the following elements 
 - custom smart contract bytecode
 - custom initialization code
 
-Any additional blockchains that developers want to support can have the same signed data submitted to Factory, allowing for the creation of an identical *Holographed* contract.
+Any additional blockchains that developers want to support can have the same signed data submitted to Factory, allowing for the creation of an identical _Holographed_ contract.
 The primary job of Factory is to:
 
 - allow propagation of exact data across all blockchains
@@ -28,11 +28,11 @@ The primary job of Factory is to:
 
 ### HolographRegistry.sol
 
-Registry is a central on-chain location where all Holograph data is stored. Registry keeps a record of all currently supported standards. New standards can be introduced and enabled as well. Any properly deployed *Holographed* contracts are also stored as reference. This allows for a definitive way to identify whether a smart contract is secure and properly *Holographed*. Verifying entities will be able to identify a *Holographed* contract to ensure the highest level of security and standards.
+Registry is a central on-chain location where all Holograph data is stored. Registry keeps a record of all currently supported standards. New standards can be introduced and enabled as well. Any properly deployed _Holographed_ contracts are also stored as reference. This allows for a definitive way to identify whether a smart contract is secure and properly _Holographed_. Verifying entities will be able to identify a _Holographed_ contract to ensure the highest level of security and standards.
 
 ### HolographBridge.sol
 
-This contract is contains the code is responsible for the all the bridge out and bridge in logic required to enable bridging. Bridge is a universal smart contract that functions as the primary entry and exit point for any *Holographed* tokens to and from all supported blockchains. Bridge validates and ensures integrity and standard enforcement for every Bridge-In and Bridge-Out request. Additionally, Bridge implements a universal standard for sending tokens across blockchains by abstracting away complexities into sub-modules that remove the burden of management for developers. This allows for simple one-click/one-transaction native gas token payment-based interactions for all bridge requests.
+This contract is contains the code is responsible for the all the bridge out and bridge in logic required to enable bridging. Bridge is a universal smart contract that functions as the primary entry and exit point for any _Holographed_ tokens to and from all supported blockchains. Bridge validates and ensures integrity and standard enforcement for every Bridge-In and Bridge-Out request. Additionally, Bridge implements a universal standard for sending tokens across blockchains by abstracting away complexities into sub-modules that remove the burden of management for developers. This allows for simple one-click/one-transaction native gas token payment-based interactions for all bridge requests.
 
 ### HolographOperator.sol
 
@@ -52,7 +52,7 @@ Enforcer enables and ensures complete standards, compliance, and operability for
 
 ### enforcer/Holographer.sol
 
-Holographer exists at the core of all *Holographed* smart contracts, which is applied whenever a *Holographed* smart contract is deployed. Holographer pieces together all components and routes all inbound function calls to their proper smart contracts, ensuring security and the enforcement of specified standards. Holographer is isolated on its own private layer and is essentially hard-coded into the blockchain.
+Holographer exists at the core of all _Holographed_ smart contracts, which is applied whenever a _Holographed_ smart contract is deployed. Holographer pieces together all components and routes all inbound function calls to their proper smart contracts, ensuring security and the enforcement of specified standards. Holographer is isolated on its own private layer and is essentially hard-coded into the blockchain.
 
 ### enforcer/HolographERC20.sol
 
@@ -70,7 +70,7 @@ PA1D is an on-chain royalties contract for non-fungible token types. It supports
 
 ### abstract/ERC20H.sol
 
-A base implementation of a holographable ERC20 contract. 
+A base implementation of a holographable ERC20 contract.
 
 ### abstract/ERC721H.sol
 

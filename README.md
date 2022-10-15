@@ -3,33 +3,38 @@
 Holograph provides omnichain NFT infrastructure for the web3 ecosystem. Holograph Protocol enables the creation, deployment, minting, & bridging of omnichain NFTs with complete data integrity.
 
 ## 🧙 Setup Instructions and Codebase Overview:
+
 - [Holograph Protocol Specification](https://docs.holograph.xyz/holograph-protocol/technical-specification)
 - [Holograph Code Setup](docs/SETUP_README.md)
 - [Holograph Contract Descriptions](docs/CONTRACT_DESCRIPTIONS.md)
 - [Holograph Flows (Bridge / Operator / Pods)](docs/IMPORTANT_FLOWS.md)
 
-
 ## 🛫 Quick Start
+
 ```bash
 yarn install
 ```
+
 ```bash
 yarn build
 ```
+
 Terminal 1
+
 ```bash
 yarn ganache-x2
 ```
+
 Terminal 2
+
 ```bash
 yarn test
 ```
 
-
 ## 🔎 Contracts in Scope
 
 | File                           | Description                                                                        | Lines Of Code |
-|--------------------------------|------------------------------------------------------------------------------------|---------------|
+| ------------------------------ | ---------------------------------------------------------------------------------- | ------------- |
 | `HolographBridge.sol`          | primary use for FE user to make cross-chain beam request                           | 226           |
 | `HolographOperator.sol`        | finalizes cross-chain beam                                                         | 434           |
 | `HolographFactory.sol`         | combines deployment config and deploys holographable contracts                     | 135           |
@@ -78,4 +83,3 @@ root
 ├── <a href="./src">src</a>: Source contracts that get dynamically transpiled down into the finalized output <a href="./contracts">contracts</a>
 └── <a href="./test">test</a>: Hardhat tests for the smart contracts
 </pre>
-

@@ -1,6 +1,5 @@
 # Setup Overview
 
-
 ## Requirements
 
 1. `node` version 16.14.2 or greater
@@ -12,7 +11,6 @@ Using `npm` will work but we use `yarn`. If you have `asdf` installed, then you 
 
 1. `yarn install` or `npm install`
 
-
 ### Building types
 
 If you are going to write tests or use modify any scripts locally, then we recommend running `yarn typechain` to generate the `typechains-type` folder.
@@ -23,23 +21,20 @@ We compile the code from the `/src` folder into the `/contracts` folder. As a re
 
 ### Building
 
-To build the project you can run `yarn build`. This will look at the `/contracts` folder and generate all the necessary artifacts. 
-
+To build the project you can run `yarn build`. This will look at the `/contracts` folder and generate all the necessary artifacts.
 
 ## Running tests
 
 To run the tests you have to have 2 terminal windows open. One window will launch 2 instances of ganache. While the other terminal you will run the test.
-
 
 1. Terminal window 1: `yarn ganache-x2`
 2. Terminal window 2: `yarn test`
 
 ### Running Tests Multiple Times
 
-If you run the entire test suit, you will have to close and restart the `yarn ganache-x2` before running the tests again. 
+If you run the entire test suit, you will have to close and restart the `yarn ganache-x2` before running the tests again.
 
-For test files 09_ and above, you can add the `.only` modifier and not have to restart `yarn ganache-x2`.
-
+For test files 09\_ and above, you can add the `.only` modifier and not have to restart `yarn ganache-x2`.
 
 ### Important test files
 
@@ -56,12 +51,4 @@ We run two instances of ganache to simulate the two chains. To do the heavy lift
 1. Chain 1: `l1 = await setup();`
 2. Chain 2: `l2 = await setup(true);`
 
-Within any tests you will have access the contract: `l1.registry`. 
-
-
-
-
-
-
-
-
+Within any tests you will have access the contract: `l1.registry`.

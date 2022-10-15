@@ -1,6 +1,6 @@
 # Important Flows
 
-These flows explain the main functions and code flows that under review for this open audit. 
+These flows explain the main functions and code flows that under review for this open audit.
 
 ## Primer
 
@@ -8,7 +8,7 @@ To work within the holograph ecosystem, the collection contract must be holograp
 
 ## Bridging NFTs
 
-Again, to bridge NFT, the contract collection must be a holographed contract! Doing so will ensure that the contract address and token IDs remain the same on all deployed blockchains. 
+Again, to bridge NFT, the contract collection must be a holographed contract! Doing so will ensure that the contract address and token IDs remain the same on all deployed blockchains.
 
 ![img_4.png](img_4.png)
 
@@ -16,15 +16,15 @@ Again, to bridge NFT, the contract collection must be a holographed contract! Do
 
 To estimate gas, you have to make a requests to an onchain function with a payload of the message.
 
-1. Generate `crossChainPayload` variable by calling 
+1. Generate `crossChainPayload` variable by calling
 2. `Holograph/LayerZeroModule.sol` - `getMessageFee` method
 
-At step 1, you have to generate the message payload for your message. 
+At step 1, you have to generate the message payload for your message.
 
 At step 2, from there you pass the data and other information like the chainId and call the `getMessageFee` on the `Holograph/LayerZeroModule.sol` file.
 
 From here you will be able to continue to the next step, which is to send a bridge out request.
- 
+
 ## Bridging Out
 
 The simplified code path for bridging from chain A to chain B is:
@@ -37,9 +37,9 @@ The simplified code path for bridging from chain A to chain B is:
 
 At step 1, a user submits their bridge request with a valid payload using the estimatedGas value computed in the previous [Estimate Gas](#estimategas) section.
 
-At step 2, the code checks that the contract is a *holographable* contract. This means it has implemented the required functions to be a *Holographed* contract. See `contracts/token/SampleERC721.sol` as an example.
+At step 2, the code checks that the contract is a _holographable_ contract. This means it has implemented the required functions to be a _Holographed_ contract. See `contracts/token/SampleERC721.sol` as an example.
 
-At step 3, we call the `_bridgeOut` function on the *Holographed* contract and apply various checks and generate a payload with information about the bridge request.
+At step 3, we call the `_bridgeOut` function on the _Holographed_ contract and apply various checks and generate a payload with information about the bridge request.
 
 At step 4, we call the `send` method on the `HolographOperator.sol` contract. This method does some final packaging of the payload that will be sent to the messaging layer.
 
@@ -73,9 +73,9 @@ To become an operator, you must view the pods available to join, select a pod, a
 
 At step 1, you call `getTotalPods` method to get a list of available pods. If the length of pod is zero, then you can bond into pod `1`.
 
-At step 2, when you call `getPodBondAmounts`, you will get two values: [`_base`, `current`]. The `base` value represents the original minimum bond requirement to join the pod, while the `current` value is the current amount you must provide to join the pod. 
+At step 2, when you call `getPodBondAmounts`, you will get two values: [`_base`, `current`]. The `base` value represents the original minimum bond requirement to join the pod, while the `current` value is the current amount you must provide to join the pod.
 
-*Minimum Bond Amounts* are dynamically calculated based on some initial variables. These variables can be changed or set differently for each blockchain. A graphical representation is [available here](https://observablehq.com/@vitto/operator_bonding)
+_Minimum Bond Amounts_ are dynamically calculated based on some initial variables. These variables can be changed or set differently for each blockchain. A graphical representation is [available here](https://observablehq.com/@vitto/operator_bonding)
 
 - baseBondAmount = `100 * (10^18)`
 - podMultiplier = `2`
@@ -83,7 +83,7 @@ At step 2, when you call `getPodBondAmounts`, you will get two values: [`_base`,
 - operatorThresholdStep = `10`
 - operatorThresholdMultiplier = `0.01`
 
-*Pod Threshold* is calculated by running this formula with a pod number in question:
+_Pod Threshold_ is calculated by running this formula with a pod number in question:
 
 `operatorThreshold / (2^pod)`
 
@@ -91,13 +91,13 @@ Using the above variables and selecting for `Pod 1` (or `0` in array language), 
 
 ![threshold_calculation.gif](threshold_calculation.gif)
 
-*Minimum Bond Amounts* are calculated by running this formula with a pod number in question: `baseBondAmount * (podMultiplier^pod)`.
+_Minimum Bond Amounts_ are calculated by running this formula with a pod number in question: `baseBondAmount * (podMultiplier^pod)`.
 
 Using the above variables and selecting for `Pod 1` (or `0` in array language), this would result in the number `100000000000000000000`, or `100 HLG` (using 18 decimal places).
 
 ![base_bond_amount.gif](base_bond_amount.gif)
 
-*Current Bond Amount* is calculated by running the *Minimum Bond Amount* formula above. If the current number of Operators in a specific Pod is greater than the *Pod Threshold,* then the *Minimum Bond Amount* needs to be added with `(bondAmount * operatorThresholdMultiplier) * ((position - threshold) / operatorThresholdStep)`
+_Current Bond Amount_ is calculated by running the _Minimum Bond Amount_ formula above. If the current number of Operators in a specific Pod is greater than the _Pod Threshold,_ then the _Minimum Bond Amount_ needs to be added with `(bondAmount * operatorThresholdMultiplier) * ((position - threshold) / operatorThresholdStep)`
 
 Using the above variables and selecting for `Pod 1` (or `0` in array language) and getting into position `1500`, this would result in the number `150000000000000000000`, or `150 HLG`.
 
@@ -112,13 +112,12 @@ You are now an operator. We will launch a CLI in the future that will process jo
 To leave a pod, you have to call the `unbondUtilityToken` method in `HolographOperator.sol`. The amount withdrawn depends on the slashing state of the operator. An operator is slashed if they fail to complete a job.
 
 | Number of Slashes | Percentage of Bond |
-|-------------------|--------------------|
+| ----------------- | ------------------ |
 | 1                 | 4%                 |
 | 2                 | 16%                |
 | 3                 | 36%                |
 | 4                 | 64%                |
 | 5                 | 100%               |
-
 
 ## Processing Jobs
 
@@ -138,4 +137,4 @@ At step 3, the CLI then calls `getJobDetails` in `HolographOperator.sol`. This c
 
 At step 4, the CLI will estimate the cost of executing the job. This is used to make sure the transaction sent has enough gas to complete.
 
-At step 5, the wallet sends a transaction to the `exectureJob` method on the `HolographOperator.sol` contract. In here, further checks are done to validate the job and user's wallet. After this transaction is mined on the blockchain, the NFT will become finalized and available on the new blockchain. 
+At step 5, the wallet sends a transaction to the `exectureJob` method on the `HolographOperator.sol` contract. In here, further checks are done to validate the job and user's wallet. After this transaction is mined on the blockchain, the NFT will become finalized and available on the new blockchain.

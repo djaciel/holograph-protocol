@@ -88,6 +88,23 @@ const getEstimatedGas = async function (
   return [payload, gasEstimation, total, fees[0], fees[1]];
 };
 
+function shuffleWallets(array: KeyOf<PreTest>[]) {
+  let currentIndex = array.length,
+    randomIndex;
+
+  // While there remain elements to shuffle.
+  while (currentIndex != 0) {
+    // Pick a remaining element.
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+  }
+
+  return array;
+}
+
 describe('Holograph Operator Contract', async () => {
   let l1: PreTest;
   let l2: PreTest;
@@ -106,6 +123,8 @@ describe('Holograph Operator Contract', async () => {
     let targetOperator = target.toLowerCase();
     if (targetOperator != zeroAddress) {
       let wallet: SignerWithAddress;
+      // shuffle
+      shuffleWallets(wallets);
       for (let i = 0, l = wallets.length; i < l; i++) {
         wallet = chain[wallets[i]] as SignerWithAddress;
         if (
@@ -824,22 +843,22 @@ describe('Holograph Operator Contract', async () => {
       ).to.be.revertedWith('HOLOGRAPH: gas spike detected');
     });
     it('Should fail if fallback is invalid', async () => {
-      // this test will sometimes fail due to JS logic bug
-      // fix coming soon
       let payloadHash: string = availableJobs[0] as string;
       let payload: string = availableJobs[1] as string;
       let operatorJob = await l1.operator.getJobDetails(payloadHash);
       let fallbackOperator = (
         await l1.operator.callStatic['getPodOperators(uint256,uint256,uint256)'](1, operatorJob[5][0], 1)
       )[0];
-      let jobOperator = pickOperator(l1, fallbackOperator, true);
+      let jobOperator: SignerWithAddress = pickOperator(l1, fallbackOperator, true);
+      // iterate and try again in case current job operator is selected
+      while (jobOperator.address.toLowerCase() == operatorJob[2].toLowerCase()) {
+        jobOperator = pickOperator(l1, fallbackOperator, true);
+      }
       await expect(l1.operator.connect(jobOperator).executeJob(payload)).to.be.revertedWith(
         'HOLOGRAPH: invalid fallback'
       );
     });
     it('Should succeed if fallback is valid (operator slashed)', async () => {
-      // this test will fail if above test hits the JS bug
-      // fix coming soon
       let bondRequirements: BigNumber[] = await l1.operator.getPodBondAmounts(1);
       let payloadHash: string = availableJobs.shift() as string;
       let payload: string = availableJobs.shift() as string;
@@ -849,7 +868,7 @@ describe('Holograph Operator Contract', async () => {
       let fallbackOperator = (
         await l1.operator.callStatic['getPodOperators(uint256,uint256,uint256)'](1, operatorJob[5][0], 1)
       )[0];
-      let jobOperator = pickOperator(l1, fallbackOperator);
+      let jobOperator: SignerWithAddress = pickOperator(l1, fallbackOperator);
       let jobOperatorBondAmount: BigNumber = await l1.operator.getBondedAmount(jobOperator.address);
       await expect(l1.operator.connect(jobOperator).executeJob(payload)).to.not.be.reverted;
       expect(await l1.operator.getBondedAmount(selectedOperator)).to.equal(
