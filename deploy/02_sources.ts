@@ -43,13 +43,11 @@ import {
   hreSplit,
   generateErc20Config,
   getHolographedContractHash,
-  Network,
-  NetworkType,
   Signature,
   StrictECDSA,
 } from '../scripts/utils/helpers';
 import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
-import networks from '../config/networks';
+import { NetworkType, Network, networks } from '@holographxyz/networks';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
@@ -217,9 +215,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if (currentNetworkType == NetworkType.local) {
     primaryNetwork = networks.localhost;
   } else if (currentNetworkType == NetworkType.testnet) {
-    primaryNetwork = networks.eth_goerli;
+    primaryNetwork = networks.ethereumTestnetGoerli;
   } else if (currentNetworkType == NetworkType.mainnet) {
-    primaryNetwork = networks.eth;
+    primaryNetwork = networks.ethereum;
   } else {
     throw new Error('cannot identity current NetworkType');
   }

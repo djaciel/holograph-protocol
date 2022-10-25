@@ -26,16 +26,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const holograph = await hre.ethers.getContract('Holograph');
 
-  const BASEGAS: string = BigNumber.from('150000').toHexString();
-  const GASPERBYTE: string = BigNumber.from('30').toHexString();
+  const MSGBASEGAS: string = BigNumber.from('110000').toHexString();
+  const MSGGASPERBYTE: string = BigNumber.from('25').toHexString();
+  const JOBBASEGAS: string = BigNumber.from('160000').toHexString();
+  const JOBGASPERBYTE: string = BigNumber.from('35').toHexString();
 
   const futureLayerZeroModuleAddress = await genesisDeriveFutureAddress(
     hre,
     salt,
     'LayerZeroModule',
     generateInitCode(
-      ['address', 'address', 'address', 'uint256', 'uint256'],
-      [zeroAddress, zeroAddress, zeroAddress, 0, 0]
+      ['address', 'address', 'address', 'uint256', 'uint256', 'uint256', 'uint256'],
+      [zeroAddress, zeroAddress, zeroAddress, 0, 0, 0, 0]
     )
   );
   hre.deployments.log('the future "LayerZeroModule" address is', futureLayerZeroModuleAddress);
@@ -52,13 +54,15 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       salt,
       'LayerZeroModule',
       generateInitCode(
-        ['address', 'address', 'address', 'uint256', 'uint256'],
+        ['address', 'address', 'address', 'uint256', 'uint256', 'uint256', 'uint256'],
         [
           await holograph.getBridge(),
           await holograph.getInterfaces(),
           await holograph.getOperator(),
-          BASEGAS,
-          GASPERBYTE,
+          MSGBASEGAS,
+          MSGGASPERBYTE,
+          JOBBASEGAS,
+          JOBGASPERBYTE,
         ]
       ),
       futureLayerZeroModuleAddress
@@ -86,25 +90,46 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const lzModule = (await hre.ethers.getContract('LayerZeroModule')) as Contract;
 
-  if (!(await lzModule.getBaseGas()).eq(BASEGAS)) {
+  if (!(await lzModule.getMsgBaseGas()).eq(MSGBASEGAS)) {
     const lzTx = await lzModule
-      .setBaseGas(BASEGAS, {
+      .setMsgBaseGas(MSGBASEGAS, {
         nonce: await hre.ethers.provider.getTransactionCount(deployer),
       })
       .catch(error);
     hre.deployments.log('Transaction hash:', lzTx.hash);
     await lzTx.wait();
-    hre.deployments.log('Updated LayerZero baseGas');
+    hre.deployments.log('Updated LayerZero msgBaseGas');
   }
-  if (!(await lzModule.getGasPerByte()).eq(GASPERBYTE)) {
+  if (!(await lzModule.getMsgGasPerByte()).eq(MSGGASPERBYTE)) {
     const lzTx = await lzModule
-      .setGasPerByte(GASPERBYTE, {
+      .setMsgGasPerByte(MSGGASPERBYTE, {
         nonce: await hre.ethers.provider.getTransactionCount(deployer),
       })
       .catch(error);
     hre.deployments.log('Transaction hash:', lzTx.hash);
     await lzTx.wait();
-    hre.deployments.log('Updated LayerZero gasPerByte');
+    hre.deployments.log('Updated LayerZero msgGasPerByte');
+  }
+
+  if (!(await lzModule.getJobBaseGas()).eq(JOBBASEGAS)) {
+    const lzTx = await lzModule
+      .setJobBaseGas(JOBBASEGAS, {
+        nonce: await hre.ethers.provider.getTransactionCount(deployer),
+      })
+      .catch(error);
+    hre.deployments.log('Transaction hash:', lzTx.hash);
+    await lzTx.wait();
+    hre.deployments.log('Updated LayerZero jobBaseGas');
+  }
+  if (!(await lzModule.getJobGasPerByte()).eq(JOBGASPERBYTE)) {
+    const lzTx = await lzModule
+      .setJobGasPerByte(JOBGASPERBYTE, {
+        nonce: await hre.ethers.provider.getTransactionCount(deployer),
+      })
+      .catch(error);
+    hre.deployments.log('Transaction hash:', lzTx.hash);
+    await lzTx.wait();
+    hre.deployments.log('Updated LayerZero jobGasPerByte');
   }
 };
 

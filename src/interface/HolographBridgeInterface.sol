@@ -94,13 +94,21 @@ interface HolographBridgeInterface {
    * @param crossChainPayload the entire packet being sent cross-chain
    * @return hlgFee the amount (in wei) of native gas token that will cost for finalizing job on destiantion chain
    * @return msgFee the amount (in wei) of native gas token that will cost for sending message to destiantion chain
+   * @return dstGasPrice the amount (in wei) that destination message maximum gas price will be
    */
   function getMessageFee(
     uint32 toChain,
     uint256 gasLimit,
     uint256 gasPrice,
     bytes calldata crossChainPayload
-  ) external view returns (uint256 hlgFee, uint256 msgFee);
+  )
+    external
+    view
+    returns (
+      uint256 hlgFee,
+      uint256 msgFee,
+      uint256 dstGasPrice
+    );
 
   /**
    * @notice Get the address of the Holograph Factory module

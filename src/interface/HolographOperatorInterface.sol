@@ -11,6 +11,11 @@ interface HolographOperatorInterface {
   event AvailableOperatorJob(bytes32 jobHash, bytes payload);
 
   /**
+   * @dev Event is emitted for every time that a job is completed.
+   */
+  event FinishedOperatorJob(bytes32 jobHash, address operator);
+
+  /**
    * @dev Event is emitted every time a cross-chain message is sent
    */
   event CrossChainMessageSent(bytes32 messageHash);
@@ -74,13 +79,21 @@ interface HolographOperatorInterface {
    * @param crossChainPayload the entire packet being sent cross-chain
    * @return hlgFee the amount (in wei) of native gas token that will cost for finalizing job on destiantion chain
    * @return msgFee the amount (in wei) of native gas token that will cost for sending message to destiantion chain
+   * @return dstGasPrice the amount (in wei) that destination message maximum gas price will be
    */
   function getMessageFee(
     uint32 toChain,
     uint256 gasLimit,
     uint256 gasPrice,
     bytes calldata crossChainPayload
-  ) external view returns (uint256 hlgFee, uint256 msgFee);
+  )
+    external
+    view
+    returns (
+      uint256 hlgFee,
+      uint256 msgFee,
+      uint256 dstGasPrice
+    );
 
   /**
    * @notice Get the details for an available operator job
@@ -150,6 +163,14 @@ interface HolographOperatorInterface {
    * @return pod number that operator is bonded on, returns zero if not bonded or selected for job
    */
   function getBondedPod(address operator) external view returns (uint256 pod);
+
+  /**
+   * @notice Get an operator's currently bonded pod index
+   * @dev Useful for checking if an operator is a fallback for active job
+   * @param operator address of operator to check
+   * @return index currently bonded pod's operator index, returns zero if not in pod or moved out for active job
+   */
+  function getBondedPodIndex(address operator) external view returns (uint256 index);
 
   /**
    * @notice Topup a bonded operator with more utility tokens

@@ -2,6 +2,7 @@ import { expect, assert } from 'chai';
 import { PreTest } from './utils';
 import setup from './utils';
 import { BytesLike, BigNumber, ContractFactory } from 'ethers';
+import { TransactionReceipt, TransactionResponse } from '@ethersproject/abstract-provider';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import {
   Signature,
@@ -10,13 +11,19 @@ import {
   functionHash,
   randomHex,
   generateInitCode,
+  generateErc20Config,
   generateErc721Config,
   remove0x,
   KeyOf,
   HASH,
   sleep,
 } from '../scripts/utils/helpers';
-import { HolographERC721Event, ConfigureEvents } from '../scripts/utils/events';
+import {
+  HolographERC20Event,
+  HolographERC721Event,
+  HolographERC1155Event,
+  ConfigureEvents,
+} from '../scripts/utils/events';
 import { HolographERC20, HolographOperator, Mock } from '../typechain-types';
 import { ONLY_ADMIN_ERROR_MSG } from './utils/error_constants';
 
@@ -28,65 +35,6 @@ const BLOCKTIME: number = 60;
 const GWEI: BigNumber = BigNumber.from('1000000000');
 const TESTGASLIMIT: BigNumber = BigNumber.from('10000000');
 const GASPRICE: BigNumber = BigNumber.from('1000000000');
-
-const getRequestPayload = async function (
-  l1: PreTest,
-  l2: PreTest,
-  target: string | BytesLike,
-  data: string | BytesLike
-): Promise<BytesLike> {
-  let payload: BytesLike = await l1.bridge
-    .connect(l1.deployer)
-    .callStatic.getBridgeOutRequestPayload(
-      l2.network.holographId,
-      target as string,
-      '0x' + 'ff'.repeat(32),
-      '0x' + 'ff'.repeat(32),
-      data as string
-    );
-  return payload;
-};
-
-const hValueTrim = function (inputPayload: string | BytesLike): BytesLike {
-  let index = 2 + 4 * 2 + 32 * 2 * 5; // 0x + functionSig + data
-  let payload: string = inputPayload as string;
-  return payload.slice(0, index) + '00'.repeat(32) + payload.slice(index + 32 * 2, payload.length);
-};
-
-const getEstimatedGas = async function (
-  l1: PreTest,
-  l2: PreTest,
-  target: string | BytesLike,
-  data: string | BytesLike,
-  payload: string | BytesLike,
-  trimHValue: boolean = false
-): Promise<(string | BytesLike | BigNumber)[]> {
-  let estimatedGas: BigNumber = TESTGASLIMIT.sub(
-    await l2.operator.callStatic.jobEstimator(payload as string, {
-      gasPrice: GASPRICE,
-      gasLimit: TESTGASLIMIT,
-    })
-  );
-
-  payload = await l1.bridge
-    .connect(l1.deployer)
-    .callStatic.getBridgeOutRequestPayload(
-      l2.network.holographId,
-      target as string,
-      estimatedGas,
-      GWEI,
-      data as string
-    );
-
-  if (trimHValue) {
-    payload = hValueTrim(payload);
-  }
-
-  let fees = await l1.bridge.callStatic.getMessageFee(l2.network.holographId, estimatedGas, GWEI, payload);
-  let total: BigNumber = fees[0].add(fees[1]);
-  let gasEstimation = await l2.operator.callStatic.jobEstimator(payload);
-  return [payload, gasEstimation, total, fees[0], fees[1]];
-};
 
 function shuffleWallets(array: KeyOf<PreTest>[]) {
   let currentIndex = array.length,
@@ -114,6 +62,11 @@ describe('Holograph Operator Contract', async () => {
   let MOCKL1: Mock;
   let MOCKL2: Mock;
 
+  let msgBaseGas: BigNumber;
+  let msgGasPerByte: BigNumber;
+  let jobBaseGas: BigNumber;
+  let jobGasPerByte: BigNumber;
+
   let mockOperator: HolographOperator;
 
   let wallets: KeyOf<PreTest>[];
@@ -139,8 +92,80 @@ describe('Holograph Operator Contract', async () => {
     return operator;
   };
 
+  let getLzMsgGas = function (payload: string): BigNumber {
+    return msgBaseGas.add(BigNumber.from(Math.floor((payload.length - 2) / 2)).mul(msgGasPerByte));
+  };
+
+  let getHlgMsgGas = function (gasLimit: BigNmber, payload: string): BigNumber {
+    return gasLimit.add(jobBaseGas.add(BigNumber.from(Math.floor((payload.length - 2) / 2)).mul(jobGasPerByte)));
+  };
+
+  let getRequestPayload = async function (
+    l1: PreTest,
+    l2: PreTest,
+    target: string | BytesLike,
+    data: string | BytesLike
+  ): Promise<BytesLike> {
+    let payload: BytesLike = await l1.bridge
+      .connect(l1.deployer)
+      .callStatic.getBridgeOutRequestPayload(
+        l2.network.holographId,
+        target as string,
+        '0x' + 'ff'.repeat(32),
+        '0x' + 'ff'.repeat(32),
+        data as string
+      );
+    return payload;
+  };
+
+  let getEstimatedGas = async function (
+    l1: PreTest,
+    l2: PreTest,
+    target: string | BytesLike,
+    data: string | BytesLike,
+    payload: string | BytesLike
+  ): Promise<{
+    payload: string;
+    estimatedGas: BigNumber;
+    fee: BigNumber;
+    hlgFee: BigNumber;
+    msgFee: BigNumber;
+    dstGasPrice: BigNumber;
+  }> {
+    let estimatedGas: BigNumber = TESTGASLIMIT.sub(
+      await l2.operator.callStatic.jobEstimator(payload as string, {
+        gasPrice: GASPRICE,
+        gasLimit: TESTGASLIMIT,
+      })
+    );
+
+    payload = await l1.bridge
+      .connect(l1.deployer)
+      .callStatic.getBridgeOutRequestPayload(
+        l2.network.holographId,
+        target as string,
+        estimatedGas,
+        GWEI,
+        data as string
+      );
+
+    let fees = await l1.bridge.callStatic.getMessageFee(l2.network.holographId, estimatedGas, GWEI, payload);
+    let total: BigNumber = fees[0].add(fees[1]);
+    estimatedGas = TESTGASLIMIT.sub(
+      await l2.operator.callStatic.jobEstimator(payload as string, {
+        value: total,
+        gasPrice: GASPRICE,
+        gasLimit: TESTGASLIMIT,
+      })
+    );
+    estimatedGas = getHlgMsgGas(estimatedGas, payload);
+    return { payload, estimatedGas, fee: total, hlgFee: fees[0], msgFee: fees[1], dstGasPrice: fees[2] };
+  };
+
   let availableJobs: string[] = [];
   let zeroAddressJobs: string[] = [];
+  let availableJobsGas: BigNumber[] = [];
+  let zeroAddressJobsGas: BigNumber[] = [];
 
   let operatorJobTokenId: number = 0;
 
@@ -155,43 +180,43 @@ describe('Holograph Operator Contract', async () => {
         .attach(l1.sampleErc721Holographer.address)
         .mint(l1.deployer.address, bnHEX(tokenId, 32), 'IPFSURIHERE');
     }
-    let originalMessagingModule = await l1.operator.getMessagingModule();
+    let originalMessagingModule = await l2.operator.getMessagingModule();
     let data: BytesLike = generateInitCode(
       ['address', 'address', 'uint256'],
       [l1.deployer.address, l2.deployer.address, bnHEX(tokenId, 32)]
     );
-    let payload: BytesLike = hValueTrim(await getRequestPayload(l1, l2, l1.sampleErc721Holographer.address, data));
-    let gasEstimates: (string | BytesLike | BigNumber)[] = await getEstimatedGas(
-      l1,
-      l2,
-      l1.sampleErc721Holographer.address,
-      data,
-      payload,
-      true
-    );
-    payload = gasEstimates[0] as string;
+    let payload: BytesLike = await getRequestPayload(l1, l2, l1.sampleErc721Holographer.address, data);
+    let gasEstimates = await getEstimatedGas(l1, l2, l1.sampleErc721Holographer.address, data, payload);
+    payload = gasEstimates.payload;
     let payloadHash: string = HASH(payload);
-    // temporarily set deployer as messaging module, to allow for easy sending
-    await l1.operator.setMessagingModule(l1.deployer.address);
-    // make call with deployer AS messaging module
-    await l1.operator.crossChainMessage(payload);
+    // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+    await l2.operator.setMessagingModule(l2.mockLZEndpoint.address);
+    // make call with mockLZEndpoint AS messaging module
+    await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(payload), payload, {
+      gasLimit: TESTGASLIMIT,
+    });
     // return messaging module back to original address
-    await l1.operator.setMessagingModule(originalMessagingModule);
-    let operatorJob = await l1.operator.getJobDetails(payloadHash);
+    await l2.operator.setMessagingModule(originalMessagingModule);
+    let operatorJob = await l2.operator.getJobDetails(payloadHash);
     let operator = (operatorJob[2] as string).toLowerCase();
     if (operator == zeroAddress) {
       zeroAddressJobs.push(payloadHash);
       zeroAddressJobs.push(payload as string);
+      zeroAddressJobsGas.push(gasEstimates.estimatedGas);
+
       return false;
     } else {
       if (skipZeroAddressFallback && operatorJob[5][0] == 0) {
         // need to skip this one, since it will fail a fallback test
         // execute job to leave operator bonded
-        await l1.operator.connect(pickOperator(l1, operator)).executeJob(payload);
+        await l2.operator
+          .connect(pickOperator(l2, operator))
+          .executeJob(payload, { gasLimit: gasEstimates.estimatedGas });
         return false;
       } else {
         availableJobs.push(payloadHash);
         availableJobs.push(payload as string);
+        availableJobsGas.push(gasEstimates.estimatedGas);
         return true;
       }
     }
@@ -214,6 +239,11 @@ describe('Holograph Operator Contract', async () => {
     await MOCKL2.init(generateInitCode(['bytes32'], ['0x' + 'ff'.repeat(32)]));
     await MOCKL2.setStorage(0, '0x' + remove0x(l2.operator.address).padStart(64, '0'));
 
+    msgBaseGas = await l1.lzModule.getMsgBaseGas();
+    msgGasPerByte = await l1.lzModule.getMsgGasPerByte();
+    jobBaseGas = await l1.lzModule.getJobBaseGas();
+    jobGasPerByte = await l1.lzModule.getJobGasPerByte();
+
     wallets = [
       'wallet1',
       'wallet2',
@@ -226,28 +256,6 @@ describe('Holograph Operator Contract', async () => {
       'wallet9',
       'wallet10',
     ];
-
-    // Need to deploy l1 version of SampleERC721 on l2 in order to simplify some of the logic below
-    let { erc721Config, erc721ConfigHash, erc721ConfigHashBytes } = await generateErc721Config(
-      l1.network,
-      l1.deployer.address,
-      'SampleERC721',
-      'Sample ERC721 Contract (' + l1.hre.networkName + ')',
-      'SMPLR',
-      1000,
-      ConfigureEvents([HolographERC721Event.bridgeIn, HolographERC721Event.bridgeOut, HolographERC721Event.afterBurn]),
-      generateInitCode(['address'], [l1.deployer.address /*owner*/]),
-      l1.salt
-    );
-
-    let sig = await l1.deployer.signMessage(erc721ConfigHashBytes);
-    let signature: Signature = StrictECDSA({
-      r: '0x' + sig.substring(2, 66),
-      s: '0x' + sig.substring(66, 130),
-      v: '0x' + sig.substring(130, 132),
-    } as Signature);
-
-    await l2.factory.deployHolographableContract(erc721Config, signature, l1.deployer.address);
 
     await l1.sampleErc721
       .attach(l1.sampleErc721Holographer.address)
@@ -272,6 +280,76 @@ describe('Holograph Operator Contract', async () => {
   beforeEach(async () => {});
 
   afterEach(async () => {});
+
+  describe('Deploy cross-chain contracts', async function () {
+    describe('hToken', async function () {
+      it('deploy l1 equivalent on l2', async function () {
+        let { erc20Config, erc20ConfigHash, erc20ConfigHashBytes } = await generateErc20Config(
+          l1.network,
+          l1.deployer.address,
+          'hToken',
+          l1.network.tokenName + ' (Holographed #' + l1.network.holographId.toString() + ')',
+          'h' + l1.network.tokenSymbol,
+          l1.network.tokenName + ' (Holographed #' + l1.network.holographId.toString() + ')',
+          '1',
+          18,
+          ConfigureEvents([]),
+          generateInitCode(['address', 'uint16'], [l1.deployer.address, 0]),
+          l1.salt
+        );
+
+        let hTokenErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
+
+        expect(hTokenErc20Address).to.equal(zeroAddress);
+
+        hTokenErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
+
+        let sig = await l1.deployer.signMessage(erc20ConfigHashBytes);
+        let signature: Signature = StrictECDSA({
+          r: '0x' + sig.substring(2, 66),
+          s: '0x' + sig.substring(66, 130),
+          v: '0x' + sig.substring(130, 132),
+        } as Signature);
+
+        await expect(l2.factory.deployHolographableContract(erc20Config, signature, l1.deployer.address))
+          .to.emit(l2.factory, 'BridgeableContractDeployed')
+          .withArgs(hTokenErc20Address, erc20ConfigHash);
+      });
+
+      it('deploy l2 equivalent on l1', async function () {
+        let { erc20Config, erc20ConfigHash, erc20ConfigHashBytes } = await generateErc20Config(
+          l2.network,
+          l2.deployer.address,
+          'hToken',
+          l2.network.tokenName + ' (Holographed #' + l2.network.holographId.toString() + ')',
+          'h' + l2.network.tokenSymbol,
+          l2.network.tokenName + ' (Holographed #' + l2.network.holographId.toString() + ')',
+          '1',
+          18,
+          ConfigureEvents([]),
+          generateInitCode(['address', 'uint16'], [l2.deployer.address, 0]),
+          l2.salt
+        );
+
+        let hTokenErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
+
+        expect(hTokenErc20Address).to.equal(zeroAddress);
+
+        hTokenErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
+
+        let sig = await l2.deployer.signMessage(erc20ConfigHashBytes);
+        let signature: Signature = StrictECDSA({
+          r: '0x' + sig.substring(2, 66),
+          s: '0x' + sig.substring(66, 130),
+          v: '0x' + sig.substring(130, 132),
+        } as Signature);
+
+        await expect(l1.factory.deployHolographableContract(erc20Config, signature, l2.deployer.address))
+          .to.emit(l1.factory, 'BridgeableContractDeployed')
+          .withArgs(hTokenErc20Address, erc20ConfigHash);
+      });
+    });
+  });
 
   describe('constructor', async () => {
     it('should successfully deploy', async () => {
@@ -378,7 +456,7 @@ describe('Holograph Operator Contract', async () => {
         );
       let functionSig = functionHash('bridgeInRequest(uint256,uint32,address,address,address,uint256,bool,bytes)'); // fuunction signature
       let gasEstimation = await l2.operator.callStatic.jobEstimator(functionSig + remove0x(bridgeInRequestPayload));
-      assert(gasEstimation.gt(BigNumber.from('0x38d7ea4c68000')), 'unexpectedly low gas estimation'); // 0.001 ETH
+      assert(gasEstimation.gt(BigNumber.from('0x5af3107a4000')), 'unexpectedly low gas estimation'); // 0.001 ETH
     });
     it('Should allow external contract to call fn', async () => {
       let data: BytesLike = generateInitCode(
@@ -386,7 +464,7 @@ describe('Holograph Operator Contract', async () => {
         [l1.deployer.address, l2.deployer.address, bnHEX(1, 32)]
       );
 
-      let payload: BytesLike = hValueTrim(await getRequestPayload(l1, l2, l1.sampleErc721Holographer.address, data));
+      let payload: BytesLike = await getRequestPayload(l1, l2, l1.sampleErc721Holographer.address, data);
 
       let estimatedGas: BigNumber = TESTGASLIMIT.sub(
         await l2.operator.callStatic.jobEstimator(payload, {
@@ -395,17 +473,15 @@ describe('Holograph Operator Contract', async () => {
         })
       );
 
-      payload = hValueTrim(
-        await l1.bridge
-          .connect(l1.deployer)
-          .callStatic.getBridgeOutRequestPayload(
-            l2.network.holographId,
-            l1.sampleErc721Holographer.address,
-            estimatedGas,
-            GWEI,
-            data
-          )
-      );
+      payload = await l1.bridge
+        .connect(l1.deployer)
+        .callStatic.getBridgeOutRequestPayload(
+          l2.network.holographId,
+          l1.sampleErc721Holographer.address,
+          estimatedGas,
+          GWEI,
+          data
+        );
 
       let fees = await l1.bridge.callStatic.getMessageFee(l2.network.holographId, estimatedGas, GWEI, payload);
       let total: BigNumber = fees[0].add(fees[1]);
@@ -420,16 +496,9 @@ describe('Holograph Operator Contract', async () => {
         ['address', 'address', 'uint256'],
         [l1.deployer.address, l2.deployer.address, bnHEX(1, 32)]
       );
-      let payload: BytesLike = hValueTrim(await getRequestPayload(l1, l2, l1.sampleErc721Holographer.address, data));
-      let gasEstimates: (string | BytesLike | BigNumber)[] = await getEstimatedGas(
-        l1,
-        l2,
-        l1.sampleErc721Holographer.address,
-        data,
-        payload,
-        true
-      ); // returns: gasLimit, nativeFee, hlgFee, msgFee
-      assert((gasEstimates[1] as BigNumber).gt(BigNumber.from('0x38d7ea4c68000')), 'unexpectedly low gas estimation'); // 0.001 ETH
+      let payload: BytesLike = await getRequestPayload(l1, l2, l1.sampleErc721Holographer.address, data);
+      let gasEstimates = await getEstimatedGas(l1, l2, l1.sampleErc721Holographer.address, data, payload); // returns: payload, gasLimit, nativeFee, hlgFee, msgFee
+      assert(gasEstimates.estimatedGas.gt(BigNumber.from('100000')), 'unexpectedly low gas estimation'); // 100k gas units
     });
   });
 
@@ -695,37 +764,35 @@ describe('Holograph Operator Contract', async () => {
 
   describe('crossChainMessage()', async () => {
     it('Should successfully allow messaging address to call fn', async () => {
-      let originalMessagingModule = await l1.operator.getMessagingModule();
+      let originalMessagingModule = await l2.operator.getMessagingModule();
       // generate payload
       let data: BytesLike = generateInitCode(
         ['address', 'address', 'uint256'],
         [l1.deployer.address, l2.deployer.address, bnHEX(1, 32)]
       );
-      let payload: BytesLike = hValueTrim(await getRequestPayload(l1, l2, l1.sampleErc721Holographer.address, data));
-      let gasEstimates: (string | BytesLike | BigNumber)[] = await getEstimatedGas(
-        l1,
-        l2,
-        l1.sampleErc721Holographer.address,
-        data,
-        payload,
-        true
-      );
-      payload = gasEstimates[0] as string;
+      let payload: BytesLike = await getRequestPayload(l1, l2, l1.sampleErc721Holographer.address, data);
+      let gasEstimates = await getEstimatedGas(l1, l2, l1.sampleErc721Holographer.address, data, payload);
+      payload = gasEstimates.payload;
       // this is to make sure it reverts
       let search: string = remove0x(l1.sampleErc721Holographer.address).toLowerCase();
       let replace: string = remove0x(zeroAddress);
       payload = payload.replace(search, replace);
       let payloadHash: string = HASH(payload);
-      // temporarily set deployer as messaging module, to allow for easy sending
-      await l1.operator.setMessagingModule(l1.deployer.address);
-      // make call with deployer AS messaging module
-      await expect(l1.operator.crossChainMessage(payload))
-        .to.emit(l1.operator, 'AvailableOperatorJob')
+      // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+      await l2.operator.setMessagingModule(l2.mockLZEndpoint.address);
+      // make call with mockLZEndpoint AS messaging module
+      await expect(
+        l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(payload), payload, {
+          gasLimit: TESTGASLIMIT,
+        })
+      )
+        .to.emit(l2.operator, 'AvailableOperatorJob')
         .withArgs(payloadHash, payload);
       availableJobs.push(payloadHash);
       availableJobs.push(payload as string);
+      availableJobsGas.push(gasEstimates.estimatedGas);
       // return messaging module back to original address
-      await l1.operator.setMessagingModule(originalMessagingModule);
+      await l2.operator.setMessagingModule(originalMessagingModule);
     });
     it('Should fail to allow admin address to call fn', async () => {
       // just random bytes, along with gasPrice and gasLimit at the end
@@ -748,7 +815,7 @@ describe('Holograph Operator Contract', async () => {
   describe('getJobDetails()', async () => {
     it('should return expected operatorJob from valid jobHash', async () => {
       let jobHash: string = availableJobs[0];
-      let operatorJob: string = JSON.stringify(await l1.operator.getJobDetails(jobHash));
+      let operatorJob: string = JSON.stringify(await l2.operator.getJobDetails(jobHash));
       assert(
         operatorJob !=
           '[0,' +
@@ -759,7 +826,7 @@ describe('Holograph Operator Contract', async () => {
     });
     it('should return expected operatorJob from INVALID jobHash', async () => {
       let jobHash: string = '0x' + '00'.repeat(32);
-      let operatorJob: string = JSON.stringify(await l1.operator.getJobDetails(jobHash));
+      let operatorJob: string = JSON.stringify(await l2.operator.getJobDetails(jobHash));
       assert(
         operatorJob ==
           '[0,' +
@@ -767,6 +834,15 @@ describe('Holograph Operator Contract', async () => {
             ',"0x0000000000000000000000000000000000000000",0,{"type":"BigNumber","hex":"0x00"},[0,0,0,0,0]]',
         'invalid job hash returns non-empty job details'
       );
+    });
+  });
+
+  describe('getPodOperatorsLength()', async () => {
+    it('should return expected pod length', async () => {
+      expect(await l1.operator.getPodOperatorsLength(1)).to.equal(BigNumber.from('1'));
+    });
+    it('should fail if pod does not exist', async () => {
+      await expect(l1.operator.getPodOperatorsLength(2)).to.be.revertedWith('HOLOGRAPH: pod does not exist');
     });
   });
 
@@ -784,27 +860,455 @@ describe('Holograph Operator Contract', async () => {
     });
   });
 
+  describe('SampleERC20', async function () {
+    it('deploy l1 equivalent on l2', async function () {
+      let { erc20Config, erc20ConfigHash, erc20ConfigHashBytes } = await generateErc20Config(
+        l1.network,
+        l1.deployer.address,
+        'SampleERC20',
+        'Sample ERC20 Token (' + l1.hre.networkName + ')',
+        'SMPL',
+        'Sample ERC20 Token',
+        '1',
+        18,
+        ConfigureEvents([HolographERC20Event.bridgeIn, HolographERC20Event.bridgeOut]),
+        generateInitCode(['address', 'uint16'], [l1.deployer.address, 0]),
+        l1.salt
+      );
+
+      let sampleErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
+
+      expect(sampleErc20Address).to.equal(zeroAddress);
+
+      sampleErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
+
+      let sig = await l1.deployer.signMessage(erc20ConfigHashBytes);
+      let signature: Signature = StrictECDSA({
+        r: '0x' + sig.substring(2, 66),
+        s: '0x' + sig.substring(66, 130),
+        v: '0x' + sig.substring(130, 132),
+      } as Signature);
+
+      let data: BytesLike = generateInitCode(
+        ['tuple(bytes32,uint32,bytes32,bytes,bytes)', 'tuple(bytes32,bytes32,uint8)', 'address'],
+        [
+          [
+            erc20Config.contractType,
+            erc20Config.chainType,
+            erc20Config.salt,
+            erc20Config.byteCode,
+            erc20Config.initCode,
+          ],
+          [signature.r, signature.s, signature.v],
+          l1.deployer.address,
+        ]
+      );
+
+      let originalMessagingModule = await l2.operator.getMessagingModule();
+      let payload: BytesLike = await getRequestPayload(l1, l2, l1.factory.address, data);
+      let gasEstimates = await getEstimatedGas(l1, l2, l1.factory.address, data, payload);
+      payload = gasEstimates.payload;
+      let payloadHash: string = HASH(payload);
+      // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+      await l2.operator.setMessagingModule(l2.mockLZEndpoint.address);
+      // make call with mockLZEndpoint AS messaging module
+      await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(payload), payload, {
+        gasLimit: TESTGASLIMIT,
+      });
+      // return messaging module back to original address
+      await l2.operator.setMessagingModule(originalMessagingModule);
+      let operatorJob = await l2.operator.getJobDetails(payloadHash);
+      let operator = (operatorJob[2] as string).toLowerCase();
+      // execute job to leave operator bonded
+      await expect(
+        l2.operator.connect(pickOperator(l2, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
+      )
+        .to.emit(l2.factory, 'BridgeableContractDeployed')
+        .withArgs(sampleErc20Address, erc20ConfigHash);
+      expect(await l2.registry.getHolographedHashAddress(erc20ConfigHash)).to.equal(sampleErc20Address);
+    });
+
+    it('deploy l2 equivalent on l1', async function () {
+      let { erc20Config, erc20ConfigHash, erc20ConfigHashBytes } = await generateErc20Config(
+        l2.network,
+        l2.deployer.address,
+        'SampleERC20',
+        'Sample ERC20 Token (' + l2.hre.networkName + ')',
+        'SMPL',
+        'Sample ERC20 Token',
+        '1',
+        18,
+        ConfigureEvents([HolographERC20Event.bridgeIn, HolographERC20Event.bridgeOut]),
+        generateInitCode(['address', 'uint16'], [l1.deployer.address, 0]),
+        l2.salt
+      );
+
+      let sampleErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
+
+      expect(sampleErc20Address).to.equal(zeroAddress);
+
+      sampleErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
+
+      let sig = await l2.deployer.signMessage(erc20ConfigHashBytes);
+      let signature: Signature = StrictECDSA({
+        r: '0x' + sig.substring(2, 66),
+        s: '0x' + sig.substring(66, 130),
+        v: '0x' + sig.substring(130, 132),
+      } as Signature);
+
+      let data: BytesLike = generateInitCode(
+        ['tuple(bytes32,uint32,bytes32,bytes,bytes)', 'tuple(bytes32,bytes32,uint8)', 'address'],
+        [
+          [
+            erc20Config.contractType,
+            erc20Config.chainType,
+            erc20Config.salt,
+            erc20Config.byteCode,
+            erc20Config.initCode,
+          ],
+          [signature.r, signature.s, signature.v],
+          l2.deployer.address,
+        ]
+      );
+
+      let originalMessagingModule = await l1.operator.getMessagingModule();
+      let payload: BytesLike = await getRequestPayload(l2, l1, l2.factory.address, data);
+      let gasEstimates = await getEstimatedGas(l2, l1, l2.factory.address, data, payload);
+      payload = gasEstimates.payload;
+      let payloadHash: string = HASH(payload);
+      // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+      await l1.operator.setMessagingModule(l1.mockLZEndpoint.address);
+      // make call with mockLZEndpoint AS messaging module
+      await l1.mockLZEndpoint.crossChainMessage(l1.operator.address, getLzMsgGas(payload), payload, {
+        gasLimit: TESTGASLIMIT,
+      });
+      // return messaging module back to original address
+      await l1.operator.setMessagingModule(originalMessagingModule);
+      let operatorJob = await l1.operator.getJobDetails(payloadHash);
+      let operator = (operatorJob[2] as string).toLowerCase();
+      // execute job to leave operator bonded
+      await expect(
+        l1.operator.connect(pickOperator(l1, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
+      )
+        .to.emit(l1.factory, 'BridgeableContractDeployed')
+        .withArgs(sampleErc20Address, erc20ConfigHash);
+      expect(await l1.registry.getHolographedHashAddress(erc20ConfigHash)).to.equal(sampleErc20Address);
+    });
+  });
+
+  describe('SampleERC721', async function () {
+    it('deploy l1 equivalent on l2', async function () {
+      let { erc721Config, erc721ConfigHash, erc721ConfigHashBytes } = await generateErc721Config(
+        l1.network,
+        l1.deployer.address,
+        'SampleERC721',
+        'Sample ERC721 Contract (' + l1.hre.networkName + ')',
+        'SMPLR',
+        1000,
+        ConfigureEvents([
+          HolographERC721Event.bridgeIn,
+          HolographERC721Event.bridgeOut,
+          HolographERC721Event.afterBurn,
+        ]),
+        generateInitCode(['address'], [l1.deployer.address]),
+        l1.salt
+      );
+
+      let sampleErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
+
+      expect(sampleErc721Address).to.equal(zeroAddress);
+
+      sampleErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
+
+      let sig = await l1.deployer.signMessage(erc721ConfigHashBytes);
+      let signature: Signature = StrictECDSA({
+        r: '0x' + sig.substring(2, 66),
+        s: '0x' + sig.substring(66, 130),
+        v: '0x' + sig.substring(130, 132),
+      } as Signature);
+
+      let data: BytesLike = generateInitCode(
+        ['tuple(bytes32,uint32,bytes32,bytes,bytes)', 'tuple(bytes32,bytes32,uint8)', 'address'],
+        [
+          [
+            erc721Config.contractType,
+            erc721Config.chainType,
+            erc721Config.salt,
+            erc721Config.byteCode,
+            erc721Config.initCode,
+          ],
+          [signature.r, signature.s, signature.v],
+          l1.deployer.address,
+        ]
+      );
+
+      let originalMessagingModule = await l2.operator.getMessagingModule();
+      let payload: BytesLike = await getRequestPayload(l1, l2, l1.factory.address, data);
+      let gasEstimates = await getEstimatedGas(l1, l2, l1.factory.address, data, payload);
+      payload = gasEstimates.payload;
+      let payloadHash: string = HASH(payload);
+      // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+      await l2.operator.setMessagingModule(l2.mockLZEndpoint.address);
+      // make call with mockLZEndpoint AS messaging module
+      await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(payload), payload, {
+        gasLimit: TESTGASLIMIT,
+      });
+      // return messaging module back to original address
+      await l2.operator.setMessagingModule(originalMessagingModule);
+      let operatorJob = await l2.operator.getJobDetails(payloadHash);
+      let operator = (operatorJob[2] as string).toLowerCase();
+      // execute job to leave operator bonded
+      await expect(
+        l2.operator.connect(pickOperator(l2, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
+      )
+        .to.emit(l2.factory, 'BridgeableContractDeployed')
+        .withArgs(sampleErc721Address, erc721ConfigHash);
+      expect(await l2.registry.getHolographedHashAddress(erc721ConfigHash)).to.equal(sampleErc721Address);
+    });
+
+    it('deploy l2 equivalent on l1', async function () {
+      let { erc721Config, erc721ConfigHash, erc721ConfigHashBytes } = await generateErc721Config(
+        l2.network,
+        l2.deployer.address,
+        'SampleERC721',
+        'Sample ERC721 Contract (' + l2.hre.networkName + ')',
+        'SMPLR',
+        1000,
+        ConfigureEvents([
+          HolographERC721Event.bridgeIn,
+          HolographERC721Event.bridgeOut,
+          HolographERC721Event.afterBurn,
+        ]),
+        generateInitCode(['address'], [l2.deployer.address]),
+        l2.salt
+      );
+
+      let sampleErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
+
+      expect(sampleErc721Address).to.equal(zeroAddress);
+
+      sampleErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
+
+      let sig = await l2.deployer.signMessage(erc721ConfigHashBytes);
+      let signature: Signature = StrictECDSA({
+        r: '0x' + sig.substring(2, 66),
+        s: '0x' + sig.substring(66, 130),
+        v: '0x' + sig.substring(130, 132),
+      } as Signature);
+
+      let data: BytesLike = generateInitCode(
+        ['tuple(bytes32,uint32,bytes32,bytes,bytes)', 'tuple(bytes32,bytes32,uint8)', 'address'],
+        [
+          [
+            erc721Config.contractType,
+            erc721Config.chainType,
+            erc721Config.salt,
+            erc721Config.byteCode,
+            erc721Config.initCode,
+          ],
+          [signature.r, signature.s, signature.v],
+          l2.deployer.address,
+        ]
+      );
+
+      let originalMessagingModule = await l1.operator.getMessagingModule();
+      let payload: BytesLike = await getRequestPayload(l2, l1, l2.factory.address, data);
+      let gasEstimates = await getEstimatedGas(l2, l1, l2.factory.address, data, payload);
+      payload = gasEstimates.payload;
+      let payloadHash: string = HASH(payload);
+      // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+      await l1.operator.setMessagingModule(l1.mockLZEndpoint.address);
+      // make call with mockLZEndpoint AS messaging module
+      await l1.mockLZEndpoint.crossChainMessage(l1.operator.address, getLzMsgGas(payload), payload, {
+        gasLimit: TESTGASLIMIT,
+      });
+      // return messaging module back to original address
+      await l1.operator.setMessagingModule(originalMessagingModule);
+      let operatorJob = await l1.operator.getJobDetails(payloadHash);
+      let operator = (operatorJob[2] as string).toLowerCase();
+      // execute job to leave operator bonded
+      await expect(
+        l1.operator.connect(pickOperator(l1, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
+      )
+        .to.emit(l1.factory, 'BridgeableContractDeployed')
+        .withArgs(sampleErc721Address, erc721ConfigHash);
+      expect(await l1.registry.getHolographedHashAddress(erc721ConfigHash)).to.equal(sampleErc721Address);
+    });
+  });
+
+  describe('CxipERC721', async function () {
+    it('deploy l1 equivalent on l2', async function () {
+      let { erc721Config, erc721ConfigHash, erc721ConfigHashBytes } = await generateErc721Config(
+        l1.network,
+        l1.deployer.address,
+        'CxipERC721Proxy',
+        'CXIP ERC721 Collection (' + l1.hre.networkName + ')',
+        'CXIP',
+        1000,
+        ConfigureEvents([
+          HolographERC721Event.bridgeIn,
+          HolographERC721Event.bridgeOut,
+          HolographERC721Event.afterBurn,
+        ]),
+        generateInitCode(
+          ['bytes32', 'address', 'bytes'],
+          [
+            '0x' + l1.web3.utils.asciiToHex('CxipERC721').substring(2).padStart(64, '0'),
+            l1.registry.address,
+            generateInitCode(['address'], [l1.deployer.address]),
+          ]
+        ),
+        l1.salt
+      );
+
+      let cxipErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
+
+      expect(cxipErc721Address).to.equal(zeroAddress);
+
+      cxipErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
+
+      let sig = await l1.deployer.signMessage(erc721ConfigHashBytes);
+      let signature: Signature = StrictECDSA({
+        r: '0x' + sig.substring(2, 66),
+        s: '0x' + sig.substring(66, 130),
+        v: '0x' + sig.substring(130, 132),
+      } as Signature);
+
+      let data: BytesLike = generateInitCode(
+        ['tuple(bytes32,uint32,bytes32,bytes,bytes)', 'tuple(bytes32,bytes32,uint8)', 'address'],
+        [
+          [
+            erc721Config.contractType,
+            erc721Config.chainType,
+            erc721Config.salt,
+            erc721Config.byteCode,
+            erc721Config.initCode,
+          ],
+          [signature.r, signature.s, signature.v],
+          l1.deployer.address,
+        ]
+      );
+
+      let originalMessagingModule = await l2.operator.getMessagingModule();
+      let payload: BytesLike = await getRequestPayload(l1, l2, l1.factory.address, data);
+      let gasEstimates = await getEstimatedGas(l1, l2, l1.factory.address, data, payload);
+      payload = gasEstimates.payload;
+      let payloadHash: string = HASH(payload);
+      // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+      await l2.operator.setMessagingModule(l2.mockLZEndpoint.address);
+      // make call with mockLZEndpoint AS messaging module
+      await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(payload), payload, {
+        gasLimit: TESTGASLIMIT,
+      });
+      // return messaging module back to original address
+      await l2.operator.setMessagingModule(originalMessagingModule);
+      let operatorJob = await l2.operator.getJobDetails(payloadHash);
+      let operator = (operatorJob[2] as string).toLowerCase();
+      // execute job to leave operator bonded
+      await expect(
+        l2.operator.connect(pickOperator(l2, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
+      )
+        .to.emit(l2.factory, 'BridgeableContractDeployed')
+        .withArgs(cxipErc721Address, erc721ConfigHash);
+      expect(await l2.registry.getHolographedHashAddress(erc721ConfigHash)).to.equal(cxipErc721Address);
+    });
+
+    it('deploy l2 equivalent on l1', async function () {
+      let { erc721Config, erc721ConfigHash, erc721ConfigHashBytes } = await generateErc721Config(
+        l2.network,
+        l2.deployer.address,
+        'CxipERC721Proxy',
+        'CXIP ERC721 Collection (' + l2.hre.networkName + ')',
+        'CXIP',
+        1000,
+        ConfigureEvents([
+          HolographERC721Event.bridgeIn,
+          HolographERC721Event.bridgeOut,
+          HolographERC721Event.afterBurn,
+        ]),
+        generateInitCode(
+          ['bytes32', 'address', 'bytes'],
+          [
+            '0x' + l2.web3.utils.asciiToHex('CxipERC721').substring(2).padStart(64, '0'),
+            l2.registry.address,
+            generateInitCode(['address'], [l2.deployer.address]),
+          ]
+        ),
+        l2.salt
+      );
+
+      let cxipErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
+
+      expect(cxipErc721Address).to.equal(zeroAddress);
+
+      cxipErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
+
+      let sig = await l2.deployer.signMessage(erc721ConfigHashBytes);
+      let signature: Signature = StrictECDSA({
+        r: '0x' + sig.substring(2, 66),
+        s: '0x' + sig.substring(66, 130),
+        v: '0x' + sig.substring(130, 132),
+      } as Signature);
+
+      let data: BytesLike = generateInitCode(
+        ['tuple(bytes32,uint32,bytes32,bytes,bytes)', 'tuple(bytes32,bytes32,uint8)', 'address'],
+        [
+          [
+            erc721Config.contractType,
+            erc721Config.chainType,
+            erc721Config.salt,
+            erc721Config.byteCode,
+            erc721Config.initCode,
+          ],
+          [signature.r, signature.s, signature.v],
+          l2.deployer.address,
+        ]
+      );
+
+      let originalMessagingModule = await l1.operator.getMessagingModule();
+      let payload: BytesLike = await getRequestPayload(l2, l1, l2.factory.address, data);
+      let gasEstimates = await getEstimatedGas(l2, l1, l2.factory.address, data, payload);
+      payload = gasEstimates.payload;
+      let payloadHash: string = HASH(payload);
+      // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+      await l1.operator.setMessagingModule(l1.mockLZEndpoint.address);
+      // make call with mockLZEndpoint AS messaging module
+      await l1.mockLZEndpoint.crossChainMessage(l1.operator.address, getLzMsgGas(payload), payload, {
+        gasLimit: TESTGASLIMIT,
+      });
+      // return messaging module back to original address
+      await l1.operator.setMessagingModule(originalMessagingModule);
+      let operatorJob = await l1.operator.getJobDetails(payloadHash);
+      let operator = (operatorJob[2] as string).toLowerCase();
+      // execute job to leave operator bonded
+      await expect(
+        l1.operator.connect(pickOperator(l1, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
+      )
+        .to.emit(l1.factory, 'BridgeableContractDeployed')
+        .withArgs(cxipErc721Address, erc721ConfigHash);
+      expect(await l1.registry.getHolographedHashAddress(erc721ConfigHash)).to.equal(cxipErc721Address);
+    });
+  });
+
   describe('executeJob()', async () => {
     it('Should fail if job hash is not in _operatorJobs', async () => {
       let payload: string = randomHex(4) + '00'.repeat(64) + bnHEX(1000000000, 32, false) + bnHEX(1000000, 32, false);
-      await expect(l1.operator.executeJob(payload)).to.be.revertedWith('HOLOGRAPH: invalid job');
+      await expect(l2.operator.executeJob(payload)).to.be.revertedWith('HOLOGRAPH: invalid job');
     });
     it('Should fail if there is not enough gas', async () => {
       let payloadHash: string = availableJobs[0];
       let payload: string = availableJobs[1];
-      let gasLimit: BigNumber = BigNumber.from('0x' + payload.substring(payload.length - 128, payload.length - 64));
-      await expect(l1.operator.executeJob(payload, { gasLimit: gasLimit.div(BigNumber.from('2')) })).to.be.revertedWith(
+      let estimatedGas: BigNumber = availableJobsGas[0];
+      await expect(l2.operator.executeJob(payload, { gasLimit: BigNumber.from('100000') })).to.be.revertedWith(
         'HOLOGRAPH: not enough gas left'
       );
     });
     it('Should succeed executing a reverting job', async () => {
       let payloadHash: string = availableJobs.shift() as string;
       let payload: string = availableJobs.shift() as string;
-      let gasLimit: BigNumber = BigNumber.from('0x' + payload.substring(payload.length - 128, payload.length - 64)).mul(
-        BigNumber.from('2')
-      );
-      await expect(l1.operator.executeJob(payload, { gasLimit }))
-        .to.emit(l1.operator, 'FailedOperatorJob')
+      let estimatedGas: BigNumber = availableJobsGas.shift();
+      await expect(l2.operator.executeJob(payload, { gasLimit: estimatedGas }))
+        .to.emit(l2.operator, 'FailedOperatorJob')
         .withArgs(payloadHash);
     });
     it('Should succeed executing a job', async () => {
@@ -814,9 +1318,10 @@ describe('Holograph Operator Contract', async () => {
       }
       let payloadHash: string = availableJobs.shift() as string;
       let payload: string = availableJobs.shift() as string;
-      let operatorJob = await l1.operator.getJobDetails(payloadHash);
-      let jobOperator = pickOperator(l1, operatorJob[2]);
-      await expect(l1.operator.connect(jobOperator).executeJob(payload)).to.not.be.reverted;
+      let estimatedGas: BigNumber = availableJobsGas.shift();
+      let operatorJob = await l2.operator.getJobDetails(payloadHash);
+      let jobOperator = pickOperator(l2, operatorJob[2]);
+      await expect(l2.operator.connect(jobOperator).executeJob(payload, { gasLimit: estimatedGas })).to.not.be.reverted;
     });
     it('Should fail non-operator address tries to execute job', async () => {
       operatorJobTokenId++;
@@ -825,69 +1330,76 @@ describe('Holograph Operator Contract', async () => {
       }
       let payloadHash: string = availableJobs[0] as string;
       let payload: string = availableJobs[1] as string;
-      let operatorJob = await l1.operator.getJobDetails(payloadHash);
-      let jobOperator = pickOperator(l1, operatorJob[2], true);
-      await expect(l1.operator.connect(jobOperator).executeJob(payload)).to.be.revertedWith(
+      let estimatedGas: BigNumber = availableJobsGas[0];
+      let operatorJob = await l2.operator.getJobDetails(payloadHash);
+      let jobOperator = pickOperator(l2, operatorJob[2], true);
+      await expect(l2.operator.connect(jobOperator).executeJob(payload, { gasLimit: estimatedGas })).to.be.revertedWith(
         'HOLOGRAPH: operator has time'
       );
     });
     it('Should fail if there has been a gas spike', async () => {
       let payloadHash: string = availableJobs[0] as string;
       let payload: string = availableJobs[1] as string;
-      let operatorJob = await l1.operator.getJobDetails(payloadHash);
-      let jobOperator = pickOperator(l1, operatorJob[2], true);
+      let estimatedGas: BigNumber = availableJobsGas[0];
+      let operatorJob = await l2.operator.getJobDetails(payloadHash);
+      let jobOperator = pickOperator(l2, operatorJob[2], true);
       process.stdout.write(' '.repeat(8) + 'sleeping for ' + BLOCKTIME + ' seconds...' + '\n');
       await sleep(1000 * BLOCKTIME); // gotta wait 60 seconds for operator opportunity to close
       await expect(
-        l1.operator.connect(jobOperator).executeJob(payload, { gasPrice: GASPRICE.mul(BigNumber.from('2')) })
+        l2.operator
+          .connect(jobOperator)
+          .executeJob(payload, { gasPrice: GASPRICE.mul(BigNumber.from('2')), gasLimit: estimatedGas })
       ).to.be.revertedWith('HOLOGRAPH: gas spike detected');
     });
     it('Should fail if fallback is invalid', async () => {
       let payloadHash: string = availableJobs[0] as string;
       let payload: string = availableJobs[1] as string;
-      let operatorJob = await l1.operator.getJobDetails(payloadHash);
+      let estimatedGas: BigNumber = availableJobsGas[0];
+      let operatorJob = await l2.operator.getJobDetails(payloadHash);
+      let selectedOperator = operatorJob[2] as string;
       let fallbackOperator = (
-        await l1.operator.callStatic['getPodOperators(uint256,uint256,uint256)'](1, operatorJob[5][0], 1)
+        await l2.operator.callStatic['getPodOperators(uint256,uint256,uint256)'](1, operatorJob[5][0], 1)
       )[0];
-      let jobOperator: SignerWithAddress = pickOperator(l1, fallbackOperator, true);
+      let jobOperator: SignerWithAddress = pickOperator(l2, fallbackOperator, true);
       // iterate and try again in case current job operator is selected
-      while (jobOperator.address.toLowerCase() == operatorJob[2].toLowerCase()) {
-        jobOperator = pickOperator(l1, fallbackOperator, true);
+      while (jobOperator.address.toLowerCase() == selectedOperator.toLowerCase()) {
+        jobOperator = pickOperator(l2, fallbackOperator, true);
       }
-      await expect(l1.operator.connect(jobOperator).executeJob(payload)).to.be.revertedWith(
+      await expect(l2.operator.connect(jobOperator).executeJob(payload, { gasLimit: estimatedGas })).to.be.revertedWith(
         'HOLOGRAPH: invalid fallback'
       );
     });
     it('Should succeed if fallback is valid (operator slashed)', async () => {
-      let bondRequirements: BigNumber[] = await l1.operator.getPodBondAmounts(1);
+      let bondRequirements: BigNumber[] = await l2.operator.getPodBondAmounts(1);
       let payloadHash: string = availableJobs.shift() as string;
       let payload: string = availableJobs.shift() as string;
-      let operatorJob = await l1.operator.getJobDetails(payloadHash);
+      let estimatedGas: BigNumber = availableJobsGas.shift();
+      let operatorJob = await l2.operator.getJobDetails(payloadHash);
       let selectedOperator = operatorJob[2] as string;
-      let selectedOperatorBondAmount: BigNumber = await l1.operator.getBondedAmount(selectedOperator);
+      let selectedOperatorBondAmount: BigNumber = await l2.operator.getBondedAmount(selectedOperator);
       let fallbackOperator = (
-        await l1.operator.callStatic['getPodOperators(uint256,uint256,uint256)'](1, operatorJob[5][0], 1)
+        await l2.operator.callStatic['getPodOperators(uint256,uint256,uint256)'](1, operatorJob[5][0], 1)
       )[0];
-      let jobOperator: SignerWithAddress = pickOperator(l1, fallbackOperator);
-      let jobOperatorBondAmount: BigNumber = await l1.operator.getBondedAmount(jobOperator.address);
-      await expect(l1.operator.connect(jobOperator).executeJob(payload)).to.not.be.reverted;
-      expect(await l1.operator.getBondedAmount(selectedOperator)).to.equal(
+      let jobOperator: SignerWithAddress = pickOperator(l2, fallbackOperator);
+      let jobOperatorBondAmount: BigNumber = await l2.operator.getBondedAmount(jobOperator.address);
+      await expect(l2.operator.connect(jobOperator).executeJob(payload, { gasLimit: estimatedGas }))
+        .to.emit(HLGL2, 'Transfer')
+        .withArgs(l2.operator.address, jobOperator.address, bondRequirements[0]);
+      expect(await l2.operator.getBondedAmount(selectedOperator)).to.equal(
         selectedOperatorBondAmount.sub(bondRequirements[0])
       );
-      expect(await l1.operator.getBondedPod(selectedOperator)).to.equal(BigNumber.from('0'));
-      expect(await l1.operator.getBondedAmount(jobOperator.address)).to.equal(
-        jobOperatorBondAmount.add(bondRequirements[0])
-      );
+      expect(await l2.operator.getBondedPod(selectedOperator)).to.equal(BigNumber.from('0'));
+      expect(await l2.operator.getBondedAmount(jobOperator.address)).to.equal(jobOperatorBondAmount);
       // add slashed operator back
-      await expect(l1.operator.bondUtilityToken(selectedOperator, bondRequirements[1], 1)).to.not.be.reverted;
+      await expect(l2.operator.bondUtilityToken(selectedOperator, bondRequirements[1], 1)).to.not.be.reverted;
     });
     it('Should succeed if fallback is valid (operator has enough tokens to stay)', async () => {
-      let bondRequirements: BigNumber[] = await l1.operator.getPodBondAmounts(1);
+      let bondRequirements: BigNumber[] = await l2.operator.getPodBondAmounts(1);
       // since there is no way to know which operator will be selected, all will be topped up in preparation for slashing
       let wallet: SignerWithAddress;
       for (let i = 0, l = wallets.length; i < l; i++) {
-        wallet = l1[wallets[i]] as SignerWithAddress;
-        await l1.operator.topupUtilityToken(wallet.address, bondRequirements[1]);
+        wallet = l2[wallets[i]] as SignerWithAddress;
+        await expect(l2.operator.topupUtilityToken(wallet.address, bondRequirements[1])).to.not.be.reverted;
       }
       operatorJobTokenId++;
       while (!(await createOperatorJob(l1, l2, operatorJobTokenId, true))) {
@@ -895,27 +1407,29 @@ describe('Holograph Operator Contract', async () => {
       }
       let payloadHash: string = availableJobs.shift() as string;
       let payload: string = availableJobs.shift() as string;
-      let operatorJob = await l1.operator.getJobDetails(payloadHash);
+      let estimatedGas: BigNumber = availableJobsGas.shift();
+      let operatorJob = await l2.operator.getJobDetails(payloadHash);
       let selectedOperator = operatorJob[2] as string;
-      let selectedOperatorBondAmount: BigNumber = await l1.operator.getBondedAmount(selectedOperator);
+      let selectedOperatorBondAmount: BigNumber = await l2.operator.getBondedAmount(selectedOperator);
       let fallbackOperator = (
-        await l1.operator.callStatic['getPodOperators(uint256,uint256,uint256)'](1, operatorJob[5][0], 1)
+        await l2.operator.callStatic['getPodOperators(uint256,uint256,uint256)'](1, operatorJob[5][0], 1)
       )[0];
-      let jobOperator = pickOperator(l1, fallbackOperator);
-      let jobOperatorBondAmount: BigNumber = await l1.operator.getBondedAmount(jobOperator.address);
+      let jobOperator = pickOperator(l2, fallbackOperator);
+      let jobOperatorBondAmount: BigNumber = await l2.operator.getBondedAmount(jobOperator.address);
       process.stdout.write(' '.repeat(8) + 'sleeping for ' + BLOCKTIME + ' seconds...' + '\n');
       await sleep(1000 * BLOCKTIME); // gotta wait 60 seconds for operator opportunity to close
-      await expect(l1.operator.connect(jobOperator).executeJob(payload)).to.not.be.reverted;
-      expect(await l1.operator.getBondedAmount(selectedOperator)).to.equal(
+      await expect(l2.operator.connect(jobOperator).executeJob(payload, { gasLimit: estimatedGas }))
+        .to.emit(HLGL2, 'Transfer')
+        .withArgs(l2.operator.address, jobOperator.address, bondRequirements[0]);
+      expect(await l2.operator.getBondedAmount(selectedOperator)).to.equal(
         selectedOperatorBondAmount.sub(bondRequirements[0])
       );
-      expect(await l1.operator.getBondedPod(selectedOperator)).to.equal(BigNumber.from(operatorJob[0] as number));
-      expect(await l1.operator.getBondedAmount(jobOperator.address)).to.equal(
-        jobOperatorBondAmount.add(bondRequirements[0])
-      );
+      expect(await l2.operator.getBondedPod(selectedOperator)).to.equal(BigNumber.from(operatorJob[0] as number));
+      expect(await l2.operator.getBondedAmount(jobOperator.address)).to.equal(jobOperatorBondAmount);
     });
-    it('Should succeed executing 50 jobs', async () => {
-      for (let i = 0, l = 50; i < l; i++) {
+    it('Should succeed executing 100 jobs', async () => {
+      for (let i = 0, l = 100; i < l; i++) {
+        let estimatedGas: BigNumber = BigNumber.from('0');
         if (zeroAddressJobs.length == 0) {
           operatorJobTokenId++;
           await createOperatorJob(l1, l2, operatorJobTokenId);
@@ -923,12 +1437,17 @@ describe('Holograph Operator Contract', async () => {
         let targetArray = availableJobs;
         if (availableJobs.length == 0) {
           targetArray = zeroAddressJobs;
+          estimatedGas = zeroAddressJobsGas.shift();
+        } else {
+          estimatedGas = availableJobsGas.shift();
         }
         let payloadHash: string = targetArray.shift() as string;
         let payload: string = targetArray.shift() as string;
-        let operatorJob = await l1.operator.getJobDetails(payloadHash);
-        let jobOperator = pickOperator(l1, operatorJob[2]);
-        await expect(l1.operator.connect(jobOperator).executeJob(payload)).to.not.be.reverted;
+        let operatorJob = await l2.operator.getJobDetails(payloadHash);
+        let jobOperator = pickOperator(l2, operatorJob[2]);
+        await expect(
+          l2.operator.connect(jobOperator).executeJob(payload, { gasPrice: GASPRICE, gasLimit: estimatedGas })
+        ).to.not.be.reverted;
         process.stdout.write(
           ' '.repeat(8) + '[' + (i + 1).toString().padStart(3, '0') + '] executed by ' + jobOperator.address + '\n'
         );

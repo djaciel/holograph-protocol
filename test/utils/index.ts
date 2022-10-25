@@ -45,8 +45,6 @@ import {
   Erc20Config,
   Erc721Config,
   LeanHardhatRuntimeEnvironment,
-  Network,
-  Networks,
   l2Ethers,
   hreSplit,
   utf8ToBytes32,
@@ -63,7 +61,7 @@ import {
   HolographERC1155Event,
   ConfigureEvents,
 } from '../../scripts/utils/events';
-import networks from '../../config/networks';
+import { Network, Networks, networks } from '@holographxyz/networks';
 
 let hre1: HardhatRuntimeEnvironment = require('hardhat');
 

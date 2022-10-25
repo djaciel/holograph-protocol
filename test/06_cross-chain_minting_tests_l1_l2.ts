@@ -23,6 +23,7 @@ import {
   getGasUsage,
   remove0x,
   KeyOf,
+  HASH,
   executeJobGas,
   adminCall,
 } from '../scripts/utils/helpers';
@@ -59,18 +60,138 @@ import {
 } from '../typechain-types';
 import { DeploymentConfigStruct } from '../typechain-types/HolographFactory';
 
-describe('Testing cross-chain minting (L1 & L2)', async function () {
-  const GWEI: BigNumber = BigNumber.from('1000000000');
-  const TESTGASLIMIT: BigNumber = BigNumber.from('10000000');
-  const GASPRICE: BigNumber = BigNumber.from('1000000000');
+const hValueTrim = function (inputPayload: string | BytesLike): BytesLike {
+  let index = 2 + 4 * 2 + 32 * 2 * 5; // 0x + functionSig + data
+  let payload: string = inputPayload as string;
+  return payload.slice(0, index) + '00'.repeat(32) + payload.slice(index + 32 * 2, payload.length);
+};
 
+const BLOCKTIME: number = 60;
+const GWEI: BigNumber = BigNumber.from('1000000000');
+const TESTGASLIMIT: BigNumber = BigNumber.from('10000000');
+const GASPRICE: BigNumber = BigNumber.from('1000000000');
+
+function shuffleWallets(array: KeyOf<PreTest>[]) {
+  let currentIndex = array.length,
+    randomIndex;
+
+  // While there remain elements to shuffle.
+  while (currentIndex != 0) {
+    // Pick a remaining element.
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+
+    // And swap it with the current element.
+    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+  }
+
+  return array;
+}
+
+describe('Testing cross-chain minting (L1 & L2)', async function () {
   let l1: PreTest;
   let l2: PreTest;
 
   let HLGL1: HolographERC20;
   let HLGL2: HolographERC20;
 
+  let msgBaseGas: BigNumber;
+  let msgGasPerByte: BigNumber;
+  let jobBaseGas: BigNumber;
+  let jobGasPerByte: BigNumber;
+
   let wallets: KeyOf<PreTest>[];
+
+  let pickOperator = function (chain: PreTest, target: string, opposite: boolean = false): SignerWithAddress {
+    let operator: SignerWithAddress = chain.deployer;
+    let targetOperator = target.toLowerCase();
+    if (targetOperator != zeroAddress) {
+      let wallet: SignerWithAddress;
+      // shuffle
+      shuffleWallets(wallets);
+      for (let i = 0, l = wallets.length; i < l; i++) {
+        wallet = chain[wallets[i]] as SignerWithAddress;
+        if (
+          (!opposite && wallet.address.toLowerCase() == targetOperator) ||
+          (opposite && wallet.address.toLowerCase() != targetOperator)
+        ) {
+          operator = wallet;
+          break;
+        }
+      }
+    }
+    return operator;
+  };
+
+  let getLzMsgGas = function (payload: string): BigNumber {
+    return msgBaseGas.add(BigNumber.from(Math.floor((payload.length - 2) / 2)).mul(msgGasPerByte));
+  };
+
+  let getHlgMsgGas = function (gasLimit: BigNmber, payload: string): BigNumber {
+    return gasLimit.add(jobBaseGas.add(BigNumber.from(Math.floor((payload.length - 2) / 2)).mul(jobGasPerByte)));
+  };
+
+  let getRequestPayload = async function (
+    l1: PreTest,
+    l2: PreTest,
+    target: string | BytesLike,
+    data: string | BytesLike
+  ): Promise<BytesLike> {
+    let payload: BytesLike = await l1.bridge
+      .connect(l1.deployer)
+      .callStatic.getBridgeOutRequestPayload(
+        l2.network.holographId,
+        target as string,
+        '0x' + 'ff'.repeat(32),
+        '0x' + 'ff'.repeat(32),
+        data as string
+      );
+    return payload;
+  };
+
+  let getEstimatedGas = async function (
+    l1: PreTest,
+    l2: PreTest,
+    target: string | BytesLike,
+    data: string | BytesLike,
+    payload: string | BytesLike
+  ): Promise<{
+    payload: string;
+    estimatedGas: BigNumber;
+    fee: BigNumber;
+    hlgFee: BigNumber;
+    msgFee: BigNumber;
+    dstGasPrice: BigNumber;
+  }> {
+    let estimatedGas: BigNumber = TESTGASLIMIT.sub(
+      await l2.operator.callStatic.jobEstimator(payload as string, {
+        gasPrice: GASPRICE,
+        gasLimit: TESTGASLIMIT,
+      })
+    );
+
+    payload = await l1.bridge
+      .connect(l1.deployer)
+      .callStatic.getBridgeOutRequestPayload(
+        l2.network.holographId,
+        target as string,
+        estimatedGas,
+        GWEI,
+        data as string
+      );
+
+    let fees = await l1.bridge.callStatic.getMessageFee(l2.network.holographId, estimatedGas, GWEI, payload);
+    let total: BigNumber = fees[0].add(fees[1]);
+    estimatedGas = TESTGASLIMIT.sub(
+      await l2.operator.callStatic.jobEstimator(payload as string, {
+        value: total,
+        gasPrice: GASPRICE,
+        gasLimit: TESTGASLIMIT,
+      })
+    );
+    estimatedGas = getHlgMsgGas(estimatedGas, payload);
+    return { payload, estimatedGas, fee: total, hlgFee: fees[0], msgFee: fees[1], dstGasPrice: fees[2] };
+  };
 
   let totalNFTs: number = 2;
   let firstNFTl1: BigNumber = BigNumber.from(1);
@@ -103,6 +224,11 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
   before(async function () {
     l1 = await setup();
     l2 = await setup(true);
+
+    msgBaseGas = await l1.lzModule.getMsgBaseGas();
+    msgGasPerByte = await l1.lzModule.getMsgGasPerByte();
+    jobBaseGas = await l1.lzModule.getJobBaseGas();
+    jobGasPerByte = await l1.lzModule.getJobGasPerByte();
 
     HLGL1 = await l1.holographErc20.attach(l1.utilityTokenHolographer.address);
     HLGL2 = await l2.holographErc20.attach(l2.utilityTokenHolographer.address);
@@ -261,93 +387,27 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           ]
         );
 
-        let estimatedPayload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
-          l2.network.holographId,
-          l2.factory.address,
-          '0x' + 'ff'.repeat(32),
-          '0x' + 'ff'.repeat(32),
-          data
-        );
-        // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
-
-        let estimatedGas: BigNumber = TESTGASLIMIT.sub(
-          await l2.operator.callStatic.jobEstimator(estimatedPayload, {
-            gasPrice: GWEI,
-            gasLimit: TESTGASLIMIT,
-          })
-        );
-        // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
-
-        let payload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
-          l2.network.holographId,
-          l2.factory.address,
-          estimatedGas,
-          GWEI,
-          data
-        );
-        // process.stdout.write('\n' + 'payload: ' + payload + '\n');
-
-        let fees = await l1.bridge.callStatic.getMessageFee(l2.network.holographId, estimatedGas, GWEI, payload);
-        let total: BigNumber = fees[0].add(fees[1]);
-
-        // process.stdout.write('\n' + 'fees: ' + JSON.stringify(fees,undefined,2) + '\n');
-
+        let originalMessagingModule = await l2.operator.getMessagingModule();
+        let payload: BytesLike = hValueTrim(await getRequestPayload(l1, l2, l1.factory.address, data));
+        let gasEstimates = await getEstimatedGas(l1, l2, l1.factory.address, data, payload);
+        payload = hValueTrim(gasEstimates.payload);
+        let payloadHash: string = HASH(payload);
+        // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+        await l2.operator.setMessagingModule(l2.mockLZEndpoint.address);
+        // make call with mockLZEndpoint AS messaging module
+        await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(payload), payload, {
+          gasLimit: TESTGASLIMIT,
+        });
+        // return messaging module back to original address
+        await l2.operator.setMessagingModule(originalMessagingModule);
+        let operatorJob = await l2.operator.getJobDetails(payloadHash);
+        let operator = (operatorJob[2] as string).toLowerCase();
+        // execute job to leave operator bonded
         await expect(
-          l1.bridge.bridgeOutRequest(l2.network.holographId, l2.factory.address, estimatedGas, GWEI, data, {
-            value: total,
-          })
-        )
-          .to.emit(l1.mockLZEndpoint, 'LzEvent')
-          .withArgs(
-            ChainId.hlg2lz(l2.network.holographId),
-            '0x' + remove0x((await l1.operator.getMessagingModule()).toLowerCase()).repeat(2),
-            payload
-          );
-
-        process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
-        await expect(
-          adminCall(l2.mockLZEndpoint.connect(l2.lzEndpoint), l2.lzModule, 'lzReceive', [
-            ChainId.hlg2lz(l1.network.holographId),
-            await l1.operator.getMessagingModule(),
-            0,
-            payload,
-            {
-              gasPrice: GASPRICE,
-              gasLimit: executeJobGas(payload),
-            },
-          ])
-        )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload), payload);
-        await getGasUsage(l2.hre, 'actual gas usage was', true);
-
-        let jobDetails = await l2.operator.getJobDetails(l2.web3.utils.keccak256(payload));
-        // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
-        let operator: SignerWithAddress = l2.deployer;
-        let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress) {
-          // we need to specify an operator
-          let wallet: SignerWithAddress;
-          for (let i = 0, l = wallets.length; i < l; i++) {
-            wallet = l2[wallets[i]] as SignerWithAddress;
-            if (wallet.address.toLowerCase() == targetOperator) {
-              operator = wallet;
-              break;
-            }
-          }
-        }
-
-        await expect(
-          l2.operator.connect(operator).executeJob(payload, {
-            gasPrice: GASPRICE,
-            gasLimit: estimatedGas.add(estimatedGas.div(BigNumber.from('3'))),
-          })
+          l2.operator.connect(pickOperator(l2, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
         )
           .to.emit(l2.factory, 'BridgeableContractDeployed')
           .withArgs(hTokenErc20Address, erc20ConfigHash);
-        process.stdout.write(' '.repeat(10) + 'estimatedGas for executeJob is ' + estimatedGas.toString());
-        await getGasUsage(l2.hre, 'actual gas usage was', true);
-
         expect(await l2.registry.getHolographedHashAddress(erc20ConfigHash)).to.equal(hTokenErc20Address);
       });
 
@@ -394,93 +454,27 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           ]
         );
 
-        let estimatedPayload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
-          l1.network.holographId,
-          l1.factory.address,
-          '0x' + 'ff'.repeat(32),
-          '0x' + 'ff'.repeat(32),
-          data
-        );
-        // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
-
-        let estimatedGas: BigNumber = TESTGASLIMIT.sub(
-          await l1.operator.callStatic.jobEstimator(estimatedPayload, {
-            gasPrice: GWEI,
-            gasLimit: TESTGASLIMIT,
-          })
-        );
-        // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
-
-        let payload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
-          l1.network.holographId,
-          l1.factory.address,
-          estimatedGas,
-          GWEI,
-          data
-        );
-        // process.stdout.write('\n' + 'payload: ' + payload + '\n');
-
-        let fees = await l2.bridge.callStatic.getMessageFee(l1.network.holographId, estimatedGas, GWEI, payload);
-        let total: BigNumber = fees[0].add(fees[1]);
-
-        // process.stdout.write('\n' + 'fees: ' + JSON.stringify(fees,undefined,2) + '\n');
-
+        let originalMessagingModule = await l1.operator.getMessagingModule();
+        let payload: BytesLike = hValueTrim(await getRequestPayload(l2, l1, l2.factory.address, data));
+        let gasEstimates = await getEstimatedGas(l2, l1, l2.factory.address, data, payload);
+        payload = hValueTrim(gasEstimates.payload);
+        let payloadHash: string = HASH(payload);
+        // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+        await l1.operator.setMessagingModule(l1.mockLZEndpoint.address);
+        // make call with mockLZEndpoint AS messaging module
+        await l1.mockLZEndpoint.crossChainMessage(l1.operator.address, getLzMsgGas(payload), payload, {
+          gasLimit: TESTGASLIMIT,
+        });
+        // return messaging module back to original address
+        await l1.operator.setMessagingModule(originalMessagingModule);
+        let operatorJob = await l1.operator.getJobDetails(payloadHash);
+        let operator = (operatorJob[2] as string).toLowerCase();
+        // execute job to leave operator bonded
         await expect(
-          l2.bridge.bridgeOutRequest(l1.network.holographId, l1.factory.address, estimatedGas, GWEI, data, {
-            value: total,
-          })
-        )
-          .to.emit(l2.mockLZEndpoint, 'LzEvent')
-          .withArgs(
-            ChainId.hlg2lz(l1.network.holographId),
-            '0x' + remove0x((await l2.operator.getMessagingModule()).toLowerCase()).repeat(2),
-            payload
-          );
-
-        process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
-        await expect(
-          adminCall(l1.mockLZEndpoint.connect(l1.lzEndpoint), l1.lzModule, 'lzReceive', [
-            ChainId.hlg2lz(l2.network.holographId),
-            await l2.operator.getMessagingModule(),
-            0,
-            payload,
-            {
-              gasPrice: GASPRICE,
-              gasLimit: executeJobGas(payload),
-            },
-          ])
-        )
-          .to.emit(l1.operator, 'AvailableOperatorJob')
-          .withArgs(l1.web3.utils.keccak256(payload), payload);
-        await getGasUsage(l1.hre, 'actual gas usage was', true);
-
-        let jobDetails = await l1.operator.getJobDetails(l1.web3.utils.keccak256(payload));
-        // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
-        let operator: SignerWithAddress = l1.deployer;
-        let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress) {
-          // we need to specify an operator
-          let wallet: SignerWithAddress;
-          for (let i = 0, l = wallets.length; i < l; i++) {
-            wallet = l1[wallets[i]] as SignerWithAddress;
-            if (wallet.address.toLowerCase() == targetOperator) {
-              operator = wallet;
-              break;
-            }
-          }
-        }
-
-        await expect(
-          l1.operator.connect(operator).executeJob(payload, {
-            gasPrice: GASPRICE,
-            gasLimit: estimatedGas.add(estimatedGas.div(BigNumber.from('3'))),
-          })
+          l1.operator.connect(pickOperator(l1, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
         )
           .to.emit(l1.factory, 'BridgeableContractDeployed')
           .withArgs(hTokenErc20Address, erc20ConfigHash);
-        process.stdout.write(' '.repeat(10) + 'estimatedGas for executeJob is ' + estimatedGas.toString());
-        await getGasUsage(l1.hre, 'actual gas usage was', true);
-
         expect(await l1.registry.getHolographedHashAddress(erc20ConfigHash)).to.equal(hTokenErc20Address);
       });
     });
@@ -529,93 +523,27 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           ]
         );
 
-        let estimatedPayload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
-          l2.network.holographId,
-          l2.factory.address,
-          '0x' + 'ff'.repeat(32),
-          '0x' + 'ff'.repeat(32),
-          data
-        );
-        // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
-
-        let estimatedGas: BigNumber = TESTGASLIMIT.sub(
-          await l2.operator.callStatic.jobEstimator(estimatedPayload, {
-            gasPrice: GWEI,
-            gasLimit: TESTGASLIMIT,
-          })
-        );
-        // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
-
-        let payload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
-          l2.network.holographId,
-          l2.factory.address,
-          estimatedGas,
-          GWEI,
-          data
-        );
-        //process.stdout.write('\n' + 'payload: ' + payload + '\n');
-
-        let fees = await l1.bridge.callStatic.getMessageFee(l2.network.holographId, estimatedGas, GWEI, payload);
-        let total: BigNumber = fees[0].add(fees[1]);
-
-        // process.stdout.write('\n' + 'fees: ' + JSON.stringify(fees,undefined,2) + '\n');
-
+        let originalMessagingModule = await l2.operator.getMessagingModule();
+        let payload: BytesLike = await getRequestPayload(l1, l2, l1.factory.address, data);
+        let gasEstimates = await getEstimatedGas(l1, l2, l1.factory.address, data, payload);
+        payload = gasEstimates.payload;
+        let payloadHash: string = HASH(payload);
+        // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+        await l2.operator.setMessagingModule(l2.mockLZEndpoint.address);
+        // make call with mockLZEndpoint AS messaging module
+        await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(payload), payload, {
+          gasLimit: TESTGASLIMIT,
+        });
+        // return messaging module back to original address
+        await l2.operator.setMessagingModule(originalMessagingModule);
+        let operatorJob = await l2.operator.getJobDetails(payloadHash);
+        let operator = (operatorJob[2] as string).toLowerCase();
+        // execute job to leave operator bonded
         await expect(
-          l1.bridge.bridgeOutRequest(l2.network.holographId, l2.factory.address, estimatedGas, GWEI, data, {
-            value: total,
-          })
-        )
-          .to.emit(l1.mockLZEndpoint, 'LzEvent')
-          .withArgs(
-            ChainId.hlg2lz(l2.network.holographId),
-            '0x' + remove0x((await l1.operator.getMessagingModule()).toLowerCase()).repeat(2),
-            payload
-          );
-
-        process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
-        await expect(
-          adminCall(l2.mockLZEndpoint.connect(l2.lzEndpoint), l2.lzModule, 'lzReceive', [
-            ChainId.hlg2lz(l1.network.holographId),
-            await l1.operator.getMessagingModule(),
-            0,
-            payload,
-            {
-              gasPrice: GASPRICE,
-              gasLimit: executeJobGas(payload),
-            },
-          ])
-        )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload), payload);
-        await getGasUsage(l2.hre, 'actual gas usage was', true);
-
-        let jobDetails = await l2.operator.getJobDetails(l2.web3.utils.keccak256(payload));
-        // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
-        let operator: SignerWithAddress = l2.deployer;
-        let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress) {
-          // we need to specify an operator
-          let wallet: SignerWithAddress;
-          for (let i = 0, l = wallets.length; i < l; i++) {
-            wallet = l2[wallets[i]] as SignerWithAddress;
-            if (wallet.address.toLowerCase() == targetOperator) {
-              operator = wallet;
-              break;
-            }
-          }
-        }
-
-        await expect(
-          l2.operator.connect(operator).executeJob(payload, {
-            gasPrice: GASPRICE,
-            gasLimit: estimatedGas.add(estimatedGas.div(BigNumber.from('3'))),
-          })
+          l2.operator.connect(pickOperator(l2, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
         )
           .to.emit(l2.factory, 'BridgeableContractDeployed')
           .withArgs(sampleErc20Address, erc20ConfigHash);
-        process.stdout.write(' '.repeat(10) + 'estimatedGas for executeJob is ' + estimatedGas.toString());
-        await getGasUsage(l2.hre, 'actual gas usage was', true);
-
         expect(await l2.registry.getHolographedHashAddress(erc20ConfigHash)).to.equal(sampleErc20Address);
       });
 
@@ -662,93 +590,27 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           ]
         );
 
-        let estimatedPayload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
-          l1.network.holographId,
-          l1.factory.address,
-          '0x' + 'ff'.repeat(32),
-          '0x' + 'ff'.repeat(32),
-          data
-        );
-        // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
-
-        let estimatedGas: BigNumber = TESTGASLIMIT.sub(
-          await l1.operator.callStatic.jobEstimator(estimatedPayload, {
-            gasPrice: GWEI,
-            gasLimit: TESTGASLIMIT,
-          })
-        );
-        // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
-
-        let payload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
-          l1.network.holographId,
-          l1.factory.address,
-          estimatedGas,
-          GWEI,
-          data
-        );
-        // process.stdout.write('\n' + 'payload: ' + payload + '\n');
-
-        let fees = await l2.bridge.callStatic.getMessageFee(l1.network.holographId, estimatedGas, GWEI, payload);
-        let total: BigNumber = fees[0].add(fees[1]);
-
-        // process.stdout.write('\n' + 'fees: ' + JSON.stringify(fees,undefined,2) + '\n');
-
+        let originalMessagingModule = await l1.operator.getMessagingModule();
+        let payload: BytesLike = await getRequestPayload(l2, l1, l2.factory.address, data);
+        let gasEstimates = await getEstimatedGas(l2, l1, l2.factory.address, data, payload);
+        payload = gasEstimates.payload;
+        let payloadHash: string = HASH(payload);
+        // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+        await l1.operator.setMessagingModule(l1.mockLZEndpoint.address);
+        // make call with mockLZEndpoint AS messaging module
+        await l1.mockLZEndpoint.crossChainMessage(l1.operator.address, getLzMsgGas(payload), payload, {
+          gasLimit: TESTGASLIMIT,
+        });
+        // return messaging module back to original address
+        await l1.operator.setMessagingModule(originalMessagingModule);
+        let operatorJob = await l1.operator.getJobDetails(payloadHash);
+        let operator = (operatorJob[2] as string).toLowerCase();
+        // execute job to leave operator bonded
         await expect(
-          l2.bridge.bridgeOutRequest(l1.network.holographId, l1.factory.address, estimatedGas, GWEI, data, {
-            value: total,
-          })
-        )
-          .to.emit(l2.mockLZEndpoint, 'LzEvent')
-          .withArgs(
-            ChainId.hlg2lz(l1.network.holographId),
-            '0x' + remove0x((await l2.operator.getMessagingModule()).toLowerCase()).repeat(2),
-            payload
-          );
-
-        process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
-        await expect(
-          adminCall(l1.mockLZEndpoint.connect(l1.lzEndpoint), l1.lzModule, 'lzReceive', [
-            ChainId.hlg2lz(l2.network.holographId),
-            await l2.operator.getMessagingModule(),
-            0,
-            payload,
-            {
-              gasPrice: GASPRICE,
-              gasLimit: executeJobGas(payload),
-            },
-          ])
-        )
-          .to.emit(l1.operator, 'AvailableOperatorJob')
-          .withArgs(l1.web3.utils.keccak256(payload), payload);
-        await getGasUsage(l1.hre, 'actual gas usage was', true);
-
-        let jobDetails = await l1.operator.getJobDetails(l1.web3.utils.keccak256(payload));
-        // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
-        let operator: SignerWithAddress = l1.deployer;
-        let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress) {
-          // we need to specify an operator
-          let wallet: SignerWithAddress;
-          for (let i = 0, l = wallets.length; i < l; i++) {
-            wallet = l1[wallets[i]] as SignerWithAddress;
-            if (wallet.address.toLowerCase() == targetOperator) {
-              operator = wallet;
-              break;
-            }
-          }
-        }
-
-        await expect(
-          l1.operator.connect(operator).executeJob(payload, {
-            gasPrice: GASPRICE,
-            gasLimit: estimatedGas.add(estimatedGas.div(BigNumber.from('3'))),
-          })
+          l1.operator.connect(pickOperator(l1, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
         )
           .to.emit(l1.factory, 'BridgeableContractDeployed')
           .withArgs(sampleErc20Address, erc20ConfigHash);
-        process.stdout.write(' '.repeat(10) + 'estimatedGas for executeJob is ' + estimatedGas.toString());
-        await getGasUsage(l1.hre, 'actual gas usage was', true);
-
         expect(await l1.registry.getHolographedHashAddress(erc20ConfigHash)).to.equal(sampleErc20Address);
       });
     });
@@ -799,93 +661,27 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           ]
         );
 
-        let estimatedPayload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
-          l2.network.holographId,
-          l2.factory.address,
-          '0x' + 'ff'.repeat(32),
-          '0x' + 'ff'.repeat(32),
-          data
-        );
-        // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
-
-        let estimatedGas: BigNumber = TESTGASLIMIT.sub(
-          await l2.operator.callStatic.jobEstimator(estimatedPayload, {
-            gasPrice: GWEI,
-            gasLimit: TESTGASLIMIT,
-          })
-        );
-        // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
-
-        let payload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
-          l2.network.holographId,
-          l2.factory.address,
-          estimatedGas,
-          GWEI,
-          data
-        );
-        // process.stdout.write('\n' + 'payload: ' + payload + '\n');
-
-        let fees = await l1.bridge.callStatic.getMessageFee(l2.network.holographId, estimatedGas, GWEI, payload);
-        let total: BigNumber = fees[0].add(fees[1]);
-
-        // process.stdout.write('\n' + 'fees: ' + JSON.stringify(fees,undefined,2) + '\n');
-
+        let originalMessagingModule = await l2.operator.getMessagingModule();
+        let payload: BytesLike = await getRequestPayload(l1, l2, l1.factory.address, data);
+        let gasEstimates = await getEstimatedGas(l1, l2, l1.factory.address, data, payload);
+        payload = gasEstimates.payload;
+        let payloadHash: string = HASH(payload);
+        // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+        await l2.operator.setMessagingModule(l2.mockLZEndpoint.address);
+        // make call with mockLZEndpoint AS messaging module
+        await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(payload), payload, {
+          gasLimit: TESTGASLIMIT,
+        });
+        // return messaging module back to original address
+        await l2.operator.setMessagingModule(originalMessagingModule);
+        let operatorJob = await l2.operator.getJobDetails(payloadHash);
+        let operator = (operatorJob[2] as string).toLowerCase();
+        // execute job to leave operator bonded
         await expect(
-          l1.bridge.bridgeOutRequest(l2.network.holographId, l2.factory.address, estimatedGas, GWEI, data, {
-            value: total,
-          })
-        )
-          .to.emit(l1.mockLZEndpoint, 'LzEvent')
-          .withArgs(
-            ChainId.hlg2lz(l2.network.holographId),
-            '0x' + remove0x((await l1.operator.getMessagingModule()).toLowerCase()).repeat(2),
-            payload
-          );
-
-        process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
-        await expect(
-          adminCall(l2.mockLZEndpoint.connect(l2.lzEndpoint), l2.lzModule, 'lzReceive', [
-            ChainId.hlg2lz(l1.network.holographId),
-            await l1.operator.getMessagingModule(),
-            0,
-            payload,
-            {
-              gasPrice: GASPRICE,
-              gasLimit: executeJobGas(payload),
-            },
-          ])
-        )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload), payload);
-        await getGasUsage(l2.hre, 'actual gas usage was', true);
-
-        let jobDetails = await l2.operator.getJobDetails(l2.web3.utils.keccak256(payload));
-        // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
-        let operator: SignerWithAddress = l2.deployer;
-        let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress) {
-          // we need to specify an operator
-          let wallet: SignerWithAddress;
-          for (let i = 0, l = wallets.length; i < l; i++) {
-            wallet = l2[wallets[i]] as SignerWithAddress;
-            if (wallet.address.toLowerCase() == targetOperator) {
-              operator = wallet;
-              break;
-            }
-          }
-        }
-
-        await expect(
-          l2.operator.connect(operator).executeJob(payload, {
-            gasPrice: GASPRICE,
-            gasLimit: estimatedGas.add(estimatedGas.div(BigNumber.from('3'))),
-          })
+          l2.operator.connect(pickOperator(l2, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
         )
           .to.emit(l2.factory, 'BridgeableContractDeployed')
           .withArgs(sampleErc721Address, erc721ConfigHash);
-        process.stdout.write(' '.repeat(10) + 'estimatedGas for executeJob is ' + estimatedGas.toString());
-        await getGasUsage(l2.hre, 'actual gas usage was', true);
-
         expect(await l2.registry.getHolographedHashAddress(erc721ConfigHash)).to.equal(sampleErc721Address);
       });
 
@@ -934,93 +730,27 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           ]
         );
 
-        let estimatedPayload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
-          l1.network.holographId,
-          l1.factory.address,
-          '0x' + 'ff'.repeat(32),
-          '0x' + 'ff'.repeat(32),
-          data
-        );
-        // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
-
-        let estimatedGas: BigNumber = TESTGASLIMIT.sub(
-          await l1.operator.callStatic.jobEstimator(estimatedPayload, {
-            gasPrice: GWEI,
-            gasLimit: TESTGASLIMIT,
-          })
-        );
-        // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
-
-        let payload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
-          l1.network.holographId,
-          l1.factory.address,
-          estimatedGas,
-          GWEI,
-          data
-        );
-        // process.stdout.write('\n' + 'payload: ' + payload + '\n');
-
-        let fees = await l2.bridge.callStatic.getMessageFee(l1.network.holographId, estimatedGas, GWEI, payload);
-        let total: BigNumber = fees[0].add(fees[1]);
-
-        // process.stdout.write('\n' + 'fees: ' + JSON.stringify(fees,undefined,2) + '\n');
-
+        let originalMessagingModule = await l1.operator.getMessagingModule();
+        let payload: BytesLike = await getRequestPayload(l2, l1, l2.factory.address, data);
+        let gasEstimates = await getEstimatedGas(l2, l1, l2.factory.address, data, payload);
+        payload = gasEstimates.payload;
+        let payloadHash: string = HASH(payload);
+        // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+        await l1.operator.setMessagingModule(l1.mockLZEndpoint.address);
+        // make call with mockLZEndpoint AS messaging module
+        await l1.mockLZEndpoint.crossChainMessage(l1.operator.address, getLzMsgGas(payload), payload, {
+          gasLimit: TESTGASLIMIT,
+        });
+        // return messaging module back to original address
+        await l1.operator.setMessagingModule(originalMessagingModule);
+        let operatorJob = await l1.operator.getJobDetails(payloadHash);
+        let operator = (operatorJob[2] as string).toLowerCase();
+        // execute job to leave operator bonded
         await expect(
-          l2.bridge.bridgeOutRequest(l1.network.holographId, l1.factory.address, estimatedGas, GWEI, data, {
-            value: total,
-          })
-        )
-          .to.emit(l2.mockLZEndpoint, 'LzEvent')
-          .withArgs(
-            ChainId.hlg2lz(l1.network.holographId),
-            '0x' + remove0x((await l2.operator.getMessagingModule()).toLowerCase()).repeat(2),
-            payload
-          );
-
-        process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
-        await expect(
-          adminCall(l1.mockLZEndpoint.connect(l1.lzEndpoint), l1.lzModule, 'lzReceive', [
-            ChainId.hlg2lz(l2.network.holographId),
-            await l2.operator.getMessagingModule(),
-            0,
-            payload,
-            {
-              gasPrice: GASPRICE,
-              gasLimit: executeJobGas(payload),
-            },
-          ])
-        )
-          .to.emit(l1.operator, 'AvailableOperatorJob')
-          .withArgs(l1.web3.utils.keccak256(payload), payload);
-        await getGasUsage(l1.hre, 'actual gas usage was', true);
-
-        let jobDetails = await l1.operator.getJobDetails(l1.web3.utils.keccak256(payload));
-        // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
-        let operator: SignerWithAddress = l1.deployer;
-        let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress) {
-          // we need to specify an operator
-          let wallet: SignerWithAddress;
-          for (let i = 0, l = wallets.length; i < l; i++) {
-            wallet = l1[wallets[i]] as SignerWithAddress;
-            if (wallet.address.toLowerCase() == targetOperator) {
-              operator = wallet;
-              break;
-            }
-          }
-        }
-
-        await expect(
-          l1.operator.connect(operator).executeJob(payload, {
-            gasPrice: GASPRICE,
-            gasLimit: estimatedGas.add(estimatedGas.div(BigNumber.from('3'))),
-          })
+          l1.operator.connect(pickOperator(l1, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
         )
           .to.emit(l1.factory, 'BridgeableContractDeployed')
           .withArgs(sampleErc721Address, erc721ConfigHash);
-        process.stdout.write(' '.repeat(10) + 'estimatedGas for executeJob is ' + estimatedGas.toString());
-        await getGasUsage(l1.hre, 'actual gas usage was', true);
-
         expect(await l1.registry.getHolographedHashAddress(erc721ConfigHash)).to.equal(sampleErc721Address);
       });
     });
@@ -1078,93 +808,27 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           ]
         );
 
-        let estimatedPayload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
-          l2.network.holographId,
-          l2.factory.address,
-          '0x' + 'ff'.repeat(32),
-          '0x' + 'ff'.repeat(32),
-          data
-        );
-        // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
-
-        let estimatedGas: BigNumber = TESTGASLIMIT.sub(
-          await l2.operator.callStatic.jobEstimator(estimatedPayload, {
-            gasPrice: GWEI,
-            gasLimit: TESTGASLIMIT,
-          })
-        );
-        // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
-
-        let payload: BytesLike = await l1.bridge.callStatic.getBridgeOutRequestPayload(
-          l2.network.holographId,
-          l2.factory.address,
-          estimatedGas,
-          GWEI,
-          data
-        );
-        // process.stdout.write('\n' + 'payload: ' + payload + '\n');
-
-        let fees = await l1.bridge.callStatic.getMessageFee(l2.network.holographId, estimatedGas, GWEI, payload);
-        let total: BigNumber = fees[0].add(fees[1]);
-
-        // process.stdout.write('\n' + 'fees: ' + JSON.stringify(fees,undefined,2) + '\n');
-
+        let originalMessagingModule = await l2.operator.getMessagingModule();
+        let payload: BytesLike = await getRequestPayload(l1, l2, l1.factory.address, data);
+        let gasEstimates = await getEstimatedGas(l1, l2, l1.factory.address, data, payload);
+        payload = gasEstimates.payload;
+        let payloadHash: string = HASH(payload);
+        // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+        await l2.operator.setMessagingModule(l2.mockLZEndpoint.address);
+        // make call with mockLZEndpoint AS messaging module
+        await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(payload), payload, {
+          gasLimit: TESTGASLIMIT,
+        });
+        // return messaging module back to original address
+        await l2.operator.setMessagingModule(originalMessagingModule);
+        let operatorJob = await l2.operator.getJobDetails(payloadHash);
+        let operator = (operatorJob[2] as string).toLowerCase();
+        // execute job to leave operator bonded
         await expect(
-          l1.bridge.bridgeOutRequest(l2.network.holographId, l2.factory.address, estimatedGas, GWEI, data, {
-            value: total,
-          })
-        )
-          .to.emit(l1.mockLZEndpoint, 'LzEvent')
-          .withArgs(
-            ChainId.hlg2lz(l2.network.holographId),
-            '0x' + remove0x((await l1.operator.getMessagingModule()).toLowerCase()).repeat(2),
-            payload
-          );
-
-        process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
-        await expect(
-          adminCall(l2.mockLZEndpoint.connect(l2.lzEndpoint), l2.lzModule, 'lzReceive', [
-            ChainId.hlg2lz(l1.network.holographId),
-            await l1.operator.getMessagingModule(),
-            0,
-            payload,
-            {
-              gasPrice: GASPRICE,
-              gasLimit: executeJobGas(payload),
-            },
-          ])
-        )
-          .to.emit(l2.operator, 'AvailableOperatorJob')
-          .withArgs(l2.web3.utils.keccak256(payload), payload);
-        await getGasUsage(l2.hre, 'actual gas usage was', true);
-
-        let jobDetails = await l2.operator.getJobDetails(l2.web3.utils.keccak256(payload));
-        // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
-        let operator: SignerWithAddress = l2.deployer;
-        let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress) {
-          // we need to specify an operator
-          let wallet: SignerWithAddress;
-          for (let i = 0, l = wallets.length; i < l; i++) {
-            wallet = l2[wallets[i]] as SignerWithAddress;
-            if (wallet.address.toLowerCase() == targetOperator) {
-              operator = wallet;
-              break;
-            }
-          }
-        }
-
-        await expect(
-          l2.operator.connect(operator).executeJob(payload, {
-            gasPrice: GASPRICE,
-            gasLimit: estimatedGas.add(estimatedGas.div(BigNumber.from('3'))),
-          })
+          l2.operator.connect(pickOperator(l2, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
         )
           .to.emit(l2.factory, 'BridgeableContractDeployed')
           .withArgs(cxipErc721Address, erc721ConfigHash);
-        process.stdout.write(' '.repeat(10) + 'estimatedGas for executeJob is ' + estimatedGas.toString());
-        await getGasUsage(l2.hre, 'actual gas usage was', true);
-
         expect(await l2.registry.getHolographedHashAddress(erc721ConfigHash)).to.equal(cxipErc721Address);
       });
 
@@ -1220,93 +884,27 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           ]
         );
 
-        let estimatedPayload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
-          l1.network.holographId,
-          l1.factory.address,
-          '0x' + 'ff'.repeat(32),
-          '0x' + 'ff'.repeat(32),
-          data
-        );
-        // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
-
-        let estimatedGas: BigNumber = TESTGASLIMIT.sub(
-          await l1.operator.callStatic.jobEstimator(estimatedPayload, {
-            gasPrice: GWEI,
-            gasLimit: TESTGASLIMIT,
-          })
-        );
-        // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
-
-        let payload: BytesLike = await l2.bridge.callStatic.getBridgeOutRequestPayload(
-          l1.network.holographId,
-          l1.factory.address,
-          estimatedGas,
-          GWEI,
-          data
-        );
-        // process.stdout.write('\n' + 'payload: ' + payload + '\n');
-
-        let fees = await l2.bridge.callStatic.getMessageFee(l1.network.holographId, estimatedGas, GWEI, payload);
-        let total: BigNumber = fees[0].add(fees[1]);
-
-        // process.stdout.write('\n' + 'fees: ' + JSON.stringify(fees,undefined,2) + '\n');
-
+        let originalMessagingModule = await l1.operator.getMessagingModule();
+        let payload: BytesLike = await getRequestPayload(l2, l1, l2.factory.address, data);
+        let gasEstimates = await getEstimatedGas(l2, l1, l2.factory.address, data, payload);
+        payload = gasEstimates.payload;
+        let payloadHash: string = HASH(payload);
+        // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+        await l1.operator.setMessagingModule(l1.mockLZEndpoint.address);
+        // make call with mockLZEndpoint AS messaging module
+        await l1.mockLZEndpoint.crossChainMessage(l1.operator.address, getLzMsgGas(payload), payload, {
+          gasLimit: TESTGASLIMIT,
+        });
+        // return messaging module back to original address
+        await l1.operator.setMessagingModule(originalMessagingModule);
+        let operatorJob = await l1.operator.getJobDetails(payloadHash);
+        let operator = (operatorJob[2] as string).toLowerCase();
+        // execute job to leave operator bonded
         await expect(
-          l2.bridge.bridgeOutRequest(l1.network.holographId, l1.factory.address, estimatedGas, GWEI, data, {
-            value: total,
-          })
-        )
-          .to.emit(l2.mockLZEndpoint, 'LzEvent')
-          .withArgs(
-            ChainId.hlg2lz(l1.network.holographId),
-            '0x' + remove0x((await l2.operator.getMessagingModule()).toLowerCase()).repeat(2),
-            payload
-          );
-
-        process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
-        await expect(
-          adminCall(l1.mockLZEndpoint.connect(l1.lzEndpoint), l1.lzModule, 'lzReceive', [
-            ChainId.hlg2lz(l2.network.holographId),
-            await l2.operator.getMessagingModule(),
-            0,
-            payload,
-            {
-              gasPrice: GASPRICE,
-              gasLimit: executeJobGas(payload),
-            },
-          ])
-        )
-          .to.emit(l1.operator, 'AvailableOperatorJob')
-          .withArgs(l1.web3.utils.keccak256(payload), payload);
-        await getGasUsage(l1.hre, 'actual gas usage was', true);
-
-        let jobDetails = await l1.operator.getJobDetails(l1.web3.utils.keccak256(payload));
-        // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
-        let operator: SignerWithAddress = l1.deployer;
-        let targetOperator = jobDetails[2].toLowerCase();
-        if (targetOperator != zeroAddress) {
-          // we need to specify an operator
-          let wallet: SignerWithAddress;
-          for (let i = 0, l = wallets.length; i < l; i++) {
-            wallet = l1[wallets[i]] as SignerWithAddress;
-            if (wallet.address.toLowerCase() == targetOperator) {
-              operator = wallet;
-              break;
-            }
-          }
-        }
-
-        await expect(
-          l1.operator.connect(operator).executeJob(payload, {
-            gasPrice: GASPRICE,
-            gasLimit: estimatedGas.add(estimatedGas.div(BigNumber.from('3'))),
-          })
+          l1.operator.connect(pickOperator(l1, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
         )
           .to.emit(l1.factory, 'BridgeableContractDeployed')
           .withArgs(cxipErc721Address, erc721ConfigHash);
-        process.stdout.write(' '.repeat(10) + 'estimatedGas for executeJob is ' + estimatedGas.toString());
-        await getGasUsage(l1.hre, 'actual gas usage was', true);
-
         expect(await l1.registry.getHolographedHashAddress(erc721ConfigHash)).to.equal(cxipErc721Address);
       });
     });
@@ -1397,108 +995,35 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
             [l1.deployer.address, l2.deployer.address, thirdNFTl1.toHexString()]
           );
 
-          let estimatedPayload: BytesLike = await l1.bridge
-            .connect(l1.deployer)
-            .callStatic.getBridgeOutRequestPayload(
-              l2.network.holographId,
-              l1.sampleErc721Holographer.address,
-              '0x' + 'ff'.repeat(32),
-              '0x' + 'ff'.repeat(32),
-              data
-            );
-          // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
-
-          let estimatedGas: BigNumber = TESTGASLIMIT.sub(
-            await l2.operator.callStatic.jobEstimator(estimatedPayload, {
-              gasPrice: GASPRICE,
-              gasLimit: TESTGASLIMIT,
-            })
+          let originalMessagingModule = await l2.operator.getMessagingModule();
+          let payload: BytesLike = await getRequestPayload(l1, l2, l1.sampleErc721Holographer.address, data);
+          let gasEstimates = await getEstimatedGas(l1, l2, l1.sampleErc721Holographer.address, data, payload);
+          payload = gasEstimates.payload;
+          let payloadHash: string = HASH(payload);
+          await l1.bridge.bridgeOutRequest(
+            l2.network.holographId,
+            l1.sampleErc721Holographer.address,
+            gasEstimates.estimatedGas,
+            GWEI,
+            data,
+            { value: gasEstimates.fee }
           );
-          // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
-
-          let payload: BytesLike = await l1.bridge
-            .connect(l1.deployer)
-            .callStatic.getBridgeOutRequestPayload(
-              l2.network.holographId,
-              l1.sampleErc721Holographer.address,
-              estimatedGas,
-              GWEI,
-              data
-            );
-          // process.stdout.write('\n' + 'payload: ' + payload + '\n');
-
-          let fees = await l1.bridge.callStatic.getMessageFee(l2.network.holographId, estimatedGas, GWEI, payload);
-          let total: BigNumber = fees[0].add(fees[1]);
-
-          // process.stdout.write('\n' + 'fees: ' + JSON.stringify(fees,undefined,2) + '\n');
-
+          // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+          await l2.operator.setMessagingModule(l2.mockLZEndpoint.address);
+          // make call with mockLZEndpoint AS messaging module
+          await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(payload), payload, {
+            gasLimit: TESTGASLIMIT,
+          });
+          // return messaging module back to original address
+          await l2.operator.setMessagingModule(originalMessagingModule);
+          let operatorJob = await l2.operator.getJobDetails(payloadHash);
+          let operator = (operatorJob[2] as string).toLowerCase();
+          // execute job to leave operator bonded
           await expect(
-            l1.bridge
-              .connect(l1.deployer)
-              .bridgeOutRequest(l2.network.holographId, l1.sampleErc721Holographer.address, estimatedGas, GWEI, data, {
-                value: total,
-              })
-          )
-            .to.emit(l1.mockLZEndpoint, 'LzEvent')
-            .withArgs(
-              ChainId.hlg2lz(l2.network.holographId),
-              '0x' + remove0x((await l1.operator.getMessagingModule()).toLowerCase()).repeat(2),
-              payload
-            );
-
-          gasUsage['#3 bridge from l1'] = gasUsage['#3 bridge from l1'].add(await getGasUsage(l1.hre));
-
-          await expect(
-            l1.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address).ownerOf(thirdNFTl1.toHexString())
-          ).to.be.revertedWith('ERC721: token does not exist');
-
-          process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
-          await expect(
-            adminCall(l2.mockLZEndpoint.connect(l2.lzEndpoint), l2.lzModule, 'lzReceive', [
-              ChainId.hlg2lz(l1.network.holographId),
-              await l1.operator.getMessagingModule(),
-              0,
-              payload,
-              {
-                gasPrice: GASPRICE,
-                gasLimit: executeJobGas(payload),
-              },
-            ])
-          )
-            .to.emit(l2.operator, 'AvailableOperatorJob')
-            .withArgs(l2.web3.utils.keccak256(payload), payload);
-          await getGasUsage(l2.hre, 'actual gas usage was', true);
-
-          gasUsage['#3 bridge from l1'] = gasUsage['#3 bridge from l1'].add(await getGasUsage(l2.hre));
-
-          let jobDetails = await l2.operator.getJobDetails(l2.web3.utils.keccak256(payload));
-          // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
-          let operator: SignerWithAddress = l2.deployer;
-          let targetOperator = jobDetails[2].toLowerCase();
-          if (targetOperator != zeroAddress) {
-            // we need to specify an operator
-            let wallet: SignerWithAddress;
-            for (let i = 0, l = wallets.length; i < l; i++) {
-              wallet = l2[wallets[i]] as SignerWithAddress;
-              if (wallet.address.toLowerCase() == targetOperator) {
-                operator = wallet;
-                break;
-              }
-            }
-          }
-
-          await expect(
-            l2.operator.connect(operator).executeJob(payload, {
-              gasPrice: GASPRICE,
-              gasLimit: estimatedGas.add(estimatedGas.div(BigNumber.from('3'))),
-            })
+            l2.operator.connect(pickOperator(l2, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
           )
             .to.emit(l2.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address), 'Transfer')
             .withArgs(zeroAddress, l2.deployer.address, thirdNFTl1.toHexString());
-          process.stdout.write(' '.repeat(10) + 'estimatedGas for executeJob is ' + estimatedGas.toString());
-          await getGasUsage(l2.hre, 'actual gas usage was', true);
-
-          gasUsage['#3 bridge from l1'] = gasUsage['#3 bridge from l1'].add(await getGasUsage(l2.hre));
 
           expect(await l2.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address).ownerOf(thirdNFTl1)).to.equal(
             l2.deployer.address
@@ -1511,112 +1036,39 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
             [l2.deployer.address, l1.deployer.address, thirdNFTl2.toHexString()]
           );
 
-          let estimatedPayload: BytesLike = await l2.bridge
-            .connect(l2.deployer)
-            .callStatic.getBridgeOutRequestPayload(
-              l1.network.holographId,
-              l1.sampleErc721Holographer.address,
-              '0x' + 'ff'.repeat(32),
-              '0x' + 'ff'.repeat(32),
-              data
-            );
-          // process.stdout.write('\n' + 'estimatedPayload: ' + estimatedPayload + '\n');
-
-          let estimatedGas: BigNumber = TESTGASLIMIT.sub(
-            await l1.operator.callStatic.jobEstimator(estimatedPayload, {
-              gasPrice: GASPRICE,
-              gasLimit: TESTGASLIMIT,
-            })
+          let originalMessagingModule = await l1.operator.getMessagingModule();
+          let payload: BytesLike = await getRequestPayload(l2, l1, l1.sampleErc721Holographer.address, data);
+          let gasEstimates = await getEstimatedGas(l2, l1, l1.sampleErc721Holographer.address, data, payload);
+          payload = gasEstimates.payload;
+          let payloadHash: string = HASH(payload);
+          await l2.bridge.bridgeOutRequest(
+            l1.network.holographId,
+            l1.sampleErc721Holographer.address,
+            gasEstimates.estimatedGas,
+            GWEI,
+            data,
+            { value: gasEstimates.fee }
           );
-          // process.stdout.write('\n' + 'gas estimation: ' + estimatedGas.toNumber() + '\n');
-
-          let payload: BytesLike = await l2.bridge
-            .connect(l2.deployer)
-            .callStatic.getBridgeOutRequestPayload(
-              l1.network.holographId,
-              l1.sampleErc721Holographer.address,
-              estimatedGas,
-              GWEI,
-              data
-            );
-          // process.stdout.write('\n' + 'payload: ' + payload + '\n');
-
-          let fees = await l2.bridge.callStatic.getMessageFee(l1.network.holographId, estimatedGas, GWEI, payload);
-          let total: BigNumber = fees[0].add(fees[1]);
-
-          // process.stdout.write('\n' + 'fees: ' + JSON.stringify(fees,undefined,2) + '\n');
-
+          // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+          await l1.operator.setMessagingModule(l1.mockLZEndpoint.address);
+          // make call with mockLZEndpoint AS messaging module
+          await l1.mockLZEndpoint.crossChainMessage(l1.operator.address, getLzMsgGas(payload), payload, {
+            gasLimit: TESTGASLIMIT,
+          });
+          // return messaging module back to original address
+          await l1.operator.setMessagingModule(originalMessagingModule);
+          let operatorJob = await l1.operator.getJobDetails(payloadHash);
+          let operator = (operatorJob[2] as string).toLowerCase();
+          // execute job to leave operator bonded
           await expect(
-            l2.bridge
-              .connect(l2.deployer)
-              .bridgeOutRequest(l1.network.holographId, l1.sampleErc721Holographer.address, estimatedGas, GWEI, data, {
-                value: total,
-              })
-          )
-            .to.emit(l2.mockLZEndpoint, 'LzEvent')
-            .withArgs(
-              ChainId.hlg2lz(l1.network.holographId),
-              '0x' + remove0x((await l2.operator.getMessagingModule()).toLowerCase()).repeat(2),
-              payload
-            );
-
-          gasUsage['#3 bridge from l2'] = gasUsage['#3 bridge from l2'].add(await getGasUsage(l2.hre));
-
-          await expect(
-            l2.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address).ownerOf(thirdNFTl2.toHexString())
-          ).to.be.revertedWith('ERC721: token does not exist');
-
-          process.stdout.write(' '.repeat(10) + 'expected lz gas to be ' + executeJobGas(payload, true).toString());
-          await expect(
-            adminCall(l1.mockLZEndpoint.connect(l1.lzEndpoint), l1.lzModule, 'lzReceive', [
-              ChainId.hlg2lz(l2.network.holographId),
-              await l2.operator.getMessagingModule(),
-              0,
-              payload,
-              {
-                gasPrice: GASPRICE,
-                gasLimit: executeJobGas(payload),
-              },
-            ])
-          )
-            .to.emit(l1.operator, 'AvailableOperatorJob')
-            .withArgs(l1.web3.utils.keccak256(payload), payload);
-          await getGasUsage(l1.hre, 'actual gas usage was', true);
-
-          gasUsage['#3 bridge from l2'] = gasUsage['#3 bridge from l2'].add(await getGasUsage(l1.hre));
-
-          let jobDetails = await l1.operator.getJobDetails(l1.web3.utils.keccak256(payload));
-          // process.stdout.write('\n\n' + JSON.stringify(jobDetails, undefined, 2) + '\n\n');
-          let operator: SignerWithAddress = l1.deployer;
-          let targetOperator = jobDetails[2].toLowerCase();
-          if (targetOperator != zeroAddress) {
-            // we need to specify an operator
-            let wallet: SignerWithAddress;
-            for (let i = 0, l = wallets.length; i < l; i++) {
-              wallet = l1[wallets[i]] as SignerWithAddress;
-              if (wallet.address.toLowerCase() == targetOperator) {
-                operator = wallet;
-                break;
-              }
-            }
-          }
-
-          await expect(
-            l1.operator.connect(operator).executeJob(payload, {
-              gasPrice: GASPRICE,
-              gasLimit: estimatedGas.add(estimatedGas.div(BigNumber.from('3'))),
-            })
+            l1.operator.connect(pickOperator(l1, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
           )
             .to.emit(l1.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address), 'Transfer')
             .withArgs(zeroAddress, l1.deployer.address, thirdNFTl2.toHexString());
-          process.stdout.write(' '.repeat(10) + 'estimatedGas for executeJob is ' + estimatedGas.toString());
-          await getGasUsage(l1.hre, 'actual gas usage was', true);
 
-          gasUsage['#3 bridge from l2'] = gasUsage['#3 bridge from l2'].add(await getGasUsage(l1.hre));
-
-          expect(
-            await l1.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address).ownerOf(thirdNFTl2.toHexString())
-          ).to.equal(l1.deployer.address);
+          expect(await l1.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address).ownerOf(thirdNFTl2)).to.equal(
+            l1.deployer.address
+          );
         });
 
         /*
@@ -1693,20 +1145,6 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           .withArgs(l2.deployer.address, l2.wallet1.address, firstNFTl2);
 
         process.stdout.write('          #1 transfer on l2 gas used: ' + (await getGasUsage(l2.hre)).toString() + '\n');
-      });
-
-      it('SampleERC721 #3 bridge from l1', async function () {
-        process.stdout.write(
-          '          #3 bridge from l1 gas used: ' + gasUsage['#3 bridge from l1'].toString() + '\n'
-        );
-        assert(!gasUsage['#3 bridge from l1'].isZero(), 'zero sum returned');
-      });
-
-      it('SampleERC721 #3 bridge from l2', async function () {
-        process.stdout.write(
-          '          #3 bridge from l2 gas used: ' + gasUsage['#3 bridge from l2'].toString() + '\n'
-        );
-        assert(!gasUsage['#3 bridge from l2'].isZero(), 'zero sum returned');
       });
     });
 

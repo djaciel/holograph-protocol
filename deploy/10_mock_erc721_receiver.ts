@@ -1,8 +1,8 @@
 declare var global: any;
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
-import { LeanHardhatRuntimeEnvironment, hreSplit, NetworkType } from '../scripts/utils/helpers';
-import networks from '../config/networks';
+import { LeanHardhatRuntimeEnvironment, hreSplit } from '../scripts/utils/helpers';
+import { NetworkType, networks } from '@holographxyz/networks';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);

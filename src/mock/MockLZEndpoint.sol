@@ -4,6 +4,7 @@
 
 import "../abstract/Admin.sol";
 
+import "../interface/HolographOperatorInterface.sol";
 import "../interface/LayerZeroOverrides.sol";
 
 contract MockLZEndpoint is Admin {
@@ -63,5 +64,13 @@ contract MockLZEndpoint is Admin {
     dstNativeAmtCap = 10**18;
     baseGas = 50000;
     gasPerByte = 25;
+  }
+
+  function crossChainMessage(
+    address target,
+    uint256 gasLimit,
+    bytes calldata payload
+  ) external {
+    HolographOperatorInterface(target).crossChainMessage{gas: gasLimit}(payload);
   }
 }

@@ -168,6 +168,16 @@ contract Holographer is Admin, Initializable, HolographerInterface {
     return InitializableInterface.init.selector;
   }
 
+  //   // this is temporarily disabled for testnets, to not lose previous versions of Holographer contracts
+  //   /**
+  //    * @dev Returns the contract type that is used for loading the Enforcer
+  //    */
+  //   function getContractType() external view returns (bytes32 contractType) {
+  //     assembly {
+  //       contractType := sload(_contractTypeSlot)
+  //     }
+  //   }
+
   /**
    * @dev Returns the block height of when the smart contract was deployed. Useful for retrieving deployment config for re-deployment on other EVM-compatible chains.
    */

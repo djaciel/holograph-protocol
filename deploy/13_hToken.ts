@@ -13,13 +13,11 @@ import {
   StrictECDSA,
   generateErc20Config,
   generateInitCode,
-  Network,
-  NetworkType,
   genesisDeriveFutureAddress,
   remove0x,
 } from '../scripts/utils/helpers';
 import { HolographERC20Event, ConfigureEvents, AllEventsEnabled } from '../scripts/utils/events';
-import networks from '../config/networks';
+import { NetworkType, Network, networks } from '@holographxyz/networks';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
@@ -50,9 +48,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if (currentNetworkType == NetworkType.local) {
     primaryNetwork = networks.localhost;
   } else if (currentNetworkType == NetworkType.testnet) {
-    primaryNetwork = networks.eth_goerli;
+    primaryNetwork = networks.ethereumTestnetGoerli;
   } else if (currentNetworkType == NetworkType.mainnet) {
-    primaryNetwork = networks.eth;
+    primaryNetwork = networks.ethereum;
   } else {
     throw new Error('cannot identity current NetworkType');
   }
@@ -97,10 +95,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         v: '0x' + sig.substring(130, 132),
       } as Signature);
 
-      const depoyTx = await factory.deployHolographableContract(erc20Config, signature, deployer.address, {
+      const deployTx = await factory.deployHolographableContract(erc20Config, signature, deployer.address, {
         nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
       });
-      const deployResult = await depoyTx.wait();
+      const deployResult = await deployTx.wait();
       let eventIndex: number = 0;
       let eventFound: boolean = false;
       for (let i = 0, l = deployResult.events.length; i < l; i++) {

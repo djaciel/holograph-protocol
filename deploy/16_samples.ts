@@ -14,7 +14,6 @@ import {
   generateErc20Config,
   generateErc721Config,
   generateInitCode,
-  NetworkType,
 } from '../scripts/utils/helpers';
 import {
   HolographERC20Event,
@@ -22,8 +21,7 @@ import {
   HolographERC1155Event,
   ConfigureEvents,
 } from '../scripts/utils/events';
-import networks from '../config/networks';
-
+import { NetworkType, networks } from '@holographxyz/networks';
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
   const accounts = await hre.ethers.getSigners();
@@ -77,7 +75,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         s: '0x' + sig.substring(66, 130),
         v: '0x' + sig.substring(130, 132),
       } as Signature);
-      const depoyTx = await holographFactory.deployHolographableContract(
+      const deployTx = await holographFactory.deployHolographableContract(
         sampleErc20Config.erc20Config,
         signature,
         deployer.address,
@@ -85,7 +83,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
         }
       );
-      const deployResult = await depoyTx.wait();
+      const deployResult = await deployTx.wait();
       if (deployResult.events.length < 1 || deployResult.events[0].event != 'BridgeableContractDeployed') {
         throw new Error('BridgeableContractDeployed event not fired');
       }
@@ -118,7 +116,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         s: '0x' + sig.substring(66, 130),
         v: '0x' + sig.substring(130, 132),
       } as Signature);
-      const depoyTx = await holographFactory.deployHolographableContract(
+      const deployTx = await holographFactory.deployHolographableContract(
         sampleErc721Config.erc721Config,
         signature,
         deployer.address,
@@ -126,7 +124,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
         }
       );
-      const deployResult = await depoyTx.wait();
+      const deployResult = await deployTx.wait();
       if (deployResult.events.length < 2 || deployResult.events[1].event != 'BridgeableContractDeployed') {
         throw new Error('BridgeableContractDeployed event not fired');
       }
@@ -166,7 +164,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         s: '0x' + sig.substring(66, 130),
         v: '0x' + sig.substring(130, 132),
       } as Signature);
-      const depoyTx = await holographFactory.deployHolographableContract(
+      const deployTx = await holographFactory.deployHolographableContract(
         cxipErc721Config.erc721Config,
         signature,
         deployer.address,
@@ -174,7 +172,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
         }
       );
-      const deployResult = await depoyTx.wait();
+      const deployResult = await deployTx.wait();
       if (deployResult.events.length < 2 || deployResult.events[1].event != 'BridgeableContractDeployed') {
         throw new Error('BridgeableContractDeployed event not fired');
       }

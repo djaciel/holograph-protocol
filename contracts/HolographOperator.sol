@@ -328,6 +328,10 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
      */
     delete _operatorJobs[hash];
     /**
+     * @dev operators of last resort are allowed, but they will not receive HLG rewards of any sort
+     */
+    bool isBonded = _bondedAmounts[msg.sender] != 0;
+    /**
      * @dev check that a specific operator was selected for the job
      */
     if (job.operator != address(0)) {
@@ -366,6 +370,8 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
              * @dev ensure that sender is currently valid backup operator
              */
             require(fallbackOperator == msg.sender, "HOLOGRAPH: invalid fallback");
+          } else {
+            require(_bondedOperators[msg.sender] == job.pod, "HOLOGRAPH: pod only fallback");
           }
         }
         /**
@@ -377,9 +383,11 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
          */
         _bondedAmounts[job.operator] -= amount;
         /**
-         * @dev the slashed amount is sent to current operator
+         * @dev only allow HLG rewards to go to bonded operators
+         *      if operator is bonded, the slashed amount is sent to current operator
+         *      otherwise it's sent to HLG directly, can be burned or sent to treasury from there
          */
-        _bondedAmounts[msg.sender] += amount;
+        _utilityToken().transfer((isBonded ? msg.sender : address(_utilityToken())), amount);
         /**
          * @dev check if slashed operator has enough tokens bonded to stay
          */
@@ -410,6 +418,20 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
       }
     }
     /**
+     * @dev every executed job (even if failed) increments total message counter by one
+     */
+    ++_inboundMessageCounter;
+    /**
+     * @dev reward operator (with HLG) for executing the job
+     *      this is out of scope and is purposefully omitted from code
+     *      currently reward is statically set to 1 token
+     */
+    _utilityToken().transfer((isBonded ? msg.sender : address(_utilityToken())), (10**18));
+    /**
+     * @dev always emit an event at end of job, this helps other operators keep track of job status
+     */
+    emit FinishedOperatorJob(hash, msg.sender);
+    /**
      * @dev ensure that there is enough has left for the job
      */
     require(gasleft() > gasLimit, "HOLOGRAPH: not enough gas left");
@@ -427,15 +449,6 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
       _failedJobs[hash] = true;
       emit FailedOperatorJob(hash);
     }
-    /**
-     * @dev every executed job (even if failed) increments total message counter by one
-     */
-    ++_inboundMessageCounter;
-    /**
-     * @dev reward operator (with HLG) for executing the job
-     * @dev this is out of scope and is purposefully omitted from code
-     */
-    ////  _bondedOperators[msg.sender] += reward;
   }
 
   /*
@@ -590,7 +603,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
   ) external payable {
     require(msg.sender == _bridge(), "HOLOGRAPH: bridge only call");
     CrossChainMessageInterface messagingModule = _messagingModule();
-    uint256 hlgFee = messagingModule.getHlgFee(toChain, gasLimit, gasPrice);
+    uint256 hlgFee = messagingModule.getHlgFee(toChain, gasLimit, gasPrice, bridgeOutPayload.length);
     address hToken = _registry().getHToken(_holograph().getHolographChainId());
     require(hlgFee < msg.value, "HOLOGRAPH: not enough value");
     payable(hToken).transfer(hlgFee);
@@ -660,13 +673,22 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    * @dev @param crossChainPayload the entire packet being sent cross-chain
    * @return hlgFee the amount (in wei) of native gas token that will cost for finalizing job on destiantion chain
    * @return msgFee the amount (in wei) of native gas token that will cost for sending message to destiantion chain
+   * @return dstGasPrice the amount (in wei) that destination message maximum gas price will be
    */
   function getMessageFee(
     uint32,
     uint256,
     uint256,
     bytes calldata
-  ) external view returns (uint256, uint256) {
+  )
+    external
+    view
+    returns (
+      uint256,
+      uint256,
+      uint256
+    )
+  {
     assembly {
       calldatacopy(0, 0, calldatasize())
       let result := staticcall(gas(), sload(_messagingModuleSlot), 0, calldatasize(), 0, 0)
@@ -813,6 +835,16 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    */
   function getBondedPod(address operator) external view returns (uint256 pod) {
     return _bondedOperators[operator];
+  }
+
+  /**
+   * @notice Get an operator's currently bonded pod index
+   * @dev Useful for checking if an operator is a fallback for active job
+   * @param operator address of operator to check
+   * @return index currently bonded pod's operator index, returns zero if not in pod or moved out for active job
+   */
+  function getBondedPodIndex(address operator) external view returns (uint256 index) {
+    return _operatorPodIndex[operator];
   }
 
   /**

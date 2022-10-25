@@ -137,13 +137,21 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
    */
   bytes32 constant _operatorSlot = 0x7caba557ad34138fa3b7e43fb574e0e6cc10481c3073e0dffbc560db81b5c60f;
   /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.operator')) - 1)
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.msgBaseGas')) - 1)
    */
-  bytes32 constant _baseGasSlot = 0x1eaa99919d5563fbfdd75d9d906ff8de8cf52beab1ed73875294c8a0c9e9d83a;
+  bytes32 constant _msgBaseGasSlot = 0x2c07db4a05a3231c81b6f50f461c85a47c4b9ab274cf279cb516545e583ab1dd;
   /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.operator')) - 1)
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.msgGasPerByte')) - 1)
    */
-  bytes32 constant _gasPerByteSlot = 0x99d8b07d37c89d4c4f4fa0fd9b7396caeb5d1d4e58b41c61c71e3cf7d424a625;
+  bytes32 constant _msgGasPerByteSlot = 0x1f3604959b0efac4bf7d61f0c33a52f79508888111e10963d8d7941ebc9811b8;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.jobBaseGas')) - 1)
+   */
+  bytes32 constant _jobBaseGasSlot = 0x9bd5d4bcceb48def742308e3d5e49a206458ad9978d2a13b249ce344a306f8fb;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.jobGasPerByte')) - 1)
+   */
+  bytes32 constant _jobGasPerByteSlot = 0x5c8bfa74865379e8f0b031e99cb7c91eefe679e5ff1364c217fbada1ba3d43d4;
 
   /**
    * @dev Constructor is left empty and init is used instead
@@ -157,17 +165,24 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
    */
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
-    (address bridge, address interfaces, address operator, uint256 baseGas, uint256 gasPerByte) = abi.decode(
-      initPayload,
-      (address, address, address, uint256, uint256)
-    );
+    (
+      address bridge,
+      address interfaces,
+      address operator,
+      uint256 msgBaseGas,
+      uint256 msgGasPerByte,
+      uint256 jobBaseGas,
+      uint256 jobGasPerByte
+    ) = abi.decode(initPayload, (address, address, address, uint256, uint256, uint256, uint256));
     assembly {
       sstore(_adminSlot, origin())
       sstore(_bridgeSlot, bridge)
       sstore(_interfacesSlot, interfaces)
       sstore(_operatorSlot, operator)
-      sstore(_baseGasSlot, baseGas)
-      sstore(_gasPerByteSlot, gasPerByte)
+      sstore(_msgBaseGasSlot, msgBaseGas)
+      sstore(_msgGasPerByteSlot, msgGasPerByte)
+      sstore(_jobBaseGasSlot, jobBaseGas)
+      sstore(_jobGasPerByteSlot, jobGasPerByte)
     }
     _setInitialized();
     return InitializableInterface.init.selector;
@@ -244,7 +259,7 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
       crossChainPayload,
       payable(msgSender),
       address(this),
-      abi.encodePacked(uint16(1), uint256(_baseGas() + (crossChainPayload.length * _gasPerByte())))
+      abi.encodePacked(uint16(1), uint256(_msgBaseGas() + (crossChainPayload.length * _msgGasPerByte())))
     );
   }
 
@@ -253,7 +268,15 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
     uint256 gasLimit,
     uint256 gasPrice,
     bytes calldata crossChainPayload
-  ) external view returns (uint256 hlgFee, uint256 msgFee) {
+  )
+    external
+    view
+    returns (
+      uint256 hlgFee,
+      uint256 msgFee,
+      uint256 dstGasPrice
+    )
+  {
     uint16 lzDestChain = uint16(
       _interfaces().getChainId(ChainIdType.HOLOGRAPH, uint256(toChain), ChainIdType.LAYERZERO)
     );
@@ -268,16 +291,18 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
     }
     bytes memory adapterParams = abi.encodePacked(
       uint16(1),
-      uint256(_baseGas() + (crossChainPayload.length * _gasPerByte()))
+      uint256(_msgBaseGas() + (crossChainPayload.length * _msgGasPerByte()))
     );
+    gasLimit += _jobBaseGas() + (crossChainPayload.length * _jobGasPerByte());
     (uint256 nativeFee, ) = lz.estimateFees(lzDestChain, address(this), crossChainPayload, false, adapterParams);
-    return (((gasPrice * (gasLimit + (gasLimit / 10))) * dstPriceRatio) / (10**10), nativeFee);
+    return (((gasPrice * (gasLimit + (gasLimit / 10))) * dstPriceRatio) / (10**10), nativeFee, dstGasPriceInWei);
   }
 
   function getHlgFee(
     uint32 toChain,
     uint256 gasLimit,
-    uint256 gasPrice
+    uint256 gasPrice,
+    uint256 payloadLength
   ) external view returns (uint256 hlgFee) {
     LayerZeroOverrides lz;
     assembly {
@@ -290,6 +315,7 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
     if (gasPrice == 0) {
       gasPrice = dstGasPriceInWei;
     }
+    gasLimit += _jobBaseGas() + (payloadLength * _jobGasPerByte());
     return ((gasPrice * (gasLimit + (gasLimit / 10))) * dstPriceRatio) / (10**10);
   }
 
@@ -425,60 +451,118 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
   }
 
   /**
-   * @notice Get the baseGas value
+   * @notice Get the msgBaseGas value
    * @dev Cross-chain messages require at least this much gas
    */
-  function getBaseGas() external view returns (uint256 baseGas) {
+  function getMsgBaseGas() external view returns (uint256 msgBaseGas) {
     assembly {
-      baseGas := sload(_baseGasSlot)
+      msgBaseGas := sload(_msgBaseGasSlot)
     }
   }
 
   /**
-   * @notice Update the baseGas value
-   * @param baseGas minimum gas amount that a message requires
+   * @notice Update the msgBaseGas value
+   * @param msgBaseGas minimum gas amount that a message requires
    */
-  function setBaseGas(uint256 baseGas) external onlyAdmin {
+  function setMsgBaseGas(uint256 msgBaseGas) external onlyAdmin {
     assembly {
-      sstore(_baseGasSlot, baseGas)
+      sstore(_msgBaseGasSlot, msgBaseGas)
     }
   }
 
   /**
-   * @dev Internal function used for getting the baseGas value
+   * @dev Internal function used for getting the msgBaseGas value
    */
-  function _baseGas() private view returns (uint256 baseGas) {
+  function _msgBaseGas() private view returns (uint256 msgBaseGas) {
     assembly {
-      baseGas := sload(_baseGasSlot)
+      msgBaseGas := sload(_msgBaseGasSlot)
     }
   }
 
   /**
-   * @notice Get the gasPerByte value
+   * @notice Get the msgGasPerByte value
    * @dev Cross-chain messages require at least this much gas (per payload byte)
    */
-  function getGasPerByte() external view returns (uint256 gasPerByte) {
+  function getMsgGasPerByte() external view returns (uint256 msgGasPerByte) {
     assembly {
-      gasPerByte := sload(_gasPerByteSlot)
+      msgGasPerByte := sload(_msgGasPerByteSlot)
     }
   }
 
   /**
-   * @notice Update the gasPerByte value
-   * @param gasPerByte minimum gas amount (per payload byte) that a message requires
+   * @notice Update the msgGasPerByte value
+   * @param msgGasPerByte minimum gas amount (per payload byte) that a message requires
    */
-  function setGasPerByte(uint256 gasPerByte) external onlyAdmin {
+  function setMsgGasPerByte(uint256 msgGasPerByte) external onlyAdmin {
     assembly {
-      sstore(_gasPerByteSlot, gasPerByte)
+      sstore(_msgGasPerByteSlot, msgGasPerByte)
     }
   }
 
   /**
-   * @dev Internal function used for getting the gasPerByte value
+   * @dev Internal function used for getting the msgGasPerByte value
    */
-  function _gasPerByte() private view returns (uint256 gasPerByte) {
+  function _msgGasPerByte() private view returns (uint256 msgGasPerByte) {
     assembly {
-      gasPerByte := sload(_gasPerByteSlot)
+      msgGasPerByte := sload(_msgGasPerByteSlot)
+    }
+  }
+
+  /**
+   * @notice Get the jobBaseGas value
+   * @dev Executing jobs require at least this much gas
+   */
+  function getJobBaseGas() external view returns (uint256 jobBaseGas) {
+    assembly {
+      jobBaseGas := sload(_jobBaseGasSlot)
+    }
+  }
+
+  /**
+   * @notice Update the jobBaseGas value
+   * @param jobBaseGas minimum gas amount that a executeJob requires
+   */
+  function setJobBaseGas(uint256 jobBaseGas) external onlyAdmin {
+    assembly {
+      sstore(_jobBaseGasSlot, jobBaseGas)
+    }
+  }
+
+  /**
+   * @dev Internal function used for getting the jobBaseGas value
+   */
+  function _jobBaseGas() private view returns (uint256 jobBaseGas) {
+    assembly {
+      jobBaseGas := sload(_jobBaseGasSlot)
+    }
+  }
+
+  /**
+   * @notice Get the jobGasPerByte value
+   * @dev Executing jobs require at least this much gas (per payload byte)
+   */
+  function getJobGasPerByte() external view returns (uint256 jobGasPerByte) {
+    assembly {
+      jobGasPerByte := sload(_jobGasPerByteSlot)
+    }
+  }
+
+  /**
+   * @notice Update the jobGasPerByte value
+   * @param jobGasPerByte minimum gas amount (per payload byte) that a executeJob requires
+   */
+  function setJobGasPerByte(uint256 jobGasPerByte) external onlyAdmin {
+    assembly {
+      sstore(_jobGasPerByteSlot, jobGasPerByte)
+    }
+  }
+
+  /**
+   * @dev Internal function used for getting the jobGasPerByte value
+   */
+  function _jobGasPerByte() private view returns (uint256 jobGasPerByte) {
+    assembly {
+      jobGasPerByte := sload(_jobGasPerByteSlot)
     }
   }
 }

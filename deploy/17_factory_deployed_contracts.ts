@@ -4,9 +4,8 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Holographer, CxipERC721Proxy } from '../typechain-types';
-import { hreSplit, NetworkType } from '../scripts/utils/helpers';
-import networks from '../config/networks';
-
+import { hreSplit } from '../scripts/utils/helpers';
+import { NetworkType, networks } from '@holographxyz/networks';
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
   const { deployer } = await hre.getNamedAccounts();

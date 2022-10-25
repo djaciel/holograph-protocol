@@ -4,8 +4,7 @@ import Web3 from 'web3';
 import { BytesLike, ContractFactory, Contract } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
-import networks from '../config/networks';
-import { Network, NetworkType } from '../scripts/utils/helpers';
+import { NetworkType, Network, networks } from '@holographxyz/networks';
 import {
   LeanHardhatRuntimeEnvironment,
   hreSplit,

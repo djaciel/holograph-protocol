@@ -379,7 +379,15 @@ contract HolographBridge is Admin, Initializable, HolographBridgeInterface {
      */
     uint256 fee = 0;
     if (gasPrice < type(uint256).max && gasLimit < type(uint256).max) {
-      (uint256 hlgFee, ) = _operator().getMessageFee(toChain, gasLimit, gasPrice, bridgeOutPayload);
+      (uint256 hlgFee, , uint256 dstGasPrice) = _operator().getMessageFee(
+        toChain,
+        gasLimit,
+        gasPrice,
+        bridgeOutPayload
+      );
+      if (gasPrice == 0) {
+        gasPrice = dstGasPrice;
+      }
       fee = hlgFee;
     }
     /**
@@ -414,13 +422,22 @@ contract HolographBridge is Admin, Initializable, HolographBridgeInterface {
    * @dev @param crossChainPayload the entire packet being sent cross-chain
    * @return hlgFee the amount (in wei) of native gas token that will cost for finalizing job on destiantion chain
    * @return msgFee the amount (in wei) of native gas token that will cost for sending message to destiantion chain
+   * @return dstGasPrice the amount (in wei) that destination message maximum gas price will be
    */
   function getMessageFee(
     uint32,
     uint256,
     uint256,
     bytes calldata
-  ) external view returns (uint256, uint256) {
+  )
+    external
+    view
+    returns (
+      uint256,
+      uint256,
+      uint256
+    )
+  {
     assembly {
       calldatacopy(0, 0, calldatasize())
       let result := staticcall(gas(), sload(_operatorSlot), 0, calldatasize(), 0, 0)

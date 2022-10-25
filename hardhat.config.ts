@@ -8,54 +8,28 @@ import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import { types, task, HardhatUserConfig } from 'hardhat/config';
 import '@holographxyz/hardhat-holograph-contract-builder';
-import networks from './config/networks';
+import { Environment, getEnvironment } from '@holographxyz/environment';
+import { NetworkType, Network, Networks, networks } from '@holographxyz/networks';
 import dotenv from 'dotenv';
 dotenv.config();
 
-enum Environment {
-  experimental = 'experimental',
-  develop = 'develop',
-  testnet = 'testnet',
-  mainnet = 'mainnet',
-}
-
-const getEnvironment = (): Environment => {
-  let environment = Environment.experimental;
-  const acceptableBranches: Set<string> = new Set<string>(['experimental', 'develop', 'testnet', 'mainnet']);
-  const head = './.git/HEAD';
-  const env: string = process.env.HOLOGRAPH_ENVIRONMENT || '';
-  if (env === '') {
-    if (fs.existsSync(head)) {
-      const contents = fs.readFileSync('./.git/HEAD', 'utf8');
-      const branch = contents.trim().split('ref: refs/heads/')[1];
-      console.log('GitBranch:', branch);
-      if (acceptableBranches.has(branch)) {
-        environment = Environment[branch as keyof typeof Environment];
-      }
-    }
-  } else if (acceptableBranches.has(env)) {
-    console.log('HOLOGRAPH_ENVIRONMENT:', env);
-    environment = Environment[env as keyof typeof Environment];
-  }
-  console.log('Environment:', environment);
-
-  return environment;
-};
-
 const currentEnvironment = Environment[getEnvironment()];
+process.stdout.write(`\n👉 Environment: ${currentEnvironment}\n\n`);
 
 const SOLIDITY_VERSION = process.env.SOLIDITY_VERSION || '0.8.13';
 
 const MNEMONIC = process.env.MNEMONIC || 'test '.repeat(11) + 'junk';
 const DEPLOYER = process.env.DEPLOYER || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 
-const MAINNET_PRIVATE_KEY = process.env.MAINNET_PRIVATE_KEY || DEPLOYER;
-const GOERLI_PRIVATE_KEY = process.env.GOERLI_PRIVATE_KEY || DEPLOYER;
-const RINKEBY_PRIVATE_KEY = process.env.RINKEBY_PRIVATE_KEY || DEPLOYER;
-const MATIC_PRIVATE_KEY = process.env.MATIC_PRIVATE_KEY || DEPLOYER;
-const MUMBAI_PRIVATE_KEY = process.env.MUMBAI_PRIVATE_KEY || DEPLOYER;
-const FUJI_PRIVATE_KEY = process.env.FUJI_PRIVATE_KEY || DEPLOYER;
-const CXIP_PRIVATE_KEY = process.env.CXIP_PRIVATE_KEY || DEPLOYER;
+const AVALANCHE_PRIVATE_KEY = process.env.AVALANCHE_PRIVATE_KEY || DEPLOYER;
+const AVALANCHE_TESTNET_PRIVATE_KEY = process.env.AVALANCHE_TESTNET_PRIVATE_KEY || DEPLOYER;
+const BINANCE_SMART_CHAIN_PRIVATE_KEY = process.env.BINANCE_SMART_CHAIN_PRIVATE_KEY || DEPLOYER;
+const BINANCE_SMART_CHAIN_TESTNET_PRIVATE_KEY = process.env.BINANCE_SMART_CHAIN_TESTNET_PRIVATE_KEY || DEPLOYER;
+const ETHEREUM_PRIVATE_KEY = process.env.ETHEREUM_PRIVATE_KEY || DEPLOYER;
+const ETHEREUM_TESTNET_GOERLI_PRIVATE_KEY = process.env.ETHEREUM_TESTNET_GOERLI_PRIVATE_KEY || DEPLOYER;
+const ETHEREUM_TESTNET_RINKEBY_PRIVATE_KEY = process.env.ETHEREUM_TESTNET_RINKEBY_PRIVATE_KEY || DEPLOYER;
+const POLYGON_PRIVATE_KEY = process.env.POLYGON_PRIVATE_KEY || DEPLOYER;
+const POLYGON_TESTNET_PRIVATE_KEY = process.env.POLYGON_TESTNET_PRIVATE_KEY || DEPLOYER;
 
 const ETHERSCAN_API_KEY: string = process.env.ETHERSCAN_API_KEY || '';
 const POLYGONSCAN_API_KEY: string = process.env.POLYGONSCAN_API_KEY || '';
@@ -157,31 +131,30 @@ const config: HardhatUserConfig = {
   external: {
     deployments: {
       arbitrum: [DEPLOYMENT_PATH + '/external/arbitrum'],
-      arbitrum_rinkeby: [DEPLOYMENT_PATH + '/external/arbitrum_rinkeby'],
+      arbitrumTestnetRinkeby: [DEPLOYMENT_PATH + '/external/arbitrumTestnetRinkeby'],
       aurora: [DEPLOYMENT_PATH + '/external/aurora'],
-      aurora_testnet: [DEPLOYMENT_PATH + '/external/aurora_testnet'],
-      avax: [DEPLOYMENT_PATH + '/external/avax'],
-      bsc: [DEPLOYMENT_PATH + '/external/bsc'],
-      bsc_testnet: [DEPLOYMENT_PATH + '/external/bsc_testnet'],
+      auroraTestnet: [DEPLOYMENT_PATH + '/external/auroraTestnet'],
+      avalanche: [DEPLOYMENT_PATH + '/external/avalanche'],
+      avalancheTestnet: [DEPLOYMENT_PATH + '/external/avalancheTestnet'],
+      binanceSmartChain: [DEPLOYMENT_PATH + '/external/binanceSmartChain'],
+      binanceSmartChainTestnet: [DEPLOYMENT_PATH + '/external/binanceSmartChainTestnet'],
       cronos: [DEPLOYMENT_PATH + '/external/cronos'],
-      cronos_testnet: [DEPLOYMENT_PATH + '/external/cronos_testnet'],
-      cxip: [DEPLOYMENT_PATH + '/external/cxip'],
-      eth: [DEPLOYMENT_PATH + '/external/eth'],
-      eth_goerli: [DEPLOYMENT_PATH + '/external/eth_goerli'],
-      eth_kovan: [DEPLOYMENT_PATH + '/external/eth_kovan'],
-      eth_rinkeby: [DEPLOYMENT_PATH + '/external/eth_rinkeby'],
-      eth_ropsten: [DEPLOYMENT_PATH + '/external/eth_ropsten'],
-      ftm: [DEPLOYMENT_PATH + '/external/ftm'],
-      ftm_testnet: [DEPLOYMENT_PATH + '/external/ftm_testnet'],
-      fuji: [DEPLOYMENT_PATH + '/external/fuji'],
-      gno: [DEPLOYMENT_PATH + '/external/gno'],
-      gno_sokol: [DEPLOYMENT_PATH + '/external/gno_sokol'],
+      cronosTestnet: [DEPLOYMENT_PATH + '/external/cronosTestnet'],
+      ethereum: [DEPLOYMENT_PATH + '/external/ethereum'],
+      ethereumTestnetGoerli: [DEPLOYMENT_PATH + '/external/ethereumTestnetGoerli'],
+      ethereumTestnetKovan: [DEPLOYMENT_PATH + '/external/ethereumTestnetKovan'],
+      ethereumTestnetRinkeby: [DEPLOYMENT_PATH + '/external/ethereumTestnetRinkeby'],
+      ethereumTestnetRopsten: [DEPLOYMENT_PATH + '/external/ethereumTestnetRopsten'],
+      fantom: [DEPLOYMENT_PATH + '/external/fantom'],
+      fantomTestnet: [DEPLOYMENT_PATH + '/external/fantomTestnet'],
+      gnosis: [DEPLOYMENT_PATH + '/external/gnosis'],
+      gnosisTestnetSokol: [DEPLOYMENT_PATH + '/external/gnosisTestnetSokol'],
       localhost: [DEPLOYMENT_PATH + '/external/localhost'],
       localhost2: [DEPLOYMENT_PATH + '/external/localhost2'],
-      matic: [DEPLOYMENT_PATH + '/external/matic'],
-      mumbai: [DEPLOYMENT_PATH + '/external/mumbai'],
       optimism: [DEPLOYMENT_PATH + '/external/optimism'],
-      optimism_kovan: [DEPLOYMENT_PATH + '/external/optimism_kovan'],
+      optimismTestnetKovan: [DEPLOYMENT_PATH + '/external/optimismTestnetKovan'],
+      polygon: [DEPLOYMENT_PATH + '/external/polygon'],
+      polygonTestnet: [DEPLOYMENT_PATH + '/external/polygonTestnet'],
     },
   },
   networks: {
@@ -217,40 +190,50 @@ const config: HardhatUserConfig = {
       },
       saveDeployments: false,
     },
-    eth: {
-      url: networks.eth.rpc,
-      chainId: networks.eth.chain,
-      accounts: [MAINNET_PRIVATE_KEY],
+    avalanche: {
+      url: networks.avalanche.rpc,
+      chainId: networks.avalanche.chain,
+      accounts: [AVALANCHE_PRIVATE_KEY],
     },
-    eth_rinkeby: {
-      url: networks.eth_rinkeby.rpc,
-      chainId: networks.eth_rinkeby.chain,
-      accounts: [RINKEBY_PRIVATE_KEY],
+    avalancheTestnet: {
+      url: networks.avalancheTestnet.rpc,
+      chainId: networks.avalancheTestnet.chain,
+      accounts: [AVALANCHE_TESTNET_PRIVATE_KEY],
     },
-    eth_goerli: {
-      url: networks.eth_goerli.rpc,
-      chainId: networks.eth_goerli.chain,
-      accounts: [GOERLI_PRIVATE_KEY],
+    binanceSmartChain: {
+      url: networks.binanceSmartChain.rpc,
+      chainId: networks.binanceSmartChain.chain,
+      accounts: [BINANCE_SMART_CHAIN_PRIVATE_KEY],
     },
-    matic: {
-      url: networks.matic.rpc,
-      chainId: networks.matic.chain,
-      accounts: [MATIC_PRIVATE_KEY] || '',
+    binanceSmartChainTestnet: {
+      url: networks.binanceSmartChainTestnet.rpc,
+      chainId: networks.binanceSmartChainTestnet.chain,
+      accounts: [BINANCE_SMART_CHAIN_TESTNET_PRIVATE_KEY],
     },
-    mumbai: {
-      url: networks.mumbai.rpc,
-      chainId: networks.mumbai.chain,
-      accounts: [MUMBAI_PRIVATE_KEY],
+    ethereum: {
+      url: networks.ethereum.rpc,
+      chainId: networks.ethereum.chain,
+      accounts: [ETHEREUM_PRIVATE_KEY],
     },
-    fuji: {
-      url: networks.fuji.rpc,
-      chainId: networks.fuji.chain,
-      accounts: [FUJI_PRIVATE_KEY],
+    ethereumTestnetRinkeby: {
+      url: networks.ethereumTestnetRinkeby.rpc,
+      chainId: networks.ethereumTestnetRinkeby.chain,
+      accounts: [ETHEREUM_TESTNET_RINKEBY_PRIVATE_KEY],
     },
-    cxip: {
-      url: networks.cxip.rpc,
-      chainId: networks.cxip.chain,
-      accounts: [CXIP_PRIVATE_KEY],
+    ethereumTestnetGoerli: {
+      url: networks.ethereumTestnetGoerli.rpc,
+      chainId: networks.ethereumTestnetGoerli.chain,
+      accounts: [ETHEREUM_TESTNET_GOERLI_PRIVATE_KEY],
+    },
+    polygon: {
+      url: networks.polygon.rpc,
+      chainId: networks.polygon.chain,
+      accounts: [POLYGON_PRIVATE_KEY] || '',
+    },
+    polygonTestnet: {
+      url: networks.polygonTestnet.rpc,
+      chainId: networks.polygonTestnet.chain,
+      accounts: [POLYGON_TESTNET_PRIVATE_KEY],
     },
     coverage: {
       url: 'http://127.0.0.1:8555',
@@ -284,7 +267,7 @@ const config: HardhatUserConfig = {
     currency: 'USD',
     coinmarketcap: process.env.COINMARKETCAP_API_KEY || '',
     token: 'ETH',
-    gasPriceApi: 'https://api.bscscan.com/api?module=proxy&action=eth_gasPrice',
+    gasPriceApi: 'https://api.binanceSmartChainscan.com/api?module=proxy&action=ethereumTestnet_gasPrice',
   },
   etherscan: {
     apiKey: {
