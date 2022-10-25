@@ -4,11 +4,14 @@
 
 abstract contract Owner {
   /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.owner')) - 1)
+   */
+  bytes32 constant _ownerSlot = precomputeslot("eip1967.Holograph.owner");
+
+  /**
    * @dev Event emitted when contract owner is changed.
    */
   event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-  constructor() {}
 
   modifier onlyOwner() virtual {
     require(msg.sender == getOwner(), "HOLOGRAPH: owner only function");
@@ -19,27 +22,18 @@ abstract contract Owner {
     return getOwner();
   }
 
+  constructor() {}
+
   function getOwner() public view returns (address ownerAddress) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.owner')) - 1);
     assembly {
-      ownerAddress := sload(
-        /* slot */
-        precomputeslot("eip1967.Holograph.Bridge.owner")
-      )
+      ownerAddress := sload(_ownerSlot)
     }
   }
 
   function setOwner(address ownerAddress) public onlyOwner {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.owner')) - 1);
     address previousOwner = getOwner();
     assembly {
-      sstore(
-        /* slot */
-        precomputeslot("eip1967.Holograph.Bridge.owner"),
-        ownerAddress
-      )
+      sstore(_ownerSlot, ownerAddress)
     }
     emit OwnershipTransferred(previousOwner, ownerAddress);
   }
@@ -47,7 +41,7 @@ abstract contract Owner {
   function transferOwnership(address newOwner) public onlyOwner {
     require(newOwner != address(0), "HOLOGRAPH: zero address");
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.owner"), newOwner)
+      sstore(_ownerSlot, newOwner)
     }
   }
 

@@ -2,7 +2,7 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-import "./interface/IInitializable.sol";
+import "./interface/InitializableInterface.sol";
 
 /**
  * @dev In the beginning there was a smart contract...
@@ -39,7 +39,7 @@ contract HolographGenesis {
     }
     require(_isContract(contractAddress), "HOLOGRAPH: deployment failed");
     require(
-      IInitializable(contractAddress).init(initCode) == IInitializable.init.selector,
+      InitializableInterface(contractAddress).init(initCode) == InitializableInterface.init.selector,
       "HOLOGRAPH: initialization failed"
     );
   }

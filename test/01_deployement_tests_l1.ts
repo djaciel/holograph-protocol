@@ -17,10 +17,10 @@ describe('Validating the Holograph Protocol deployments (L1)', async () => {
   afterEach(async () => {});
 
   describe('Check that contract addresses are properly deployed', async () => {
-    describe('Interfaces:', async function () {
+    describe('HolographInterfaces:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l1.hre.provider.send('eth_getCode', [l1.interfaces.address, 'latest'])).to.equal(
-          (await l1.hre.artifacts.readArtifact('Interfaces')).deployedBytecode
+        expect(await l1.hre.provider.send('eth_getCode', [l1.holographInterfaces.address, 'latest'])).to.equal(
+          (await l1.hre.artifacts.readArtifact('HolographInterfaces')).deployedBytecode
         );
       });
     });

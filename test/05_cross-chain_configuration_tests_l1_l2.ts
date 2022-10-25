@@ -40,7 +40,7 @@ import {
   HolographRegistry,
   HolographRegistryProxy,
   HToken,
-  Interfaces,
+  HolographInterfaces,
   MockERC721Receiver,
   Owner,
   PA1D,
@@ -186,9 +186,9 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
       });
     });
 
-    describe('Interfaces', async function () {
+    describe('HolographInterfaces', async function () {
       it('contract addresses should match', async function () {
-        expect(l1.interfaces.address).to.equal(l2.interfaces.address);
+        expect(l1.holographInterfaces.address).to.equal(l2.holographInterfaces.address);
       });
     });
 
@@ -290,9 +290,9 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
           l1.network,
           l1.deployer.address,
           'hToken',
-          l1.network.tokenName + ' (Holographed)',
+          l1.network.tokenName + ' (Holographed #' + l1.network.holographId.toString() + ')',
           'h' + l1.network.tokenSymbol,
-          l1.network.tokenName + ' (Holographed)',
+          l1.network.tokenName + ' (Holographed #' + l1.network.holographId.toString() + ')',
           '1',
           18,
           ConfigureEvents([]),
@@ -302,7 +302,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let hTokenErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
 
-        expect(hTokenErc20Address).to.equal(zeroAddress());
+        expect(hTokenErc20Address).to.equal(zeroAddress);
 
         hTokenErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
 
@@ -325,9 +325,9 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
           l2.network,
           l2.deployer.address,
           'hToken',
-          l2.network.tokenName + ' (Holographed)',
+          l2.network.tokenName + ' (Holographed #' + l2.network.holographId.toString() + ')',
           'h' + l2.network.tokenSymbol,
-          l2.network.tokenName + ' (Holographed)',
+          l2.network.tokenName + ' (Holographed #' + l2.network.holographId.toString() + ')',
           '1',
           18,
           ConfigureEvents([]),
@@ -337,7 +337,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let hTokenErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
 
-        expect(hTokenErc20Address).to.equal(zeroAddress());
+        expect(hTokenErc20Address).to.equal(zeroAddress);
 
         hTokenErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
 
@@ -374,7 +374,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let sampleErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
 
-        expect(sampleErc20Address).to.equal(zeroAddress());
+        expect(sampleErc20Address).to.equal(zeroAddress);
 
         sampleErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
 
@@ -411,7 +411,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let sampleErc20Address = await l1.registry.getHolographedHashAddress(erc20ConfigHash);
 
-        expect(sampleErc20Address).to.equal(zeroAddress());
+        expect(sampleErc20Address).to.equal(zeroAddress);
 
         sampleErc20Address = await l2.registry.getHolographedHashAddress(erc20ConfigHash);
 
@@ -452,7 +452,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let sampleErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
 
-        expect(sampleErc721Address).to.equal(zeroAddress());
+        expect(sampleErc721Address).to.equal(zeroAddress);
 
         sampleErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
 
@@ -491,7 +491,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let sampleErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
 
-        expect(sampleErc721Address).to.equal(zeroAddress());
+        expect(sampleErc721Address).to.equal(zeroAddress);
 
         sampleErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
 
@@ -539,7 +539,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let cxipErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
 
-        expect(cxipErc721Address).to.equal(zeroAddress());
+        expect(cxipErc721Address).to.equal(zeroAddress);
 
         cxipErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
 
@@ -583,7 +583,7 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
 
         let cxipErc721Address = await l1.registry.getHolographedHashAddress(erc721ConfigHash);
 
-        expect(cxipErc721Address).to.equal(zeroAddress());
+        expect(cxipErc721Address).to.equal(zeroAddress);
 
         cxipErc721Address = await l2.registry.getHolographedHashAddress(erc721ConfigHash);
 
@@ -604,24 +604,24 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
   });
 
   describe('Verify chain configs', async function () {
-    describe('LayerZero endpoints', async function () {
+    describe('MessagingModule endpoints', async function () {
       it('should not be empty', async function () {
-        expect(await l1.operator.getLZEndpoint()).to.not.equal(zeroAddress());
+        expect(await l1.operator.getMessagingModule()).to.not.equal(zeroAddress);
 
-        expect(await l2.operator.getLZEndpoint()).to.not.equal(zeroAddress());
+        expect(await l2.operator.getMessagingModule()).to.not.equal(zeroAddress);
       });
       it('should be same address on both chains', async function () {
-        expect(await l1.operator.getLZEndpoint()).to.equal(await l2.operator.getLZEndpoint());
+        expect(await l1.operator.getMessagingModule()).to.equal(await l2.operator.getMessagingModule());
       });
     });
 
     describe('Chain IDs', async function () {
       it('l1 chain id should be correct', async function () {
-        expect(await l1.holograph.getChainType()).to.equal(l1.network.holographId);
+        expect(await l1.holograph.getHolographChainId()).to.equal(l1.network.holographId);
       });
 
       it('l2 chain id should be correct', async function () {
-        expect(await l2.holograph.getChainType()).to.equal(l2.network.holographId);
+        expect(await l2.holograph.getHolographChainId()).to.equal(l2.network.holographId);
       });
     });
   });

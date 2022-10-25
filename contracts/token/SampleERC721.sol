@@ -103,7 +103,7 @@ pragma solidity 0.8.13;
 
 import "../abstract/StrictERC721H.sol";
 
-import "../interface/ERC721Holograph.sol";
+import "../interface/HolographERC721Interface.sol";
 
 /**
  * @title Sample ERC-721 Collection that is bridgeable via Holograph
@@ -128,21 +128,21 @@ contract SampleERC721 is StrictERC721H {
   bool private _dummy;
 
   /**
-   * @notice Constructor is empty and not utilised.
-   * @dev To make exact CREATE2 deployment possible, constructor is left empty. We utilize the "init" function instead.
+   * @dev Constructor is left empty and init is used instead
    */
   constructor() {}
 
   /**
-   * @notice Initializes the collection.
-   * @dev Special function to allow a one time initialisation on deployment. Also configures and deploys royalties.
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract
+   * @param initPayload abi encoded payload to use for contract initilaization
    */
-  function init(bytes memory data) external override returns (bytes4) {
+  function init(bytes memory initPayload) external override returns (bytes4) {
     // do your own custom logic here
-    address contractOwner = abi.decode(data, (address));
-    _owner = contractOwner;
+    address contractOwner = abi.decode(initPayload, (address));
+    _setOwner(contractOwner);
     // run underlying initializer logic
-    return _init(data);
+    return _init(initPayload);
   }
 
   /**
@@ -162,7 +162,7 @@ contract SampleERC721 is StrictERC721H {
     uint224 tokenId,
     string calldata URI
   ) external onlyHolographer onlyOwner {
-    ERC721Holograph H721 = ERC721Holograph(holographer());
+    HolographERC721Interface H721 = HolographERC721Interface(holographer());
     if (tokenId == 0) {
       _currentTokenId += 1;
       while (H721.exists(uint256(_currentTokenId)) || H721.burned(uint256(_currentTokenId))) {

@@ -31,7 +31,7 @@ import {
   HolographRegistry,
   HolographRegistryProxy,
   HToken,
-  Interfaces,
+  HolographInterfaces,
   MockERC721Receiver,
   Owner,
   PA1D,
@@ -269,7 +269,7 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
       it('should emit Transfer event for ' + totalTokens + ' ' + tokenSymbol + ' tokens', async function () {
         await expect(SAMPLEERC20.mint(l1.deployer.address, tokensWei))
           .to.emit(ERC20, 'Transfer')
-          .withArgs(zeroAddress(), l1.deployer.address, tokensWei);
+          .withArgs(zeroAddress, l1.deployer.address, tokensWei);
       });
 
       it('should have a total supply of ' + totalTokens + ' ' + tokenSymbol + ' tokens', async function () {
@@ -285,7 +285,7 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
   describe('Test ERC20', async function () {
     describe('token approvals', async function () {
       it('should fail when approving a zero address', async function () {
-        await expect(ERC20.approve(zeroAddress(), maxValue)).to.be.revertedWith('ERC20: spender is zero address');
+        await expect(ERC20.approve(zeroAddress, maxValue)).to.be.revertedWith('ERC20: spender is zero address');
       });
 
       it('should succeed when approving valid address', async function () {
@@ -339,11 +339,11 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
       });
 
       it('should fail if sending to zero address', async function () {
-        await expect(ERC20.transfer(zeroAddress(), tokensWei)).to.be.revertedWith('ERC20: recipient is zero address');
+        await expect(ERC20.transfer(zeroAddress, tokensWei)).to.be.revertedWith('ERC20: recipient is zero address');
       });
 
       it('should fail if sending from zero address', async function () {
-        await expect(ERC20.transferFrom(zeroAddress(), l1.wallet1.address, tokensWei)).to.be.revertedWith(
+        await expect(ERC20.transferFrom(zeroAddress, l1.wallet1.address, tokensWei)).to.be.revertedWith(
           'ERC20: amount exceeds allowance'
         );
       });
@@ -608,7 +608,7 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
     it('should succeed burning current balance', async function () {
       await expect(ERC20.burn(tokensWei))
         .to.emit(ERC20, 'Transfer')
-        .withArgs(l1.deployer.address, zeroAddress(), tokensWei);
+        .withArgs(l1.deployer.address, zeroAddress, tokensWei);
 
       expect(await ERC20.totalSupply()).to.equal(0);
     });
@@ -616,7 +616,7 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
     it('should fail burning via not approved spender', async function () {
       await expect(SAMPLEERC20.mint(l1.deployer.address, tokensWei))
         .to.emit(ERC20, 'Transfer')
-        .withArgs(zeroAddress(), l1.deployer.address, tokensWei);
+        .withArgs(zeroAddress, l1.deployer.address, tokensWei);
 
       expect(await ERC20.totalSupply()).to.equal(tokensWei);
 
@@ -632,7 +632,7 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
 
       await expect(ERC20.connect(l1.wallet1).burnFrom(l1.deployer.address, tokensWei))
         .to.emit(ERC20, 'Transfer')
-        .withArgs(l1.deployer.address, zeroAddress(), tokensWei);
+        .withArgs(l1.deployer.address, zeroAddress, tokensWei);
 
       expect(await ERC20.totalSupply()).to.equal(0);
     });

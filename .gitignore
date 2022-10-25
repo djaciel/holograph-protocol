@@ -1,23 +1,9 @@
-build
-data
-db
-db2
 node_modules
-custom_modules
-old_code
 .env
-.env.*
-.mnemonic
-keys.json
-keys2.json
-
 .npmrc
 
 .idea
 .DS_Store
-
-.original.env
-.original.mnemonic
 
 # ignore any file by prepending "ignore." to it
 ignore.*
@@ -26,13 +12,12 @@ dist
 cache
 ganache
 artifacts
-typechain
 typechain-types
 
 coverage
 coverage.json
 
-# temp addition, while migrating to hardhat testing
-old_test
+gasReport.txt
 
 editor.bbprojectd
+yarn-error.log

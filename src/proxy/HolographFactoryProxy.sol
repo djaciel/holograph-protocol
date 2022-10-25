@@ -5,38 +5,39 @@
 import "../abstract/Admin.sol";
 import "../abstract/Initializable.sol";
 
-import "../interface/IInitializable.sol";
+import "../interface/InitializableInterface.sol";
 
 contract HolographFactoryProxy is Admin, Initializable {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.factory')) - 1)
+   */
+  bytes32 constant _factorySlot = precomputeslot("eip1967.Holograph.factory");
+
   constructor() {}
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (address factory, bytes memory initCode) = abi.decode(data, (address, bytes));
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.factory"), factory)
-      sstore(precomputeslot("eip1967.Holograph.Bridge.admin"), origin())
+      sstore(_adminSlot, origin())
+      sstore(_factorySlot, factory)
     }
     (bool success, bytes memory returnData) = factory.delegatecall(abi.encodeWithSignature("init(bytes)", initCode));
     bytes4 selector = abi.decode(returnData, (bytes4));
-    require(success && selector == IInitializable.init.selector, "initialization failed");
+    require(success && selector == InitializableInterface.init.selector, "initialization failed");
     _setInitialized();
-    return IInitializable.init.selector;
+    return InitializableInterface.init.selector;
   }
 
   function getFactory() external view returns (address factory) {
-    // The slot hash has been precomputed for gas optimization
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.factory')) - 1);
     assembly {
-      factory := sload(precomputeslot("eip1967.Holograph.Bridge.factory"))
+      factory := sload(_factorySlot)
     }
   }
 
   function setFactory(address factory) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimization
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.factory')) - 1);
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.factory"), factory)
+      sstore(_factorySlot, factory)
     }
   }
 
@@ -44,7 +45,7 @@ contract HolographFactoryProxy is Admin, Initializable {
 
   fallback() external payable {
     assembly {
-      let factory := sload(precomputeslot("eip1967.Holograph.Bridge.factory"))
+      let factory := sload(_factorySlot)
       calldatacopy(0, 0, calldatasize())
       let result := delegatecall(gas(), factory, 0, calldatasize(), 0, 0)
       returndatacopy(0, 0, returndatasize())

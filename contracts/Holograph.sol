@@ -104,167 +104,283 @@ pragma solidity 0.8.13;
 import "./abstract/Admin.sol";
 import "./abstract/Initializable.sol";
 
-import "./interface/IInitializable.sol";
-import "./interface/IHolograph.sol";
+import "./interface/InitializableInterface.sol";
+import "./interface/HolographInterface.sol";
 
-contract Holograph is Admin, Initializable, IHolograph {
+/**
+ * @title Holograph Protocol
+ * @author https://github.com/holographxyz
+ * @notice This is the primary Holograph Protocol smart contract
+ * @dev This contract stores a reference to all the primary modules and variables of the protocol
+ */
+contract Holograph is Admin, Initializable, HolographInterface {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.bridge')) - 1)
+   */
+  bytes32 constant _bridgeSlot = 0xeb87cbb21687feb327e3d58c6c16d552231d12c7a0e8115042a4165fac8a77f9;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.chainId')) - 1)
+   */
+  bytes32 constant _chainIdSlot = 0x7651bfc11f7485d07ab2b41c1312e2007c8cb7efb0f7352a6dee4a1153eebab2;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.factory')) - 1)
+   */
+  bytes32 constant _factorySlot = 0xa49f20855ba576e09d13c8041c8039fa655356ea27f6c40f1ec46a4301cd5b23;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.holographChainId')) - 1)
+   */
+  bytes32 constant _holographChainIdSlot = 0xd840a780c26e07edc6e1ee2eaa6f134ed5488dbd762614116653cee8542a3844;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.interfaces')) - 1)
+   */
+  bytes32 constant _interfacesSlot = 0xbd3084b8c09da87ad159c247a60e209784196be2530cecbbd8f337fdd1848827;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.operator')) - 1)
+   */
+  bytes32 constant _operatorSlot = 0x7caba557ad34138fa3b7e43fb574e0e6cc10481c3073e0dffbc560db81b5c60f;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.registry')) - 1)
+   */
+  bytes32 constant _registrySlot = 0xce8e75d5c5227ce29a4ee170160bb296e5dea6934b80a9bd723f7ef1e7c850e7;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.treasury')) - 1)
+   */
+  bytes32 constant _treasurySlot = 0x4215e7a38d75164ca078bbd61d0992cdeb1ba16f3b3ead5944966d3e4080e8b6;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.utilityToken')) - 1)
+   */
+  bytes32 constant _utilityTokenSlot = 0xbf76518d46db472b71aa7677a0908b8016f3dee568415ffa24055f9a670f9c37;
+
+  /**
+   * @dev Constructor is left empty and init is used instead
+   */
   constructor() {}
 
-  function init(bytes memory data) external override returns (bytes4) {
+  /**
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract
+   * @param initPayload abi encoded payload to use for contract initilaization
+   */
+  function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (
-      uint32 chainType,
+      uint32 holographChainId,
       address bridge,
       address factory,
       address interfaces,
       address operator,
       address registry,
-      address treasury
-    ) = abi.decode(data, (uint32, address, address, address, address, address, address));
+      address treasury,
+      address utilityToken
+    ) = abi.decode(initPayload, (uint32, address, address, address, address, address, address, address));
     assembly {
-      sstore(0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, origin())
-
-      sstore(0xf659863303d91045cf6f5789ae687c591017a1efd53ebb2eec518fb10873ecb8, chainType)
-
-      sstore(0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f, bridge)
-      sstore(0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2, factory)
-      sstore(0x23e584d4fb363739321c1e56c9bcdc29517a4c57065f8502226c995fd15b2472, interfaces)
-      sstore(0x7bef7d8d97f57f9aa64de319c8598b5cdc7c3d2715fc02428415a98281ca6bdc, operator)
-      sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
-      sstore(0xc8f5846d0f0d68cef76d4d10d7d189845e41b44d1dbdc208ed0f8961f993af5f, treasury)
+      sstore(_adminSlot, origin())
+      sstore(_chainIdSlot, chainid())
+      sstore(_holographChainIdSlot, holographChainId)
+      sstore(_bridgeSlot, bridge)
+      sstore(_factorySlot, factory)
+      sstore(_interfacesSlot, interfaces)
+      sstore(_operatorSlot, operator)
+      sstore(_registrySlot, registry)
+      sstore(_treasurySlot, treasury)
+      sstore(_utilityTokenSlot, utilityToken)
     }
     _setInitialized();
-    return IInitializable.init.selector;
+    return InitializableInterface.init.selector;
   }
 
   /**
-   * @dev Returns an integer value of the chain type that the factory is currently on.
-   * @dev For example:
-   *                   1 = Ethereum mainnet
-   *                   2 = Binance Smart Chain mainnet
-   *                   3 = Avalanche mainnet
-   *                   4 = Polygon mainnet
-   *                   etc.
+   * @notice Get the address of the Holograph Bridge module
+   * @dev Used for beaming holographable assets cross-chain
    */
-  function getChainType() public view returns (uint32 chainType) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.chainType')) - 1);
-    assembly {
-      chainType := sload(0xf659863303d91045cf6f5789ae687c591017a1efd53ebb2eec518fb10873ecb8)
-    }
-  }
-
-  /**
-   * @dev Sets the chain type that the factory is currently on.
-   */
-  function setChainType(uint32 chainType) public onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.chainType')) - 1);
-    assembly {
-      sstore(0xf659863303d91045cf6f5789ae687c591017a1efd53ebb2eec518fb10873ecb8, chainType)
-    }
-  }
-
   function getBridge() external view returns (address bridge) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridge')) - 1);
     assembly {
-      bridge := sload(0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f)
+      bridge := sload(_bridgeSlot)
     }
   }
 
+  /**
+   * @notice Update the Holograph Bridge module address
+   * @param bridge address of the Holograph Bridge smart contract to use
+   */
   function setBridge(address bridge) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridge')) - 1);
     assembly {
-      sstore(0x03be85923973d3197c19b1ad1f9b28c331dd9229cd80cbf84926b2286fc4563f, bridge)
+      sstore(_bridgeSlot, bridge)
     }
   }
 
+  /**
+   * @notice Get the chain ID that the Protocol was deployed on
+   * @dev Useful for checking if/when a hard fork occurs
+   */
+  function getChainId() external view returns (uint256 chainId) {
+    assembly {
+      chainId := sload(_chainIdSlot)
+    }
+  }
+
+  /**
+   * @notice Update the chain ID
+   * @dev Useful for updating once a hard fork has been mitigated
+   * @param chainId EVM chain ID to use
+   */
+  function setChainId(uint256 chainId) external onlyAdmin {
+    assembly {
+      sstore(_chainIdSlot, chainId)
+    }
+  }
+
+  /**
+   * @notice Get the address of the Holograph Factory module
+   * @dev Used for deploying holographable smart contracts
+   */
   function getFactory() external view returns (address factory) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.factory')) - 1);
     assembly {
-      factory := sload(0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2)
+      factory := sload(_factorySlot)
     }
   }
 
+  /**
+   * @notice Update the Holograph Factory module address
+   * @param factory address of the Holograph Factory smart contract to use
+   */
   function setFactory(address factory) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.factory')) - 1);
     assembly {
-      sstore(0x7eefc8e705e14d34b5d1d6c3ea7f4e20cecb5956b182bac952a455d9372b87e2, factory)
+      sstore(_factorySlot, factory)
     }
   }
 
+  /**
+   * @notice Get the Holograph chain Id
+   * @dev Holograph uses an internal chain id mapping
+   */
+  function getHolographChainId() external view returns (uint32 holographChainId) {
+    assembly {
+      holographChainId := sload(_holographChainIdSlot)
+    }
+  }
+
+  /**
+   * @notice Update the Holograph chain ID
+   * @dev Useful for updating once a hard fork was mitigated
+   * @param holographChainId Holograph chain ID to use
+   */
+  function setHolographChainId(uint32 holographChainId) external onlyAdmin {
+    assembly {
+      sstore(_holographChainIdSlot, holographChainId)
+    }
+  }
+
+  /**
+   * @notice Get the address of the Holograph Interfaces module
+   * @dev Holograph uses this contract to store data that needs to be accessed by a large portion of the modules
+   */
   function getInterfaces() external view returns (address interfaces) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.interfaces')) - 1);
     assembly {
-      interfaces := sload(0x23e584d4fb363739321c1e56c9bcdc29517a4c57065f8502226c995fd15b2472)
+      interfaces := sload(_interfacesSlot)
     }
   }
 
+  /**
+   * @notice Update the Holograph Interfaces module address
+   * @param interfaces address of the Holograph Interfaces smart contract to use
+   */
   function setInterfaces(address interfaces) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.interfaces')) - 1);
     assembly {
-      sstore(0x23e584d4fb363739321c1e56c9bcdc29517a4c57065f8502226c995fd15b2472, interfaces)
+      sstore(_interfacesSlot, interfaces)
     }
   }
 
+  /**
+   * @notice Get the address of the Holograph Operator module
+   * @dev All cross-chain Holograph Bridge beams are handled by the Holograph Operator module
+   */
   function getOperator() external view returns (address operator) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.operator')) - 1);
     assembly {
-      operator := sload(0x7bef7d8d97f57f9aa64de319c8598b5cdc7c3d2715fc02428415a98281ca6bdc)
+      operator := sload(_operatorSlot)
     }
   }
 
+  /**
+   * @notice Update the Holograph Operator module address
+   * @param operator address of the Holograph Operator smart contract to use
+   */
   function setOperator(address operator) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.operator')) - 1);
     assembly {
-      sstore(0x7bef7d8d97f57f9aa64de319c8598b5cdc7c3d2715fc02428415a98281ca6bdc, operator)
+      sstore(_operatorSlot, operator)
     }
   }
 
+  /**
+   * @notice Get the Holograph Registry module
+   * @dev This module stores a reference for all deployed holographable smart contracts
+   */
   function getRegistry() external view returns (address registry) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
-      registry := sload(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349)
+      registry := sload(_registrySlot)
     }
   }
 
+  /**
+   * @notice Update the Holograph Registry module address
+   * @param registry address of the Holograph Registry smart contract to use
+   */
   function setRegistry(address registry) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.registry')) - 1);
     assembly {
-      sstore(0x460c4059d72b144253e5fc4e2aacbae2bcd6362c67862cd58ecbab0e7b10c349, registry)
+      sstore(_registrySlot, registry)
     }
   }
 
+  /**
+   * @notice Get the Holograph Treasury module
+   * @dev All of the Holograph Protocol assets are stored and managed by this module
+   */
   function getTreasury() external view returns (address treasury) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.treasury')) - 1);
     assembly {
-      treasury := sload(0xc8f5846d0f0d68cef76d4d10d7d189845e41b44d1dbdc208ed0f8961f993af5f)
+      treasury := sload(_treasurySlot)
     }
   }
 
+  /**
+   * @notice Update the Holograph Treasury module address
+   * @param treasury address of the Holograph Treasury smart contract to use
+   */
   function setTreasury(address treasury) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.treasury')) - 1);
     assembly {
-      sstore(0xc8f5846d0f0d68cef76d4d10d7d189845e41b44d1dbdc208ed0f8961f993af5f, treasury)
+      sstore(_treasurySlot, treasury)
     }
   }
 
+  /**
+   * @notice Get the Holograph Utility Token address
+   * @dev This is the official utility token of the Holograph Protocol
+   */
+  function getUtilityToken() external view returns (address utilityToken) {
+    assembly {
+      utilityToken := sload(_utilityTokenSlot)
+    }
+  }
+
+  /**
+   * @notice Update the Holograph Utility Token address
+   * @param utilityToken address of the Holograph Utility Token smart contract to use
+   */
+  function setUtilityToken(address utilityToken) external onlyAdmin {
+    assembly {
+      sstore(_utilityTokenSlot, utilityToken)
+    }
+  }
+
+  /**
+   * @dev Purposefully reverts to prevent having any type of ether transfered into the contract
+   */
   receive() external payable {
     revert();
   }
 
+  /**
+   * @dev Purposefully reverts to prevent any calls to undefined functions
+   */
   fallback() external payable {
     revert();
   }

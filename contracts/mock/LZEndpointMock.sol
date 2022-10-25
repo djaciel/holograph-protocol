@@ -101,8 +101,8 @@
 
 pragma solidity 0.8.13;
 
-import "../interface/ILayerZeroReceiver.sol";
-import "../interface/ILayerZeroEndpoint.sol";
+import "../interface/LayerZeroReceiverInterface.sol";
+import "../interface/LayerZeroEndpointInterface.sol";
 
 /**
 mocking multi endpoint connection.
@@ -111,7 +111,7 @@ mocking multi endpoint connection.
 if we run a ping-pong-like application, the recursive call might use all gas limit in the block.
 - not using any messaging library, hence all messaging library func, e.g. estimateFees, version, will not work
 */
-contract LZEndpointMock is ILayerZeroEndpoint {
+contract LZEndpointMock is LayerZeroEndpointInterface {
   mapping(address => address) public lzEndpointLookup;
 
   uint16 public mockChainId;
@@ -268,8 +268,8 @@ contract LZEndpointMock is ILayerZeroEndpoint {
       nextMsgBLocked = false;
     } else {
       // we ignore the gas limit because this call is made in one tx due to being "same chain"
-      // ILayerZeroReceiver(_dstAddress).lzReceive{gas: _gasLimit}(_srcChainId, _srcAddress, _nonce, _payload); // invoke lzReceive
-      ILayerZeroReceiver(_dstAddress).lzReceive(_srcChainId, _srcAddress, _nonce, _payload); // invoke lzReceive
+      // LayerZeroReceiverInterface(_dstAddress).lzReceive{gas: _gasLimit}(_srcChainId, _srcAddress, _nonce, _payload); // invoke lzReceive
+      LayerZeroReceiverInterface(_dstAddress).lzReceive(_srcChainId, _srcAddress, _nonce, _payload); // invoke lzReceive
     }
   }
 
@@ -367,7 +367,12 @@ contract LZEndpointMock is ILayerZeroEndpoint {
     // warning, might run into gas issues trying to forward through a bunch of queued msgs
     while (msgs.length > 0) {
       QueuedPayload memory payload = msgs[msgs.length - 1];
-      ILayerZeroReceiver(payload.dstAddress).lzReceive(_srcChainId, _srcAddress, payload.nonce, payload.payload);
+      LayerZeroReceiverInterface(payload.dstAddress).lzReceive(
+        _srcChainId,
+        _srcAddress,
+        payload.nonce,
+        payload.payload
+      );
       msgs.pop();
     }
   }
@@ -406,7 +411,7 @@ contract LZEndpointMock is ILayerZeroEndpoint {
 
     uint64 nonce = inboundNonce[_srcChainId][_srcAddress];
 
-    ILayerZeroReceiver(dstAddress).lzReceive(_srcChainId, _srcAddress, nonce, _payload);
+    LayerZeroReceiverInterface(dstAddress).lzReceive(_srcChainId, _srcAddress, nonce, _payload);
     emit PayloadCleared(_srcChainId, _srcAddress, nonce, dstAddress);
   }
 

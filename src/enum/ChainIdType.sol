@@ -7,7 +7,5 @@ enum ChainIdType {
   EVM, //        1
   HOLOGRAPH, //  2
   LAYERZERO, //  3
-  SYNAPSE, //    4
-  CONNECTX, //   5
-  ABACUS //      6
+  HYPERLANE //   4
 }

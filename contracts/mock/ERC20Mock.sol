@@ -106,7 +106,7 @@ import "../abstract/NonReentrant.sol";
 
 import "../interface/ERC20.sol";
 import "../interface/ERC20Burnable.sol";
-import "../interface/ERC20Holograph.sol";
+import "../interface/HolographERC20Interface.sol";
 import "../interface/ERC20Metadata.sol";
 import "../interface/ERC20Permit.sol";
 import "../interface/ERC20Receiver.sol";
@@ -114,7 +114,6 @@ import "../interface/ERC20Safer.sol";
 import "../interface/ERC165.sol";
 import "../interface/ERC165.sol";
 
-import "../library/Counters.sol";
 import "../library/ECDSA.sol";
 
 /**
@@ -134,8 +133,6 @@ contract ERC20Mock is
   NonReentrant,
   EIP712
 {
-  using Counters for Counters.Counter;
-
   bool private _works;
 
   /**
@@ -176,7 +173,7 @@ contract ERC20Mock is
   /**
    * @dev List of used up nonces. Used in the ERC20Permit interface functionality.
    */
-  mapping(address => Counters.Counter) private _nonces;
+  mapping(address => uint256) private _nonces;
 
   /**
    * @dev Constructor does not accept any parameters.
@@ -297,7 +294,7 @@ contract ERC20Mock is
   }
 
   function nonces(address account) public view returns (uint256) {
-    return _nonces[account].current();
+    return _nonces[account];
   }
 
   function symbol() public view returns (string memory) {
@@ -564,9 +561,8 @@ contract ERC20Mock is
    * _Available since v4.1._
    */
   function _useNonce(address account) internal returns (uint256 current) {
-    Counters.Counter storage nonce = _nonces[account];
-    current = nonce.current();
-    nonce.increment();
+    current = _nonces[account];
+    _nonces[account]++;
   }
 
   function _isContract(address contractAddress) private view returns (bool) {

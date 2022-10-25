@@ -30,7 +30,7 @@ import {
   HolographRegistry,
   HolographRegistryProxy,
   HToken,
-  Interfaces,
+  HolographInterfaces,
   MockERC721Receiver,
   Owner,
   PA1D,
@@ -292,7 +292,7 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
       it('should emit Transfer event for #' + firstNFT + ' ' + contractSymbol + ' NFT', async function () {
         await expect(SAMPLEERC721.mint(l1.deployer.address, firstNFT, tokenURIs[firstNFT]))
           .to.emit(ERC721, 'Transfer')
-          .withArgs(zeroAddress(), l1.deployer.address, firstNFT);
+          .withArgs(zeroAddress, l1.deployer.address, firstNFT);
       });
 
       it('should exist #' + firstNFT + ' ' + contractSymbol + ' NFT', async function () {
@@ -318,11 +318,11 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
       it('should emit Transfer event for #' + secondNFT + ' ' + contractSymbol + ' NFT', async function () {
         await expect(SAMPLEERC721.mint(l1.deployer.address, secondNFT, tokenURIs[secondNFT]))
           .to.emit(ERC721, 'Transfer')
-          .withArgs(zeroAddress(), l1.deployer.address, secondNFT);
+          .withArgs(zeroAddress, l1.deployer.address, secondNFT);
       });
 
       it('should fail minting to zero address', async function () {
-        await expect(SAMPLEERC721.mint(zeroAddress(), firstNFT, tokenURIs[firstNFT])).to.be.revertedWith(
+        await expect(SAMPLEERC721.mint(zeroAddress, firstNFT, tokenURIs[firstNFT])).to.be.revertedWith(
           'ERC721: minting to burn address'
         );
       });
@@ -336,11 +336,11 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
       it('should fail minting burned #' + thirdNFT + ' ' + contractSymbol + ' NFT', async function () {
         await expect(SAMPLEERC721.mint(l1.deployer.address, thirdNFT, tokenURIs[thirdNFT]))
           .to.emit(ERC721, 'Transfer')
-          .withArgs(zeroAddress(), l1.deployer.address, thirdNFT);
+          .withArgs(zeroAddress, l1.deployer.address, thirdNFT);
 
         await expect(ERC721.burn(thirdNFT))
           .to.emit(ERC721, 'Transfer')
-          .withArgs(l1.deployer.address, zeroAddress(), thirdNFT);
+          .withArgs(l1.deployer.address, zeroAddress, thirdNFT);
 
         await expect(SAMPLEERC721.mint(l1.deployer.address, thirdNFT, tokenURIs[thirdNFT])).to.be.revertedWith(
           "ERC721: can't mint burned token"
@@ -400,7 +400,7 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
   describe('Test ERC721', async function () {
     describe('approvals', async function () {
       it('should return no approval for #' + firstNFT + ' ' + contractSymbol + ' NFT', async function () {
-        expect(await ERC721.getApproved(firstNFT)).to.equal(zeroAddress());
+        expect(await ERC721.getApproved(firstNFT)).to.equal(zeroAddress);
       });
 
       it('should succeed when approving wallet1 for #' + firstNFT + ' ' + contractSymbol + ' NFT', async function () {
@@ -416,14 +416,14 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
       it(
         'should succeed when unsetting approved address for #' + firstNFT + ' ' + contractSymbol + ' NFT',
         async function () {
-          await expect(ERC721.approve(zeroAddress(), firstNFT))
+          await expect(ERC721.approve(zeroAddress, firstNFT))
             .to.emit(ERC721, 'Approval')
-            .withArgs(l1.deployer.address, zeroAddress(), firstNFT);
+            .withArgs(l1.deployer.address, zeroAddress, firstNFT);
         }
       );
 
       it('should return no approval for #' + firstNFT + ' ' + contractSymbol + ' NFT', async function () {
-        expect(await ERC721.getApproved(firstNFT)).to.equal(zeroAddress());
+        expect(await ERC721.getApproved(firstNFT)).to.equal(zeroAddress);
       });
 
       it('should clear approval on transfer for #' + firstNFT + ' ' + contractSymbol + ' NFT', async function () {
@@ -437,7 +437,7 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
           .to.emit(ERC721, 'Transfer')
           .withArgs(l1.deployer.address, l1.wallet2.address, firstNFT);
 
-        expect(await ERC721.getApproved(firstNFT)).to.equal(zeroAddress());
+        expect(await ERC721.getApproved(firstNFT)).to.equal(zeroAddress);
 
         await expect(ERC721.connect(l1.wallet2).transfer(l1.deployer.address, firstNFT))
           .to.emit(ERC721, 'Transfer')
@@ -477,12 +477,12 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
       });
 
       it('should fail if transferring to zero address', async function () {
-        await expect(ERC721.transfer(zeroAddress(), firstNFT)).to.be.revertedWith('ERC721: use burn instead');
+        await expect(ERC721.transfer(zeroAddress, firstNFT)).to.be.revertedWith('ERC721: use burn instead');
       });
 
       it('should fail if transferring from zero address', async function () {
         await expect(
-          ERC721['transferFrom(address,address,uint256)'](zeroAddress(), l1.wallet1.address, firstNFT)
+          ERC721['transferFrom(address,address,uint256)'](zeroAddress, l1.wallet1.address, firstNFT)
         ).to.be.revertedWith('ERC721: token not owned');
       });
 
@@ -513,9 +513,9 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
           )
         ).to.be.revertedWith('ERC721: not approved sender');
 
-        await expect(ERC721.approve(zeroAddress(), secondNFT))
+        await expect(ERC721.approve(zeroAddress, secondNFT))
           .to.emit(ERC721, 'Approval')
-          .withArgs(l1.deployer.address, zeroAddress(), secondNFT);
+          .withArgs(l1.deployer.address, zeroAddress, secondNFT);
       });
 
       it('should fail safe transfer for broken "ERC721TokenReceiver"', async function () {
@@ -621,7 +621,7 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
 
         expect(await ERC721.ownerOf(firstNFT)).to.equal(l1.wallet2.address);
 
-        expect(await ERC721.getApproved(firstNFT)).to.equal(zeroAddress());
+        expect(await ERC721.getApproved(firstNFT)).to.equal(zeroAddress);
 
         await expect(ERC721.connect(l1.wallet2).transfer(l1.deployer.address, firstNFT))
           .to.emit(ERC721, 'Transfer')
@@ -643,9 +643,9 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
             .to.emit(ERC721, 'ApprovalForAll')
             .withArgs(l1.deployer.address, l1.wallet1.address, true);
 
-          expect(await ERC721.getApproved(firstNFT)).to.equal(zeroAddress());
+          expect(await ERC721.getApproved(firstNFT)).to.equal(zeroAddress);
 
-          expect(await ERC721.getApproved(secondNFT)).to.equal(zeroAddress());
+          expect(await ERC721.getApproved(secondNFT)).to.equal(zeroAddress);
 
           expect(await ERC721.isApprovedForAll(l1.deployer.address, l1.wallet1.address)).to.be.true;
 
@@ -706,15 +706,15 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
       it('should mint sample NFTs for burn tests', async function () {
         await expect(SAMPLEERC721.mint(l1.deployer.address, 0, ''))
           .to.emit(ERC721, 'Transfer')
-          .withArgs(zeroAddress(), l1.deployer.address, firstNFT);
+          .withArgs(zeroAddress, l1.deployer.address, firstNFT);
 
         await expect(SAMPLEERC721.mint(l1.deployer.address, 0, ''))
           .to.emit(ERC721, 'Transfer')
-          .withArgs(zeroAddress(), l1.deployer.address, secondNFT);
+          .withArgs(zeroAddress, l1.deployer.address, secondNFT);
 
         await expect(SAMPLEERC721.mint(l1.deployer.address, 0, ''))
           .to.emit(ERC721, 'Transfer')
-          .withArgs(zeroAddress(), l1.deployer.address, thirdNFT);
+          .withArgs(zeroAddress, l1.deployer.address, thirdNFT);
       });
     });
 
@@ -736,7 +736,7 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
 
         await expect(ERC721.burn(firstNFT))
           .to.emit(ERC721, 'Transfer')
-          .withArgs(l1.deployer.address, zeroAddress(), firstNFT);
+          .withArgs(l1.deployer.address, zeroAddress, firstNFT);
 
         expect(await ERC721.burned(firstNFT)).to.be.true;
       });
@@ -754,7 +754,7 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
 
         await expect(ERC721.connect(l1.wallet1).burn(secondNFT))
           .to.emit(ERC721, 'Transfer')
-          .withArgs(l1.deployer.address, zeroAddress(), secondNFT);
+          .withArgs(l1.deployer.address, zeroAddress, secondNFT);
 
         expect(await ERC721.burned(secondNFT)).to.be.true;
       });
@@ -762,7 +762,7 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
       it('operator should succeed burning #' + thirdNFT + ' ' + contractSymbol + ' NFT', async function () {
         expect(await ERC721.burned(thirdNFT)).to.be.false;
 
-        expect(await ERC721.getApproved(thirdNFT)).to.equal(zeroAddress());
+        expect(await ERC721.getApproved(thirdNFT)).to.equal(zeroAddress);
 
         expect(await ERC721.isApprovedForAll(l1.deployer.address, l1.wallet1.address)).to.be.false;
 
@@ -770,13 +770,13 @@ describe('Testing the Holograph ERC721 Enforcer (L1)', async function () {
           .to.emit(ERC721, 'ApprovalForAll')
           .withArgs(l1.deployer.address, l1.wallet1.address, true);
 
-        expect(await ERC721.getApproved(thirdNFT)).to.equal(zeroAddress());
+        expect(await ERC721.getApproved(thirdNFT)).to.equal(zeroAddress);
 
         expect(await ERC721.isApprovedForAll(l1.deployer.address, l1.wallet1.address)).to.be.true;
 
         await expect(ERC721.connect(l1.wallet1).burn(thirdNFT))
           .to.emit(ERC721, 'Transfer')
-          .withArgs(l1.deployer.address, zeroAddress(), thirdNFT);
+          .withArgs(l1.deployer.address, zeroAddress, thirdNFT);
 
         expect(await ERC721.burned(thirdNFT)).to.be.true;
 
