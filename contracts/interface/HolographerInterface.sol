@@ -102,8 +102,7 @@
 pragma solidity 0.8.13;
 
 interface HolographerInterface {
-  //  // this is temporarily disabled for testnets, to not lose previous versions of Holographer contracts
-  //  function getContractType() external view returns (bytes32 contractType);
+  function getContractType() external view returns (bytes32 contractType);
 
   function getDeploymentBlock() external view returns (address holograph);
 
