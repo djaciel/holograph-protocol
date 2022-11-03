@@ -104,38 +104,39 @@ pragma solidity 0.8.13;
 import "../abstract/Admin.sol";
 import "../abstract/Initializable.sol";
 
-import "../interface/IInitializable.sol";
+import "../interface/InitializableInterface.sol";
 
 contract HolographTreasuryProxy is Admin, Initializable {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.treasury')) - 1)
+   */
+  bytes32 constant _treasurySlot = 0x4215e7a38d75164ca078bbd61d0992cdeb1ba16f3b3ead5944966d3e4080e8b6;
+
   constructor() {}
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (address treasury, bytes memory initCode) = abi.decode(data, (address, bytes));
     assembly {
-      sstore(0xc8f5846d0f0d68cef76d4d10d7d189845e41b44d1dbdc208ed0f8961f993af5f, treasury)
-      sstore(0x5705f5753aa4f617eef2cae1dada3d3355e9387b04d19191f09b545e684ca50d, origin())
+      sstore(_adminSlot, origin())
+      sstore(_treasurySlot, treasury)
     }
     (bool success, bytes memory returnData) = treasury.delegatecall(abi.encodeWithSignature("init(bytes)", initCode));
     bytes4 selector = abi.decode(returnData, (bytes4));
-    require(success && selector == IInitializable.init.selector, "initialization failed");
+    require(success && selector == InitializableInterface.init.selector, "initialization failed");
     _setInitialized();
-    return IInitializable.init.selector;
+    return InitializableInterface.init.selector;
   }
 
   function getTreasury() external view returns (address treasury) {
-    // The slot hash has been precomputed for gas optimization
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.treasury')) - 1);
     assembly {
-      treasury := sload(0xc8f5846d0f0d68cef76d4d10d7d189845e41b44d1dbdc208ed0f8961f993af5f)
+      treasury := sload(_treasurySlot)
     }
   }
 
   function setTreasury(address treasury) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimization
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.treasury')) - 1);
     assembly {
-      sstore(0xc8f5846d0f0d68cef76d4d10d7d189845e41b44d1dbdc208ed0f8961f993af5f, treasury)
+      sstore(_treasurySlot, treasury)
     }
   }
 
@@ -143,7 +144,7 @@ contract HolographTreasuryProxy is Admin, Initializable {
 
   fallback() external payable {
     assembly {
-      let treasury := sload(0xc8f5846d0f0d68cef76d4d10d7d189845e41b44d1dbdc208ed0f8961f993af5f)
+      let treasury := sload(_treasurySlot)
       calldatacopy(0, 0, calldatasize())
       let result := delegatecall(gas(), treasury, 0, calldatasize(), 0, 0)
       returndatacopy(0, 0, returndatasize())

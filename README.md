@@ -20,7 +20,7 @@
 
 ## Description
 
-Holograph provides omnichain NFT infrastructure for the web3 ecosystem. Holograph Protocol enables the creation, deployment, minting, & bridging of omnichain NFTs with complete data integrity.
+Holograph provides omnichain NFT infrastructure for the web3 ecosystem. Holograph Protocol enables the creation, deployment, minting, and bridging of omnichain NFTs with complete data integrity.
 
 ## Specification
 
@@ -30,13 +30,13 @@ Please reference the [documentation](https://docs.holograph.xyz/holograph-protoc
 
 ### Core
 
-#### HolographGenesis
+#### HolographGenesis.sol
 
 Genesis will be deployed on all blockchains that run and support Holograph Protocol. All main components will be deployed via Genesis. Future blockchains will have a Genesis deployment as well.
 
-#### HolographFactory
+#### HolographFactory.sol
 
-Factory enables developers to submit a signed version of the following elements to deploy a “Holographed” smart contract on the blockchain:
+Factory enables developers to submit a signed version of the following elements to deploy a _Holographed_ smart contract on the blockchain:
 
 - primary deployment chain
 - token type (ERC-20, ERC-721, etc.)
@@ -44,7 +44,7 @@ Factory enables developers to submit a signed version of the following elements 
 - custom smart contract bytecode
 - custom initialization code
 
-Any additional blockchains that developers want to support can have the same signed data submitted to Factory, allowing for the creation of an identical “Holographed” contract.
+Any additional blockchains that developers want to support can have the same signed data submitted to Factory, allowing for the creation of an identical _Holographed_ contract.
 The primary job of Factory is to:
 
 - allow propagation of exact data across all blockchains
@@ -52,19 +52,19 @@ The primary job of Factory is to:
 - ensure all deployments succeed and work as expected
 - ensure that security is enforced and impenetrable
 
-#### HolographRegistry
+#### HolographRegistry.sol
 
-Registry is a central on-chain location where all Holograph data is stored. Registry keeps a record of all currently supported standards. New standards can be introduced and enabled as well. Any properly deployed Holographed contracts are also stored as reference. This allows for a definitive way to identify whether a smart contract is secure and properly Holographed. Verifying entities will be able to identify a Holographed contract to ensure the highest level of security and standards.
+Registry is a central on-chain location where all Holograph data is stored. Registry keeps a record of all currently supported standards. New standards can be introduced and enabled as well. Any properly deployed _Holographed_ contracts are also stored as reference. This allows for a definitive way to identify whether a smart contract is secure and properly _Holographed_. Verifying entities will be able to identify a _Holographed_ contract to ensure the highest level of security and standards.
 
-#### HolographBridge
+#### HolographBridge.sol
 
-Bridge is a universal smart contract that functions as the primary entry and exit point for any Holographed tokens to and from all supported blockchains. Bridge validates and ensures integrity and standard enforcement for every Bridge-In and Bridge-Out request. Additionally, Bridge implements a universal standard for sending tokens across blockchains by abstracting away complexities into sub-modules that remove the burden of management for developers. This allows for simple one-click/one-transaction native gas token payment-based interactions for all bridge requests.
+This contract contains the code responsible for all the bridge-out and bridge-in logic required to enable bridging. Bridge is a universal smart contract that functions as the primary entry and exit point for any _Holographed_ tokens to and from all supported blockchains. Bridge validates and ensures integrity and standard enforcement for every Bridge-In and Bridge-Out request. Additionally, Bridge implements a universal standard for sending tokens across blockchains by abstracting away complexities into sub-modules that remove the burden of management for developers. This allows for simple one-click/one-transaction native gas token payment-based interactions for all bridge requests.
 
-#### HolographOperator
+#### HolographOperator.sol
 
 Operator's primary job is to know the messaging protocols that are utilized by the Holograph protocol for all cross-chain messages, and to ensure the authenticity and validity of all requests being submitted. Operator ensures that only valid bridge requests are sent/received and allowed to be executed inside of the protocol.
 
-#### Holograph
+#### Holograph.sol
 
 Holograph is the primary entry-point for all users and developers. A single, universal address across all blockchains will enable developers an easy way to interact with the protocol’s features. Holograph keeps references for all current Registry, Factory, and Bridge implementations. Furthermore, it allows for single interface management of the underlying Holograph Protocol.
 Holograph provides a reference to the name and ID of all supported blockchains. Additionally, it:
@@ -74,19 +74,19 @@ Holograph provides a reference to the name and ID of all supported blockchains. 
 
 ### Standards Enforcers
 
-#### Holographer
+#### Holographer.sol
 
-Holographer exists at the core of all Holographed smart contracts, which is applied whenever a Holographed smart contract is deployed. Holographer pieces together all components and routes all inbound function calls to their proper smart contracts, ensuring security and the enforcement of specified standards. Holographer is isolated on its own private layer and is essentially hard-coded into the blockchain.
+Holographer exists at the core of all _Holographed_ smart contracts, which is applied whenever a _Holographed_ smart contract is deployed. Holographer pieces together all components and routes all inbound function calls to their proper smart contracts, ensuring security and the enforcement of specified standards. Holographer is isolated on its own private layer and is essentially hard-coded into the blockchain.
 
-#### Enforcer
+#### Enforcer.sol
 
 Enforcer enables and ensures complete standards, compliance, and operability for a given standard type. HolographERC20 and HolographERC721 are perfect examples of such Enforcers. Enforcers store and manage all data within themselves to ensure security, compliance, integrity, and enforcement of all protocols. Communication is established with custom contracts via specific event hooks. The storage/data layer is isolated privately and not directly accessible by custom contracts.
 
-#### PA1D
+#### PA1D.sol
 
 PA1D is an on-chain royalties contract for non-fungible token types. It supports a universal module that understands and speaks all of the different royalty standards on the blockchain. PA1D is built to be extendable and can have new royalty standards implemented as they are created and agreed upon.
 
-#### Interfaces
+#### Interfaces.sol
 
 The Interfaces contract is used to store and share standardized data. It acts as an external library contract. This allows all the Holograph protocol smart contracts to reference a single instance of data and code.
 
@@ -94,35 +94,117 @@ The Interfaces contract is used to store and share standardized data. It acts as
 
 #### Custom Contract
 
-Custom contract is any type of smart contract that was developed outside of Holograph Protocol, and is used to create a Holographed contract. This empowers developers to build their projects however they want. The requirements for enabling a custom contract to be Holograph-able are minimal, and allow for even novice-level developers to implement. Any current and future fungible and non-fungible token type contracts can easily be made Holograph-able.
+Custom contract is any type of smart contract that was developed outside of Holograph Protocol, and is used to create a _Holographed_ contract. This empowers developers to build their projects however they want. The requirements for enabling a custom contract to be Holograph-able are minimal, and allow for even novice-level developers to implement. Any current and future fungible and non-fungible token type contracts can easily be made Holograph-able.
+
+## Important Flows
+
+### Bridging NFTs
+
+To bridge NFTs, a _Holographed_ contract must be deployed and NFTs minted from the contract. Doing so will ensure that the contract address and token IDs remain the same on all deployed blockchains.
+
+### Estimating Gas
+
+TBD
+
+### Bridging Out
+
+The simplified code path for bridging out is:
+
+1. `HolographBridge.sol` - `bridgeOutRequest` method
+2. `HolographRegistery.sol` - `_isHolographedContract` method
+3. `enforcer/HolographERC721.sol` - `_bridgeOut` method [This is the Collection Contract]
+4. `HolographOperator.sol` - `send` method
+5. `Holograph/LayerZeroModule.sol` - `send` method
+
+At step 1, a user submits their bridge request with a valid payload using the estimatedGas value computed in the previous [Estimate Gas](#estimategas) section
+
+At step 2, the code checks that the contract is a _holographable_ contract. This means it has implemented the required functions for a _Holographed_ contract. See `contracts/enforcer/HolographERC721.sol` for an example.
+
+At step 3, we call the `_bridgeOut` function on the _Holographed_ contract and apply various checks and generate a payload with information about the bridge request.
+
+At step 4, we call the `send` method on the `HolographOperator.sol` contract. This method does some final packaging of the payload that will be sent to the messaging layer.
+
+At step 5, we finally call the `send` method to the messaging layer contract `/module/LayerZeroModule.sol`. At this point the NFT has left the source chain.
+
+### Bridging In
+
+The simplified code path for bridging in is:
+
+1. `module/LayerZeroModule.sol` - `lzReceive` method
+2. `HolographOperator.sol` - `crossChainMessage` method
+3. `HolographOperator.sol` - Emits event `AvailableOperatorJob(jobHash, bridgeInRequestPayload);`
+
+At step 1, the configured messaging layer calls the method `lzReceive` in `module/LayerZeroModule.sol`. We do some checks to make sure only LayerZero call this method.
+
+At step 2, we call `crossChainMessage` on the `HolographOperator.sol` contract. We encode the job, select a primary operator, and 5 substitute operators.
+
+At step 3, the contract will emit a job event. This job event is being observed by our CLI that will then finalize a job. Only users who are in a pod are allowed to finalize jobs.
+
+### Operating
+
+Operators execute destination chain bridge transaction. Operators must run the CLI, bond the protocol’s native token, and execute transactions. The probability of getting selected to perform this work is based on the number of tokens bonded.
+
+### Bonding tokens
+
+There is a testnet faucet available for getting testnet tokens. These are the tokens you need to be able to bond to a pod and operate. Currently deployed Faucet address can be found in the `deployments` dir. Choose the environment/branch, network, and the file will be `Faucet.json`.
+
+### Joining Pods
+
+To become an operator, you must view the pods available to join, select a pod, and bond at least the minimum bond requirement.
+
+1. `HolographOperator.sol` - `getTotalPods`
+2. `HolographOperator.sol` - `getPodBondAmounts`
+3. `HolographOperator.sol` - `bondUtilityToken`
+
+At step 1, you call `getTotalPods` method to get a list of available pods. If the length of pod is zero, then you can bond into pod `1`.
+
+At step 2, when you call `getPodBondAmounts`, you will get two values: [`_base`, `current`]. The `base` value represents the original minimum bond requirement to join the pod, while the `current` value is the current amount you must provide to join the pod. Please refer to here [TODO - ADD LINK] for more info.
+
+At step 3, you are now able to call the `bondUtilityToken` function with the pod and amounts you want to use to enter the pod. Please note, there is a minimum bond requirement to join but no maximum.
+
+You are now an 0perator. We will launch a CLI in the future that will process jobs on your behalf.
+
+### Leaving Pods
+
+To leave a pod, you have to call the `unbondUtilityToken` in `HolographOperator.sol`.
+
+### Processing Jobs
+
+You must join a pod to become an Oper ator. The simplified code path for operating is:
+
+1. Receive new Block from the network
+2. Iterate over block looking for event `AvailableOperatorJob(jobHash, bridgeInRequestPayload);`
+3. `HolographOperator.sol` - `getJobDetails` method
+4. `HolographOperator.sol` - `jobEstimator` method
+5. `HolographOperator.sol` - `executeJob` method
+
+At step 1, the CLI connected via websocket receives notification that new block was mined.
+
+At step 2, the CLI makes a request for the full block information. It then iterates over transactions, looking for the `AvailableOperatorJob` event.
+
+At step 3, the CLI then calls `getJobDetails` in `HolographOperator.sol`. This checks if the current wallet user is the selected operator or a backup operator. If it is the selected operator, then it will continue. Otherwise, the job is kept in memory for a short time and reviewed again in the future to check the job status.
+
+At step 4, the CLI will estimate the cost of executing the job. This is used to make sure the transaction sent has enough gas to complete.
+
+At step 5, the wallet sends a transaction to the `exectureJob` method on the `HolographOperator.sol` contract. In here, further checks are done to validate the job and user's wallet. After this transaction is mined on the blockchain, the NFT will become finalized and available on the new blockchain.
 
 ## Development
 
-### Getting started
+### Getting Started
 
 1. This project uses [asdf](https://asdf-vm.com/) for versions management. Install following plugins
    - Install [asdf Node plugin](https://github.com/asdf-vm/asdf-nodejs): `asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git`
    - Install [asdf yarn plugin](https://github.com/twuni/asdf-yarn): `asdf plugin-add yarn`
 1. Run `asdf install` after to have the correct tool versions.
 1. Install dependencies with `yarn install`.
-1. Initialize the project with `yarn run init` _(this will copy sample environment configs)_.
+
+   _"This project uses environment variables that are stored in `.env`"_
 
 ### Building
 
-All smart contracts source code is located in the `src` directory.
+When the project is built, the code in the `src` folder gets written to the `contracts` folder. The files in the `contracts` folder are the "real" files that are used for testing and code verification on all the scanners.
 
-Files from the `src` directory are automatically transpiled into the `contracts` directory each time that **hardhat** compiles the contracts.
-
-To manually run just the build task use `yarn run build`.
-
-### Compiling, Testing, and Deploying (Locally)
-
-1. Build the latest version of the contracts via `yarn run clean-compile` _(alternatively you can just run `yarn run compile`)_.
-2. Start the localhost ganache instances via `yarn run ganache-x2` _(this will run two instances simultaneously inside of one command)_. **_Make sure to run this command in a separate terminal window._**
-3. Deploy the smart contracts via `yarn run deploy`.
-4. Run all tests via `yarn run test`.
-
-_If you need the smart contracts ABI files for dApp integrations, use `yarn run abi` to get a complete list of all ABI's inside of the `abi` directory._
+Again, files from the `src` directory are automatically transpiled into the `contracts` directory each time that **hardhat** compiles the contracts.
 
 ### Making Changes
 
@@ -148,12 +230,13 @@ root
 
 ### Active Branches
 
-| Branch                                                                     | Status                                                                             |
-| -------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| [mainnet](https://github.com/holographxyz/holograph-protocol/tree/mainnet) | Accepts PRs from `testnet` or `release/x.x.x` when we intend to deploy to mainnet. |
-| [testnet](https://github.com/holographxyz/holograph-protocol/tree/testnet) | Accepts PRs from `develop` that are ready to be deployed to testnet.               |
-| [develop](https://github.com/holographxyz/holograph-protocol/tree/develop) | Accepts PRs from `feature/xyz` branches that are experimental or in testing stage. |
-| release/x.x.x                                                              | Accepts PRs from `testnet`.                                                        |
+| Branch                                                                               | Status                                                                             |
+| ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------- |
+| [mainnet](https://github.com/holographxyz/holograph-protocol/tree/mainnet)           | Accepts PRs from `testnet` or `release/x.x.x` when we intend to deploy to mainnet. |
+| [testnet](https://github.com/holographxyz/holograph-protocol/tree/testnet)           | Accepts PRs from `develop` that are ready to be deployed to testnet.               |
+| [develop](https://github.com/holographxyz/holograph-protocol/tree/develop)           | Accepts PRs from `feature/xyz` branches that are experimental or in testing stage. |
+| [experimental](https://github.com/holographxyz/holograph-protocol/tree/experimental) | Accepts PRs from any branches.                                                     |
+| release/x.x.x                                                                        | Accepts PRs from `testnet`.                                                        |
 
 ### Overview
 
@@ -173,8 +256,13 @@ The `testnet` branch continas the code that is the latest stable testnet release
 
 ### The `develop` branch
 
-Our primary development branch is [`develop`](https://github.com/holographxyz/holograph-protocol/tree/testnet).
+Our primary development branch is [`develop`](https://github.com/holographxyz/holograph-protocol/tree/develo).
 `develop` contains the most up-to-date software that is being tested via experimental network deployments.
+
+### The `experimental` branch
+
+Our primary experimentation branch is [`experimental`](https://github.com/holographxyz/holograph-protocol/tree/experimental).
+`experimental` contains the software that is not stable and is trying out new code.
 
 ## Contributing
 

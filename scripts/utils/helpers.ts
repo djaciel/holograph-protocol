@@ -1,6 +1,7 @@
 declare var global: any;
 import fs from 'fs';
 import Web3 from 'web3';
+import { AbiItem } from 'web3-utils';
 import crypto from 'crypto';
 import { EthereumProvider, Artifacts, HardhatRuntimeEnvironment } from 'hardhat/types';
 import {
@@ -9,8 +10,14 @@ import {
   Deployment,
   DeploymentsExtension,
 } from '@holographxyz/hardhat-deploy-holographed/types';
-import { BigNumberish, BytesLike, ContractFactory, Contract, BigNumber } from 'ethers';
-import type { ethers } from 'ethers';
+import { ethers, BigNumberish, BytesLike, ContractFactory, Contract, BigNumber, PopulatedTransaction } from 'ethers';
+import {
+  Block,
+  BlockWithTransactions,
+  TransactionReceipt,
+  TransactionResponse,
+  TransactionRequest,
+} from '@ethersproject/abstract-provider';
 import type EthersT from 'ethers';
 import { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -29,8 +36,16 @@ import {
   getUnnamedSigners,
 } from '@nomiclabs/hardhat-ethers/internal/helpers';
 import type * as ProviderProxyT from '@nomiclabs/hardhat-ethers/internal/provider-proxy';
-import { DeploymentConfigStruct } from '../../typechain-types/HolographFactory';
-import networks from '../../config/networks';
+import { NetworkType, Network, Networks, networks } from '@holographxyz/networks';
+import { PreTest } from '../../test/utils/index';
+
+export type DeploymentConfigStruct = {
+  contractType: BytesLike;
+  chainType: BigNumberish;
+  salt: BytesLike;
+  byteCode: BytesLike;
+  initCode: BytesLike;
+};
 
 export interface LeanHardhatRuntimeEnvironment {
   networkName: string;
@@ -44,20 +59,6 @@ export interface LeanHardhatRuntimeEnvironment {
   ethers: typeof ethers & HardhatEthersHelpers;
   artifacts: Artifacts;
   deploymentSalt: string;
-}
-
-export interface Network {
-  chain: number;
-  rpc: string;
-  holographId: number;
-  tokenName: string;
-  tokenSymbol: string;
-  lzEndpoint?: string;
-  webSocket?: string;
-}
-
-export interface Networks {
-  [key: string]: Network;
 }
 
 export interface Signature {
@@ -301,9 +302,7 @@ const generateDeployCode = function (chainId: string, salt: string, byteCode: st
   );
 };
 
-const zeroAddress = function (): string {
-  return '0x' + '00'.repeat(20);
-};
+const zeroAddress: string = '0x' + '00'.repeat(20);
 
 const isContractDeployed = function (contract: Contract | null): boolean {
   return !(
@@ -311,7 +310,7 @@ const isContractDeployed = function (contract: Contract | null): boolean {
     !contract?.address ||
     contract?.address == null ||
     contract?.address == '' ||
-    contract?.address == zeroAddress()
+    contract?.address == zeroAddress
   );
 };
 
@@ -350,7 +349,7 @@ const genesisDeployHelper = async function (
   salt: string,
   name: string,
   initCode: string,
-  contractAddress: string = zeroAddress()
+  contractAddress: string = zeroAddress
 ): Promise<Contract> {
   const chainId: string = BigNumber.from(networks[hre.networkName].chain).toHexString();
   const { deployments, getNamedAccounts, ethers } = hre;
@@ -451,6 +450,7 @@ const generateErc721Config = async function (
   let chainId: string = '0x' + network.holographId.toString(16).padStart(8, '0');
   let erc721Hash: string = '0x' + web3.utils.asciiToHex('HolographERC721').substring(2).padStart(64, '0');
   let artifact: ContractFactory = await hre.ethers.getContractFactory(contractName);
+  salt = '0x' + remove0x(salt as string).padStart(64, '0');
   let erc721Config: DeploymentConfigStruct = {
     contractType: erc721Hash,
     chainType: chainId,
@@ -512,6 +512,7 @@ const generateErc20Config = async function (
   let chainId: string = '0x' + network.holographId.toString(16).padStart(8, '0');
   let erc20Hash: string = '0x' + web3.utils.asciiToHex('HolographERC20').substring(2).padStart(64, '0');
   let artifact: ContractFactory = await hre.ethers.getContractFactory(contractName);
+  salt = '0x' + remove0x(salt as string).padStart(64, '0');
   let erc20Config: DeploymentConfigStruct = {
     contractType: erc20Hash,
     chainType: chainId,
@@ -599,7 +600,182 @@ const getGasUsage = async function (
   return gasUsed;
 };
 
+const adminCall = async function (
+  admin: Contract,
+  target: Contract,
+  methodName: string,
+  args: any[]
+): Promise<TransactionResponse> {
+  let rawTx: PopulatedTransaction = await target.populateTransaction[methodName](...args);
+  return admin.adminCall(target.address, rawTx.data);
+};
+
+const adminCallFull = async function (
+  admin: Contract,
+  target: Contract,
+  methodName: string,
+  args: any[]
+): Promise<TransactionReceipt> {
+  let tx = await adminCall(admin, target, methodName, args);
+  let receipt: TransactionReceipt = await tx.wait();
+  return receipt;
+};
+
+const ownerCall = async function (
+  owner: Contract,
+  target: Contract,
+  methodName: string,
+  args: any[]
+): Promise<TransactionResponse> {
+  let rawTx: PopulatedTransaction = await target.populateTransaction[methodName](...args);
+  return owner.ownerCall(target.address, rawTx.data);
+};
+
+const ownerCallFull = async function (
+  owner: Contract,
+  target: Contract,
+  methodName: string,
+  args: any[]
+): Promise<TransactionReceipt> {
+  let tx = await ownerCall(owner, target, methodName, args);
+  let receipt: TransactionReceipt = await tx.wait();
+  return receipt;
+};
+
+const beamSomething = async function (
+  origin: PreTest,
+  destination: PreTest,
+  holographableContract: Contract,
+  wallet: SignerWithAddress,
+  bridgeOutRequest: BytesLike
+): Promise<void> {
+  const GWEI: BigNumber = BigNumber.from('1000000000');
+  const TESTGASLIMIT: BigNumber = BigNumber.from('10000000');
+  const GASPRICE: BigNumber = BigNumber.from('1000000000');
+  const GASPERBYTE: number = 35;
+  const BASEGAS: number = 150000;
+
+  const lzReceiveABI = {
+    inputs: [
+      {
+        internalType: 'uint16',
+        name: '',
+        type: 'uint16',
+      },
+      {
+        internalType: 'bytes',
+        name: '_srcAddress',
+        type: 'bytes',
+      },
+      {
+        internalType: 'uint64',
+        name: '',
+        type: 'uint64',
+      },
+      {
+        internalType: 'bytes',
+        name: '_payload',
+        type: 'bytes',
+      },
+    ],
+    name: 'lzReceive',
+    outputs: [],
+    stateMutability: 'payable',
+    type: 'function',
+  } as AbiItem;
+  const lzReceive = function (web3: Web3, params: any[]): BytesLike {
+    return origin.web3.eth.abi.encodeFunctionCall(lzReceiveABI, params);
+  };
+
+  function executeJobGas(payload: BytesLike): BigNumber {
+    const payloadBytes = Math.floor(remove0x(payload as string).length * 0.5);
+    return BigNumber.from(payloadBytes * GASPERBYTE + BASEGAS);
+  }
+
+  let estimatedPayload: BytesLike = await origin.bridge
+    .connect(wallet)
+    .callStatic.getBridgeOutRequestPayload(
+      destination.network.holographId,
+      holographableContract.address,
+      '0x' + 'ff'.repeat(32),
+      '0x' + 'ff'.repeat(32),
+      bridgeOutRequest
+    );
+
+  let estimatedGas: BigNumber = TESTGASLIMIT.sub(
+    await destination.operator.callStatic.jobEstimator(estimatedPayload, {
+      gasPrice: GASPRICE,
+      gasLimit: TESTGASLIMIT,
+    })
+  );
+
+  let payload: BytesLike = await origin.bridge
+    .connect(wallet)
+    .callStatic.getBridgeOutRequestPayload(
+      destination.network.holographId,
+      holographableContract.address,
+      estimatedGas,
+      GWEI,
+      bridgeOutRequest
+    );
+
+  let fees = await origin.bridge.callStatic.getMessageFee(destination.network.holographId, estimatedGas, GWEI, payload);
+  let total: BigNumber = fees[0].add(fees[1]);
+
+  await origin.bridge
+    .connect(wallet)
+    .bridgeOutRequest(
+      destination.network.holographId,
+      holographableContract.address,
+      estimatedGas,
+      GWEI,
+      bridgeOutRequest,
+      { value: total }
+    );
+
+  await destination.mockLZEndpoint
+    .connect(destination.lzEndpoint)
+    .adminCall(
+      await destination.operator.getMessagingModule(),
+      lzReceive(destination.web3, [
+        await origin.holographInterfaces.getChainId(2, origin.network.holographId, 3),
+        await origin.operator.getMessagingModule(),
+        0,
+        payload,
+      ]),
+      { gasPrice: GASPRICE, gasLimit: executeJobGas(payload) }
+    );
+
+  let jobDetails = await destination.operator.getJobDetails(destination.web3.utils.keccak256(payload as string));
+
+  destination.operator.connect(wallet).executeJob(payload, {
+    gasPrice: GASPRICE,
+    gasLimit: estimatedGas.add(estimatedGas.div(BigNumber.from('3'))),
+  });
+  return;
+};
+
+type KeyOf<T extends object> = Extract<keyof T, string>;
+
+const executeJobGas = function (payload: string, verbose?: boolean): BigNumber {
+  const payloadBytes = Math.floor(remove0x(payload).length * 0.5);
+  const gasPerByte = 30;
+  const baseGas = 150000;
+  if (verbose) {
+    process.stdout.write('\n' + ' '.repeat(10) + 'payload length is ' + payloadBytes + '\n');
+    process.stdout.write(' '.repeat(10) + 'payload adds ' + payloadBytes * gasPerByte + '\n');
+  }
+  return BigNumber.from(payloadBytes * gasPerByte + baseGas);
+};
+
+const HASH = function (input: string | BytesLike, prepend: boolean = true): string {
+  return (prepend ? '0x' : '') + remove0x(web3.utils.keccak256(input as string));
+};
+
 export {
+  web3,
+  executeJobGas,
+  KeyOf,
   isDefined,
   bytesToHex,
   hexToBytes,
@@ -626,4 +802,10 @@ export {
   getHolographedContractHash,
   sleep,
   getGasUsage,
+  adminCall,
+  adminCallFull,
+  ownerCall,
+  ownerCallFull,
+  beamSomething,
+  HASH,
 };

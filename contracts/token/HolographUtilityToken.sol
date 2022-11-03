@@ -104,9 +104,9 @@ pragma solidity 0.8.13;
 import "../abstract/ERC20H.sol";
 
 import "../interface/ERC20.sol";
-import "../interface/ERC20Holograph.sol";
-import "../interface/IHolograph.sol";
-import "../interface/IHolographer.sol";
+import "../interface/HolographERC20Interface.sol";
+import "../interface/HolographInterface.sol";
+import "../interface/HolographerInterface.sol";
 
 /**
  * @title Holograph Utility Token.
@@ -115,16 +115,21 @@ import "../interface/IHolographer.sol";
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
 contract HolographUtilityToken is ERC20H {
+  /**
+   * @dev Constructor is left empty and init is used instead
+   */
   constructor() {}
 
   /**
-   * @notice Initializes the token.
-   * @dev Special function to allow a one time initialisation on deployment.
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract
+   * @param initPayload abi encoded payload to use for contract initilaization
    */
-  function init(bytes memory data) external override returns (bytes4) {
-    address contractOwner = abi.decode(data, (address));
-    _owner = contractOwner;
+  function init(bytes memory initPayload) external override returns (bytes4) {
+    address contractOwner = abi.decode(initPayload, (address));
+    _setOwner(contractOwner);
+    HolographERC20Interface(msg.sender).sourceMint(contractOwner, 10000000 * (10**18));
     // run underlying initializer logic
-    return _init(data);
+    return _init(initPayload);
   }
 }

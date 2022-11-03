@@ -101,31 +101,41 @@
 
 pragma solidity 0.8.13;
 
-import "../interface/IInitializable.sol";
+import "../interface/InitializableInterface.sol";
 
-abstract contract Initializable is IInitializable {
-  function init(bytes memory _data) external virtual returns (bytes4);
+/**
+ * @title Initializable
+ * @author https://github.com/holographxyz
+ * @notice Use init instead of constructor
+ * @dev This allows for use of init function to make one time initializations without the need for a constructor
+ */
+abstract contract Initializable is InitializableInterface {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.initialized')) - 1)
+   */
+  bytes32 constant _initializedSlot = 0x4e5f991bca30eca2d4643aaefa807e88f96a4a97398933d572a3c0d973004a01;
 
-  function _isInitialized() internal view returns (bool) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.initialized')) - 1);
-    uint256 initialized;
+  /**
+   * @dev Constructor is left empty and init is used instead
+   */
+  constructor() {}
+
+  /**
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract
+   * @param initPayload abi encoded payload to use for contract initilaization
+   */
+  function init(bytes memory initPayload) external virtual returns (bytes4);
+
+  function _isInitialized() internal view returns (bool initialized) {
     assembly {
-      initialized := sload(0x4e5f991bca30eca2d4643aaefa807e88f96a4a97398933d572a3c0d973004a01)
+      initialized := sload(_initializedSlot)
     }
-    return (initialized > 0);
   }
 
   function _setInitialized() internal {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.initialized')) - 1);
-    uint256 initialized = 1;
     assembly {
-      sstore(
-        /* slot */
-        0x4e5f991bca30eca2d4643aaefa807e88f96a4a97398933d572a3c0d973004a01,
-        initialized
-      )
+      sstore(_initializedSlot, 0x0000000000000000000000000000000000000000000000000000000000000001)
     }
   }
 }

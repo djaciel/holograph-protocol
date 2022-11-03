@@ -5,38 +5,39 @@
 import "../abstract/Admin.sol";
 import "../abstract/Initializable.sol";
 
-import "../interface/IInitializable.sol";
+import "../interface/InitializableInterface.sol";
 
 contract HolographBridgeProxy is Admin, Initializable {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.bridge')) - 1)
+   */
+  bytes32 constant _bridgeSlot = precomputeslot("eip1967.Holograph.bridge");
+
   constructor() {}
 
   function init(bytes memory data) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (address bridge, bytes memory initCode) = abi.decode(data, (address, bytes));
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.bridge"), bridge)
-      sstore(precomputeslot("eip1967.Holograph.Bridge.admin"), origin())
+      sstore(_adminSlot, origin())
+      sstore(_bridgeSlot, bridge)
     }
     (bool success, bytes memory returnData) = bridge.delegatecall(abi.encodeWithSignature("init(bytes)", initCode));
     bytes4 selector = abi.decode(returnData, (bytes4));
-    require(success && selector == IInitializable.init.selector, "initialization failed");
+    require(success && selector == InitializableInterface.init.selector, "initialization failed");
     _setInitialized();
-    return IInitializable.init.selector;
+    return InitializableInterface.init.selector;
   }
 
   function getBridge() external view returns (address bridge) {
-    // The slot hash has been precomputed for gas optimization
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridge')) - 1);
     assembly {
-      bridge := sload(precomputeslot("eip1967.Holograph.Bridge.bridge"))
+      bridge := sload(_bridgeSlot)
     }
   }
 
   function setBridge(address bridge) external onlyAdmin {
-    // The slot hash has been precomputed for gas optimization
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.bridge')) - 1);
     assembly {
-      sstore(precomputeslot("eip1967.Holograph.Bridge.bridge"), bridge)
+      sstore(_bridgeSlot, bridge)
     }
   }
 
@@ -44,7 +45,7 @@ contract HolographBridgeProxy is Admin, Initializable {
 
   fallback() external payable {
     assembly {
-      let bridge := sload(precomputeslot("eip1967.Holograph.Bridge.bridge"))
+      let bridge := sload(_bridgeSlot)
       calldatacopy(0, 0, calldatasize())
       let result := delegatecall(gas(), bridge, 0, calldatasize(), 0, 0)
       returndatacopy(0, 0, returndatasize())

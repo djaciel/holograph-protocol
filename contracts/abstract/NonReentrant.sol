@@ -102,35 +102,29 @@
 pragma solidity 0.8.13;
 
 abstract contract NonReentrant {
-  constructor() {}
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.reentrant')) - 1)
+   */
+  bytes32 constant _reentrantSlot = 0x04b524dd539523930d3901481aa9455d7752b49add99e1647adb8b09a3137279;
 
   modifier nonReentrant() {
-    require(getStatus() != 2, "ERC20: reentrant call");
+    require(getStatus() != 2, "HOLOGRAPH: reentrant call");
     setStatus(2);
     _;
     setStatus(1);
   }
 
+  constructor() {}
+
   function getStatus() internal view returns (uint256 status) {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.reentrant')) - 1);
     assembly {
-      status := sload(
-        /* slot */
-        0x5bf044ad06f1ee9ee2fcd7caf4e944279b877408c76c4515cca6b4e937b01334
-      )
+      status := sload(_reentrantSlot)
     }
   }
 
   function setStatus(uint256 status) internal {
-    // The slot hash has been precomputed for gas optimizaion
-    // bytes32 slot = bytes32(uint256(keccak256('eip1967.Holograph.Bridge.reentrant')) - 1);
     assembly {
-      sstore(
-        /* slot */
-        0x5bf044ad06f1ee9ee2fcd7caf4e944279b877408c76c4515cca6b4e937b01334,
-        status
-      )
+      sstore(_reentrantSlot, status)
     }
   }
 }

@@ -52,6 +52,9 @@ abstract contract EIP712 {
    * NOTE: These parameters cannot be changed except through a xref:learn::upgrading-smart-contracts.adoc[smart
    * contract upgrade].
    */
+  /**
+   * @dev Constructor is left empty and init is used instead
+   */
   constructor() {}
 
   function _eip712_init(string memory name, string memory version) internal {
