@@ -173,28 +173,6 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
   }
 
   /**
-   * @dev temp function, used for quicker updates/resets during development
-   *      NOT PART OF FINAL CODE !!!
-   */
-  function resetOperator(
-    uint256 blockTime,
-    uint256 baseBondAmount,
-    uint256 podMultiplier,
-    uint256 operatorThreshold,
-    uint256 operatorThresholdStep,
-    uint256 operatorThresholdDivisor
-  ) external onlyAdmin {
-    _blockTime = blockTime;
-    _baseBondAmount = baseBondAmount;
-    _podMultiplier = podMultiplier;
-    _operatorThreshold = operatorThreshold;
-    _operatorThresholdStep = operatorThresholdStep;
-    _operatorThresholdDivisor = operatorThresholdDivisor;
-    _operatorPods = [[address(0)]];
-    _bondedOperators[address(0)] = 1;
-  }
-
-  /**
    * @notice Execute an available operator job
    * @dev When making this call, if operating criteria is not met, the call will revert
    * @param bridgeInRequestPayload the entire cross chain message payload

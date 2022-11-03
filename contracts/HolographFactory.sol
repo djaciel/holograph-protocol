@@ -330,8 +330,9 @@ contract HolographFactory is Admin, Initializable, Holographable, HolographFacto
     /**
      * @dev signature is checked against EIP-191 first, then directly, to support legacy wallets
      */
-    return (ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)), v, r, s) == signer ||
-      ecrecover(hash, v, r, s) == signer);
+    return (signer != address(0) &&
+      (ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)), v, r, s) == signer ||
+        ecrecover(hash, v, r, s) == signer));
   }
 
   /**

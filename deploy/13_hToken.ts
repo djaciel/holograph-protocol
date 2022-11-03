@@ -118,19 +118,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           `Seems like hTokenAddress ${hTokenAddress} and futureHTokenAddress ${futureHTokenAddress} do not match!`
         );
       }
-      if ((await registry.getHToken(chainId)) != hTokenAddress) {
-        hre.deployments.log('Updated "Registry" with "hToken #' + network.holographId.toString());
-        const setHTokenTx = await registry.setHToken(chainId, hTokenAddress, {
-          nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
-        });
-        await setHTokenTx.wait();
-      }
       hre.deployments.log(
         'deployed "hToken #' + network.holographId.toString() + '" at:',
         await registry.getHToken(chainId)
       );
     } else {
       hre.deployments.log('reusing "hToken #' + network.holographId.toString() + '" at:', futureHTokenAddress);
+    }
+    if ((await registry.getHToken(chainId)) != futureHTokenAddress) {
+      hre.deployments.log('Updated "Registry" with "hToken #' + network.holographId.toString());
+      const setHTokenTx = await registry.setHToken(chainId, futureHTokenAddress, {
+        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+      });
+      await setHTokenTx.wait();
     }
   };
 
