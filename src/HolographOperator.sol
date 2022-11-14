@@ -52,6 +52,10 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.utilityToken')) - 1)
    */
   bytes32 constant _utilityTokenSlot = precomputeslot("eip1967.Holograph.utilityToken");
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.minGasPrice')) - 1)
+   */
+  bytes32 constant _minGasPriceSlot = precomputeslot("eip1967.Holograph.minGasPrice");
 
   /**
    * @dev Internal number (in seconds), used for defining a window for operator to execute the job
@@ -140,10 +144,14 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    */
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
-    (address bridge, address holograph, address interfaces, address registry, address utilityToken) = abi.decode(
-      initPayload,
-      (address, address, address, address, address)
-    );
+    (
+      address bridge,
+      address holograph,
+      address interfaces,
+      address registry,
+      address utilityToken,
+      uint256 minGasPrice
+    ) = abi.decode(initPayload, (address, address, address, address, address, uint256));
     assembly {
       sstore(_adminSlot, origin())
       sstore(_bridgeSlot, bridge)
@@ -151,6 +159,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
       sstore(_interfacesSlot, interfaces)
       sstore(_registrySlot, registry)
       sstore(_utilityTokenSlot, utilityToken)
+      sstore(_minGasPriceSlot, minGasPrice)
     }
     _blockTime = 60; // 60 seconds allowed for execution
     unchecked {
@@ -375,10 +384,14 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    */
   function crossChainMessage(bytes calldata bridgeInRequestPayload) external payable {
     require(msg.sender == address(_messagingModule()), "HOLOGRAPH: messaging only call");
-    /**
-     * @dev would be a good idea to check payload gas price here and if it is significantly lower than current amount
-     *      to set zero address as operator to not lock-up an operator unnecessarily
-     */
+    uint256 gasPrice = 0;
+    assembly {
+      /**
+       * @dev extract gasPrice
+       */
+      gasPrice := calldataload(sub(add(bridgeInRequestPayload.offset, bridgeInRequestPayload.length), 0x20))
+    }
+    bool underpriced = gasPrice < _minGasPrice();
     unchecked {
       bytes32 jobHash = keccak256(bridgeInRequestPayload);
       /**
@@ -400,7 +413,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
       /**
        * @dev select a primary operator
        */
-      uint256 operatorIndex = random % podSize;
+      uint256 operatorIndex = underpriced ? 0 : random % podSize;
       /**
        * @dev If operator index is 0, then it's open season! Anyone can execute this job. First come first serve
        *      pop operator to ensure that they cannot be selected for any other job until this one completes
@@ -415,11 +428,11 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
         ((pod + 1) << 248) |
           (uint256(_operatorTempStorageCounter) << 216) |
           (block.number << 176) |
-          (_randomBlockHash(random, podSize, 1) << 160) |
-          (_randomBlockHash(random, podSize, 2) << 144) |
-          (_randomBlockHash(random, podSize, 3) << 128) |
-          (_randomBlockHash(random, podSize, 4) << 112) |
-          (_randomBlockHash(random, podSize, 5) << 96) |
+          ((underpriced ? 0 : _randomBlockHash(random, podSize, 1)) << 160) |
+          ((underpriced ? 0 : _randomBlockHash(random, podSize, 2)) << 144) |
+          ((underpriced ? 0 : _randomBlockHash(random, podSize, 3)) << 128) |
+          ((underpriced ? 0 : _randomBlockHash(random, podSize, 4)) << 112) |
+          ((underpriced ? 0 : _randomBlockHash(random, podSize, 5)) << 96) |
           (block.timestamp << 16) |
           0
       ); // 80 next available bit position && so far 176 bits used with only 128 left
@@ -964,6 +977,26 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
   }
 
   /**
+   * @notice Get the Minimum Gas Price
+   * @dev The minimum value required to execute a job without it being marked as under priced
+   */
+  function getMinGasPrice() external view returns (address minGasPrice) {
+    assembly {
+      minGasPrice := sload(_minGasPriceSlot)
+    }
+  }
+
+  /**
+   * @notice Update the Minimum Gas Price
+   * @param minGasPrice amount to set for minimum gas price
+   */
+  function setMinGasPrice(address minGasPrice) external onlyAdmin {
+    assembly {
+      sstore(_minGasPriceSlot, minGasPrice)
+    }
+  }
+
+  /**
    * @dev Internal function used for getting the Holograph Bridge Interface
    */
   function _bridge() private view returns (address bridge) {
@@ -1014,6 +1047,15 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
   function _utilityToken() private view returns (HolographERC20Interface utilityToken) {
     assembly {
       utilityToken := sload(_utilityTokenSlot)
+    }
+  }
+
+  /**
+   * @dev Internal function used for getting the minimum gas price allowed
+   */
+  function _minGasPrice() private view returns (uint256 minGasPrice) {
+    assembly {
+      minGasPrice := sload(_minGasPriceSlot)
     }
   }
 

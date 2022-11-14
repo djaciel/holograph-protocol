@@ -101,4 +101,11 @@
 
 pragma solidity 0.8.13;
 
-interface HolographTreasuryInterface {}
+struct GasParameters {
+  uint256 msgBaseGas;
+  uint256 msgGasPerByte;
+  uint256 jobBaseGas;
+  uint256 jobGasPerByte;
+  uint256 minGasPrice;
+  uint256 maxGasLimit;
+}

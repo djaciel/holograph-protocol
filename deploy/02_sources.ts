@@ -1,7 +1,7 @@
 declare var global: any;
 import fs from 'fs';
 import Web3 from 'web3';
-import { BytesLike } from 'ethers';
+import { BigNumber, BytesLike } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
@@ -48,6 +48,8 @@ import {
 } from '../scripts/utils/helpers';
 import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
+
+const GWEI: BigNumber = BigNumber.from('1000000000');
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
@@ -129,8 +131,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     salt,
     'HolographOperator',
     generateInitCode(
-      ['address', 'address', 'address', 'address', 'address'],
-      [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress]
+      ['address', 'address', 'address', 'address', 'address', 'uint256'],
+      [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress, '0x' + '00'.repeat(32)]
     )
   );
   hre.deployments.log('the future "HolographOperator" address is', futureOperatorAddress);
@@ -144,8 +146,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       [
         zeroAddress,
         generateInitCode(
-          ['address', 'address', 'address', 'address', 'address'],
-          [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress]
+          ['address', 'address', 'address', 'address', 'address', 'uint256'],
+          [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress, '0x' + '00'.repeat(32)]
         ),
       ]
     )
@@ -486,8 +488,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       salt,
       'HolographOperator',
       generateInitCode(
-        ['address', 'address', 'address', 'address', 'address'],
-        [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress]
+        ['address', 'address', 'address', 'address', 'address', 'uint256'],
+        [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress, '0x' + '00'.repeat(32)]
       ),
       futureOperatorAddress
     );
@@ -511,13 +513,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         [
           futureOperatorAddress,
           generateInitCode(
-            ['address', 'address', 'address', 'address', 'address'],
+            ['address', 'address', 'address', 'address', 'address', 'uint256'],
             [
               futureBridgeProxyAddress,
               futureHolographAddress,
               futureHolographInterfacesAddress,
               futureRegistryProxyAddress,
               futureHlgAddress,
+              GWEI.toHexString(),
             ]
           ),
         ]
@@ -572,6 +575,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     if ((await holographOperator.getUtilityToken()) != futureHlgAddress) {
       hre.deployments.log('Updating UtilityToken reference');
       let tx = await holographOperator.setUtilityToken(futureHlgAddress, {
+        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+      });
+      await tx.wait();
+    }
+    if (!BigNumber.from(await holographOperator.getMinGasPrice()).eq(GWEI)) {
+      hre.deployments.log('Updating MinGasPrice reference');
+      let tx = await holographOperator.setMinGasPrice(GWEI.toHexString(), {
         nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
       });
       await tx.wait();

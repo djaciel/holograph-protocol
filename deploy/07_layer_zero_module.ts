@@ -2,6 +2,7 @@ declare var global: any;
 import { BigNumber, Contract } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
+import { NetworkType, Network, networks } from '@holographxyz/networks';
 import {
   genesisDeriveFutureAddress,
   genesisDeployHelper,
@@ -24,20 +25,56 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const salt = hre.deploymentSalt;
 
-  const holograph = await hre.ethers.getContract('Holograph');
+  const MSG_BASE_GAS: BigNumber = BigNumber.from('110000');
+  const MSG_GAS_PER_BYTE: BigNumber = BigNumber.from('25');
+  const JOB_BASE_GAS: BigNumber = BigNumber.from('160000');
+  const JOB_GAS_PER_BYTE: BigNumber = BigNumber.from('35');
+  const MIN_GAS_PRICE: BigNumber = BigNumber.from('999999999');
+  const GAS_LIMIT: BigNumber = BigNumber.from('10000001');
 
-  const MSGBASEGAS: string = BigNumber.from('110000').toHexString();
-  const MSGGASPERBYTE: string = BigNumber.from('25').toHexString();
-  const JOBBASEGAS: string = BigNumber.from('160000').toHexString();
-  const JOBGASPERBYTE: string = BigNumber.from('35').toHexString();
+  const defaultParams: BigNumber[] = [
+    MSG_BASE_GAS,
+    MSG_GAS_PER_BYTE,
+    JOB_BASE_GAS,
+    JOB_GAS_PER_BYTE,
+    MIN_GAS_PRICE,
+    GAS_LIMIT,
+  ];
+
+  const network: Network = networks[hre.networkName];
+  const networkType: NetworkType = network.type;
+  const networkKeys: string[] = Object.keys(networks);
+  const networkValues: Network[] = Object.values(networks);
+  let supportedNetworkNames: string[] = [];
+  let supportedNetworks: Network[] = [];
+  let chainIds: number[] = [];
+  let gasParameters: BigNumber[][] = [];
+  for (let i = 0, l = networkKeys.length; i < l; i++) {
+    const key: string = networkKeys[i];
+    const value: Network = networkValues[i];
+    if (value.type == networkType) {
+      supportedNetworkNames.push(key);
+      supportedNetworks.push(value);
+      if (value.holographId > 0) {
+        if (value.holographId == network.holographId) {
+          chainIds.push(0);
+          gasParameters.push(defaultParams);
+        }
+        chainIds.push(value.holographId);
+        gasParameters.push(defaultParams);
+      }
+    }
+  }
+
+  const holograph = await hre.ethers.getContract('Holograph');
 
   const futureLayerZeroModuleAddress = await genesisDeriveFutureAddress(
     hre,
     salt,
     'LayerZeroModule',
     generateInitCode(
-      ['address', 'address', 'address', 'uint256', 'uint256', 'uint256', 'uint256'],
-      [zeroAddress, zeroAddress, zeroAddress, 0, 0, 0, 0]
+      ['address', 'address', 'address', 'uint32[]', 'struct(uint256,uint256,uint256,uint256,uint256,uint256)[]'],
+      [zeroAddress, zeroAddress, zeroAddress, [], []]
     )
   );
   hre.deployments.log('the future "LayerZeroModule" address is', futureLayerZeroModuleAddress);
@@ -54,15 +91,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       salt,
       'LayerZeroModule',
       generateInitCode(
-        ['address', 'address', 'address', 'uint256', 'uint256', 'uint256', 'uint256'],
+        ['address', 'address', 'address', 'uint32[]', 'struct(uint256,uint256,uint256,uint256,uint256,uint256)[]'],
         [
           await holograph.getBridge(),
           await holograph.getInterfaces(),
           await holograph.getOperator(),
-          MSGBASEGAS,
-          MSGGASPERBYTE,
-          JOBBASEGAS,
-          JOBGASPERBYTE,
+          chainIds,
+          gasParameters,
         ]
       ),
       futureLayerZeroModuleAddress
@@ -90,46 +125,32 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const lzModule = (await hre.ethers.getContract('LayerZeroModule')) as Contract;
 
-  if (!(await lzModule.getMsgBaseGas()).eq(MSGBASEGAS)) {
-    const lzTx = await lzModule
-      .setMsgBaseGas(MSGBASEGAS, {
-        nonce: await hre.ethers.provider.getTransactionCount(deployer),
-      })
-      .catch(error);
-    hre.deployments.log('Transaction hash:', lzTx.hash);
-    await lzTx.wait();
-    hre.deployments.log('Updated LayerZero msgBaseGas');
-  }
-  if (!(await lzModule.getMsgGasPerByte()).eq(MSGGASPERBYTE)) {
-    const lzTx = await lzModule
-      .setMsgGasPerByte(MSGGASPERBYTE, {
-        nonce: await hre.ethers.provider.getTransactionCount(deployer),
-      })
-      .catch(error);
-    hre.deployments.log('Transaction hash:', lzTx.hash);
-    await lzTx.wait();
-    hre.deployments.log('Updated LayerZero msgGasPerByte');
-  }
+  chainIds = [];
+  gasParameters = [];
 
-  if (!(await lzModule.getJobBaseGas()).eq(JOBBASEGAS)) {
-    const lzTx = await lzModule
-      .setJobBaseGas(JOBBASEGAS, {
-        nonce: await hre.ethers.provider.getTransactionCount(deployer),
-      })
-      .catch(error);
-    hre.deployments.log('Transaction hash:', lzTx.hash);
-    await lzTx.wait();
-    hre.deployments.log('Updated LayerZero jobBaseGas');
+  for (let i = 0, l = supportedNetworks.length; i < l; i++) {
+    let currentNetwork: Network = supportedNetworks[i];
+    let currentGasParameters: BigNumber[] = await lzModule.getGasParameters(currentNetwork.holographId);
+    for (let i = 0; i < 6; i++) {
+      if (!defaultParams[i].eq(currentGasParameters[i])) {
+        chainIds.push(currentNetwork.holographId);
+        gasParameters.push(defaultParams);
+        break;
+      }
+    }
   }
-  if (!(await lzModule.getJobGasPerByte()).eq(JOBGASPERBYTE)) {
-    const lzTx = await lzModule
-      .setJobGasPerByte(JOBGASPERBYTE, {
+  if (chainIds.length > 0) {
+    hre.deployments.log('Found some gas parameter inconsistencies');
+    const lzTx = await lzModule['setGasParameters(uint32[],(uint256,uint256,uint256,uint256,uint256,uint256)[])'](
+      chainIds,
+      gasParameters,
+      {
         nonce: await hre.ethers.provider.getTransactionCount(deployer),
-      })
-      .catch(error);
+      }
+    ).catch(error);
     hre.deployments.log('Transaction hash:', lzTx.hash);
     await lzTx.wait();
-    hre.deployments.log('Updated LayerZero jobGasPerByte');
+    hre.deployments.log('Updated LayerZero GasParameters');
   }
 };
 

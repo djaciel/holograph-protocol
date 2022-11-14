@@ -575,6 +575,7 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    *  Note: token cannot be transfered if it's locked by bridge.
    */
   function sourceTransfer(address to, uint256 tokenId) external onlySource {
+    require(!_burnedTokens[tokenId], "ERC721: token has been burned");
     address wallet = _tokenOwner[tokenId];
     _transferFrom(wallet, to, tokenId);
   }

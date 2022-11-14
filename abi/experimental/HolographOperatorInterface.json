@@ -317,6 +317,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getMinGasPrice",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "minGasPrice",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "uint256",
@@ -574,6 +587,19 @@
       }
     ],
     "name": "setMessagingModule",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "minGasPrice",
+        "type": "address"
+      }
+    ],
+    "name": "setMinGasPrice",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

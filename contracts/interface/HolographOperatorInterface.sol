@@ -371,4 +371,16 @@ interface HolographOperatorInterface {
    * @param utilityToken address of the Holograph Utility Token smart contract to use
    */
   function setUtilityToken(address utilityToken) external;
+
+  /**
+   * @notice Get the Minimum Gas Price
+   * @dev This amount is used as the value that will define a job as underpriced is lower than
+   */
+  function getMinGasPrice() external view returns (address minGasPrice);
+
+  /**
+   * @notice Update the Minimum Gas Price
+   * @param minGasPrice amount to set for minimum gas price
+   */
+  function setMinGasPrice(address minGasPrice) external;
 }

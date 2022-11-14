@@ -59,6 +59,7 @@ import {
   SampleERC721,
 } from '../typechain-types';
 import { DeploymentConfigStruct } from '../typechain-types/HolographFactory';
+import { GasParametersStructOutput } from '../typechain-types/LayerZeroModule';
 
 const hValueTrim = function (inputPayload: string | BytesLike): BytesLike {
   let index = 2 + 4 * 2 + 32 * 2 * 5; // 0x + functionSig + data
@@ -95,6 +96,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
   let HLGL1: HolographERC20;
   let HLGL2: HolographERC20;
 
+  let gasParameters: GasParametersStructOutput;
   let msgBaseGas: BigNumber;
   let msgGasPerByte: BigNumber;
   let jobBaseGas: BigNumber;
@@ -225,10 +227,12 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
     l1 = await setup();
     l2 = await setup(true);
 
-    msgBaseGas = await l1.lzModule.getMsgBaseGas();
-    msgGasPerByte = await l1.lzModule.getMsgGasPerByte();
-    jobBaseGas = await l1.lzModule.getJobBaseGas();
-    jobGasPerByte = await l1.lzModule.getJobGasPerByte();
+    gasParameters = await l1.lzModule.getGasParameters(l1.network.holographId);
+
+    msgBaseGas = gasParameters.msgBaseGas;
+    msgGasPerByte = gasParameters.msgGasPerByte;
+    jobBaseGas = gasParameters.jobBaseGas;
+    jobGasPerByte = gasParameters.jobGasPerByte;
 
     HLGL1 = await l1.holographErc20.attach(l1.utilityTokenHolographer.address);
     HLGL2 = await l2.holographErc20.attach(l2.utilityTokenHolographer.address);
