@@ -225,10 +225,10 @@ describe('Validating the Holograph Protocol deployments (L2)', async () => {
       });
     });
 
-    describe('PA1D:', async function () {
+    describe('HolographRoyalties:', async function () {
       it('should return correct bytecode', async function () {
-        expect(await l2.hre.provider.send('eth_getCode', [l2.pa1d.address, 'latest'])).to.equal(
-          (await l2.hre.artifacts.readArtifact('PA1D')).deployedBytecode
+        expect(await l2.hre.provider.send('eth_getCode', [l2.royalties.address, 'latest'])).to.equal(
+          (await l2.hre.artifacts.readArtifact('HolographRoyalties')).deployedBytecode
         );
       });
     });

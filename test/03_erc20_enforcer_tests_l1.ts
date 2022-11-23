@@ -34,7 +34,7 @@ import {
   HolographInterfaces,
   MockERC721Receiver,
   Owner,
-  PA1D,
+  HolographRoyalties,
   SampleERC20,
   SampleERC721,
 } from '../typechain-types';
@@ -709,7 +709,7 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
             '0x' + '00'.repeat(32),
             '0x' + '00'.repeat(32)
           )
-        ).to.be.revertedWith('ERC20: invalid v value');
+        ).to.be.revertedWith('ERC20: invalid v-value');
       });
 
       it('should fail for invalid signature', async function () {

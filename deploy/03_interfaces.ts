@@ -26,7 +26,7 @@ import {
   ERC721TokenReceiver,
   HolographInterfaces,
   InitializableInterface,
-  PA1DInterface,
+  HolographRoyaltiesInterface,
 } from '../typechain-types';
 
 const web3 = new Web3();
@@ -281,10 +281,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       functionHash('transferOwnership(address)'),
       XOR([functionHash('owner()'), functionHash('transferOwnership(address)')]),
     ],
-    // PA1D
+    // HolographRoyalties
     '4': [
-      // PA1D
-      functionHash('initPA1D(bytes)'),
+      // HolographRoyalties
+      functionHash('initHolographRoyalties(bytes)'),
       functionHash('configurePayouts(address[],uint256[])'),
       functionHash('getPayoutInfo()'),
       functionHash('getEthPayout()'),

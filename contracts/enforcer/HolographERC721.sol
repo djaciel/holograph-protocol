@@ -120,7 +120,7 @@ import "../interface/HolographerInterface.sol";
 import "../interface/HolographRegistryInterface.sol";
 import "../interface/InitializableInterface.sol";
 import "../interface/HolographInterfacesInterface.sol";
-import "../interface/PA1DInterface.sol";
+import "../interface/HolographRoyaltiesInterface.sol";
 import "../interface/Ownable.sol";
 
 /**
@@ -257,10 +257,13 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
     if (!skipInit) {
       require(sourceContract.init(initCode) == InitializableInterface.init.selector, "ERC721: could not init source");
       (bool success, bytes memory returnData) = _royalties().delegatecall(
-        abi.encodeWithSignature("initPA1D(bytes)", abi.encode(uint256(contractBps)))
+        abi.encodeWithSelector(
+          HolographRoyaltiesInterface.initHolographRoyalties.selector,
+          abi.encode(uint256(contractBps))
+        )
       );
       bytes4 selector = abi.decode(returnData, (bytes4));
-      require(success && selector == InitializableInterface.init.selector, "ERC721: coud not init PA1D");
+      require(success && selector == InitializableInterface.init.selector, "ERC721: could not init royalties");
     }
 
     _setInitialized();
@@ -297,7 +300,7 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
     }
     if (
       interfaces.supportsInterface(InterfaceType.ERC721, interfaceId) || // check global interfaces
-      interfaces.supportsInterface(InterfaceType.PA1D, interfaceId) || // check if royalties supports interface
+      interfaces.supportsInterface(InterfaceType.ROYALTIES, interfaceId) || // check if royalties supports interface
       erc165Contract.supportsInterface(interfaceId) // check if source supports interface
     ) {
       return true;
@@ -1008,7 +1011,7 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
   function _royalties() private view returns (address) {
     return
       HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(
-        0x0000000000000000000000000000000000000000000000000000000050413144
+        0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573
       );
   }
 
@@ -1024,7 +1027,7 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
   fallback() external payable {
     // we check if royalties support the function, send there, otherwise revert to source
     address _target;
-    if (HolographInterfacesInterface(_interfaces()).supportsInterface(InterfaceType.PA1D, msg.sig)) {
+    if (HolographInterfacesInterface(_interfaces()).supportsInterface(InterfaceType.ROYALTIES, msg.sig)) {
       _target = _royalties();
       assembly {
         calldatacopy(0, 0, calldatasize())

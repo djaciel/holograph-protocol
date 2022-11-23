@@ -43,7 +43,7 @@ import {
   HolographInterfaces,
   MockERC721Receiver,
   Owner,
-  PA1D,
+  HolographRoyalties,
   SampleERC20,
   SampleERC721,
 } from '../typechain-types';
@@ -198,9 +198,9 @@ describe('Testing cross-chain configurations (L1 & L2)', async function () {
       });
     });
 
-    describe('PA1D', async function () {
+    describe('HolographRoyalties', async function () {
       it('contract addresses should match', async function () {
-        expect(l1.pa1d.address).to.equal(l2.pa1d.address);
+        expect(l1.royalties.address).to.equal(l2.royalties.address);
       });
     });
 

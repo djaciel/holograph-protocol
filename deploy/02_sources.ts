@@ -30,7 +30,7 @@ import {
   MockERC721Receiver,
   MockLZEndpoint,
   Owner,
-  PA1D,
+  HolographRoyalties,
   SampleERC20,
   SampleERC721,
 } from '../typechain-types';
@@ -206,10 +206,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const futureRoyaltiesAddress = await genesisDeriveFutureAddress(
     hre,
     salt,
-    'PA1D',
+    'HolographRoyalties',
     generateInitCode(['address', 'uint256'], [zeroAddress, '0x' + '00'.repeat(32)])
   );
-  hre.deployments.log('the future "PA1D" address is', futureRoyaltiesAddress);
+  hre.deployments.log('the future "HolographRoyalties" address is', futureRoyaltiesAddress);
 
   // Future Holograph Utility Token
   const currentNetworkType: NetworkType = networks[hre.networkName].type;
@@ -629,7 +629,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
                 '0x' + web3.utils.asciiToHex('HolographERC1155').substring(2).padStart(64, '0'),
                 '0x' + web3.utils.asciiToHex('CxipERC721').substring(2).padStart(64, '0'),
                 '0x' + web3.utils.asciiToHex('CxipERC1155').substring(2).padStart(64, '0'),
-                '0x' + web3.utils.asciiToHex('PA1D').substring(2).padStart(64, '0'),
+                '0x' + web3.utils.asciiToHex('HolographRoyalties').substring(2).padStart(64, '0'),
               ],
             ]
           ),
@@ -782,19 +782,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     global.__deployedHolographInterfaces = false;
   }
 
-  // PA1D
+  // HolographRoyalties
   let royaltiesDeployedCode: string = await hre.provider.send('eth_getCode', [futureRoyaltiesAddress, 'latest']);
   if (royaltiesDeployedCode == '0x' || royaltiesDeployedCode == '') {
-    hre.deployments.log('"PA1D" bytecode not found, need to deploy"');
+    hre.deployments.log('"HolographRoyalties" bytecode not found, need to deploy"');
     let royalties = await genesisDeployHelper(
       hre,
       salt,
-      'PA1D',
+      'HolographRoyalties',
       generateInitCode(['address', 'uint256'], [deployer.address, '0x' + '00'.repeat(32)]),
       futureRoyaltiesAddress
     );
   } else {
-    hre.deployments.log('"PA1D" is already deployed..');
+    hre.deployments.log('"HolographRoyalties" is already deployed..');
   }
 };
 
@@ -814,6 +814,6 @@ func.tags = [
   'HolographTreasury',
   'HolographTreasuryProxy',
   'HolographInterfaces',
-  'PA1D',
+  'HolographRoyalties',
 ];
 func.dependencies = ['HolographGenesis'];
