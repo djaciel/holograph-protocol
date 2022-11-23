@@ -50,7 +50,7 @@
   "dependencies": {
     "@holographxyz/environment": "0.1.8",
     "@holographxyz/hardhat-deploy-holographed": "^0.0.3",
-    "@holographxyz/hardhat-holograph-contract-builder": "^0.0.3",
+    "@holographxyz/hardhat-holograph-contract-builder": "^0.0.4",
     "@holographxyz/networks": "0.1.8",
     "chai-ethers": "^0.0.1",
     "ganache": "^7.2.0",

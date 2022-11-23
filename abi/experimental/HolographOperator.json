@@ -374,9 +374,9 @@
     "name": "getMinGasPrice",
     "outputs": [
       {
-        "internalType": "address",
+        "internalType": "uint256",
         "name": "minGasPrice",
-        "type": "address"
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",
@@ -679,9 +679,9 @@
   {
     "inputs": [
       {
-        "internalType": "address",
+        "internalType": "uint256",
         "name": "minGasPrice",
-        "type": "address"
+        "type": "uint256"
       }
     ],
     "name": "setMinGasPrice",

@@ -321,6 +321,19 @@
     "type": "function"
   },
   {
+    "inputs": [],
+    "name": "getSourceContract",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "sourceContract",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
     "inputs": [
       {
         "internalType": "string",

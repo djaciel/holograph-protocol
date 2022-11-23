@@ -7,6 +7,7 @@ import "../abstract/Initializable.sol";
 import "../abstract/Owner.sol";
 
 import "../interface/ERC20.sol";
+import "../interface/HolographerInterface.sol";
 import "../interface/InitializableInterface.sol";
 import "../interface/PA1DInterface.sol";
 
@@ -77,8 +78,8 @@ contract PA1D is Admin, Owner, Initializable {
       sstore(_adminSlot, caller())
       sstore(_ownerSlot, caller())
     }
-    (address receiver, uint256 bp) = abi.decode(initPayload, (address, uint256));
-    setRoyalties(0, payable(receiver), bp);
+    uint256 bp = abi.decode(initPayload, (uint256));
+    setRoyalties(0, payable(address(this)), bp);
     _setInitialized();
     return InitializableInterface.init.selector;
   }
@@ -89,8 +90,8 @@ contract PA1D is Admin, Owner, Initializable {
       initialized := sload(_initializedPaidSlot)
     }
     require(initialized == 0, "PA1D: already initialized");
-    (address receiver, uint256 bp) = abi.decode(initPayload, (address, uint256));
-    setRoyalties(0, payable(receiver), bp);
+    uint256 bp = abi.decode(initPayload, (uint256));
+    setRoyalties(0, payable(address(this)), bp);
     initialized = 1;
     assembly {
       sstore(_initializedPaidSlot, initialized)
@@ -106,8 +107,14 @@ contract PA1D is Admin, Owner, Initializable {
   function isOwner() private view returns (bool) {
     return (msg.sender == getOwner() ||
       msg.sender == getAdmin() ||
-      msg.sender == Owner(address(this)).getOwner() ||
-      msg.sender == Admin(address(this)).getAdmin());
+      msg.sender == Owner(HolographerInterface(address(this)).getSourceContract()).owner());
+  }
+
+  /**
+   * @dev This is here in place to prevent reverts in case contract is used outside of the protocol.
+   */
+  function getSourceContract() external view returns (address sourceContract) {
+    sourceContract = address(this);
   }
 
   /**

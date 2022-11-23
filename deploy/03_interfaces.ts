@@ -216,6 +216,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         functionHash('nonces(address)'),
         functionHash('DOMAIN_SEPARATOR()'),
       ]),
+
+      // Ownable
+      functionHash('owner()'),
+      functionHash('transferOwnership(address)'),
+      XOR([functionHash('owner()'), functionHash('transferOwnership(address)')]),
     ],
 
     // ERC721
@@ -270,6 +275,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
       // CollectionURI
       functionHash('contractURI()'),
+
+      // Ownable
+      functionHash('owner()'),
+      functionHash('transferOwnership(address)'),
+      XOR([functionHash('owner()'), functionHash('transferOwnership(address)')]),
     ],
     // PA1D
     '4': [

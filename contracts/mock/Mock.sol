@@ -102,10 +102,11 @@
 pragma solidity 0.8.13;
 
 import "../abstract/Initializable.sol";
+import "../abstract/Owner.sol";
 
 import "../interface/InitializableInterface.sol";
 
-contract Mock is Initializable {
+contract Mock is Initializable, Owner {
   constructor() {}
 
   function init(bytes memory initPayload) external override returns (bytes4) {
@@ -119,6 +120,7 @@ contract Mock is Initializable {
       case 0 {
         shouldFail := 0x01
       }
+      sstore(_ownerSlot, caller())
     }
     _setInitialized();
     if (shouldFail) {

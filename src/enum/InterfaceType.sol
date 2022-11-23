@@ -7,5 +7,6 @@ enum InterfaceType {
   ERC20, //     1
   ERC721, //    2
   ERC1155, //   3
-  PA1D //       4
+  PA1D, //      4
+  GENERIC //    5
 }

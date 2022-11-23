@@ -514,10 +514,10 @@
     qs "^6.9.4"
     zksync-web3 "^0.4.0"
 
-"@holographxyz/hardhat-holograph-contract-builder@^0.0.3":
-  version "0.0.3"
-  resolved "https://registry.yarnpkg.com/@holographxyz/hardhat-holograph-contract-builder/-/hardhat-holograph-contract-builder-0.0.3.tgz#0baa893dfd7b8b606d1148de4e1256cdbdf6b756"
-  integrity sha512-9VCtZA17EB31VHqCNVfLsYVaT4AJyL+r013mdRcT4FbgB01bBydip9L1YhmcG74R18onONqjV2DtGkXqBr3WtA==
+"@holographxyz/hardhat-holograph-contract-builder@^0.0.4":
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/@holographxyz/hardhat-holograph-contract-builder/-/hardhat-holograph-contract-builder-0.0.4.tgz#da2eb5abfbe771ce9db217671b653a38f0e7fccf"
+  integrity sha512-W/vWgHT6bZWdmJoWJxdWHnUCscrpOXbL1mo2WCDVtjrHQmXivMal7aRZw+ZeDfjTpcvGQ0SBxC+nJZZGCnuVDA==
 
 "@holographxyz/networks@0.1.8":
   version "0.1.8"

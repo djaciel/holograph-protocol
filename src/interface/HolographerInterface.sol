@@ -5,7 +5,7 @@
 interface HolographerInterface {
   function getContractType() external view returns (bytes32 contractType);
 
-  function getDeploymentBlock() external view returns (address holograph);
+  function getDeploymentBlock() external view returns (uint256 deploymentBlock);
 
   function getHolograph() external view returns (address holograph);
 

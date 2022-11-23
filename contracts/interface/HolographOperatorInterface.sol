@@ -376,11 +376,11 @@ interface HolographOperatorInterface {
    * @notice Get the Minimum Gas Price
    * @dev This amount is used as the value that will define a job as underpriced is lower than
    */
-  function getMinGasPrice() external view returns (address minGasPrice);
+  function getMinGasPrice() external view returns (uint256 minGasPrice);
 
   /**
    * @notice Update the Minimum Gas Price
    * @param minGasPrice amount to set for minimum gas price
    */
-  function setMinGasPrice(address minGasPrice) external;
+  function setMinGasPrice(uint256 minGasPrice) external;
 }

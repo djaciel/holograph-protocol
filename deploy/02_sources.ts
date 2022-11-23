@@ -623,6 +623,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             [
               futureHolographAddress,
               [
+                '0x' + web3.utils.asciiToHex('HolographGeneric').substring(2).padStart(64, '0'),
                 '0x' + web3.utils.asciiToHex('HolographERC20').substring(2).padStart(64, '0'),
                 '0x' + web3.utils.asciiToHex('HolographERC721').substring(2).padStart(64, '0'),
                 '0x' + web3.utils.asciiToHex('HolographERC1155').substring(2).padStart(64, '0'),

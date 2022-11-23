@@ -334,6 +334,8 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
     {
       /// @dev do nothing
     } catch {
+      /// @dev return any payed funds in case of revert
+      payable(msg.sender).transfer(msg.value);
       _failedJobs[hash] = true;
       emit FailedOperatorJob(hash);
     }
@@ -779,6 +781,9 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
      * @dev an operator can only bond to one pod at any give time per network
      */
     require(_bondedOperators[operator] == 0 && _bondedAmounts[operator] == 0, "HOLOGRAPH: operator is bonded");
+    if (_isContract(operator)) {
+      require(Ownable(operator).owner() != address(0), "HOLOGRAPH: contract not ownable");
+    }
     unchecked {
       /**
        * @dev get the current bonding minimum for selected pod
@@ -792,7 +797,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
         /**
          * @dev activate pod(s) up until the selected pod
          */
-        for (uint256 i = _operatorPods.length; i <= pod; i++) {
+        for (uint256 i = _operatorPods.length; i < pod; i++) {
           /**
            * @dev add zero address into pod to mitigate empty pod issues
            */
@@ -836,7 +841,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
       /**
        * @dev check if smart contract is owned by sender
        */
-      require(Ownable(operator).isOwner(msg.sender), "HOLOGRAPH: sender not owner");
+      require(Ownable(operator).owner() == msg.sender, "HOLOGRAPH: sender not owner");
     }
     /**
      * @dev get current bonded amount by operator
@@ -980,7 +985,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    * @notice Get the Minimum Gas Price
    * @dev The minimum value required to execute a job without it being marked as under priced
    */
-  function getMinGasPrice() external view returns (address minGasPrice) {
+  function getMinGasPrice() external view returns (uint256 minGasPrice) {
     assembly {
       minGasPrice := sload(_minGasPriceSlot)
     }
@@ -990,7 +995,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    * @notice Update the Minimum Gas Price
    * @param minGasPrice amount to set for minimum gas price
    */
-  function setMinGasPrice(address minGasPrice) external onlyAdmin {
+  function setMinGasPrice(uint256 minGasPrice) external onlyAdmin {
     assembly {
       sstore(_minGasPriceSlot, minGasPrice)
     }
