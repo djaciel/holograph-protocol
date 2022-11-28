@@ -191,6 +191,12 @@ contract HolographRoyalties is Admin, Owner, Initializable {
     require(initialized == 0, "ROYALTIES: already initialized");
     uint256 bp = abi.decode(initPayload, (uint256));
     setRoyalties(0, payable(address(this)), bp);
+    address payable[] memory addresses = new address payable[](1);
+    addresses[0] = payable(getOwner());
+    uint256[] memory bps = new uint256[](1);
+    bps[0] = 10000;
+    _setPayoutAddresses(addresses);
+    _setPayoutBps(bps);
     initialized = 1;
     assembly {
       sstore(_initializedPaidSlot, initialized)
