@@ -52,6 +52,7 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function afterApprovalAll(
+    address, /* _sender*/
     address, /* _to*/
     bool /* _approved*/
   ) external virtual onlyHolographer returns (bool success) {
@@ -60,6 +61,7 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function beforeApprovalAll(
+    address, /* _sender*/
     address, /* _to*/
     bool /* _approved*/
   ) external virtual onlyHolographer returns (bool success) {

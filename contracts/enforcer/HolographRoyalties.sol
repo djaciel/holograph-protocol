@@ -1,48 +1,148 @@
-/*HOLOGRAPH_LICENSE_HEADER*/
+// SPDX-License-Identifier: UNLICENSED
+/*
 
-/*SOLIDITY_COMPILER_VERSION*/
+                         ┌───────────┐
+                         │ HOLOGRAPH │
+                         └───────────┘
+╔═════════════════════════════════════════════════════════════╗
+║                                                             ║
+║                            / ^ \                            ║
+║                            ~~*~~            ¸               ║
+║                         [ '<>:<>' ]         │░░░            ║
+║               ╔╗           _/"\_           ╔╣               ║
+║             ┌─╬╬─┐          """          ┌─╬╬─┐             ║
+║          ┌─┬┘ ╠╣ └┬─┐       \_/       ┌─┬┘ ╠╣ └┬─┐          ║
+║       ┌─┬┘ │  ╠╣  │ └┬─┐           ┌─┬┘ │  ╠╣  │ └┬─┐       ║
+║    ┌─┬┘ │  │  ╠╣  │  │ └┬─┐     ┌─┬┘ │  │  ╠╣  │  │ └┬─┐    ║
+║ ┌─┬┘ │  │  │  ╠╣  │  │  │ └┬┐ ┌┬┘ │  │  │  ╠╣  │  │  │ └┬─┐ ║
+╠┬┘ │  │  │  │  ╠╣  │  │  │  │└¤┘│  │  │  │  ╠╣  │  │  │  │ └┬╣
+║│  │  │  │  │  ╠╣  │  │  │  │   │  │  │  │  ╠╣  │  │  │  │  │║
+╠╩══╩══╩══╩══╩══╬╬══╩══╩══╩══╩═══╩══╩══╩══╩══╬╬══╩══╩══╩══╩══╩╣
+╠┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╣
+║               ╠╣                           ╠╣               ║
+║               ╠╣                           ╠╣               ║
+║    ,          ╠╣     ,        ,'      *    ╠╣               ║
+║~~~~~^~~~~~~~~┌╬╬┐~~~^~~~~~~~~^^~~~~~~~~^~~┌╬╬┐~~~~~~~^~~~~~~║
+╚══════════════╩╩╩╩═════════════════════════╩╩╩╩══════════════╝
+     - one protocol, one bridge = infinite possibilities -
+
+
+ ***************************************************************
+
+ DISCLAIMER: U.S Patent Pending
+
+ LICENSE: Holograph Limited Public License (H-LPL)
+
+ https://holograph.xyz/licenses/h-lpl/1.0.0
+
+ This license governs use of the accompanying software. If you
+ use the software, you accept this license. If you do not accept
+ the license, you are not permitted to use the software.
+
+ 1. Definitions
+
+ The terms "reproduce," "reproduction," "derivative works," and
+ "distribution" have the same meaning here as under U.S.
+ copyright law. A "contribution" is the original software, or
+ any additions or changes to the software. A "contributor" is
+ any person that distributes its contribution under this
+ license. "Licensed patents" are a contributor’s patent claims
+ that read directly on its contribution.
+
+ 2. Grant of Rights
+
+ A) Copyright Grant- Subject to the terms of this license,
+ including the license conditions and limitations in sections 3
+ and 4, each contributor grants you a non-exclusive, worldwide,
+ royalty-free copyright license to reproduce its contribution,
+ prepare derivative works of its contribution, and distribute
+ its contribution or any derivative works that you create.
+ B) Patent Grant- Subject to the terms of this license,
+ including the license conditions and limitations in section 3,
+ each contributor grants you a non-exclusive, worldwide,
+ royalty-free license under its licensed patents to make, have
+ made, use, sell, offer for sale, import, and/or otherwise
+ dispose of its contribution in the software or derivative works
+ of the contribution in the software.
+
+ 3. Conditions and Limitations
+
+ A) No Trademark License- This license does not grant you rights
+ to use any contributors’ name, logo, or trademarks.
+ B) If you bring a patent claim against any contributor over
+ patents that you claim are infringed by the software, your
+ patent license from such contributor is terminated with
+ immediate effect.
+ C) If you distribute any portion of the software, you must
+ retain all copyright, patent, trademark, and attribution
+ notices that are present in the software.
+ D) If you distribute any portion of the software in source code
+ form, you may do so only under this license by including a
+ complete copy of this license with your distribution. If you
+ distribute any portion of the software in compiled or object
+ code form, you may only do so under a license that complies
+ with this license.
+ E) The software is licensed “as-is.” You bear all risks of
+ using it. The contributors give no express warranties,
+ guarantees, or conditions. You may have additional consumer
+ rights under your local laws which this license cannot change.
+ To the extent permitted under your local laws, the contributors
+ exclude all implied warranties, including those of
+ merchantability, fitness for a particular purpose and
+ non-infringement.
+
+ 4. (F) Platform Limitation- The licenses granted in sections
+ 2.A & 2.B extend only to the software or derivative works that
+ you create that run on a Holograph system product.
+
+ ***************************************************************
+
+*/
+
+pragma solidity 0.8.13;
 
 import "../abstract/Admin.sol";
 import "../abstract/Initializable.sol";
 import "../abstract/Owner.sol";
 
 import "../interface/ERC20.sol";
+import "../interface/HolographerInterface.sol";
 import "../interface/InitializableInterface.sol";
-import "../interface/PA1DInterface.sol";
+import "../interface/HolographRoyaltiesInterface.sol";
 
 import "../struct/ZoraBidShares.sol";
 
 /**
- * @title PA1D (CXIP)
+ * @title HolographRoyalties (previously PA1D)
  * @author CXIP-Labs
  * @notice A smart contract for providing royalty info, collecting royalties, and distributing it to configured payout wallets.
  * @dev This smart contract is not intended to be used directly. Apply it to any of your ERC721 or ERC1155 smart contracts through a delegatecall fallback.
  */
-contract PA1D is Admin, Owner, Initializable {
+contract HolographRoyalties is Admin, Owner, Initializable {
   /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.PA1D.defaultBp')) - 1)
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.ROYALTIES.defaultBp')) - 1)
    */
-  bytes32 constant _defaultBpSlot = precomputeslot("eip1967.Holograph.PA1D.defaultBp");
+  bytes32 constant _defaultBpSlot = 0xff29fcf645501423fd56e0287670f6813a1e5db5cf706428bc8516381e7ffe81;
   /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.PA1D.defaultReceiver')) - 1)
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.ROYALTIES.defaultReceiver')) - 1)
    */
-  bytes32 constant _defaultReceiverSlot = precomputeslot("eip1967.Holograph.PA1D.defaultReceiver");
+  bytes32 constant _defaultReceiverSlot = 0x00b381815b89a20a37ee91e8a0119be5e16f6d1668377e7ae457213a74a415bb;
   /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.PA1D.initialized')) - 1)
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.ROYALTIES.initialized')) - 1)
    */
-  bytes32 constant _initializedPaidSlot = precomputeslot("eip1967.Holograph.PA1D.initialized");
+  bytes32 constant _initializedPaidSlot = 0x91428d26cb4818e4e627ebb64c06b5a67b82f313516b5c903cf07a00681c95f6;
   /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.PA1D.payout.addresses')) - 1)
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.ROYALTIES.payout.addresses')) - 1)
    */
-  bytes32 constant _payoutAddressesSlot = precomputeslot("eip1967.Holograph.PA1D.payout.addresses");
+  bytes32 constant _payoutAddressesSlot = 0xf31f2a3a453a7aa2f3054423a8c5474ac9817ea457b458152967bbcb12ed6a43;
   /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.PA1D.payout.bps')) - 1)
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.ROYALTIES.payout.bps')) - 1)
    */
-  bytes32 constant _payoutBpsSlot = precomputeslot("eip1967.Holograph.PA1D.payout.bps");
+  bytes32 constant _payoutBpsSlot = 0xa4023567d5b5f01c63e00d90785d7cd4ff057a237ad185c5ecade8f4059fb61a;
 
-  string constant _bpString = "eip1967.Holograph.PA1D.bp";
-  string constant _receiverString = "eip1967.Holograph.PA1D.receiver";
-  string constant _tokenAddressString = "eip1967.Holograph.PA1D.tokenAddress";
+  string constant _bpString = "eip1967.Holograph.ROYALTIES.bp";
+  string constant _receiverString = "eip1967.Holograph.ROYALTIES.receiver";
+  string constant _tokenAddressString = "eip1967.Holograph.ROYALTIES.tokenAddress";
 
   /**
    * @notice Event emitted when setting/updating royalty info/fees. This is used by Rarible V1.
@@ -57,7 +157,7 @@ contract PA1D is Admin, Owner, Initializable {
    * @dev Use this modifier to lock public functions that should not be accesible to non-owners.
    */
   modifier onlyOwner() override {
-    require(isOwner(), "PA1D: caller not an owner");
+    require(isOwner(), "ROYALTIES: caller not an owner");
     _;
   }
 
@@ -72,25 +172,31 @@ contract PA1D is Admin, Owner, Initializable {
    * @param initPayload abi encoded payload to use for contract initilaization
    */
   function init(bytes memory initPayload) external override returns (bytes4) {
-    require(!_isInitialized(), "PA1D: already initialized");
+    require(!_isInitialized(), "ROYALTIES: already initialized");
     assembly {
       sstore(_adminSlot, caller())
       sstore(_ownerSlot, caller())
     }
-    (address receiver, uint256 bp) = abi.decode(initPayload, (address, uint256));
-    setRoyalties(0, payable(receiver), bp);
+    uint256 bp = abi.decode(initPayload, (uint256));
+    setRoyalties(0, payable(address(this)), bp);
     _setInitialized();
     return InitializableInterface.init.selector;
   }
 
-  function initPA1D(bytes memory initPayload) external returns (bytes4) {
+  function initHolographRoyalties(bytes memory initPayload) external returns (bytes4) {
     uint256 initialized;
     assembly {
       initialized := sload(_initializedPaidSlot)
     }
-    require(initialized == 0, "PA1D: already initialized");
-    (address receiver, uint256 bp) = abi.decode(initPayload, (address, uint256));
-    setRoyalties(0, payable(receiver), bp);
+    require(initialized == 0, "ROYALTIES: already initialized");
+    uint256 bp = abi.decode(initPayload, (uint256));
+    setRoyalties(0, payable(address(this)), bp);
+    address payable[] memory addresses = new address payable[](1);
+    addresses[0] = payable(getOwner());
+    uint256[] memory bps = new uint256[](1);
+    bps[0] = 10000;
+    _setPayoutAddresses(addresses);
+    _setPayoutBps(bps);
     initialized = 1;
     assembly {
       sstore(_initializedPaidSlot, initialized)
@@ -106,8 +212,14 @@ contract PA1D is Admin, Owner, Initializable {
   function isOwner() private view returns (bool) {
     return (msg.sender == getOwner() ||
       msg.sender == getAdmin() ||
-      msg.sender == Owner(address(this)).getOwner() ||
-      msg.sender == Admin(address(this)).getAdmin());
+      msg.sender == Owner(HolographerInterface(address(this)).getSourceContract()).owner());
+  }
+
+  /**
+   * @dev This is here in place to prevent reverts in case contract is used outside of the protocol.
+   */
+  function getSourceContract() external view returns (address sourceContract) {
+    sourceContract = address(this);
   }
 
   /**
@@ -288,7 +400,7 @@ contract PA1D is Admin, Owner, Initializable {
     // adding 1x for each item in array to accomodate rounding errors
     uint256 gasCost = (23300 * length) + length;
     uint256 balance = address(this).balance;
-    require(balance - gasCost > 10000, "PA1D: Not enough ETH to transfer");
+    require(balance - gasCost > 10000, "ROYALTIES: Not enough ETH");
     balance = balance - gasCost;
     uint256 sending;
     // uint256 sent;
@@ -309,12 +421,12 @@ contract PA1D is Admin, Owner, Initializable {
     uint256 length = addresses.length;
     ERC20 erc20 = ERC20(tokenAddress);
     uint256 balance = erc20.balanceOf(address(this));
-    require(balance > 10000, "PA1D: Not enough tokens to transfer");
+    require(balance > 10000, "ROYALTIES: Not enough tokens");
     uint256 sending;
     //uint256 sent;
     for (uint256 i = 0; i < length; i++) {
       sending = ((bps[i] * balance) / 10000);
-      require(erc20.transfer(addresses[i], sending), "PA1D: Couldn't transfer token");
+      require(erc20.transfer(addresses[i], sending), "ROYALTIES: ERC20 transfer failed");
       // sent = sent + sending;
     }
   }
@@ -333,11 +445,11 @@ contract PA1D is Admin, Owner, Initializable {
     for (uint256 t = 0; t < tokenAddresses.length; t++) {
       erc20 = ERC20(tokenAddresses[t]);
       balance = erc20.balanceOf(address(this));
-      require(balance > 10000, "PA1D: Not enough tokens to transfer");
+      require(balance > 10000, "ROYALTIES: Not enough tokens");
       // uint256 sent;
       for (uint256 i = 0; i < addresses.length; i++) {
         sending = ((bps[i] * balance) / 10000);
-        require(erc20.transfer(addresses[i], sending), "PA1D: Couldn't transfer token");
+        require(erc20.transfer(addresses[i], sending), "ROYALTIES: ERC20 transfer failed");
         // sent = sent + sending;
       }
     }
@@ -358,7 +470,7 @@ contract PA1D is Admin, Owner, Initializable {
           break;
         }
       }
-      require(matched, "PA1D: sender not authorized");
+      require(matched, "ROYALTIES: sender not authorized");
     }
   }
 
@@ -370,12 +482,12 @@ contract PA1D is Admin, Owner, Initializable {
    * @param bps An array of the percentages that each address will receive from the royalty payouts.
    */
   function configurePayouts(address payable[] memory addresses, uint256[] memory bps) public onlyOwner {
-    require(addresses.length == bps.length, "PA1D: missmatched array lenghts");
+    require(addresses.length == bps.length, "ROYALTIES: missmatched lenghts");
     uint256 totalBp;
     for (uint256 i = 0; i < addresses.length; i++) {
       totalBp = totalBp + bps[i];
     }
-    require(totalBp == 10000, "PA1D: bps down't equal 10000");
+    require(totalBp == 10000, "ROYALTIES: bps must equal 10000");
     _setPayoutAddresses(addresses);
     _setPayoutBps(bps);
   }

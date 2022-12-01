@@ -25,6 +25,7 @@ import {
   ConfigureEvents,
 } from '../scripts/utils/events';
 import { HolographERC20, HolographOperator, Mock } from '../typechain-types';
+import { GasParametersStructOutput } from '../typechain-types/LayerZeroModule';
 import { ONLY_ADMIN_ERROR_MSG } from './utils/error_constants';
 
 const bnHEX = function (n: number, bytes: number, prepend: boolean = true): BytesLike {
@@ -62,6 +63,7 @@ describe('Holograph Operator Contract', async () => {
   let MOCKL1: Mock;
   let MOCKL2: Mock;
 
+  let gasParameters: GasParametersStructOutput;
   let msgBaseGas: BigNumber;
   let msgGasPerByte: BigNumber;
   let jobBaseGas: BigNumber;
@@ -239,10 +241,12 @@ describe('Holograph Operator Contract', async () => {
     await MOCKL2.init(generateInitCode(['bytes32'], ['0x' + 'ff'.repeat(32)]));
     await MOCKL2.setStorage(0, '0x' + remove0x(l2.operator.address).padStart(64, '0'));
 
-    msgBaseGas = await l1.lzModule.getMsgBaseGas();
-    msgGasPerByte = await l1.lzModule.getMsgGasPerByte();
-    jobBaseGas = await l1.lzModule.getJobBaseGas();
-    jobGasPerByte = await l1.lzModule.getJobGasPerByte();
+    gasParameters = await l1.lzModule.getGasParameters(l1.network.holographId);
+
+    msgBaseGas = gasParameters.msgBaseGas;
+    msgGasPerByte = gasParameters.msgGasPerByte;
+    jobBaseGas = gasParameters.jobBaseGas;
+    jobGasPerByte = gasParameters.jobGasPerByte;
 
     wallets = [
       'wallet1',
@@ -365,13 +369,14 @@ describe('Holograph Operator Contract', async () => {
   describe('init()', async () => {
     it('should successfully be initialized once', async () => {
       let initPayload = generateInitCode(
-        ['address', 'address', 'address', 'address', 'address'],
+        ['address', 'address', 'address', 'address', 'address', 'uint256'],
         [
           await l1.operator.getBridge(),
           await l1.operator.getHolograph(),
           await l1.operator.getInterfaces(),
           await l1.operator.getRegistry(),
           await l1.operator.getUtilityToken(),
+          await l1.operator.getMinGasPrice(),
         ]
       );
       let tx = await mockOperator.init(initPayload);
@@ -381,18 +386,19 @@ describe('Holograph Operator Contract', async () => {
       expect(await mockOperator.getInterfaces()).to.equal(await l1.operator.getInterfaces());
       expect(await mockOperator.getRegistry()).to.equal(await l1.operator.getRegistry());
       expect(await mockOperator.getUtilityToken()).to.equal(await l1.operator.getUtilityToken());
+      expect(await mockOperator.getMinGasPrice()).to.equal(await l1.operator.getMinGasPrice());
     });
     it('should fail if already initialized', async () => {
       let initPayload = generateInitCode(
-        ['address', 'address', 'address', 'address', 'address'],
-        [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress]
+        ['address', 'address', 'address', 'address', 'address', 'uint256'],
+        [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress, '0x' + '00'.repeat(32)]
       );
       await expect(mockOperator.init(initPayload)).to.be.revertedWith('HOLOGRAPH: already initialized');
     });
     it('Should allow external contract to call fn', async () => {
       let initPayload = generateInitCode(
-        ['address', 'address', 'address', 'address', 'address'],
-        [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress]
+        ['address', 'address', 'address', 'address', 'address', 'uint256'],
+        [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress, '0x' + '00'.repeat(32)]
       );
       // temp set fallback to mockOperator
       await MOCKL1.setStorage(0, '0x' + remove0x(mockOperator.address).padStart(64, '0'));

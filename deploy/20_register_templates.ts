@@ -126,12 +126,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const futureRoyaltiesAddress = await genesisDeriveFutureAddress(
     hre,
     salt,
-    'PA1D',
+    'HolographRoyalties',
     generateInitCode(['address', 'uint256'], [zeroAddress, '0x' + '00'.repeat(32)])
   );
-  hre.deployments.log('the future "PA1D" address is', futureRoyaltiesAddress);
+  hre.deployments.log('the future "HolographRoyalties" address is', futureRoyaltiesAddress);
 
-  const pa1dHash = '0x' + web3.utils.asciiToHex('PA1D').substring(2).padStart(64, '0');
+  const pa1dHash = '0x' + web3.utils.asciiToHex('HolographRoyalties').substring(2).padStart(64, '0');
   if ((await holographRegistry.getContractTypeAddress(pa1dHash)) != futureRoyaltiesAddress) {
     const pa1dTx = await holographRegistry
       .setContractTypeAddress(pa1dHash, futureRoyaltiesAddress, {
@@ -140,9 +140,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       .catch(error);
     hre.deployments.log('Transaction hash:', pa1dTx.hash);
     await pa1dTx.wait();
-    hre.deployments.log(`Registered "PA1D" to: ${await holographRegistry.getContractTypeAddress(pa1dHash)}`);
+    hre.deployments.log(
+      `Registered "HolographRoyalties" to: ${await holographRegistry.getContractTypeAddress(pa1dHash)}`
+    );
   } else {
-    hre.deployments.log('"PA1D" is already registered');
+    hre.deployments.log('"HolographRoyalties" is already registered');
   }
 };
 

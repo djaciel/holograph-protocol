@@ -113,6 +113,8 @@ import "../interface/HolographInterfacesInterface.sol";
 import "../interface/LayerZeroModuleInterface.sol";
 import "../interface/LayerZeroOverrides.sol";
 
+import "../struct/GasParameters.sol";
+
 /**
  * @title Holograph LayerZero Module
  * @author https://github.com/holographxyz
@@ -137,21 +139,9 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
    */
   bytes32 constant _operatorSlot = 0x7caba557ad34138fa3b7e43fb574e0e6cc10481c3073e0dffbc560db81b5c60f;
   /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.msgBaseGas')) - 1)
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.gasParameters')) - 1)
    */
-  bytes32 constant _msgBaseGasSlot = 0x2c07db4a05a3231c81b6f50f461c85a47c4b9ab274cf279cb516545e583ab1dd;
-  /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.msgGasPerByte')) - 1)
-   */
-  bytes32 constant _msgGasPerByteSlot = 0x1f3604959b0efac4bf7d61f0c33a52f79508888111e10963d8d7941ebc9811b8;
-  /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.jobBaseGas')) - 1)
-   */
-  bytes32 constant _jobBaseGasSlot = 0x9bd5d4bcceb48def742308e3d5e49a206458ad9978d2a13b249ce344a306f8fb;
-  /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.jobGasPerByte')) - 1)
-   */
-  bytes32 constant _jobGasPerByteSlot = 0x5c8bfa74865379e8f0b031e99cb7c91eefe679e5ff1364c217fbada1ba3d43d4;
+  bytes32 constant _gasParametersSlot = 0x15eee82a0af3c04e4b65c3842105c973a6b0fb2a68728bf035809e13b38ce8cf;
 
   /**
    * @dev Constructor is left empty and init is used instead
@@ -169,20 +159,18 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
       address bridge,
       address interfaces,
       address operator,
-      uint256 msgBaseGas,
-      uint256 msgGasPerByte,
-      uint256 jobBaseGas,
-      uint256 jobGasPerByte
-    ) = abi.decode(initPayload, (address, address, address, uint256, uint256, uint256, uint256));
+      uint32[] memory chainIds,
+      GasParameters[] memory gasParameters
+    ) = abi.decode(initPayload, (address, address, address, uint32[], GasParameters[]));
     assembly {
       sstore(_adminSlot, origin())
       sstore(_bridgeSlot, bridge)
       sstore(_interfacesSlot, interfaces)
       sstore(_operatorSlot, operator)
-      sstore(_msgBaseGasSlot, msgBaseGas)
-      sstore(_msgGasPerByteSlot, msgGasPerByte)
-      sstore(_jobBaseGasSlot, jobBaseGas)
-      sstore(_jobGasPerByteSlot, jobGasPerByte)
+    }
+    require(chainIds.length == gasParameters.length, "HOLOGRAPH: wrong array lengths");
+    for (uint256 i = 0; i < chainIds.length; i++) {
+      _setGasParameters(chainIds[i], gasParameters[i]);
     }
     _setInitialized();
     return InitializableInterface.init.selector;
@@ -252,6 +240,7 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
     assembly {
       lZEndpoint := sload(_lZEndpointSlot)
     }
+    GasParameters memory gasParameters = _gasParameters(toChain);
     // need to recalculate the gas amounts for LZ to deliver message
     lZEndpoint.send{value: msgValue}(
       uint16(_interfaces().getChainId(ChainIdType.HOLOGRAPH, uint256(toChain), ChainIdType.LAYERZERO)),
@@ -259,7 +248,10 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
       crossChainPayload,
       payable(msgSender),
       address(this),
-      abi.encodePacked(uint16(1), uint256(_msgBaseGas() + (crossChainPayload.length * _msgGasPerByte())))
+      abi.encodePacked(
+        uint16(1),
+        uint256(gasParameters.msgBaseGas + (crossChainPayload.length * gasParameters.msgGasPerByte))
+      )
     );
   }
 
@@ -289,13 +281,19 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
     if (gasPrice == 0) {
       gasPrice = dstGasPriceInWei;
     }
+    GasParameters memory gasParameters = _gasParameters(toChain);
+    require(gasPrice > gasParameters.minGasPrice, "HOLOGRAPH: gas price too low");
     bytes memory adapterParams = abi.encodePacked(
       uint16(1),
-      uint256(_msgBaseGas() + (crossChainPayload.length * _msgGasPerByte()))
+      uint256(gasParameters.msgBaseGas + (crossChainPayload.length * gasParameters.msgGasPerByte))
     );
-    gasLimit += _jobBaseGas() + (crossChainPayload.length * _jobGasPerByte());
+    gasLimit = gasLimit + gasParameters.jobBaseGas + (crossChainPayload.length * gasParameters.jobGasPerByte);
+    gasLimit = gasLimit + (gasLimit / 10);
+    require(gasLimit < gasParameters.maxGasLimit, "HOLOGRAPH: gas limit over max");
     (uint256 nativeFee, ) = lz.estimateFees(lzDestChain, address(this), crossChainPayload, false, adapterParams);
-    return (((gasPrice * (gasLimit + (gasLimit / 10))) * dstPriceRatio) / (10**10), nativeFee, dstGasPriceInWei);
+    hlgFee = ((gasPrice * gasLimit) * dstPriceRatio) / (10**10);
+    msgFee = nativeFee;
+    dstGasPrice = (dstGasPriceInWei * dstPriceRatio) / (10**10);
   }
 
   function getHlgFee(
@@ -315,8 +313,12 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
     if (gasPrice == 0) {
       gasPrice = dstGasPriceInWei;
     }
-    gasLimit += _jobBaseGas() + (payloadLength * _jobGasPerByte());
-    return ((gasPrice * (gasLimit + (gasLimit / 10))) * dstPriceRatio) / (10**10);
+    GasParameters memory gasParameters = _gasParameters(toChain);
+    require(gasPrice > gasParameters.minGasPrice, "HOLOGRAPH: gas price too low");
+    gasLimit = gasLimit + gasParameters.jobBaseGas + (payloadLength * gasParameters.jobGasPerByte);
+    gasLimit = gasLimit + (gasLimit / 10);
+    require(gasLimit < gasParameters.maxGasLimit, "HOLOGRAPH: gas limit over max");
+    return ((gasPrice * gasLimit) * dstPriceRatio) / (10**10);
   }
 
   function _getPricing(LayerZeroOverrides lz, uint16 lzDestChain)
@@ -451,118 +453,70 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
   }
 
   /**
-   * @notice Get the msgBaseGas value
-   * @dev Cross-chain messages require at least this much gas
+   * @notice Get the default or chain-specific GasParameters
+   * @param chainId the Holograph ChainId to get gas parameters for, set to 0 for default
    */
-  function getMsgBaseGas() external view returns (uint256 msgBaseGas) {
-    assembly {
-      msgBaseGas := sload(_msgBaseGasSlot)
+  function getGasParameters(uint32 chainId) external view returns (GasParameters memory gasParameters) {
+    return _gasParameters(chainId);
+  }
+
+  /**
+   * @notice Update the default or chain-specific GasParameters
+   * @param chainId the Holograph ChainId to set gas parameters for, set to 0 for default
+   * @param gasParameters struct of all the gas parameters to set
+   */
+  function setGasParameters(uint32 chainId, GasParameters memory gasParameters) external onlyAdmin {
+    _setGasParameters(chainId, gasParameters);
+  }
+
+  /**
+   * @notice Update the default or chain-specific GasParameters
+   * @param chainIds array of Holograph ChainId to set gas parameters for
+   * @param gasParameters array of all the gas parameters to set
+   */
+  function setGasParameters(uint32[] memory chainIds, GasParameters[] memory gasParameters) external onlyAdmin {
+    require(chainIds.length == gasParameters.length, "HOLOGRAPH: wrong array lengths");
+    for (uint256 i = 0; i < chainIds.length; i++) {
+      _setGasParameters(chainIds[i], gasParameters[i]);
     }
   }
 
   /**
-   * @notice Update the msgBaseGas value
-   * @param msgBaseGas minimum gas amount that a message requires
+   * @notice Internal function for setting the default or chain-specific GasParameters
+   * @param chainId the Holograph ChainId to set gas parameters for, set to 0 for default
+   * @param gasParameters struct of all the gas parameters to set
    */
-  function setMsgBaseGas(uint256 msgBaseGas) external onlyAdmin {
+  function _setGasParameters(uint32 chainId, GasParameters memory gasParameters) private {
+    bytes32 slot = chainId == 0 ? _gasParametersSlot : keccak256(abi.encode(chainId, _gasParametersSlot));
     assembly {
-      sstore(_msgBaseGasSlot, msgBaseGas)
+      let pos := gasParameters
+      for {
+        let i := 0
+      } lt(i, 6) {
+        i := add(i, 1)
+      } {
+        sstore(add(slot, i), mload(pos))
+        pos := add(pos, 32)
+      }
     }
   }
 
   /**
-   * @dev Internal function used for getting the msgBaseGas value
+   * @dev Internal function used for getting the default or chain-specific GasParameters
+   * @param chainId the Holograph ChainId to get gas parameters for, set to 0 for default
    */
-  function _msgBaseGas() private view returns (uint256 msgBaseGas) {
+  function _gasParameters(uint32 chainId) private view returns (GasParameters memory gasParameters) {
+    bytes32 slot = chainId == 0 ? _gasParametersSlot : keccak256(abi.encode(chainId, _gasParametersSlot));
     assembly {
-      msgBaseGas := sload(_msgBaseGasSlot)
-    }
-  }
-
-  /**
-   * @notice Get the msgGasPerByte value
-   * @dev Cross-chain messages require at least this much gas (per payload byte)
-   */
-  function getMsgGasPerByte() external view returns (uint256 msgGasPerByte) {
-    assembly {
-      msgGasPerByte := sload(_msgGasPerByteSlot)
-    }
-  }
-
-  /**
-   * @notice Update the msgGasPerByte value
-   * @param msgGasPerByte minimum gas amount (per payload byte) that a message requires
-   */
-  function setMsgGasPerByte(uint256 msgGasPerByte) external onlyAdmin {
-    assembly {
-      sstore(_msgGasPerByteSlot, msgGasPerByte)
-    }
-  }
-
-  /**
-   * @dev Internal function used for getting the msgGasPerByte value
-   */
-  function _msgGasPerByte() private view returns (uint256 msgGasPerByte) {
-    assembly {
-      msgGasPerByte := sload(_msgGasPerByteSlot)
-    }
-  }
-
-  /**
-   * @notice Get the jobBaseGas value
-   * @dev Executing jobs require at least this much gas
-   */
-  function getJobBaseGas() external view returns (uint256 jobBaseGas) {
-    assembly {
-      jobBaseGas := sload(_jobBaseGasSlot)
-    }
-  }
-
-  /**
-   * @notice Update the jobBaseGas value
-   * @param jobBaseGas minimum gas amount that a executeJob requires
-   */
-  function setJobBaseGas(uint256 jobBaseGas) external onlyAdmin {
-    assembly {
-      sstore(_jobBaseGasSlot, jobBaseGas)
-    }
-  }
-
-  /**
-   * @dev Internal function used for getting the jobBaseGas value
-   */
-  function _jobBaseGas() private view returns (uint256 jobBaseGas) {
-    assembly {
-      jobBaseGas := sload(_jobBaseGasSlot)
-    }
-  }
-
-  /**
-   * @notice Get the jobGasPerByte value
-   * @dev Executing jobs require at least this much gas (per payload byte)
-   */
-  function getJobGasPerByte() external view returns (uint256 jobGasPerByte) {
-    assembly {
-      jobGasPerByte := sload(_jobGasPerByteSlot)
-    }
-  }
-
-  /**
-   * @notice Update the jobGasPerByte value
-   * @param jobGasPerByte minimum gas amount (per payload byte) that a executeJob requires
-   */
-  function setJobGasPerByte(uint256 jobGasPerByte) external onlyAdmin {
-    assembly {
-      sstore(_jobGasPerByteSlot, jobGasPerByte)
-    }
-  }
-
-  /**
-   * @dev Internal function used for getting the jobGasPerByte value
-   */
-  function _jobGasPerByte() private view returns (uint256 jobGasPerByte) {
-    assembly {
-      jobGasPerByte := sload(_jobGasPerByteSlot)
+      let pos := gasParameters
+      for {
+        let i := 0
+      } lt(i, 6) {
+        i := add(i, 1)
+      } {
+        mstore(pos, sload(add(slot, i)))
+        pos := add(pos, 32)
+      }
     }
   }
 }

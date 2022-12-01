@@ -103,8 +103,8 @@ pragma solidity 0.8.13;
 
 import "../struct/ZoraBidShares.sol";
 
-interface PA1DInterface {
-  function initPA1D(bytes memory data) external returns (bytes4);
+interface HolographRoyaltiesInterface {
+  function initHolographRoyalties(bytes memory data) external returns (bytes4);
 
   function configurePayouts(address payable[] memory addresses, uint256[] memory bps) external;
 

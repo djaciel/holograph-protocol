@@ -188,4 +188,11 @@ contract hToken is ERC20H {
   function updateSupportedWrapper(address token, bool supported) external onlyHolographer onlyOwner {
     _supportedWrappers[token] = supported;
   }
+
+  /**
+   * @dev Temporarily placed to bypass bytecode conflicts
+   */
+  function isHToken() external pure returns (bool) {
+    return true;
+  }
 }

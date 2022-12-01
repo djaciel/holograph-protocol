@@ -33,4 +33,11 @@ contract HolographUtilityToken is ERC20H {
     // run underlying initializer logic
     return _init(initPayload);
   }
+
+  /**
+   * @dev Temporarily placed to bypass bytecode conflicts
+   */
+  function isHLG() external pure returns (bool) {
+    return true;
+  }
 }

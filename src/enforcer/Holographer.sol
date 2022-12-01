@@ -64,7 +64,7 @@ contract Holographer is Admin, Initializable, HolographerInterface {
       .getReservedContractTypeAddress(contractType)
       .delegatecall(abi.encodeWithSelector(InitializableInterface.init.selector, initCode));
     bytes4 selector = abi.decode(returnData, (bytes4));
-    require(success && selector == InitializableInterface.init.selector, "initialization failed");
+    require(success && selector == InitializableInterface.init.selector, "HOLOGRAPH: initialization failed");
     _setInitialized();
     return InitializableInterface.init.selector;
   }
@@ -81,9 +81,9 @@ contract Holographer is Admin, Initializable, HolographerInterface {
   /**
    * @dev Returns the block height of when the smart contract was deployed. Useful for retrieving deployment config for re-deployment on other EVM-compatible chains.
    */
-  function getDeploymentBlock() external view returns (address holograph) {
+  function getDeploymentBlock() external view returns (uint256 deploymentBlock) {
     assembly {
-      holograph := sload(_blockHeightSlot)
+      deploymentBlock := sload(_blockHeightSlot)
     }
   }
 
