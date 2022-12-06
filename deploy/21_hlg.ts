@@ -18,11 +18,24 @@ import {
 } from '../scripts/utils/helpers';
 import { HolographERC20Event, ConfigureEvents, AllEventsEnabled } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
+import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
   const accounts = await hre.ethers.getSigners();
-  const deployer: SignerWithAddress = accounts[0];
+  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
+
+  if (global.__superColdStorage) {
+    // address, domain, authorization, ca
+    const coldStorage = global.__superColdStorage;
+    deployer = new SuperColdStorageSigner(
+      coldStorage.address,
+      'https://' + coldStorage.domain,
+      coldStorage.authorization,
+      deployer.provider,
+      coldStorage.ca
+    );
+  }
 
   const web3 = new Web3();
 
@@ -32,17 +45,17 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const chainId = '0x' + network.holographId.toString(16).padStart(8, '0');
 
-  const holograph = await hre.ethers.getContract('Holograph');
+  const holograph = await hre.ethers.getContract('Holograph', deployer);
   let hlgTokenAddress = await holograph.getUtilityToken();
   const operatorAddress = await holograph.getOperator();
 
-  const holographFactoryProxy = await hre.ethers.getContract('HolographFactoryProxy');
-  const holographFactory = ((await hre.ethers.getContract('HolographFactory')) as Contract).attach(
+  const holographFactoryProxy = await hre.ethers.getContract('HolographFactoryProxy', deployer);
+  const holographFactory = ((await hre.ethers.getContract('HolographFactory', deployer)) as Contract).attach(
     holographFactoryProxy.address
   );
 
-  const holographRegistryProxy = await hre.ethers.getContract('HolographRegistryProxy');
-  const holographRegistry = ((await hre.ethers.getContract('HolographRegistry')) as Contract).attach(
+  const holographRegistryProxy = await hre.ethers.getContract('HolographRegistryProxy', deployer);
+  const holographRegistry = ((await hre.ethers.getContract('HolographRegistry', deployer)) as Contract).attach(
     holographRegistryProxy.address
   );
 
@@ -142,7 +155,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   }
 
   if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.localhost) {
-    const hlgContract = (await hre.ethers.getContract('HolographERC20')).attach(hlgTokenAddress);
+    const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
     if ((await hlgContract.balanceOf(operatorAddress)).isZero()) {
       const transferTx = await hlgContract.transfer(operatorAddress, BigNumber.from('1000000000000000000000000'), {
         nonce: await hre.ethers.provider.getTransactionCount(deployer.address),

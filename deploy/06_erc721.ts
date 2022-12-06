@@ -10,11 +10,24 @@ import {
   zeroAddress,
 } from '../scripts/utils/helpers';
 import { HolographERC721Event, ConfigureEvents } from '../scripts/utils/events';
+import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-  const { getNamedAccounts } = hre;
-  const { deployer } = await getNamedAccounts();
+  const accounts = await hre.ethers.getSigners();
+  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
+
+  if (global.__superColdStorage) {
+    // address, domain, authorization, ca
+    const coldStorage = global.__superColdStorage;
+    deployer = new SuperColdStorageSigner(
+      coldStorage.address,
+      'https://' + coldStorage.domain,
+      coldStorage.authorization,
+      deployer.provider,
+      coldStorage.ca
+    );
+  }
 
   const salt = hre.deploymentSalt;
 
@@ -30,7 +43,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         1000, // contractBps == 0%
         ConfigureEvents([]), // eventConfig
         true, // skipInit
-        generateInitCode(['address'], [deployer]), // initCode
+        generateInitCode(['address'], [deployer.address]), // initCode
       ]
     )
   );
@@ -52,7 +65,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           1000, // contractBps == 0%
           ConfigureEvents([]), // eventConfig
           true, // skipInit
-          generateInitCode(['address'], [deployer]), // initCode
+          generateInitCode(['address'], [deployer.address]), // initCode
         ]
       ),
       futureErc721Address
@@ -65,7 +78,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre,
     salt,
     'CxipERC721',
-    generateInitCode(['address'], [deployer])
+    generateInitCode(['address'], [deployer.address])
   );
   hre.deployments.log('the future "CxipERC721" address is', futureCxipErc721Address);
 
@@ -77,7 +90,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre,
       salt,
       'CxipERC721',
-      generateInitCode(['address'], [deployer]),
+      generateInitCode(['address'], [deployer.address]),
       futureCxipErc721Address
     );
   } else {

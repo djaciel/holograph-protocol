@@ -18,11 +18,24 @@ import {
 } from '../scripts/utils/helpers';
 import { HolographERC20Event, ConfigureEvents, AllEventsEnabled } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
+import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
   const accounts = await hre.ethers.getSigners();
-  const deployer: SignerWithAddress = accounts[0];
+  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
+
+  if (global.__superColdStorage) {
+    // address, domain, authorization, ca
+    const coldStorage = global.__superColdStorage;
+    deployer = new SuperColdStorageSigner(
+      coldStorage.address,
+      'https://' + coldStorage.domain,
+      coldStorage.authorization,
+      deployer.provider,
+      coldStorage.ca
+    );
+  }
 
   const web3 = new Web3();
 
@@ -30,11 +43,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const network = networks[hre.networkName];
 
-  const holograph = await hre.ethers.getContract('Holograph');
+  const holograph = await hre.ethers.getContract('Holograph', deployer);
 
-  const factory = (await hre.ethers.getContractAt('HolographFactory', await holograph.getFactory())) as Contract;
+  const factory = (await hre.ethers.getContractAt(
+    'HolographFactory',
+    await holograph.getFactory(),
+    deployer
+  )) as Contract;
 
-  const registry = (await hre.ethers.getContractAt('HolographRegistry', await holograph.getRegistry())) as Contract;
+  const registry = (await hre.ethers.getContractAt(
+    'HolographRegistry',
+    await holograph.getRegistry(),
+    deployer
+  )) as Contract;
 
   const holographerBytecode: BytesLike = (await hre.ethers.getContractFactory('Holographer')).bytecode;
 

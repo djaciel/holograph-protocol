@@ -5,12 +5,24 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import { LeanHardhatRuntimeEnvironment, hreSplit, zeroAddress } from '../scripts/utils/helpers';
 import { NetworkType, networks } from '@holographxyz/networks';
+import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-  const { deployments, getNamedAccounts } = hre;
-  const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
+  const accounts = await hre.ethers.getSigners();
+  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
+
+  if (global.__superColdStorage) {
+    // address, domain, authorization, ca
+    const coldStorage = global.__superColdStorage;
+    deployer = new SuperColdStorageSigner(
+      coldStorage.address,
+      'https://' + coldStorage.domain,
+      coldStorage.authorization,
+      deployer.provider,
+      coldStorage.ca
+    );
+  }
 
   const salt = hre.deploymentSalt;
 
@@ -19,7 +31,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let lzEndpoint = networks[hre.networkName].lzEndpoint.toLowerCase();
   if (currentNetworkType == NetworkType.local && lzEndpoint == zeroAddress) {
     lzEndpoint = (await hre.getNamedAccounts()).lzEndpoint;
-    const mockLZEndpoint = await deploy('MockLZEndpoint', {
+    const mockLZEndpoint = await hre.deployments.deploy('MockLZEndpoint', {
       from: lzEndpoint,
       args: [],
       log: true,
@@ -34,11 +46,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     process.exit();
   };
 
-  const layerZeroModule = await hre.ethers.getContract('LayerZeroModule');
+  const layerZeroModule = await hre.ethers.getContract('LayerZeroModule', deployer);
 
   if ((await layerZeroModule.getLZEndpoint()).toLowerCase() != lzEndpoint) {
     const lzTx = await layerZeroModule
-      .setLZEndpoint(lzEndpoint, { nonce: await hre.ethers.provider.getTransactionCount(deployer) })
+      .setLZEndpoint(lzEndpoint, { nonce: await hre.ethers.provider.getTransactionCount(deployer.address) })
       .catch(error);
     hre.deployments.log('Transaction hash:', lzTx.hash);
     await lzTx.wait();

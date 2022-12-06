@@ -204,7 +204,7 @@ contract HolographRoyalties is Admin, Owner, Initializable {
     }
     setRoyalties(0, payable(address(this)), bp);
     address payable[] memory addresses = new address payable[](1);
-    addresses[0] = payable(getOwner());
+    addresses[0] = payable(Owner(HolographerInterface(address(this)).getSourceContract()).owner());
     uint256[] memory bps = new uint256[](1);
     bps[0] = 10000;
     _setPayoutAddresses(addresses);

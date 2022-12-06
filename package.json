@@ -49,12 +49,13 @@
   },
   "dependencies": {
     "@holographxyz/environment": "0.1.8",
-    "@holographxyz/hardhat-deploy-holographed": "^0.0.3",
+    "@holographxyz/hardhat-deploy-holographed": "^0.0.4",
     "@holographxyz/hardhat-holograph-contract-builder": "^0.0.4",
     "@holographxyz/networks": "0.1.8",
     "chai-ethers": "^0.0.1",
     "ganache": "^7.2.0",
     "path": "^0.12.7",
+    "super-cold-storage-signer": "^0.0.2",
     "truffle-hdwallet-provider": "^1.0.17",
     "web3": "^1.7.0",
     "zksync-web3": "^0.4.0"
