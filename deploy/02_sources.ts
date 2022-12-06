@@ -207,7 +207,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre,
     salt,
     'HolographRoyalties',
-    generateInitCode(['address', 'uint256'], [zeroAddress, '0x' + '00'.repeat(32)])
+    generateInitCode(['uint256'], ['0x' + '00'.repeat(32)])
   );
   hre.deployments.log('the future "HolographRoyalties" address is', futureRoyaltiesAddress);
 
@@ -790,7 +790,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre,
       salt,
       'HolographRoyalties',
-      generateInitCode(['address', 'uint256'], [deployer.address, '0x' + '00'.repeat(32)]),
+      generateInitCode(['uint256'], ['0x' + '00'.repeat(32)]),
       futureRoyaltiesAddress
     );
   } else {

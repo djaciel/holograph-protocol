@@ -259,7 +259,7 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
       (bool success, bytes memory returnData) = _royalties().delegatecall(
         abi.encodeWithSelector(
           HolographRoyaltiesInterface.initHolographRoyalties.selector,
-          abi.encode(uint256(contractBps))
+          abi.encode(uint256(contractBps), uint256(0))
         )
       );
       bytes4 selector = abi.decode(returnData, (bytes4));

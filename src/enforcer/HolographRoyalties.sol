@@ -40,6 +40,11 @@ contract HolographRoyalties is Admin, Owner, Initializable {
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.ROYALTIES.payout.bps')) - 1)
    */
   bytes32 constant _payoutBpsSlot = precomputeslot("eip1967.Holograph.ROYALTIES.payout.bps");
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.ROYALTIES.extendedCall')) - 1)
+   * @dev extendedCall is an init config used to determine if payouts should be sent via a call or a transfer.
+   */
+  bytes32 constant _extendedCallSlot = precomputeslot("eip1967.Holograph.ROYALTIES.extendedCall");
 
   string constant _bpString = "eip1967.Holograph.ROYALTIES.bp";
   string constant _receiverString = "eip1967.Holograph.ROYALTIES.receiver";
@@ -50,7 +55,8 @@ contract HolographRoyalties is Admin, Owner, Initializable {
    * @dev Emits event in order to comply with Rarible V1 royalty spec.
    * @param tokenId Specific token id for which royalty info is being set, set as 0 for all tokens inside of the smart contract.
    * @param recipients Address array of wallets that will receive tha royalties.
-   * @param bps Uint256 array of base points(percentages) that each wallet(specified in recipients) will receive from the royalty payouts. Make sure that all the base points add up to a total of 10000.
+   * @param bps Uint256 array of base points(percentages) that each wallet(specified in recipients) will receive from the royalty payouts.
+   *            Make sure that all the base points add up to a total of 10000.
    */
   event SecondarySaleFees(uint256 tokenId, address[] recipients, uint256[] bps);
 
@@ -90,7 +96,13 @@ contract HolographRoyalties is Admin, Owner, Initializable {
       initialized := sload(_initializedPaidSlot)
     }
     require(initialized == 0, "ROYALTIES: already initialized");
-    uint256 bp = abi.decode(initPayload, (uint256));
+    (uint256 bp, uint256 useExtenededCall) = abi.decode(initPayload, (uint256, uint256));
+    if (useExtenededCall > 0) {
+      useExtenededCall = 1;
+    }
+    assembly {
+      sstore(_extendedCallSlot, useExtenededCall)
+    }
     setRoyalties(0, payable(address(this)), bp);
     address payable[] memory addresses = new address payable[](1);
     addresses[0] = payable(getOwner());
@@ -291,29 +303,47 @@ contract HolographRoyalties is Admin, Owner, Initializable {
   }
 
   /**
-   * @dev Internal function that transfers ETH to all payout recipients.
+   * @dev Private function that transfers ETH to all payout recipients.
+   * @dev This contract is designed primarily to capture royalties, but is limited in payout logic.
+   * @dev This function uses a push payment model, where the contract pushes the ETH to the recipients.
+   * @dev The design is intended so that royalty distribution logic can be handled externally via payment distribution contracts.
+   * @dev The recommended usage for royalty structures that require more complex payout logic to multiple recipients is to
+   *      set 100% ownership payout with the recipient being the payment distribution contract.
    */
   function _payoutEth() private {
     address payable[] memory addresses = _getPayoutAddresses();
     uint256[] memory bps = _getPayoutBps();
     uint256 length = addresses.length;
-    // accommodating the 2300 gas stipend
-    // adding 1x for each item in array to accomodate rounding errors
-    uint256 gasCost = (23300 * length) + length;
     uint256 balance = address(this).balance;
-    require(balance - gasCost > 10000, "ROYALTIES: Not enough ETH");
-    balance = balance - gasCost;
     uint256 sending;
-    // uint256 sent;
+    bool extendedCall;
+    assembly {
+      extendedCall := sload(_extendedCallSlot)
+    }
     for (uint256 i = 0; i < length; i++) {
       sending = ((bps[i] * balance) / 10000);
-      addresses[i].transfer(sending);
-      // sent = sent + sending;
+      // only send value if it is greater than 0
+      if (sending > 0) {
+        // If the contract enabled extended call on init then use call to transfer, otherwise use transfer
+        if (extendedCall == true) {
+          (bool success, ) = addresses[i].call{value: sending}("");
+          require(success, "ROYALTIES: Transfer failed");
+        } else {
+          addresses[i].transfer(sending);
+        }
+      }
     }
   }
 
   /**
-   * @dev Internal function that transfers tokens to all payout recipients.
+   * @dev Private function that transfers tokens to all payout recipients.
+   * @dev ERC20 tokens that use fee on transfer are not supported.
+   * @dev This contract is designed primarily to capture royalties, but is limited in payout logic.
+   * @dev This function uses a push payment model, where the contract pushes the ETH to the recipients.
+   * @dev The design is intended so that royalty distribution logic can be handled externally via payment distribution contracts.
+   * @dev The recommended usage for royalty structures that require more complex payout logic to multiple recipients is to
+   *      set 100% ownership payout with the recipient being the payment distribution contract.
+   *
    * @param tokenAddress Smart contract address of ERC20 token.
    */
   function _payoutToken(address tokenAddress) private {
@@ -322,19 +352,34 @@ contract HolographRoyalties is Admin, Owner, Initializable {
     uint256 length = addresses.length;
     ERC20 erc20 = ERC20(tokenAddress);
     uint256 balance = erc20.balanceOf(address(this));
-    require(balance > 10000, "ROYALTIES: Not enough tokens");
     uint256 sending;
-    //uint256 sent;
     for (uint256 i = 0; i < length; i++) {
       sending = ((bps[i] * balance) / 10000);
-      require(erc20.transfer(addresses[i], sending), "ROYALTIES: ERC20 transfer failed");
-      // sent = sent + sending;
+      // Some tokens revert when transferring a zero value amount this check ensures if one recipient's
+      // amount is zero, the transfer will still succeed for the other recipients.
+      if (sending > 0) {
+        require(
+          _callOptionalReturn(
+            tokenAddress,
+            erc20.transfer.selector,
+            abi.encode(address(addresses[i]), uint256(sending))
+          ),
+          "ROYALTIES: ERC20 transfer failed"
+        );
+      }
     }
   }
 
   /**
-   * @dev Internal function that transfers multiple tokens to all payout recipients.
+   * @dev Private function that transfers multiple tokens to all payout recipients.
    * @dev Try to use _payoutToken and handle each token individually.
+   * @dev ERC20 tokens that use fee on transfer are not supported.
+   * @dev This contract is designed primarily to capture royalties, but is limited in payout logic.
+   * @dev This function uses a push payment model, where the contract pushes the ETH to the recipients.
+   * @dev The design is intended so that royalty distribution logic can be handled externally via payment distribution contracts.
+   * @dev The recommended usage for royalty structures that require more complex payout logic to multiple recipients is to
+   *      set 100% ownership payout with the recipient being the payment distribution contract.
+   *
    * @param tokenAddresses Array of smart contract addresses of ERC20 tokens.
    */
   function _payoutTokens(address[] memory tokenAddresses) private {
@@ -346,12 +391,20 @@ contract HolographRoyalties is Admin, Owner, Initializable {
     for (uint256 t = 0; t < tokenAddresses.length; t++) {
       erc20 = ERC20(tokenAddresses[t]);
       balance = erc20.balanceOf(address(this));
-      require(balance > 10000, "ROYALTIES: Not enough tokens");
-      // uint256 sent;
       for (uint256 i = 0; i < addresses.length; i++) {
         sending = ((bps[i] * balance) / 10000);
-        require(erc20.transfer(addresses[i], sending), "ROYALTIES: ERC20 transfer failed");
-        // sent = sent + sending;
+        // Some tokens revert when transferring a zero value amount this check ensures if one recipient's
+        // amount is zero, the transfer will still succeed for the other recipients.
+        if (sending > 0) {
+          require(
+            _callOptionalReturn(
+              tokenAddresses[t],
+              erc20.transfer.selector,
+              abi.encode(address(addresses[i]), uint256(sending))
+            ),
+            "ROYALTIES: ERC20 transfer failed"
+          );
+        }
       }
     }
   }
@@ -377,6 +430,8 @@ contract HolographRoyalties is Admin, Owner, Initializable {
 
   /**
    * @notice Set the wallets and percentages for royalty payouts.
+   *         Limited to 10 wallets to prevent out of gas errors.
+   *         For more complex royalty structures, set 100% ownership payout with the recipient being the payment distribution contract.
    * @dev Function can only we called by owner, admin, or identity wallet.
    * @dev Addresses and bps arrays must be equal length. Bps values added together must equal 10000 exactly.
    * @param addresses An array of all the addresses that will be receiving royalty payouts.
@@ -384,8 +439,11 @@ contract HolographRoyalties is Admin, Owner, Initializable {
    */
   function configurePayouts(address payable[] memory addresses, uint256[] memory bps) public onlyOwner {
     require(addresses.length == bps.length, "ROYALTIES: missmatched lenghts");
+    require(addresses.length <= 10, "ROYALTIES: max 10 addresses");
     uint256 totalBp;
     for (uint256 i = 0; i < addresses.length; i++) {
+      require(addresses[i] != address(0), "ROYALTIES: payee is zero address");
+      require(bps[i] > 0, "ROYALTIES: bp is zero");
       totalBp = totalBp + bps[i];
     }
     require(totalBp == 10000, "ROYALTIES: bps must equal 10000");
@@ -445,6 +503,8 @@ contract HolographRoyalties is Admin, Owner, Initializable {
     address payable receiver,
     uint256 bp
   ) public onlyOwner {
+    require(receiver != address(0), "ROYALTIES: receiver is zero address");
+    require(bp <= 10000, "ROYALTIES: base points over 100%");
     if (tokenId == 0) {
       _setDefaultReceiver(receiver);
       _setDefaultBp(bp);
@@ -581,9 +641,9 @@ contract HolographRoyalties is Admin, Owner, Initializable {
     bidShares.prevOwner.value = 0;
     bidShares.owner.value = 0;
     if (_getReceiver(tokenId) == address(0)) {
-      bidShares.creator.value = _getDefaultBp();
+      bidShares.creator.value = _getDefaultBp() * (10**16);
     } else {
-      bidShares.creator.value = _getBp(tokenId);
+      bidShares.creator.value = _getBp(tokenId) * (10**16);
     }
     return bidShares;
   }
@@ -596,5 +656,34 @@ contract HolographRoyalties is Admin, Owner, Initializable {
    */
   function getTokenAddress(string memory tokenName) public view returns (address) {
     return _getTokenAddress(tokenName);
+  }
+
+  /**
+   * @notice Used to wrap function calls to check if they return without revert regardless of return type.
+   * @dev Checks if wrapped function opcode is a revert, if it is then it reverts as well, if it's not then
+   *      it checks for return data, if return data exists, it is returned as a bool,
+   *      if return data does not exist (0 length) then success is expected and returns true
+   * @return Returns true if the wrapped function call returns without a revert even if it doesn't return true.
+   */
+  function _callOptionalReturn(
+    address target,
+    bytes4 functionSignature,
+    bytes memory payload
+  ) internal returns (bool) {
+    bytes memory data = abi.encodePacked(functionSignature, payload);
+    bool success = true;
+    assembly {
+      let result := call(gas(), target, callvalue(), add(data, 0x20), mload(data), 0, 0)
+      switch result
+      case 0 {
+        revert(0, returndatasize())
+      }
+      default {
+        if gt(returndatasize(), 0) {
+          returndatacopy(success, 0, 0x20)
+        }
+      }
+    }
+    return success;
   }
 }
