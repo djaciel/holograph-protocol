@@ -11,12 +11,24 @@ import {
   LeanHardhatRuntimeEnvironment,
   hreSplit,
 } from '../scripts/utils/helpers';
+import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-  const { deployments, getNamedAccounts } = hre;
-  const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
+  const accounts = await hre.ethers.getSigners();
+  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
+
+  if (global.__superColdStorage) {
+    // address, domain, authorization, ca
+    const coldStorage = global.__superColdStorage;
+    deployer = new SuperColdStorageSigner(
+      coldStorage.address,
+      'https://' + coldStorage.domain,
+      coldStorage.authorization,
+      deployer.provider,
+      coldStorage.ca
+    );
+  }
 
   const error = function (err: string) {
     hre.deployments.log(err);
@@ -66,7 +78,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     }
   }
 
-  const holograph = await hre.ethers.getContract('Holograph');
+  const holograph = await hre.ethers.getContract('Holograph', deployer);
 
   const futureLayerZeroModuleAddress = await genesisDeriveFutureAddress(
     hre,
@@ -106,14 +118,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"LayerZeroModule" is already deployed..');
   }
 
-  const holographOperator = ((await hre.ethers.getContract('HolographOperator')) as Contract).attach(
+  const holographOperator = ((await hre.ethers.getContract('HolographOperator', deployer)) as Contract).attach(
     await holograph.getOperator()
   );
 
   if ((await holographOperator.getMessagingModule()).toLowerCase() != futureLayerZeroModuleAddress.toLowerCase()) {
     const lzTx = await holographOperator
       .setMessagingModule(futureLayerZeroModuleAddress, {
-        nonce: await hre.ethers.provider.getTransactionCount(deployer),
+        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
       })
       .catch(error);
     hre.deployments.log('Transaction hash:', lzTx.hash);
@@ -123,7 +135,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log(`MessagingModule is already registered to: ${await holographOperator.getMessagingModule()}`);
   }
 
-  const lzModule = (await hre.ethers.getContract('LayerZeroModule')) as Contract;
+  const lzModule = (await hre.ethers.getContract('LayerZeroModule', deployer)) as Contract;
 
   chainIds = [];
   gasParameters = [];
@@ -145,7 +157,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       chainIds,
       gasParameters,
       {
-        nonce: await hre.ethers.provider.getTransactionCount(deployer),
+        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
       }
     ).catch(error);
     hre.deployments.log('Transaction hash:', lzTx.hash);

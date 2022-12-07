@@ -13,6 +13,21 @@ import { NetworkType, Network, Networks, networks } from '@holographxyz/networks
 import dotenv from 'dotenv';
 dotenv.config();
 
+function hex2buffer(input: string): Uin8Array {
+  input = input.toLowerCase().trim();
+  if (input.startsWith('0x')) {
+    input = input.substring(2).trim();
+  }
+  if (input.length % 2 !== 0) {
+    input = '0' + input;
+  }
+  let bytes: number[] = [];
+  for (let i = 0; i < input.length; i += 2) {
+    bytes.push(parseInt(input.substring(i, i + 2), 16));
+  }
+  return Uint8Array.from(bytes);
+}
+
 const currentEnvironment = Environment[getEnvironment()];
 process.stdout.write(`\n👉 Environment: ${currentEnvironment}\n\n`);
 
@@ -20,6 +35,23 @@ const SOLIDITY_VERSION = process.env.SOLIDITY_VERSION || '0.8.13';
 
 const MNEMONIC = process.env.MNEMONIC || 'test '.repeat(11) + 'junk';
 const DEPLOYER = process.env.DEPLOYER || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
+
+if (process.env.SUPER_COLD_STORAGE_ENABLED && process.env.SUPER_COLD_STORAGE_ENABLED == 'true') {
+  global.__superColdStorage = {
+    address: process.env.SUPER_COLD_STORAGE_ADDRESS,
+    domain: process.env.SUPER_COLD_STORAGE_DOMAIN,
+    authorization: process.env.SUPER_COLD_STORAGE_AUTHORIZATION, //String.fromCharCode.apply(null, hex2buffer(process.env.SUPER_COLD_STORAGE_AUTHORIZATION)),
+    ca: String.fromCharCode.apply(null, hex2buffer(process.env.SUPER_COLD_STORAGE_CA)),
+  };
+}
+
+const setDeployerKey = function (fallbackKey: string | number): string | number {
+  if ('__superColdStorage' in global) {
+    return ('super-cold-storage://' + global.__superColdStorage.address) as string;
+  } else {
+    return fallbackKey;
+  }
+};
 
 const AVALANCHE_PRIVATE_KEY = process.env.AVALANCHE_PRIVATE_KEY || DEPLOYER;
 const AVALANCHE_TESTNET_PRIVATE_KEY = process.env.AVALANCHE_TESTNET_PRIVATE_KEY || DEPLOYER;
@@ -228,7 +260,7 @@ const config: HardhatUserConfig = {
     polygon: {
       url: networks.polygon.rpc,
       chainId: networks.polygon.chain,
-      accounts: [POLYGON_PRIVATE_KEY] || '',
+      accounts: [POLYGON_PRIVATE_KEY],
     },
     polygonTestnet: {
       url: networks.polygonTestnet.rpc,
@@ -240,7 +272,7 @@ const config: HardhatUserConfig = {
     },
   },
   namedAccounts: {
-    deployer: 0,
+    deployer: setDeployerKey(0),
     lzEndpoint: 10,
   },
   solidity: {

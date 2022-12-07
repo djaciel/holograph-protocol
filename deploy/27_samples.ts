@@ -22,10 +22,24 @@ import {
   ConfigureEvents,
 } from '../scripts/utils/events';
 import { NetworkType, networks } from '@holographxyz/networks';
+import { SuperColdStorageSigner } from 'super-cold-storage-signer';
+
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
   const accounts = await hre.ethers.getSigners();
-  const deployer: SignerWithAddress = accounts[0];
+  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
+
+  if (global.__superColdStorage) {
+    // address, domain, authorization, ca
+    const coldStorage = global.__superColdStorage;
+    deployer = new SuperColdStorageSigner(
+      coldStorage.address,
+      'https://' + coldStorage.domain,
+      coldStorage.authorization,
+      deployer.provider,
+      coldStorage.ca
+    );
+  }
 
   const network = networks[hre.networkName];
 
@@ -41,13 +55,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
     const salt = hre.deploymentSalt;
 
-    const holographFactoryProxy = await hre.ethers.getContract('HolographFactoryProxy');
-    const holographFactory = ((await hre.ethers.getContract('HolographFactory')) as Contract).attach(
+    const holographFactoryProxy = await hre.ethers.getContract('HolographFactoryProxy', deployer);
+    const holographFactory = ((await hre.ethers.getContract('HolographFactory', deployer)) as Contract).attach(
       holographFactoryProxy.address
     );
 
-    const holographRegistryProxy = await hre.ethers.getContract('HolographRegistryProxy');
-    const holographRegistry = ((await hre.ethers.getContract('HolographRegistry')) as Contract).attach(
+    const holographRegistryProxy = await hre.ethers.getContract('HolographRegistryProxy', deployer);
+    const holographRegistry = ((await hre.ethers.getContract('HolographRegistry', deployer)) as Contract).attach(
       holographRegistryProxy.address
     );
 

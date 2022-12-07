@@ -12,18 +12,30 @@ import {
 } from '../scripts/utils/helpers';
 import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
 import { NetworkType, networks } from '@holographxyz/networks';
+import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-
   const accounts = await hre.ethers.getSigners();
-  const deployer: SignerWithAddress = accounts[0];
+  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
+
+  if (global.__superColdStorage) {
+    // address, domain, authorization, ca
+    const coldStorage = global.__superColdStorage;
+    deployer = new SuperColdStorageSigner(
+      coldStorage.address,
+      'https://' + coldStorage.domain,
+      coldStorage.authorization,
+      deployer.provider,
+      coldStorage.ca
+    );
+  }
 
   const network = networks[hre.networkName];
 
   const salt = hre.deploymentSalt;
 
-  const holograph = await hre.ethers.getContract('Holograph');
+  const holograph = await hre.ethers.getContract('Holograph', deployer);
   const hlgTokenAddress = await holograph.getUtilityToken();
 
   const currentNetworkType: NetworkType = network.type;
@@ -48,7 +60,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         generateInitCode(['address', 'address'], [deployer.address, hlgTokenAddress]),
         futureFaucetAddress
       );
-      const hlgContract = (await hre.ethers.getContract('HolographERC20')).attach(hlgTokenAddress);
+      const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
       if (currentNetworkType == NetworkType.testnet) {
         const transferTx = await hlgContract.transfer(
           futureFaucetAddress,
@@ -63,7 +75,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('"Faucet" is already deployed.');
     }
     if (currentNetworkType == NetworkType.testnet) {
-      const faucetContract = await hre.ethers.getContract('Faucet');
+      const faucetContract = await hre.ethers.getContract('Faucet', deployer);
       if ((await faucetContract.token()) != hlgTokenAddress) {
         const tx = await faucetContract.setToken(hlgTokenAddress, {
           nonce: await hre.ethers.provider.getTransactionCount(deployer.address),

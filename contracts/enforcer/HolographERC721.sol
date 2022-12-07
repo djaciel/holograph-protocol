@@ -259,7 +259,7 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
       (bool success, bytes memory returnData) = _royalties().delegatecall(
         abi.encodeWithSelector(
           HolographRoyaltiesInterface.initHolographRoyalties.selector,
-          abi.encode(uint256(contractBps))
+          abi.encode(uint256(contractBps), uint256(0))
         )
       );
       bytes4 selector = abi.decode(returnData, (bytes4));
@@ -1010,9 +1010,7 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    */
   function _royalties() private view returns (address) {
     return
-      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(
-        0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573
-      );
+      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573);
   }
 
   /**

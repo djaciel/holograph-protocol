@@ -10,7 +10,6 @@ import {
   ROYALTIES_ALREADY_INITIALIZED_ERROR_MSG,
 } from './utils/error_constants';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import Web3 from 'web3';
 
 describe('HolographRoyalties Contract', async function () {
   let royalties: HolographRoyalties;
@@ -56,7 +55,7 @@ describe('HolographRoyalties Contract', async function () {
 
   describe('initHolographRoyalties()', () => {
     it('should fail be initialized twice', async function () {
-      const initCode = generateInitCode(['address', 'uint256'], [l1.wallet2.address, '100']);
+      const initCode = generateInitCode(['uint256', 'uint256'], [100, 0]);
 
       await expect(royalties.connect(owner).initHolographRoyalties(initCode)).to.be.revertedWith(
         ROYALTIES_ALREADY_INITIALIZED_ERROR_MSG
@@ -256,6 +255,17 @@ describe('HolographRoyalties Contract', async function () {
 
       await expect(l1.factory.connect(owner).adminCall(royalties.address, data)).to.be.revertedWith(
         'ROYALTIES: missmatched lenghts'
+      );
+    });
+
+    it('should fail if there are more than 10 payout addresses', async () => {
+      const addresses = Array.from({ length: 11 }, () => anyAddress);
+      const bps = Array.from({ length: 11 }, () => 10);
+
+      let data = (await royalties.populateTransaction.configurePayouts(addresses, bps)).data || '';
+
+      await expect(l1.factory.connect(owner).adminCall(royalties.address, data)).to.be.revertedWith(
+        'ROYALTIES: max 10 addresses'
       );
     });
 
@@ -539,5 +549,217 @@ describe('HolographRoyalties Contract', async function () {
     });
 
     it('should allow inherited contract to call fn');
+  });
+
+  describe('Royalties Distribution Validation', () => {
+    const errorMargin = ethers.utils.parseUnits('2000', 'wei');
+
+    describe('A collection with 1 recipient', async () => {
+      const totalRoyalties = ethers.utils.parseEther('1');
+
+      before(async () => {
+        const data = (await royalties.populateTransaction.configurePayouts([owner.address], [10000])).data || '';
+        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        await tx.wait();
+      });
+
+      it('should be able to withdraw all native token balance', async () => {
+        await owner.sendTransaction({
+          to: royalties.address,
+          value: totalRoyalties,
+        });
+
+        const accountBalanceBefore = await ethers.provider.getBalance(owner.address);
+        const contractBalanceBefore = await ethers.provider.getBalance(royalties.address);
+
+        const data = (await royalties.populateTransaction.getEthPayout()).data || '';
+        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        await tx.wait();
+
+        const accountBalanceAfter = await ethers.provider.getBalance(owner.address);
+        const contractBalanceAfter = await ethers.provider.getBalance(royalties.address);
+
+        expect(contractBalanceAfter).to.be.lt(contractBalanceBefore);
+        expect(accountBalanceAfter).to.be.gt(accountBalanceBefore);
+      });
+
+      it('should be able to withdraw balance of an ERC20 token', async () => {
+        const ERC20 = await l1.holographErc20.attach(l1.sampleErc20Holographer.address);
+        const SAMPLEERC20 = await l1.sampleErc20.attach(l1.sampleErc20Holographer.address);
+
+        await SAMPLEERC20.mint(owner.address, totalRoyalties);
+        await ERC20.transfer(royalties.address, totalRoyalties);
+
+        const contractBalanceBefore = await ERC20.balanceOf(royalties.address);
+        const accountBalanceBefore = await ERC20.balanceOf(owner.address);
+
+        const data = (await royalties.populateTransaction.getTokenPayout(ERC20.address)).data || '';
+        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        await tx.wait();
+
+        const accountBalanceAfter = await ERC20.balanceOf(owner.address);
+        const contractBalanceAfter = await ERC20.balanceOf(royalties.address);
+
+        expect(contractBalanceAfter).to.be.lt(contractBalanceBefore);
+        expect(accountBalanceAfter).to.be.gt(accountBalanceBefore);
+      });
+    });
+
+    describe('A collection has 2 recipients with a 60% / 40% split', () => {
+      const totalRoyalties = ethers.utils.parseEther('10');
+
+      before(async () => {
+        const data =
+          (await royalties.populateTransaction.configurePayouts([anyAddress, notOwner.address], [6000, 4000])).data ||
+          '';
+        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        await tx.wait();
+      });
+
+      it('should be able to withdraw all native token balance', async () => {
+        await owner.sendTransaction({
+          to: royalties.address,
+          value: totalRoyalties,
+        });
+
+        const accountABalanceBefore = await ethers.provider.getBalance(anyAddress);
+        const accountBBalanceBefore = await ethers.provider.getBalance(notOwner.address);
+        const contractBalanceBefore = await ethers.provider.getBalance(royalties.address);
+
+        const data = (await royalties.populateTransaction.getEthPayout()).data || '';
+        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        await tx.wait();
+
+        const accountABalanceAfter = await ethers.provider.getBalance(anyAddress);
+        const accountBBalanceAfter = await ethers.provider.getBalance(notOwner.address);
+        const contractBalanceAfter = await ethers.provider.getBalance(royalties.address);
+
+        const sixtyPercentOfRoyalties = contractBalanceBefore.sub(contractBalanceAfter).mul(60).div(100);
+        const fortyPercentOfRoyalties = contractBalanceBefore.sub(contractBalanceAfter).mul(40).div(100);
+
+        expect(contractBalanceAfter).to.be.lt(contractBalanceBefore);
+        expect(Number(accountABalanceAfter)).to.be.approximately(
+          Number(sixtyPercentOfRoyalties.add(accountABalanceBefore)),
+          Number(errorMargin)
+        );
+        expect(Number(accountBBalanceAfter)).to.be.approximately(
+          Number(fortyPercentOfRoyalties.add(accountBBalanceBefore)),
+          Number(errorMargin)
+        );
+      });
+
+      it('should be able to withdraw balance of an ERC20 token', async () => {
+        const ERC20 = await l1.holographErc20.attach(l1.sampleErc20Holographer.address);
+        const SAMPLEERC20 = await l1.sampleErc20.attach(l1.sampleErc20Holographer.address);
+
+        await SAMPLEERC20.mint(owner.address, totalRoyalties);
+        await ERC20.transfer(royalties.address, totalRoyalties);
+
+        const contractBalanceBefore = await ERC20.balanceOf(royalties.address);
+        const accountABalanceBefore = await ERC20.balanceOf(anyAddress);
+        const accountBBalanceBefore = await ERC20.balanceOf(notOwner.address);
+
+        const data = (await royalties.populateTransaction.getTokenPayout(ERC20.address)).data || '';
+        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        await tx.wait();
+
+        const accountABalanceAfter = await ERC20.balanceOf(anyAddress);
+        const accountBBalanceAfter = await ERC20.balanceOf(notOwner.address);
+        const contractBalanceAfter = await ERC20.balanceOf(royalties.address);
+
+        const sixtyPercentOfRoyalties = contractBalanceBefore.sub(contractBalanceAfter).mul(60).div(100);
+        const fortyPercentOfRoyalties = contractBalanceBefore.sub(contractBalanceAfter).mul(40).div(100);
+
+        expect(contractBalanceAfter).to.be.lt(contractBalanceBefore);
+        expect(accountABalanceAfter).to.be.equal(accountABalanceBefore.add(sixtyPercentOfRoyalties));
+        expect(accountBBalanceAfter).to.be.equal(accountBBalanceBefore.add(fortyPercentOfRoyalties));
+      });
+    });
+
+    describe('A collection has 3 recipients with a 20 % / 50% / 30% split', () => {
+      const totalRoyalties = ethers.utils.parseEther('10');
+      const mockAddress = createRandomAddress();
+
+      before(async () => {
+        const data =
+          (
+            await royalties.populateTransaction.configurePayouts(
+              [anyAddress, notOwner.address, mockAddress],
+              [2000, 5000, 3000]
+            )
+          ).data || '';
+        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        await tx.wait();
+      });
+
+      it('should be able to withdraw all native token balance', async () => {
+        await owner.sendTransaction({
+          to: royalties.address,
+          value: totalRoyalties,
+        });
+
+        const accountABalanceBefore = await ethers.provider.getBalance(anyAddress);
+        const accountBBalanceBefore = await ethers.provider.getBalance(notOwner.address);
+        const accountCBalanceBefore = await ethers.provider.getBalance(mockAddress);
+        const contractBalanceBefore = await ethers.provider.getBalance(royalties.address);
+
+        const data = (await royalties.populateTransaction.getEthPayout()).data || '';
+        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        await tx.wait();
+
+        const accountABalanceAfter = await ethers.provider.getBalance(anyAddress);
+        const accountBBalanceAfter = await ethers.provider.getBalance(notOwner.address);
+        const accountCBalanceAfter = await ethers.provider.getBalance(mockAddress);
+        const contractBalanceAfter = await ethers.provider.getBalance(royalties.address);
+
+        const twentyPercentOfRoyalties = contractBalanceBefore.sub(contractBalanceAfter).mul(20).div(100);
+        const fiftyPercentOfRoyalties = contractBalanceBefore.sub(contractBalanceAfter).mul(50).div(100);
+        const thirtyPercentOfRoyalties = contractBalanceBefore.sub(contractBalanceAfter).mul(30).div(100);
+
+        expect(contractBalanceAfter).to.be.lt(contractBalanceBefore);
+        expect(Number(accountABalanceAfter)).to.be.approximately(
+          Number(twentyPercentOfRoyalties.add(accountABalanceBefore)),
+          Number(errorMargin)
+        );
+        expect(Number(accountBBalanceAfter)).to.be.approximately(
+          Number(fiftyPercentOfRoyalties.add(accountBBalanceBefore)),
+          Number(errorMargin)
+        );
+        expect(Number(accountCBalanceAfter)).to.be.approximately(
+          Number(thirtyPercentOfRoyalties.add(accountCBalanceBefore)),
+          Number(errorMargin)
+        );
+      });
+      it('should be able to withdraw balance of an ERC20 token', async () => {
+        const ERC20 = await l1.holographErc20.attach(l1.sampleErc20Holographer.address);
+        const SAMPLEERC20 = await l1.sampleErc20.attach(l1.sampleErc20Holographer.address);
+
+        await SAMPLEERC20.mint(owner.address, totalRoyalties);
+        await ERC20.transfer(royalties.address, totalRoyalties);
+
+        const contractBalanceBefore = await ERC20.balanceOf(royalties.address);
+        const accountABalanceBefore = await ERC20.balanceOf(anyAddress);
+        const accountBBalanceBefore = await ERC20.balanceOf(notOwner.address);
+        const accountCBalanceBefore = await ERC20.balanceOf(mockAddress);
+
+        const data = (await royalties.populateTransaction.getTokenPayout(ERC20.address)).data || '';
+        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        await tx.wait();
+
+        const accountABalanceAfter = await ERC20.balanceOf(anyAddress);
+        const accountBBalanceAfter = await ERC20.balanceOf(notOwner.address);
+        const accountCBalanceAfter = await ERC20.balanceOf(mockAddress);
+        const contractBalanceAfter = await ERC20.balanceOf(royalties.address);
+
+        const twentyPercentOfRoyalties = contractBalanceBefore.sub(contractBalanceAfter).mul(20).div(100);
+        const fiftyPercentOfRoyalties = contractBalanceBefore.sub(contractBalanceAfter).mul(50).div(100);
+        const thirtyPercentOfRoyalties = contractBalanceBefore.sub(contractBalanceAfter).mul(30).div(100);
+
+        expect(contractBalanceAfter).to.be.lt(contractBalanceBefore);
+        expect(accountABalanceAfter).to.be.equal(accountABalanceBefore.add(twentyPercentOfRoyalties));
+        expect(accountBBalanceAfter).to.be.equal(accountBBalanceBefore.add(fiftyPercentOfRoyalties));
+        expect(accountCBalanceAfter).to.be.equal(accountCBalanceBefore.add(thirtyPercentOfRoyalties));
+      });
+    });
   });
 });
