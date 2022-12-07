@@ -195,10 +195,7 @@ contract HolographRegistry is Admin, Initializable, HolographRegistryInterface {
     assembly {
       contractType := extcodehash(contractAddress)
     }
-    require(
-      (contractType != 0x0 && contractType != 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470),
-      "HOLOGRAPH: empty contract"
-    );
+    require((contractType != 0x0 && contractType != 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470), "HOLOGRAPH: empty contract");
     require(_contractTypeAddresses[contractType] == address(0), "HOLOGRAPH: contract already set");
     require(!_reservedTypes[contractType], "HOLOGRAPH: reserved address type");
     _contractTypeAddresses[contractType] = contractAddress;
