@@ -48,7 +48,7 @@
 //  HolographInterfaces,
 //  MockERC721Receiver,
 //  Owner,
-//  PA1D,
+//  HolographRoyalties,
 //  SampleERC20,
 //  SampleERC721,
 //} from '../typechain-types';

@@ -1,21 +1,4 @@
 {
-  "prettier.printWidth": 120,
-  "prettier.tabWidth": 2,
-  "prettier.useTabs": false,
-  "prettier.semi": true,
-  "prettier.singleQuote": true,
-  "prettier.quoteProps": "as-needed",
-  "prettier.trailingComma": "es5",
-  "prettier.bracketSpacing": true,
-  "prettier.bracketSameLine": true,
-  "prettier.arrowParens": "always",
-  "prettier.requirePragma": false,
-  "prettier.insertPragma": false,
-  "prettier.proseWrap": "preserve",
-  "prettier.htmlWhitespaceSensitivity": "css",
-  "prettier.endOfLine": "lf",
-  "prettier.embeddedLanguageFormatting": "off",
-  "prettier.ignorePath": ".gitignore",
   "printWidth": 120,
   "tabWidth": 2,
   "useTabs": false,
@@ -34,7 +17,7 @@
   "embeddedLanguageFormatting": "off",
   "overrides":
     [
-      { "files": "*.prettierrc", "options": { "singleQuote": false } },
+      { "files": "*.prettierrc", "options": { "singleQuote": false, "trailingComma": "none" } },
       { "files": "*.js", "options": { "singleQuote": true } },
       { "files": "*.ts", "options": { "singleQuote": true } },
       {
@@ -46,8 +29,8 @@
             "useTabs": false,
             "singleQuote": false,
             "bracketSpacing": false,
-            "explicitTypes": "always",
-          },
-      },
-    ],
+            "explicitTypes": "always"
+          }
+      }
+    ]
 }

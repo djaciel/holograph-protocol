@@ -9,19 +9,7 @@ import "./enum/ChainIdType.sol";
 import "./enum/InterfaceType.sol";
 import "./enum/TokenUriType.sol";
 
-import "./interface/CollectionURI.sol";
-import "./interface/ERC20.sol";
-import "./interface/ERC20Burnable.sol";
-import "./interface/ERC20Metadata.sol";
-import "./interface/ERC20Permit.sol";
-import "./interface/ERC20Safer.sol";
-import "./interface/ERC165.sol";
-import "./interface/ERC721.sol";
-import "./interface/ERC721Enumerable.sol";
-import "./interface/ERC721Metadata.sol";
-import "./interface/ERC721TokenReceiver.sol";
 import "./interface/InitializableInterface.sol";
-import "./interface/PA1DInterface.sol";
 
 import "./library/Base64.sol";
 import "./library/Strings.sol";

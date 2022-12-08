@@ -38,10 +38,18 @@ interface HolographedERC721 {
   ) external returns (bool success);
 
   // event id = 5
-  function afterApprovalAll(address _to, bool _approved) external returns (bool success);
+  function afterApprovalAll(
+    address _sender,
+    address _to,
+    bool _approved
+  ) external returns (bool success);
 
   // event id = 6
-  function beforeApprovalAll(address _to, bool _approved) external returns (bool success);
+  function beforeApprovalAll(
+    address _sender,
+    address _to,
+    bool _approved
+  ) external returns (bool success);
 
   // event id = 7
   function afterBurn(address _owner, uint256 _tokenId) external returns (bool success);

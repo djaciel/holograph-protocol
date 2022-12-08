@@ -37,7 +37,7 @@ import {
   MockERC721Receiver,
   MockLZEndpoint,
   Owner,
-  PA1D,
+  HolographRoyalties,
   SampleERC20,
   SampleERC721,
 } from '../../typechain-types';
@@ -116,7 +116,7 @@ export interface PreTest {
   holographInterfaces: HolographInterfaces;
   mockErc721Receiver: MockERC721Receiver;
   owner: Owner;
-  pa1d: PA1D;
+  royalties: HolographRoyalties;
   sampleErc20: SampleERC20;
   sampleErc721: SampleERC721;
   bridge: HolographBridge;
@@ -180,7 +180,7 @@ export default async function (l2?: boolean): Promise<PreTest> {
     'HolographTreasury',
     'HolographTreasuryProxy',
     'HolographInterfaces',
-    'PA1D',
+    'HolographRoyalties',
 
     'HolographERC20',
     'HolographERC721',
@@ -246,7 +246,7 @@ export default async function (l2?: boolean): Promise<PreTest> {
   let holographInterfaces: HolographInterfaces;
   let mockErc721Receiver: MockERC721Receiver;
   let owner: Owner;
-  let pa1d: PA1D;
+  let royalties: HolographRoyalties;
   let sampleErc20: SampleERC20;
   let sampleErc721: SampleERC721;
   let faucet: Faucet;
@@ -298,7 +298,7 @@ export default async function (l2?: boolean): Promise<PreTest> {
   holographInterfaces = (await hre.ethers.getContractOrNull('HolographInterfaces')) as HolographInterfaces;
   mockErc721Receiver = (await hre.ethers.getContract('MockERC721Receiver')) as MockERC721Receiver;
   owner = (await hre.ethers.getContractOrNull('Owner')) as Owner;
-  pa1d = (await hre.ethers.getContract('PA1D')) as PA1D;
+  royalties = (await hre.ethers.getContract('HolographRoyalties')) as HolographRoyalties;
   // sampleErc20 = (await hre.ethers.getContractOrNull('SampleERC20')) as SampleERC20;
   // sampleErc721 = (await hre.ethers.getContractOrNull('SampleERC721')) as SampleERC721;
   faucet = await hre.ethers.getContract<Faucet>('Faucet');
@@ -482,7 +482,7 @@ export default async function (l2?: boolean): Promise<PreTest> {
     holographInterfaces,
     mockErc721Receiver,
     owner,
-    pa1d,
+    royalties,
     sampleErc20,
     sampleErc721,
     bridge,
