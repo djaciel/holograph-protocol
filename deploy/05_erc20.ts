@@ -7,6 +7,8 @@ import {
   genesisDeployHelper,
   genesisDeriveFutureAddress,
   generateInitCode,
+  getGasPrice,
+  getGasLimit,
 } from '../scripts/utils/helpers';
 import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';

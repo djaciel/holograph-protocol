@@ -1424,7 +1424,9 @@ describe('Holograph Operator Contract', async () => {
       let jobOperatorBondAmount: BigNumber = await l2.operator.getBondedAmount(jobOperator.address);
       process.stdout.write(' '.repeat(8) + 'sleeping for ' + BLOCKTIME + ' seconds...' + '\n');
       await sleep(1000 * BLOCKTIME); // gotta wait 60 seconds for operator opportunity to close
-      await expect(l2.operator.connect(jobOperator).executeJob(payload, { gasLimit: estimatedGas }))
+      await expect(
+        l2.operator.connect(jobOperator).executeJob(payload, { gasLimit: estimatedGas.add(BigNumber.from('100000')) })
+      )
         .to.emit(HLGL2, 'Transfer')
         .withArgs(l2.operator.address, jobOperator.address, bondRequirements[0]);
       expect(await l2.operator.getBondedAmount(selectedOperator)).to.equal(

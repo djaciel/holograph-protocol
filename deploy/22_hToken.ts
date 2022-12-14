@@ -15,6 +15,7 @@ import {
   generateInitCode,
   genesisDeriveFutureAddress,
   remove0x,
+  txParams,
 } from '../scripts/utils/helpers';
 import { HolographERC20Event, ConfigureEvents, AllEventsEnabled } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
@@ -117,7 +118,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       } as Signature);
 
       const deployTx = await factory.deployHolographableContract(erc20Config, signature, deployer.address, {
-        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: factory,
+          data: factory.populateTransaction.deployHolographableContract(erc20Config, signature, deployer.address),
+        })),
       });
       const deployResult = await deployTx.wait();
       let eventIndex: number = 0;
@@ -139,17 +145,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           `Seems like hTokenAddress ${hTokenAddress} and futureHTokenAddress ${futureHTokenAddress} do not match!`
         );
       }
-      hre.deployments.log(
-        'deployed "hToken #' + network.holographId.toString() + '" at:',
-        await registry.getHToken(chainId)
-      );
+      hre.deployments.log('deployed "hToken #' + network.holographId.toString() + '" at:', hTokenAddress);
     } else {
       hre.deployments.log('reusing "hToken #' + network.holographId.toString() + '" at:', futureHTokenAddress);
     }
     if ((await registry.getHToken(chainId)) != futureHTokenAddress) {
       hre.deployments.log('Updated "Registry" with "hToken #' + network.holographId.toString());
       const setHTokenTx = await registry.setHToken(chainId, futureHTokenAddress, {
-        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: registry,
+          data: registry.populateTransaction.setHToken(chainId, futureHTokenAddress),
+        })),
       });
       await setHTokenTx.wait();
     }
