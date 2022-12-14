@@ -65,14 +65,28 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     process.exit();
   };
 
+  let tokenAmount: BigNumber = BigNumber.from('100000000');
+  let targetChain: BigNumber = BigNumber.from(network.chain);
+  let tokenRecipient: string = deployer.address;
+
   // Future Holograph Utility Token
   const currentNetworkType: NetworkType = network.type;
   let primaryNetwork: Network;
   if (currentNetworkType == NetworkType.local) {
+    // one billion tokens minted per network on local testing
+    tokenAmount = BigNumber.from('1' + '000' + '000' + '000' + '000000000000000000');
     primaryNetwork = networks.localhost;
   } else if (currentNetworkType == NetworkType.testnet) {
+    // one hundred million tokens minted per network on testnets
+    tokenAmount = BigNumber.from('100' + '000' + '000' + '000000000000000000');
     primaryNetwork = networks.ethereumTestnetGoerli;
   } else if (currentNetworkType == NetworkType.mainnet) {
+    // ten billion tokens minted on ethereum on mainnet
+    tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
+    // target chain is restricted to ethereum, to prevent the minting of tokens on other chains
+    targetChain = BigNumber.from(networks.ethereum.chain);
+    // protocol multisig is the recipient
+    tokenRecipient = networks.ethereum.protocolMultisig;
     primaryNetwork = networks.ethereum;
   } else {
     throw new Error('cannot identity current NetworkType');
@@ -88,7 +102,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     '1',
     18,
     ConfigureEvents([]),
-    generateInitCode(['address'], [deployer.address]),
+    generateInitCode(
+      ['address', 'uint256', 'uint256', 'address'],
+      [deployer.address, tokenAmount, targetChain, tokenRecipient]
+    ),
     salt
   );
 
