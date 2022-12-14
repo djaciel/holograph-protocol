@@ -248,11 +248,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     // target chain is restricted to ethereum, to prevent the minting of tokens on other chains
     targetChain = BigNumber.from(networks.ethereum.chain);
     // protocol multisig is the recipient
-    if (network.key == networks.ethereum.key) {
-      tokenRecipient = networks.ethereum.protocolMultisig;
-    } else {
-      tokenRecipient = zeroAddress;
-    }
+    tokenRecipient = networks.ethereum.protocolMultisig;
     primaryNetwork = networks.ethereum;
   } else {
     throw new Error('cannot identity current NetworkType');
