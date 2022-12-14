@@ -10,7 +10,8 @@ import {
   Deployment,
   DeploymentsExtension,
 } from '@holographxyz/hardhat-deploy-holographed/types';
-import { ethers, BigNumberish, BytesLike, ContractFactory, Contract, BigNumber, PopulatedTransaction } from 'ethers';
+import { ethers, BigNumberish, ContractFactory, Contract, BigNumber, PopulatedTransaction } from 'ethers';
+import { BytesLike, isBytesLike } from '@ethersproject/bytes';
 import {
   Block,
   BlockWithTransactions,
@@ -21,6 +22,7 @@ import {
 import type EthersT from 'ethers';
 import { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { UnsignedTransaction } from '@ethersproject/transactions';
 import { lazyObject } from 'hardhat/plugins';
 import {
   getContractAt,
@@ -37,7 +39,9 @@ import {
 } from '@nomiclabs/hardhat-ethers/internal/helpers';
 import type * as ProviderProxyT from '@nomiclabs/hardhat-ethers/internal/provider-proxy';
 import { NetworkType, Network, Networks, networks } from '@holographxyz/networks';
+import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 import { PreTest } from '../../test/utils/index';
+import { GasPricing } from './gas';
 
 export type DeploymentConfigStruct = {
   contractType: BytesLike;
@@ -344,6 +348,129 @@ const genesisDeriveFutureAddress = async function (
   return contractDeterministic.address;
 };
 
+const getGasLimit = async function (
+  hre: LeanHardhatRuntimeEnvironment,
+  from: string | SignerWithAddress | SuperColdStorageSigner,
+  to: string,
+  data: Promise<UnsignedTransaction> | BytesLike = '',
+  value: BigNumberish = 0
+): Promise<BigNumber> {
+  if (typeof from !== 'string') {
+    from = (from as SignerWithAddress).address;
+  }
+  if (isBytesLike(data) === false) {
+    data = (await data).data;
+  }
+  const gasLimit = BigNumber.from(
+    await hre.ethers.provider.estimateGas({
+      from: from as string,
+      to,
+      data: data as BytesLike,
+      value,
+    })
+  );
+  if ('__gasLimitMultiplier' in global) {
+    return gasLimit.mul(global.__gasLimitMultiplier).div(BigNumber.from('10000'));
+  } else {
+    return gasLimit;
+  }
+};
+
+type GasParams = {
+  gasPrice: BigNumber | null;
+  type: number;
+  maxPriorityFeePerGas: BigNumber | null;
+  maxFeePerGas: BigNumber | null;
+};
+
+type TransactionParams = {
+  hre: LeanHardhatRuntimeEnvironment;
+  from: string | SignerWithAddress | SuperColdStorageSigner;
+  to: string | Contract;
+  data?: Promise<UnsignedTransaction> | BytesLike;
+  value?: BigNumberish;
+  gasLimit?: BigNumber;
+  nonce?: number;
+};
+
+type TransactionParamsOutput = {
+  from: string;
+  value: BigNumberish;
+  gasLimit: BigNumberish | null;
+  nonce: number;
+} & GasParams;
+
+const getGasPrice = async function (): Promise<GasParams> {
+  if ('__gasPrice' in global) {
+    const gasPricing: GasPricing = global.__gasPrice as GasPricing;
+    let gasPrice: BigNumber = gasPricing.gasPrice!.mul(global.__gasPriceMultiplier).div(BigNumber.from('10000'));
+    let bribe: BigNumber = gasPricing.isEip1559 ? gasPrice.sub(gasPricing.nextBlockFee!) : BigNumber.from('0');
+    // loop and wait until gas price stabilizes
+    while (gasPrice.gt(global.__maxGasPrice) || bribe.gt(global.__maxGasBribe)) {
+      await gasPricing.wait(1);
+      gasPrice = gasPricing.gasPrice!.mul(global.__gasPriceMultiplier).div(BigNumber.from('10000'));
+      bribe = gasPricing.isEip1559 ? gasPrice.sub(gasPricing.nextBlockFee!) : BigNumber.from('0');
+    }
+
+    if (gasPricing.isEip1559) {
+      return {
+        gasPrice: null,
+        type: 2,
+        maxPriorityFeePerGas: gasPrice.sub(gasPricing.nextBlockFee!),
+        maxFeePerGas: gasPrice,
+      };
+    } else {
+      return {
+        gasPrice,
+        type: 0,
+        maxPriorityFeePerGas: null,
+        maxFeePerGas: null,
+      };
+    }
+  } else {
+    return {
+      gasPrice: BigNumber.from('0'),
+      type: 0,
+      maxPriorityFeePerGas: null,
+      maxFeePerGas: null,
+    };
+  }
+};
+
+const txParams = async function ({
+  hre,
+  from,
+  to,
+  data = null,
+  value = 0,
+  gasLimit,
+  nonce,
+}: TransactionParams): Promise<TransactionParamsOutput> {
+  if (typeof from !== 'string') {
+    from = (from as SignerWithAddress).address;
+  }
+  if (!('__txNonce' in global)) {
+    global.__txNonce = {} as { [key: string]: number };
+  }
+  if (!(hre.networkName in global.__txNonce)) {
+    global.__txNonce[hre.networkName] = await hre.ethers.provider.getTransactionCount(from as string);
+  }
+  if (typeof to !== 'string') {
+    to = (to as Contract).address;
+  }
+  let output: TransactionParamsOutput = {
+    from: from as string,
+    value: BigNumber.from(value),
+    gasLimit: gasLimit ? gasLimit : await getGasLimit(hre, from as string, to as string, data, BigNumber.from(value)),
+    ...(await getGasPrice()),
+    nonce: nonce === undefined ? global.__txNonce[hre.networkName] : nonce,
+  };
+  if (nonce === undefined) {
+    global.__txNonce[hre.networkName] += 1;
+  }
+  return output;
+};
+
 const genesisDeployHelper = async function (
   hre: LeanHardhatRuntimeEnvironment,
   salt: string,
@@ -376,15 +503,15 @@ const genesisDeployHelper = async function (
     (contract != null && (contract.address as string).toLowerCase() != contractAddress.toLowerCase())
   ) {
     const contractBytecode: BytesLike = ((await ethers.getContractFactory(name)) as ContractFactory).bytecode;
+    const deployCode: BytesLike = generateDeployCode(chainId, salt, contractBytecode, initCode);
     const contractDeterministic = await deterministicCustom(name, {
-      from: deployer,
+      ...(await txParams({ hre, from: deployer, to: holographGenesis?.address, data: deployCode })),
       args: [],
       log: true,
       deployerAddress: holographGenesis?.address,
       saltHash: deployer + salt.substring(salt.length - 24),
-      deployCode: generateDeployCode(chainId, salt, contractBytecode, initCode),
+      deployCode: deployCode,
       waitConfirmations: 1,
-      nonce: await ethers.provider.getTransactionCount(deployer),
     });
     deployments.log('future "' + name + '" address is', contractDeterministic.address);
     await contractDeterministic.deploy();
@@ -792,6 +919,9 @@ export {
   zeroAddress,
   isContractDeployed,
   genesisDeriveFutureAddress,
+  getGasLimit,
+  getGasPrice,
+  txParams,
   genesisDeployHelper,
   utf8ToBytes32,
   ZERO_ADDRESS,

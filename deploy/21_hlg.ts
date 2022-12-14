@@ -15,6 +15,7 @@ import {
   generateInitCode,
   genesisDeriveFutureAddress,
   remove0x,
+  txParams,
 } from '../scripts/utils/helpers';
 import { HolographERC20Event, ConfigureEvents, AllEventsEnabled } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
@@ -113,7 +114,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     } as Signature);
 
     const deployTx = await holographFactory.deployHolographableContract(erc20Config, signature, deployer.address, {
-      nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+      ...(await txParams({
+        hre,
+        from: deployer,
+        to: holographFactory,
+        data: holographFactory.populateTransaction.deployHolographableContract(
+          erc20Config,
+          signature,
+          deployer.address
+        ),
+      })),
     });
     const deployResult = await deployTx.wait();
     let eventIndex: number = 0;
@@ -140,25 +150,48 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('reusing "HLG" at:', hlgTokenAddress);
   }
 
+  hre.deployments.log('checking Holograph UtilityToken reference');
   if ((await holograph.getUtilityToken()) != hlgTokenAddress) {
     const setHTokenTx = await holograph.setUtilityToken(hlgTokenAddress, {
-      nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+      ...(await txParams({
+        hre,
+        from: deployer,
+        to: holograph,
+        data: holograph.populateTransaction.setUtilityToken(hlgTokenAddress),
+      })),
     });
     await setHTokenTx.wait();
   }
 
+  hre.deployments.log('checking HolographRegistry UtilityToken reference');
   if ((await holographRegistry.getUtilityToken()) != hlgTokenAddress) {
     const setHTokenTx2 = await holographRegistry.setUtilityToken(hlgTokenAddress, {
-      nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+      ...(await txParams({
+        hre,
+        from: deployer,
+        to: holographRegistry,
+        data: holographRegistry.populateTransaction.setUtilityToken(hlgTokenAddress),
+      })),
     });
     await setHTokenTx2.wait();
   }
 
+  hre.deployments.log('checking HolographOperator HLG balance');
   if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.localhost) {
     const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
     if ((await hlgContract.balanceOf(operatorAddress)).isZero()) {
+      hre.deployments.log('HolographOperator has no HLG');
       const transferTx = await hlgContract.transfer(operatorAddress, BigNumber.from('1000000000000000000000000'), {
-        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: hlgContract,
+          gasLimit: (
+            await hre.ethers.provider.estimateGas(
+              hlgContract.populateTransaction.transfer(operatorAddress, BigNumber.from('1000000000000000000000000'))
+            )
+          ).mul(BigNumber.from('2')),
+        })),
       });
       await transferTx.wait();
     }

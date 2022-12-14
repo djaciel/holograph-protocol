@@ -2,19 +2,31 @@ declare var global: any;
 import { Contract } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction, Deployment } from '@holographxyz/hardhat-deploy-holographed/types';
-import { LeanHardhatRuntimeEnvironment, hreSplit } from '../scripts/utils/helpers';
+import { LeanHardhatRuntimeEnvironment, hreSplit, txParams } from '../scripts/utils/helpers';
+import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-  const { artifacts, deployments, getNamedAccounts } = hre;
-  const { deploy } = deployments;
-  const { deployer } = await getNamedAccounts();
+  const accounts = await hre.ethers.getSigners();
+  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
+
+  if (global.__superColdStorage) {
+    // address, domain, authorization, ca
+    const coldStorage = global.__superColdStorage;
+    deployer = new SuperColdStorageSigner(
+      coldStorage.address,
+      'https://' + coldStorage.domain,
+      coldStorage.authorization,
+      deployer.provider,
+      coldStorage.ca
+    );
+  }
 
   let holographGenesisContract: Contract | null = await hre.ethers.getContractOrNull('HolographGenesis');
   let holographGenesisDeployment: Deployment | null = null;
   if (holographGenesisContract == null) {
     try {
-      holographGenesisDeployment = await deployments.get('HolographGenesis');
+      holographGenesisDeployment = await hre.deployments.get('HolographGenesis');
     } catch (ex: any) {
       // we do nothing
     }
@@ -248,12 +260,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     }
   }
   if (holographGenesisContract == null && holographGenesisDeployment == null) {
-    let holographGenesis = await deploy('HolographGenesis', {
-      from: deployer,
+    let holographGenesis = await hre.deployments.deploy('HolographGenesis', {
+      ...(await txParams({
+        hre,
+        from: deployer,
+        to: '0x0000000000000000000000000000000000000000',
+        gasLimit: await hre.ethers.provider.estimateGas(
+          (await hre.ethers.getContractFactory('HolographGenesis')).getDeployTransaction()
+        ),
+      })),
       args: [],
       log: true,
       waitConfirmations: 1,
-      nonce: await hre.ethers.provider.getTransactionCount(deployer),
     });
   }
 };

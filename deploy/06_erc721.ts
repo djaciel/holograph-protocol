@@ -8,6 +8,8 @@ import {
   generateInitCode,
   genesisDeriveFutureAddress,
   zeroAddress,
+  getGasPrice,
+  getGasLimit,
 } from '../scripts/utils/helpers';
 import { HolographERC721Event, ConfigureEvents } from '../scripts/utils/events';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';

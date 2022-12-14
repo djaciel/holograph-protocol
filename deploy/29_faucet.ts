@@ -9,6 +9,7 @@ import {
   genesisDeriveFutureAddress,
   generateErc20Config,
   generateInitCode,
+  txParams,
 } from '../scripts/utils/helpers';
 import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
 import { NetworkType, networks } from '@holographxyz/networks';
@@ -66,7 +67,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           futureFaucetAddress,
           BigNumber.from('1000000000000000000000000'),
           {
-            nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+            ...(await txParams({
+              hre,
+              from: deployer,
+              to: hlgContract,
+              gasLimit: (
+                await hre.ethers.provider.estimateGas(
+                  hlgContract.populateTransaction.transfer(
+                    futureFaucetAddress,
+                    BigNumber.from('1000000000000000000000000')
+                  )
+                )
+              ).mul(BigNumber.from('2')),
+            })),
           }
         );
         await transferTx.wait();
@@ -78,7 +91,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       const faucetContract = await hre.ethers.getContract('Faucet', deployer);
       if ((await faucetContract.token()) != hlgTokenAddress) {
         const tx = await faucetContract.setToken(hlgTokenAddress, {
-          nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: faucetContract,
+            data: faucetContract.populateTransaction.setToken(hlgTokenAddress),
+          })),
         });
         await tx.wait();
         hre.deployments.log('Updated HLG reference');
