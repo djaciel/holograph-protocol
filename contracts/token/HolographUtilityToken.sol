@@ -133,7 +133,7 @@ contract HolographUtilityToken is ERC20H {
     _setOwner(contractOwner);
     /*
      * @dev Mint token only if target chain matches current chain.
-     *      Goal of this is to restring minting on Ethereum only for mainnet deployment.
+     *      Goal of this is to restrict minting on Ethereum only for mainnet deployment.
      */
     if (block.chainid == targetChain) {
       /*
