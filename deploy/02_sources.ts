@@ -228,7 +228,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const network = networks[hre.networkName];
 
   let tokenAmount: BigNumber = BigNumber.from('100' + '000' + '000' + '000000000000000000');
-  let targetChain: BigNumber = BigNumber.from(network.chain);
+  let targetChain: BigNumber = BigNumber.from('0');
   let tokenRecipient: string = deployer.address;
 
   // Future Holograph Utility Token
