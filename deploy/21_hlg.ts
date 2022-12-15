@@ -104,7 +104,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     ConfigureEvents([]),
     generateInitCode(
       ['address', 'uint256', 'uint256', 'address'],
-      [deployer.address, tokenAmount, targetChain, tokenRecipient]
+      [deployer.address, tokenAmount.toHexString(), targetChain.toHexString(), tokenRecipient]
     ),
     salt
   );
