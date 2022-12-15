@@ -5,6 +5,7 @@ import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
 import {
   genesisDeriveFutureAddress,
+  txParams,
   genesisDeployHelper,
   generateInitCode,
   zeroAddress,
@@ -125,7 +126,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if ((await holographOperator.getMessagingModule()).toLowerCase() != futureLayerZeroModuleAddress.toLowerCase()) {
     const lzTx = await holographOperator
       .setMessagingModule(futureLayerZeroModuleAddress, {
-        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holographOperator,
+          data: holographOperator.populateTransaction.setMessagingModule(futureLayerZeroModuleAddress),
+        })),
       })
       .catch(error);
     hre.deployments.log('Transaction hash:', lzTx.hash);
@@ -157,7 +163,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       chainIds,
       gasParameters,
       {
-        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: lzModule,
+          data: lzModule.populateTransaction[
+            'setGasParameters(uint32[],(uint256,uint256,uint256,uint256,uint256,uint256)[])'
+          ](chainIds, gasParameters),
+        })),
       }
     ).catch(error);
     hre.deployments.log('Transaction hash:', lzTx.hash);

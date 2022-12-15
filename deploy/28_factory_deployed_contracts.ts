@@ -1,10 +1,10 @@
 declare var global: any;
-import { Contract } from 'ethers';
+import { BigNumber, Contract } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Holographer, CxipERC721Proxy } from '../typechain-types';
-import { hreSplit } from '../scripts/utils/helpers';
+import { hreSplit, txParams } from '../scripts/utils/helpers';
 import { NetworkType, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
@@ -33,11 +33,17 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const holographer: Contract | null = await hre.ethers.getContractOrNull('Holographer', deployer);
     if (holographer == null) {
       await hre.deployments.deploy('Holographer', {
-        from: deployer.address,
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: '0x0000000000000000000000000000000000000000',
+          gasLimit: await hre.ethers.provider.estimateGas(
+            (await hre.ethers.getContractFactory('Holographer')).getDeployTransaction()
+          ),
+        })),
         args: [],
         log: true,
         waitConfirmations: 1,
-        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
       });
       hre.deployments.log('Deployed a "Holographer" empty contract for block explorer verification purposes.');
     }
@@ -45,11 +51,17 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const cxipERC721Proxy: Contract | null = await hre.ethers.getContractOrNull('CxipERC721Proxy', deployer);
     if (cxipERC721Proxy == null) {
       await hre.deployments.deploy('CxipERC721Proxy', {
-        from: deployer.address,
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: '0x0000000000000000000000000000000000000000',
+          gasLimit: await hre.ethers.provider.estimateGas(
+            (await hre.ethers.getContractFactory('CxipERC721Proxy')).getDeployTransaction()
+          ),
+        })),
         args: [],
         log: true,
         waitConfirmations: 1,
-        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
       });
       hre.deployments.log('Deployed a "CxipERC721Proxy" empty contract for block explorer verification purposes.');
     }

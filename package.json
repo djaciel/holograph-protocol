@@ -48,14 +48,19 @@
     "prettier:fix": "prettier --loglevel error --ignore-path .gitignore --write ."
   },
   "dependencies": {
-    "@holographxyz/environment": "0.1.8",
-    "@holographxyz/hardhat-deploy-holographed": "^0.0.4",
+    "@ethersproject/abstract-provider": "^5.7.0",
+    "@ethersproject/bignumber": "^5.7.0",
+    "@ethersproject/bytes": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
+    "@ethersproject/units": "^5.7.0",
+    "@holographxyz/environment": "0.1.10",
+    "@holographxyz/hardhat-deploy-holographed": "^0.0.5",
     "@holographxyz/hardhat-holograph-contract-builder": "^0.0.4",
-    "@holographxyz/networks": "0.1.8",
+    "@holographxyz/networks": "0.1.12",
     "chai-ethers": "^0.0.1",
     "ganache": "^7.2.0",
     "path": "^0.12.7",
-    "super-cold-storage-signer": "^0.0.2",
+    "super-cold-storage-signer": "^0.0.4",
     "truffle-hdwallet-provider": "^1.0.17",
     "web3": "^1.7.0",
     "zksync-web3": "^0.4.0"

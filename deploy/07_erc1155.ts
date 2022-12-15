@@ -6,6 +6,8 @@ import {
   hreSplit,
   genesisDeployHelper,
   generateInitCode,
+  getGasPrice,
+  getGasLimit,
 } from '../scripts/utils/helpers';
 import { HolographERC1155Event, ConfigureEvents } from '../scripts/utils/events';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';

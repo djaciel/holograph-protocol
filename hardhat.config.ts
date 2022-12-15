@@ -8,8 +8,10 @@ import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import { types, task, HardhatUserConfig } from 'hardhat/config';
 import '@holographxyz/hardhat-holograph-contract-builder';
+import { BigNumber } from 'ethers';
 import { Environment, getEnvironment } from '@holographxyz/environment';
 import { NetworkType, Network, Networks, networks } from '@holographxyz/networks';
+import { GasService } from './scripts/utils/gas-service';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -36,7 +38,11 @@ const SOLIDITY_VERSION = process.env.SOLIDITY_VERSION || '0.8.13';
 const MNEMONIC = process.env.MNEMONIC || 'test '.repeat(11) + 'junk';
 const DEPLOYER = process.env.DEPLOYER || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
 
-if (process.env.SUPER_COLD_STORAGE_ENABLED && process.env.SUPER_COLD_STORAGE_ENABLED == 'true') {
+if (
+  process.env.SUPER_COLD_STORAGE_ENABLED &&
+  process.env.SUPER_COLD_STORAGE_ENABLED == 'true' &&
+  process.env.npm_lifecycle_event == 'deploy'
+) {
   global.__superColdStorage = {
     address: process.env.SUPER_COLD_STORAGE_ADDRESS,
     domain: process.env.SUPER_COLD_STORAGE_DOMAIN,
@@ -105,6 +111,23 @@ const DEPLOYMENT_SALT = selectDeploymentSalt();
 const DEPLOYMENT_PATH = process.env.DEPLOYMENT_PATH || 'deployments';
 
 global.__DEPLOYMENT_SALT = '0x' + DEPLOYMENT_SALT.toString(16).padStart(64, '0');
+
+// this task runs before the actual hardhat deploy task
+task('deploy', 'Deploy contracts').setAction(async (args, hre, runSuper) => {
+  // set gas parameters
+  global.__gasLimitMultiplier = BigNumber.from(process.env.GAS_LIMIT_MULTIPLIER || '10000');
+  global.__gasPriceMultiplier = BigNumber.from(process.env.GAS_PRICE_MULTIPLIER || '10000');
+  global.__maxGasPrice = BigNumber.from(process.env.MAXIMUM_GAS_PRICE || '0');
+  global.__maxGasBribe = BigNumber.from(process.env.MAXIMUM_GAS_BRIBE || '0');
+  // start gas price monitoring service
+  process.stdout.write('Loading Gas Price Service\n');
+  const gasService: GasService = new GasService(hre.network.name, hre.ethers.provider, 'DEBUG' in process.env);
+  process.stdout.write('Seeding Gas Price Service\n');
+  await gasService.init();
+  process.stdout.write('\nReady to start deployments\n');
+  // run the actual hardhat deploy task
+  return runSuper(args);
+});
 
 task('abi', 'Create standalone ABI files for all smart contracts')
   .addOptionalParam('silent', 'Provide less details in the output', false, types.boolean)

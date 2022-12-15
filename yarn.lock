@@ -233,7 +233,7 @@
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
 
-"@ethersproject/contracts@5.7.0":
+"@ethersproject/contracts@5.7.0", "@ethersproject/contracts@^5.7.0":
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/contracts/-/contracts-5.7.0.tgz#c305e775abd07e48aa590e1a877ed5c316f8bd1e"
   integrity sha512-5GJbzEU3X+d33CdfPhcyS+z8MzsTrBGk/sc+G+59+tPa9yFkl6HQ9D6L0QMgNTA9q8dT0XKxxkyp883XsQvbbg==
@@ -461,7 +461,7 @@
     "@ethersproject/rlp" "^5.7.0"
     "@ethersproject/signing-key" "^5.7.0"
 
-"@ethersproject/units@5.7.0":
+"@ethersproject/units@5.7.0", "@ethersproject/units@^5.7.0":
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/units/-/units-5.7.0.tgz#637b563d7e14f42deeee39245275d477aae1d8b1"
   integrity sha512-pD3xLMy3SJu9kG5xDGI7+xhTEmGXlEqXU4OfNapmfnxLVY4EMSSRp7j1k7eezutBPH7RBN/7QPnwR7hzNlEFeg==
@@ -470,7 +470,7 @@
     "@ethersproject/constants" "^5.7.0"
     "@ethersproject/logger" "^5.7.0"
 
-"@ethersproject/wallet@5.7.0":
+"@ethersproject/wallet@5.7.0", "@ethersproject/wallet@^5.7.0":
   version "5.7.0"
   resolved "https://registry.yarnpkg.com/@ethersproject/wallet/-/wallet-5.7.0.tgz#4e5d0790d96fe21d61d38fb40324e6c7ef350b2d"
   integrity sha512-MhmXlJXEJFBFVKrDLB4ZdDzxcBxQ3rLyCkhNqVu3CDYvR97E+8r01UgrI+TI99Le+aYm/in/0vp86guJuM7FCA==
@@ -513,18 +513,18 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
-"@holographxyz/environment@0.1.8":
-  version "0.1.8"
-  resolved "https://registry.yarnpkg.com/@holographxyz/environment/-/environment-0.1.8.tgz#69f78f7611414ad2904b822045aa9a093d50104e"
-  integrity sha512-1xKu9pI7t5TlmjXKlkQkv+TjQWNzPTDibX2UPfMVcm3GyGRm614r9IWTyM5ykF0sA3Pox67wRmByTRKGEWFbOg==
+"@holographxyz/environment@0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@holographxyz/environment/-/environment-0.1.10.tgz#273d79c1f6461c1848625624b960e0860a888e9b"
+  integrity sha512-NTT0eWmQRTTSTzuuYUE16T+AWI7FYNwGYOhzusnCZO4v0hiKIWEgR9upaUzYBIsn4RHjq0Zucw49LJW6ZSZIwA==
   dependencies:
     dotenv "^10.0.0"
     path "^0.12.7"
 
-"@holographxyz/hardhat-deploy-holographed@^0.0.4":
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/@holographxyz/hardhat-deploy-holographed/-/hardhat-deploy-holographed-0.0.4.tgz#ca9299012a304ec659710be045ee24c73434b2be"
-  integrity sha512-VhNZty/Y5Ar0HgHGvkeRLOCGDpXvITQpV18LuYEeFeL52H7eRtxKDkdRwTxxwDy3axUGkjt3875u98lkSgLO9g==
+"@holographxyz/hardhat-deploy-holographed@^0.0.5":
+  version "0.0.5"
+  resolved "https://registry.yarnpkg.com/@holographxyz/hardhat-deploy-holographed/-/hardhat-deploy-holographed-0.0.5.tgz#04daa61aba38acf85db336aaa7a29d169f1a82a3"
+  integrity sha512-68J2i3jIxC2dI6c9Etq9NHOxloA9W+RBtJiTQyZ3P/eqKj3CKKiWn2fc4CZaBFYnomIj1CczmMFDAA8vSDdJpw==
   dependencies:
     "@ethersproject/providers" "^5.7.2"
     "@types/qs" "^6.9.7"
@@ -539,7 +539,7 @@
     match-all "^1.2.6"
     murmur-128 "^0.2.1"
     qs "^6.9.4"
-    super-cold-storage-signer "^0.0.2"
+    super-cold-storage-signer "^0.0.4"
     zksync-web3 "^0.4.0"
 
 "@holographxyz/hardhat-holograph-contract-builder@^0.0.4":
@@ -547,13 +547,13 @@
   resolved "https://registry.yarnpkg.com/@holographxyz/hardhat-holograph-contract-builder/-/hardhat-holograph-contract-builder-0.0.4.tgz#da2eb5abfbe771ce9db217671b653a38f0e7fccf"
   integrity sha512-W/vWgHT6bZWdmJoWJxdWHnUCscrpOXbL1mo2WCDVtjrHQmXivMal7aRZw+ZeDfjTpcvGQ0SBxC+nJZZGCnuVDA==
 
-"@holographxyz/networks@0.1.8":
-  version "0.1.8"
-  resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.1.8.tgz#dd2f3ddd346248761e9fdb28efac7a1db9397902"
-  integrity sha512-BJyYDRrnwCjzkERo3QZJeYiE92eZgCXh4jmLAyRsKGn3a+pCfMl3JHWGTp8Te3zCW5/RVSLz5PILaEeJAUJSNw==
+"@holographxyz/networks@0.1.12":
+  version "0.1.12"
+  resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.1.12.tgz#652d3269d062e4ae5008b74956229716e7ca14ba"
+  integrity sha512-EBw6BMjvDe1Sk8/IXTtArLIk0D7/jOu6xY8bQbvOEEq6X6ZD6V1whD3a23oT7+oVaU/jmHYa/ygKJXXllMyvRw==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
-    "@holographxyz/environment" "0.1.8"
+    "@holographxyz/environment" "0.1.10"
     dotenv "^10.0.0"
     path "^0.12.7"
 
@@ -9409,20 +9409,22 @@ strip-json-comments@3.1.1, strip-json-comments@^3.1.0, strip-json-comments@^3.1.
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-3.1.1.tgz#31f1281b3832630434831c310c01cccda8cbe006"
   integrity sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==
 
-super-cold-storage-signer@^0.0.2:
-  version "0.0.2"
-  resolved "https://registry.yarnpkg.com/super-cold-storage-signer/-/super-cold-storage-signer-0.0.2.tgz#9a7ad736720a0cea8f7c552c40db27297bac4fe3"
-  integrity sha512-1kPrtHvZA98qxy1Cz2Kbr1ov7/xGaMe3VKZT7LyevTUf+DAKEgq8PkzThdfxoJY+cKVPXsYtG40Sc6mtWST+Yg==
+super-cold-storage-signer@^0.0.4:
+  version "0.0.4"
+  resolved "https://registry.yarnpkg.com/super-cold-storage-signer/-/super-cold-storage-signer-0.0.4.tgz#5ad2e75c1cc208dcfd32a717ff33f69efbbcb641"
+  integrity sha512-mLpxHCuAu244QuE2X3JwfgM6WfspAPpyFP5aSUhE02IfUbuuzVzo80HVMnzNCRnf6UXCJ3hP8El8PFBNujKu/A==
   dependencies:
     "@ethersproject/abstract-provider" "^5.7.0"
     "@ethersproject/abstract-signer" "^5.7.0"
     "@ethersproject/address" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/bytes" "^5.7.0"
+    "@ethersproject/contracts" "^5.7.0"
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/providers" "^5.7.2"
     "@ethersproject/strings" "^5.7.0"
     "@ethersproject/transactions" "^5.7.0"
+    "@ethersproject/wallet" "^5.7.0"
 
 supports-color@6.0.0:
   version "6.0.0"

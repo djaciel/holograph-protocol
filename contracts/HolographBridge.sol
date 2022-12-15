@@ -215,7 +215,7 @@ contract HolographBridge is Admin, Initializable, HolographBridgeInterface {
     /**
      * @dev check if a specific reward amount was assigned to this request
      */
-    if (hTokenValue > 0) {
+    if (hTokenValue > 0 && hTokenRecipient != address(0)) {
       /**
        * @dev mint the specific hToken amount for hToken recipient
        *      this value is equivalent to amount that is deposited on origin chain's hToken contract

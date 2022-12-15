@@ -1075,6 +1075,66 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           );
         });
 
+        it('token #3 beaming from l1 to l2 should fail and recover', async function () {
+          let data: BytesLike = generateInitCode(
+            ['address', 'address', 'uint256'],
+            [l1.deployer.address, l2.deployer.address, thirdNFTl2.toHexString()]
+          );
+
+          let originalMessagingModule = await l2.operator.getMessagingModule();
+          let payload: BytesLike = await getRequestPayload(l1, l2, l1.sampleErc721Holographer.address, data);
+          let gasEstimates = await getEstimatedGas(l1, l2, l1.sampleErc721Holographer.address, data, payload);
+          payload = gasEstimates.payload;
+          let payloadHash: string = HASH(payload);
+          let originalGas: BigNumber = BigNumber.from(gasEstimates.estimatedGas);
+          // purposefully setting lower gas limit to make job revert with `out of gas` error
+          let badLowGas: BigNumber = originalGas.div(BigNumber.from('10'));
+          let bridgeTx = await l1.bridge.bridgeOutRequest(
+            l2.network.holographId,
+            l1.sampleErc721Holographer.address,
+            badLowGas,
+            GWEI,
+            data,
+            { value: gasEstimates.fee }
+          );
+          let bridgeReceipt = await bridgeTx.wait();
+          // LzEvent
+          for (const log of bridgeReceipt.logs) {
+            if (log.address == l1.mockLZEndpoint.address) {
+              let l = l1.mockLZEndpoint.interface.parseLog({ data: log.data, topics: log.topics });
+              if (l.name == 'LzEvent') {
+                payload = l.args[2];
+                payloadHash = HASH(payload);
+                break;
+              }
+            }
+          }
+          // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+          await l2.operator.setMessagingModule(l2.mockLZEndpoint.address);
+          // make call with mockLZEndpoint AS messaging module
+          await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(payload), payload, {
+            gasLimit: TESTGASLIMIT,
+          });
+          // return messaging module back to original address
+          await l2.operator.setMessagingModule(originalMessagingModule);
+          let operatorJob = await l2.operator.getJobDetails(payloadHash);
+          let operator = (operatorJob[2] as string).toLowerCase();
+          // execute job to leave operator bonded
+          await expect(
+            l2.operator.connect(pickOperator(l2, operator)).executeJob(payload, { gasLimit: gasEstimates.estimatedGas })
+          )
+            .to.emit(l2.operator, 'FailedOperatorJob')
+            .withArgs(payloadHash);
+          // recover the job
+          await expect(l2.operator.recoverJob(payload, { gasLimit: gasEstimates.estimatedGas }))
+            .to.emit(l2.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address), 'Transfer')
+            .withArgs(zeroAddress, l2.deployer.address, thirdNFTl2.toHexString());
+
+          expect(await l2.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address).ownerOf(thirdNFTl2)).to.equal(
+            l2.deployer.address
+          );
+        });
+
         /*
 
       it('bridge out token #3 bridge out on l1 should fail', async function () {

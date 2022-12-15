@@ -11,6 +11,7 @@ import {
   generateInitCode,
   genesisDeriveFutureAddress,
   zeroAddress,
+  txParams,
 } from '../scripts/utils/helpers';
 import { ConfigureEvents } from '../scripts/utils/events';
 import {
@@ -145,7 +146,17 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       toChainId.push(chainMap[3]);
     }
     let tx = await holographInterfaces.updateChainIdMaps(fromChainType, fromChainId, toChainType, toChainId, {
-      nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+      ...(await txParams({
+        hre,
+        from: deployer,
+        to: holographInterfaces,
+        data: holographInterfaces.populateTransaction.updateChainIdMaps(
+          fromChainType,
+          fromChainId,
+          toChainType,
+          toChainId
+        ),
+      })),
     });
     await tx.wait();
   }
@@ -173,7 +184,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       prepends.push(prepend.prepend);
     }
     let tx = await holographInterfaces.updateUriPrepends(uriTypes, prepends, {
-      nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+      ...(await txParams({
+        hre,
+        from: deployer,
+        to: holographInterfaces,
+        data: holographInterfaces.populateTransaction.updateUriPrepends(uriTypes, prepends),
+      })),
     });
     await tx.wait();
   }
@@ -326,7 +342,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('HolographInterfaces needs to have all supported interfaces configured');
     for (let key of Object.keys(supportedInterfaces)) {
       let tx = await holographInterfaces.updateInterfaces(parseInt(key), supportedInterfaces[key], true, {
-        nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holographInterfaces,
+          data: holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), supportedInterfaces[key], true),
+        })),
       });
       await tx.wait();
     }
@@ -346,7 +367,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       } else {
         hre.deployments.log('Found missing interfaces in HolographInterfaces for InterfaceType[' + key + ']');
         let tx = await holographInterfaces.updateInterfaces(parseInt(key), todo, true, {
-          nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographInterfaces,
+            data: holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), todo),
+          })),
         });
         await tx.wait();
       }

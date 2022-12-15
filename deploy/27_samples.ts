@@ -14,6 +14,7 @@ import {
   generateErc20Config,
   generateErc721Config,
   generateInitCode,
+  txParams,
 } from '../scripts/utils/helpers';
 import {
   HolographERC20Event,
@@ -94,7 +95,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         signature,
         deployer.address,
         {
-          nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographFactory,
+            data: holographFactory.populateTransaction.deployHolographableContract(
+              sampleErc20Config.erc20Config,
+              signature,
+              deployer.address
+            ),
+          })),
         }
       );
       const deployResult = await deployTx.wait();
@@ -135,7 +145,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         signature,
         deployer.address,
         {
-          nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographFactory,
+            data: holographFactory.populateTransaction.deployHolographableContract(
+              sampleErc721Config.erc721Config,
+              signature,
+              deployer.address
+            ),
+          })),
         }
       );
       const deployResult = await deployTx.wait();
@@ -183,7 +202,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         signature,
         deployer.address,
         {
-          nonce: await hre.ethers.provider.getTransactionCount(deployer.address),
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographFactory,
+            data: holographFactory.populateTransaction.deployHolographableContract(
+              cxipErc721Config.erc721Config,
+              signature,
+              deployer.address
+            ),
+          })),
         }
       );
       const deployResult = await deployTx.wait();
