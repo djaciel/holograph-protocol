@@ -27,9 +27,20 @@ contract HolographUtilityToken is ERC20H {
    * @param initPayload abi encoded payload to use for contract initilaization
    */
   function init(bytes memory initPayload) external override returns (bytes4) {
-    address contractOwner = abi.decode(initPayload, (address));
+    (address contractOwner, uint256 tokenAmount, uint256 targetChain, address tokenRecipient) = abi.decode(
+      initPayload,
+      (address, uint256, uint256, address)
+    );
     _setOwner(contractOwner);
-    HolographERC20Interface(msg.sender).sourceMint(contractOwner, 10000000 * (10**18));
+    /*
+     * @dev Mint token only if target chain matches current chain. Or if no target chain has been selected.
+     *      Goal of this is to restrict minting on Ethereum only for mainnet deployment.
+     */
+    if (block.chainid == targetChain || targetChain == 0) {
+      if (tokenAmount > 0) {
+        HolographERC20Interface(msg.sender).sourceMint(tokenRecipient, tokenAmount * (10**18));
+      }
+    }
     // run underlying initializer logic
     return _init(initPayload);
   }

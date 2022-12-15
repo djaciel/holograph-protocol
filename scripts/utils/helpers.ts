@@ -41,6 +41,7 @@ import type * as ProviderProxyT from '@nomiclabs/hardhat-ethers/internal/provide
 import { NetworkType, Network, Networks, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 import { PreTest } from '../../test/utils/index';
+import { GasService } from './gas-service';
 import { GasPricing } from './gas';
 
 export type DeploymentConfigStruct = {
@@ -403,11 +404,12 @@ type TransactionParamsOutput = {
 const getGasPrice = async function (): Promise<GasParams> {
   if ('__gasPrice' in global) {
     const gasPricing: GasPricing = global.__gasPrice as GasPricing;
+    const gasService: GasService = global.__gasService as GasService;
     let gasPrice: BigNumber = gasPricing.gasPrice!.mul(global.__gasPriceMultiplier).div(BigNumber.from('10000'));
     let bribe: BigNumber = gasPricing.isEip1559 ? gasPrice.sub(gasPricing.nextBlockFee!) : BigNumber.from('0');
     // loop and wait until gas price stabilizes
     while (gasPrice.gt(global.__maxGasPrice) || bribe.gt(global.__maxGasBribe)) {
-      await gasPricing.wait(1);
+      await gasService.wait(1);
       gasPrice = gasPricing.gasPrice!.mul(global.__gasPriceMultiplier).div(BigNumber.from('10000'));
       bribe = gasPricing.isEip1559 ? gasPrice.sub(gasPricing.nextBlockFee!) : BigNumber.from('0');
     }
