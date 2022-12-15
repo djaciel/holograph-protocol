@@ -20,6 +20,7 @@ import {
 import { HolographERC20Event, ConfigureEvents, AllEventsEnabled } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
+import { Environment, getEnvironment } from '@holographxyz/environment';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
@@ -43,6 +44,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const salt = hre.deploymentSalt;
 
   const network = networks[hre.networkName];
+
+  const environment: Environment = getEnvironment();
 
   const chainId = '0x' + network.holographId.toString(16).padStart(8, '0');
 
@@ -80,13 +83,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     // one hundred million tokens minted per network on testnets
     tokenAmount = BigNumber.from('100' + '000' + '000' + '000000000000000000');
     primaryNetwork = networks.ethereumTestnetGoerli;
+    if (environment == Environment.testnet) {
+      tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
+      targetChain = BigNumber.from(networks.ethereumTestnetGoerli.chain);
+      tokenRecipient = networks.ethereumTestnetGoerli.protocolMultisig;
+    }
   } else if (currentNetworkType == NetworkType.mainnet) {
     // ten billion tokens minted on ethereum on mainnet
     tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
     // target chain is restricted to ethereum, to prevent the minting of tokens on other chains
     targetChain = BigNumber.from(networks.ethereum.chain);
     // protocol multisig is the recipient
-    tokenRecipient = networks.ethereum.protocolMultisig;
+    tokenRecipient = '0xfC40b4233f8Ce60461e1D5FE50b3DDF0C50AE0b4'; //networks.ethereum.protocolMultisig;
     primaryNetwork = networks.ethereum;
   } else {
     throw new Error('cannot identity current NetworkType');

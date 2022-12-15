@@ -5,6 +5,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 import { hreSplit, txParams } from '../scripts/utils/helpers';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
+import { Environment, getEnvironment } from '@holographxyz/environment';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
@@ -25,7 +26,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const network: Network = networks[hre.networkName];
 
-  if (network.type == NetworkType.mainnet) {
+  const environment: Environment = getEnvironment();
+
+  if (
+    (network.type == NetworkType.mainnet || network.type == NetworkType.testnet) &&
+    (environment == Environment.mainnet || environment == Environment.testnet)
+  ) {
     if (network.protocolMultisig === undefined) {
       throw new Error('No multisig setup for this network');
     }
