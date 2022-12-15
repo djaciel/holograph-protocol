@@ -371,7 +371,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             hre,
             from: deployer,
             to: holographInterfaces,
-            data: holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), todo),
+            data: holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), todo, true),
           })),
         });
         await tx.wait();
