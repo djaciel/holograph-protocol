@@ -385,9 +385,9 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
         /**
          * @dev only allow HLG rewards to go to bonded operators
          *      if operator is bonded, the slashed amount is sent to current operator
-         *      otherwise it's sent to HLG directly, can be burned or sent to treasury from there
+         *      otherwise it's sent to HolographTreasury, can be burned or distributed from there
          */
-        _utilityToken().transfer((isBonded ? msg.sender : address(_utilityToken())), amount);
+        _utilityToken().transfer((isBonded ? msg.sender : address(_holograph().getTreasury())), amount);
         /**
          * @dev check if slashed operator has enough tokens bonded to stay
          */
@@ -424,9 +424,9 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
     /**
      * @dev reward operator (with HLG) for executing the job
      *      this is out of scope and is purposefully omitted from code
-     *      currently reward is statically set to 1 token
+     *      currently no rewards are issued
      */
-    _utilityToken().transfer((isBonded ? msg.sender : address(_utilityToken())), (10**18));
+    //_utilityToken().transfer((isBonded ? msg.sender : address(_utilityToken())), (10**18));
     /**
      * @dev always emit an event at end of job, this helps other operators keep track of job status
      */
@@ -516,10 +516,16 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
        * @dev use job hash, job nonce, block number, and block timestamp for generating a random number
        */
       uint256 random = uint256(keccak256(abi.encodePacked(jobHash, _jobNonce(), block.number, block.timestamp)));
+      // use the left 128 bits of random number
+      uint256 random1 = uint256(random >> 128);
+      // use the right 128 bits of random number
+      uint256 random2 = uint256(uint128(random));
+      // combine the two new random numbers for use in additional pod operator selection logic
+      random = uint256(keccak256(abi.encodePacked(random1 + random2)));
       /**
        * @dev divide by total number of pods, use modulus/remainder
        */
-      uint256 pod = random % _operatorPods.length;
+      uint256 pod = random1 % _operatorPods.length;
       /**
        * @dev identify the total number of available operators in pod
        */
@@ -527,7 +533,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
       /**
        * @dev select a primary operator
        */
-      uint256 operatorIndex = underpriced ? 0 : random % podSize;
+      uint256 operatorIndex = underpriced ? 0 : random2 % podSize;
       /**
        * @dev If operator index is 0, then it's open season! Anyone can execute this job. First come first serve
        *      pop operator to ensure that they cannot be selected for any other job until this one completes
