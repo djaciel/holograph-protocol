@@ -43,6 +43,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       // no deployed code found, we will need to deploy
       if (hre.networkName == 'localhost') {
         // deploy HolographGenesis on localhost
+        // code generated with https://github.com/holographxyz/holograph-genesis/blob/main/deploy/01_genesis.ts#L65
         await hre.ethers.provider.sendTransaction(
           [
             '0x',
@@ -126,7 +127,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             '3ece6337ac93c58f22',
           ].join('')
         );
-        // enable 0xC0FFEE78121f208475ABDd2cf0853a7afED64749 on localhost
+        // code generated with https://github.com/holographxyz/holograph-genesis/blob/main/deploy/02_deployers.ts#L47
+        // enable 0xC0FFEE78121f208475ABDd2cf0853a7afED64749 as testnet deployer on localhost
         await hre.ethers.provider.sendTransaction(
           [
             '0x',
@@ -138,7 +140,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             'a558d9df7429a937c8',
           ].join('')
         );
-        // enable 0xdf5295149F367b1FBFD595bdA578BAd22e59f504 on localhost
+        // code generated with https://github.com/holographxyz/holograph-genesis/blob/main/deploy/02_deployers.ts#L60
+        // enable 0xdf5295149F367b1FBFD595bdA578BAd22e59f504 as testnet deployer on localhost
         await hre.ethers.provider.sendTransaction(
           [
             '0x',
@@ -150,7 +153,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             'a77910b91fe796f0d8',
           ].join('')
         );
-        // enable 0xd078E391cBAEAa6C5785124a7207ff57d64604b7 on localhost
+        // code generated with https://github.com/holographxyz/holograph-genesis/blob/main/deploy/02_deployers.ts#L73
+        // enable 0xd078E391cBAEAa6C5785124a7207ff57d64604b7 as testnet deployer on localhost
         await hre.ethers.provider.sendTransaction(
           [
             '0x',
@@ -163,6 +167,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           ].join('')
         );
       } else if (hre.networkName == 'localhost2') {
+        // code generated with https://github.com/holographxyz/holograph-genesis/blob/main/deploy/01_genesis.ts#L151
         // deploy HolographGenesis on localhost2
         await hre.ethers.provider.sendTransaction(
           [
@@ -247,7 +252,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             'efa6465bf438f49d1c',
           ].join('')
         );
-        // enable 0xC0FFEE78121f208475ABDd2cf0853a7afED64749 on localhost2
+        // code generated with https://github.com/holographxyz/holograph-genesis/blob/main/deploy/02_deployers.ts#L87
+        // enable 0xC0FFEE78121f208475ABDd2cf0853a7afED64749 as testnet deployer on localhost2
         await hre.ethers.provider.sendTransaction(
           [
             '0x',
@@ -259,7 +265,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             'e80a8eb2d8b7cf1acc',
           ].join('')
         );
-        // enable 0xdf5295149F367b1FBFD595bdA578BAd22e59f504 on localhost2
+        // code generated with https://github.com/holographxyz/holograph-genesis/blob/main/deploy/02_deployers.ts#L100
+        // enable 0xdf5295149F367b1FBFD595bdA578BAd22e59f504 as testnet deployer on localhost2
         await hre.ethers.provider.sendTransaction(
           [
             '0x',
@@ -271,7 +278,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             '002ccb3e8cf98d4749',
           ].join('')
         );
-        // enable 0xd078E391cBAEAa6C5785124a7207ff57d64604b7 on localhost
+        // code generated with https://github.com/holographxyz/holograph-genesis/blob/main/deploy/02_deployers.ts#L113
+        // enable 0xd078E391cBAEAa6C5785124a7207ff57d64604b7 as testnet deployer on localhost
         await hre.ethers.provider.sendTransaction(
           [
             '0x',
