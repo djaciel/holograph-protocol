@@ -47,6 +47,7 @@ export class GasService {
   async init(): Promise<void> {
     this.gasPrice = await initializeGasPricing(this.network, this.provider);
     global.__gasPrice = this.gasPrice;
+    global.__gasService = this;
     this.provider.on('block', async (blockNumber: string) => {
       const block = Number.parseInt(blockNumber, 10);
       this.structuredLog(this.network, `New block mined ${block}`, undefined);
