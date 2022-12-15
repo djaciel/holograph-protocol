@@ -65,7 +65,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       if (currentNetworkType == NetworkType.testnet) {
         const transferTx = await hlgContract.transfer(
           futureFaucetAddress,
-          BigNumber.from('1000000000000000000000000'),
+          BigNumber.from('1' + '000' + '000' + '000000000000000000'),
           {
             ...(await txParams({
               hre,
@@ -75,7 +75,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
                 await hre.ethers.provider.estimateGas(
                   hlgContract.populateTransaction.transfer(
                     futureFaucetAddress,
-                    BigNumber.from('1000000000000000000000000')
+                    BigNumber.from('1' + '000' + '000' + '000000000000000000')
                   )
                 )
               ).mul(BigNumber.from('2')),

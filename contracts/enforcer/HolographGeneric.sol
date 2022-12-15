@@ -380,20 +380,4 @@ contract HolographGeneric is Admin, Owner, Initializable, HolographGenericInterf
   function _isEventRegistered(HolographGenericEvent _eventName) private view returns (bool) {
     return ((_eventConfig >> uint256(_eventName)) & uint256(1) == 1 ? true : false);
   }
-
-  // the code below is temporary, in place to prevent Holographers on testnet from having different deployment addresses
-
-  /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.contractType')) - 1)
-   */
-  bytes32 constant _contractTypeSlot = 0x0b671eb65810897366dd82c4cbb7d9dff8beda8484194956e81e89b8a361d9c7;
-
-  /**
-   * @dev Returns the contract type that is used for loading the Enforcer
-   */
-  function getContractType() external view returns (bytes32 contractType) {
-    assembly {
-      contractType := sload(_contractTypeSlot)
-    }
-  }
 }
