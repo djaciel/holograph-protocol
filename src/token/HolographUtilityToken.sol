@@ -38,7 +38,7 @@ contract HolographUtilityToken is ERC20H {
      */
     if (block.chainid == targetChain || targetChain == 0) {
       if (tokenAmount > 0) {
-        HolographERC20Interface(msg.sender).sourceMint(tokenRecipient, tokenAmount * (10**18));
+        HolographERC20Interface(msg.sender).sourceMint(tokenRecipient, tokenAmount);
       }
     }
     // run underlying initializer logic
