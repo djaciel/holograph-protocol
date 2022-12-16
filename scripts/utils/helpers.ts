@@ -451,10 +451,10 @@ const txParams = async function ({
   if (typeof from !== 'string') {
     from = (from as SignerWithAddress).address;
   }
-  if (!('__txNonce' in global)) {
+  if (nonce === undefined && !('__txNonce' in global)) {
     global.__txNonce = {} as { [key: string]: number };
   }
-  if (!(hre.networkName in global.__txNonce)) {
+  if (nonce === undefined && !(hre.networkName in global.__txNonce)) {
     global.__txNonce[hre.networkName] = await hre.ethers.provider.getTransactionCount(from as string);
   }
   if (typeof to !== 'string') {
@@ -463,7 +463,11 @@ const txParams = async function ({
   let output: TransactionParamsOutput = {
     from: from as string,
     value: BigNumber.from(value),
-    gasLimit: gasLimit ? gasLimit : await getGasLimit(hre, from as string, to as string, data, BigNumber.from(value)),
+    gasLimit: gasLimit
+      ? '__gasLimitMultiplier' in global
+        ? gasLimit.mul(global.__gasLimitMultiplier).div(BigNumber.from('10000'))
+        : gasLimit
+      : await getGasLimit(hre, from as string, to as string, data, BigNumber.from(value)),
     ...(await getGasPrice()),
     nonce: nonce === undefined ? global.__txNonce[hre.networkName] : nonce,
   };

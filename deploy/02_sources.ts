@@ -50,6 +50,7 @@ import {
 import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
+import { Environment, getEnvironment } from '@holographxyz/environment';
 
 const GWEI: BigNumber = BigNumber.from('1000000000');
 const ZERO: BigNumber = BigNumber.from('0');
@@ -227,6 +228,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const network = networks[hre.networkName];
 
+  const environment: Environment = getEnvironment();
+
   let tokenAmount: BigNumber = BigNumber.from('100' + '000' + '000' + '000000000000000000');
   let targetChain: BigNumber = BigNumber.from('0');
   let tokenRecipient: string = deployer.address;
@@ -242,13 +245,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     // one hundred million tokens minted per network on testnets
     tokenAmount = BigNumber.from('100' + '000' + '000' + '000000000000000000');
     primaryNetwork = networks.ethereumTestnetGoerli;
+    if (environment == Environment.testnet) {
+      tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
+      targetChain = BigNumber.from(networks.ethereumTestnetGoerli.chain);
+      tokenRecipient = networks.ethereumTestnetGoerli.protocolMultisig;
+    }
   } else if (currentNetworkType == NetworkType.mainnet) {
     // ten billion tokens minted on ethereum on mainnet
     tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
     // target chain is restricted to ethereum, to prevent the minting of tokens on other chains
     targetChain = BigNumber.from(networks.ethereum.chain);
     // protocol multisig is the recipient
-    tokenRecipient = networks.ethereum.protocolMultisig;
+    // This is the hardcoded Gnosis Safe address of Holograph Research
+    tokenRecipient = '0xfC40b4233f8Ce60461e1D5FE50b3DDF0C50AE0b4'; //networks.ethereum.protocolMultisig;
     primaryNetwork = networks.ethereum;
   } else {
     throw new Error('cannot identity current NetworkType');
