@@ -14,6 +14,7 @@ import {
 import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
 import { NetworkType, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
+import { Environment, getEnvironment } from '@holographxyz/environment';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
@@ -34,6 +35,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const network = networks[hre.networkName];
 
+  const environment: Environment = getEnvironment();
+
   const salt = hre.deploymentSalt;
 
   const holograph = await hre.ethers.getContract('Holograph', deployer);
@@ -41,7 +44,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const currentNetworkType: NetworkType = network.type;
 
-  if (currentNetworkType == NetworkType.local || currentNetworkType == NetworkType.testnet) {
+  if (
+    currentNetworkType == NetworkType.local ||
+    (currentNetworkType == NetworkType.testnet && environment == Environment.develop)
+  ) {
     const futureFaucetAddress = await genesisDeriveFutureAddress(
       hre,
       salt,
