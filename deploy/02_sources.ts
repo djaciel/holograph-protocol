@@ -256,6 +256,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     // target chain is restricted to ethereum, to prevent the minting of tokens on other chains
     targetChain = BigNumber.from(networks.ethereum.chain);
     // protocol multisig is the recipient
+    // This is the hardcoded Gnosis Safe address of Holograph Research
     tokenRecipient = '0xfC40b4233f8Ce60461e1D5FE50b3DDF0C50AE0b4'; //networks.ethereum.protocolMultisig;
     primaryNetwork = networks.ethereum;
   } else {
