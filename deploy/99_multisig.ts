@@ -32,10 +32,15 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     (network.type == NetworkType.mainnet || network.type == NetworkType.testnet) &&
     (environment == Environment.mainnet || environment == Environment.testnet)
   ) {
+    let useDeployer: boolean = false;
     if (network.protocolMultisig === undefined) {
-      throw new Error('No multisig setup for this network');
+      if (network.type == NetworkType.mainnet) {
+        throw new Error('No multisig setup for this network');
+      } else {
+        useDeployer = true;
+      }
     }
-    const MULTI_SIG: string = network.protocolMultisig as string;
+    const MULTI_SIG: string = useDeployer ? deployer.address : (network.protocolMultisig as string);
 
     const switchToHolograph: string[] = [
       'HolographBridgeProxy',
