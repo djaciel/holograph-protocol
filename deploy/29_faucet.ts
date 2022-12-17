@@ -44,44 +44,68 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const currentNetworkType: NetworkType = network.type;
 
-  const futureFaucetAddress = await genesisDeriveFutureAddress(
-    hre,
-    salt,
-    'Faucet',
-    generateInitCode(['address', 'address'], [deployer.address, hlgTokenAddress])
-  );
-  hre.deployments.log('the future "Faucet" address is', futureFaucetAddress);
-
-  // Faucet
-  let faucetDeployedCode: string = await hre.provider.send('eth_getCode', [futureFaucetAddress, 'latest']);
-  if (faucetDeployedCode == '0x' || faucetDeployedCode == '') {
-    hre.deployments.log('"Faucet" bytecode not found, need to deploy"');
-    let faucet = await genesisDeployHelper(
-      hre,
-      salt,
-      'Faucet',
-      generateInitCode(['address', 'address'], [deployer.address, hlgTokenAddress]),
-      futureFaucetAddress
-    );
-    const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
-  } else {
-    hre.deployments.log('"Faucet" is already deployed.');
-  }
-  const faucetContract = await hre.ethers.getContract('Faucet', deployer);
-  if ((await faucetContract.token()) != hlgTokenAddress) {
-    const tx = await faucetContract.setToken(hlgTokenAddress, {
-      ...(await txParams({
+  if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.localhost) {
+    if (environment != Environment.mainnet && environment != Environment.testnet) {
+      const futureFaucetAddress = await genesisDeriveFutureAddress(
         hre,
-        from: deployer,
-        to: faucetContract,
-        data: faucetContract.populateTransaction.setToken(hlgTokenAddress),
-      })),
-    });
-    await tx.wait();
-    hre.deployments.log('Updated HLG reference');
+        salt,
+        'Faucet',
+        generateInitCode(['address', 'address'], [deployer.address, hlgTokenAddress])
+      );
+      hre.deployments.log('the future "Faucet" address is', futureFaucetAddress);
+
+      // Faucet
+      let faucetDeployedCode: string = await hre.provider.send('eth_getCode', [futureFaucetAddress, 'latest']);
+      if (faucetDeployedCode == '0x' || faucetDeployedCode == '') {
+        hre.deployments.log('"Faucet" bytecode not found, need to deploy"');
+        let faucet = await genesisDeployHelper(
+          hre,
+          salt,
+          'Faucet',
+          generateInitCode(['address', 'address'], [deployer.address, hlgTokenAddress]),
+          futureFaucetAddress
+        );
+        const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
+        const transferTx = await hlgContract.transfer(
+          futureFaucetAddress,
+          BigNumber.from('1' + '000' + '000' + '000000000000000000'),
+          {
+            ...(await txParams({
+              hre,
+              from: deployer,
+              to: hlgContract,
+              gasLimit: (
+                await hre.ethers.provider.estimateGas(
+                  hlgContract.populateTransaction.transfer(
+                    futureFaucetAddress,
+                    BigNumber.from('1' + '000' + '000' + '000000000000000000')
+                  )
+                )
+              ).mul(BigNumber.from('2')),
+            })),
+          }
+        );
+        await transferTx.wait();
+      } else {
+        hre.deployments.log('"Faucet" is already deployed.');
+      }
+      const faucetContract = await hre.ethers.getContract('Faucet', deployer);
+      if ((await faucetContract.token()) != hlgTokenAddress) {
+        const tx = await faucetContract.setToken(hlgTokenAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: faucetContract,
+            data: faucetContract.populateTransaction.setToken(hlgTokenAddress),
+          })),
+        });
+        await tx.wait();
+        hre.deployments.log('Updated HLG reference');
+      }
+    }
   }
 };
 
 export default func;
 func.tags = ['Faucet'];
-func.dependencies = [];
+func.dependencies = ['SampleERC20'];
