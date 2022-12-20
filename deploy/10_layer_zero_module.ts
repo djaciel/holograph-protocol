@@ -42,7 +42,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const MSG_GAS_PER_BYTE: BigNumber = BigNumber.from('25');
   const JOB_BASE_GAS: BigNumber = BigNumber.from('160000');
   const JOB_GAS_PER_BYTE: BigNumber = BigNumber.from('35');
-  const MIN_GAS_PRICE: BigNumber = BigNumber.from('999999999');
+  const MIN_GAS_PRICE: BigNumber = BigNumber.from('1');
   const GAS_LIMIT: BigNumber = BigNumber.from('10000001');
 
   const defaultParams: BigNumber[] = [
