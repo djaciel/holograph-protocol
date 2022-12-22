@@ -44,31 +44,28 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const currentNetworkType: NetworkType = network.type;
 
-  if (
-    currentNetworkType == NetworkType.local ||
-    (currentNetworkType == NetworkType.testnet && environment == Environment.develop)
-  ) {
-    const futureFaucetAddress = await genesisDeriveFutureAddress(
-      hre,
-      salt,
-      'Faucet',
-      generateInitCode(['address', 'address'], [deployer.address, hlgTokenAddress])
-    );
-    hre.deployments.log('the future "Faucet" address is', futureFaucetAddress);
-
-    // Faucet
-    let faucetDeployedCode: string = await hre.provider.send('eth_getCode', [futureFaucetAddress, 'latest']);
-    if (faucetDeployedCode == '0x' || faucetDeployedCode == '') {
-      hre.deployments.log('"Faucet" bytecode not found, need to deploy"');
-      let faucet = await genesisDeployHelper(
+  if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.localhost) {
+    if (environment != Environment.mainnet && environment != Environment.testnet) {
+      const futureFaucetAddress = await genesisDeriveFutureAddress(
         hre,
         salt,
         'Faucet',
-        generateInitCode(['address', 'address'], [deployer.address, hlgTokenAddress]),
-        futureFaucetAddress
+        generateInitCode(['address', 'address'], [deployer.address, hlgTokenAddress])
       );
-      const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
-      if (currentNetworkType == NetworkType.testnet) {
+      hre.deployments.log('the future "Faucet" address is', futureFaucetAddress);
+
+      // Faucet
+      let faucetDeployedCode: string = await hre.provider.send('eth_getCode', [futureFaucetAddress, 'latest']);
+      if (faucetDeployedCode == '0x' || faucetDeployedCode == '') {
+        hre.deployments.log('"Faucet" bytecode not found, need to deploy"');
+        let faucet = await genesisDeployHelper(
+          hre,
+          salt,
+          'Faucet',
+          generateInitCode(['address', 'address'], [deployer.address, hlgTokenAddress]),
+          futureFaucetAddress
+        );
+        const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
         const transferTx = await hlgContract.transfer(
           futureFaucetAddress,
           BigNumber.from('1' + '000' + '000' + '000000000000000000'),
@@ -89,11 +86,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           }
         );
         await transferTx.wait();
+      } else {
+        hre.deployments.log('"Faucet" is already deployed.');
       }
-    } else {
-      hre.deployments.log('"Faucet" is already deployed.');
-    }
-    if (currentNetworkType == NetworkType.testnet) {
       const faucetContract = await hre.ethers.getContract('Faucet', deployer);
       if ((await faucetContract.token()) != hlgTokenAddress) {
         const tx = await faucetContract.setToken(hlgTokenAddress, {

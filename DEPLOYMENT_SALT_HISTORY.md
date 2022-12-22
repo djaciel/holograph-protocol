@@ -10,6 +10,11 @@
 - 2022-12-15T01:04:44UTC % Changed DEVELOP_DEPLOYMENT_SALT from 1002 to 1003
 - 2022-12-15T03:29:07UTC % Changed TESTNET_DEPLOYMENT_SALT from 2 to 3
 
+### New Genesis Contracts for Mainnet Launch
+
+- 2022-12-16T19:34:39UTC % Changed DEVELOP_DEPLOYMENT_SALT from 1003 to 1000
+- 2022-12-16T19:34:39UTC % Changed TESTNET_DEPLOYMENT_SALT from 2 to 0
+
 ### NOTE: Timestamps generated via:
 
 ```

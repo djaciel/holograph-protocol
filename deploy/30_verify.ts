@@ -24,6 +24,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   if (currentNetworkType != NetworkType.local) {
     let contracts: string[] = [
+      'HolographUtilityToken',
+      'hToken',
       'Holograph',
       'HolographBridge',
       'HolographBridgeProxy',

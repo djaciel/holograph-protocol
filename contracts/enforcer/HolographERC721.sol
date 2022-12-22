@@ -438,17 +438,22 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
         tokenId
       );
       assembly {
-        mstore(add(sourcePayload, mload(sourcePayload)), caller())
+        // it is important to add 32 bytes in order to accommodate the first 32 bytes being used for storing length of bytes
+        mstore(add(sourcePayload, add(mload(sourcePayload), 0x20)), caller())
         let result := call(
           gas(),
           sload(_sourceContractSlot),
           callvalue(),
-          sourcePayload,
-          add(mload(sourcePayload), 32),
+          // start reading data from memory position, plus 32 bytes, to skip bytes length indicator
+          add(sourcePayload, 0x20),
+          // add an additional 32 bytes to bytes length to include the appended caller address
+          add(mload(sourcePayload), 0x20),
           0,
           0
         )
-        returndatacopy(data, 0, returndatasize())
+        // when reading back data, skip the first 32 bytes which is used to indicate bytes position in calldata
+        // also subtract 32 bytes from returndatasize to accomodate the skipped first 32 bytes
+        returndatacopy(data, 0x20, sub(returndatasize(), 0x20))
         switch result
         case 0 {
           revert(0, returndatasize())
@@ -1010,7 +1015,9 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    */
   function _royalties() private view returns (address) {
     return
-      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573);
+      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(
+        0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573
+      );
   }
 
   /**

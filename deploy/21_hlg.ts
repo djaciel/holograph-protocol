@@ -204,22 +204,24 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   hre.deployments.log('checking HolographOperator HLG balance');
   if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.localhost) {
-    const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
-    if ((await hlgContract.balanceOf(operatorAddress)).isZero()) {
-      hre.deployments.log('HolographOperator has no HLG');
-      const transferTx = await hlgContract.transfer(operatorAddress, BigNumber.from('1000000000000000000000000'), {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: hlgContract,
-          gasLimit: (
-            await hre.ethers.provider.estimateGas(
-              hlgContract.populateTransaction.transfer(operatorAddress, BigNumber.from('1000000000000000000000000'))
-            )
-          ).mul(BigNumber.from('2')),
-        })),
-      });
-      await transferTx.wait();
+    if (environment != Environment.mainnet && environment != Environment.testnet) {
+      const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
+      if ((await hlgContract.balanceOf(operatorAddress)).isZero()) {
+        hre.deployments.log('HolographOperator has no HLG');
+        const transferTx = await hlgContract.transfer(operatorAddress, BigNumber.from('1000000000000000000000000'), {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: hlgContract,
+            gasLimit: (
+              await hre.ethers.provider.estimateGas(
+                hlgContract.populateTransaction.transfer(operatorAddress, BigNumber.from('1000000000000000000000000'))
+              )
+            ).mul(BigNumber.from('2')),
+          })),
+        });
+        await transferTx.wait();
+      }
     }
   }
 };
