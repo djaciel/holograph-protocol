@@ -114,6 +114,9 @@ global.__DEPLOYMENT_SALT = '0x' + DEPLOYMENT_SALT.toString(16).padStart(64, '0')
 
 // this task runs before the actual hardhat deploy task
 task('deploy', 'Deploy contracts').setAction(async (args, hre, runSuper) => {
+  //  let network: Network = networks[hre.network.name];
+  //  if (network.type === NetworkType.mainnet) {
+  //  }
   // set gas parameters
   global.__gasLimitMultiplier = BigNumber.from(process.env.GAS_LIMIT_MULTIPLIER || '10000');
   global.__gasPriceMultiplier = BigNumber.from(process.env.GAS_PRICE_MULTIPLIER || '10000');
