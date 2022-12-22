@@ -140,13 +140,13 @@ task('deploymentsPrettier', 'Adds EOF new line to prevent prettier to change fil
 
     arrayOfFiles = arrayOfFiles || [];
 
-    files.forEach(function (file) {
+    for (const file of files) {
       if (fs.statSync(dirPath + '/' + file).isDirectory()) {
         arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles);
       } else {
         arrayOfFiles.push(path.join(__dirname, dirPath, '/', file));
       }
-    });
+    }
 
     return arrayOfFiles;
   }
