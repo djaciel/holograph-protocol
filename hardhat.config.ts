@@ -1,5 +1,6 @@
 declare var global: any;
 import fs from 'fs';
+import path from 'path';
 import '@typechain/hardhat';
 import 'hardhat-gas-reporter';
 import '@holographxyz/hardhat-deploy-holographed';
@@ -157,6 +158,46 @@ task('deploy', 'Deploy contracts').setAction(async (args, hre, runSuper) => {
   return runSuper(args);
 });
 
+task('deploymentsPrettier', 'Adds EOF new line to prevent prettier to change files').setAction(async (args) => {
+  if (!fs.existsSync('./deployments')) {
+    throw new Error('The directory "deployments" was not found.');
+  }
+
+  function getAllFiles(dirPath: string, arrayOfFiles: string[]) {
+    const files = fs.readdirSync(dirPath);
+
+    arrayOfFiles = arrayOfFiles || [];
+
+    for (const file of files) {
+      if (fs.statSync(dirPath + '/' + file).isDirectory()) {
+        arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles);
+      } else {
+        arrayOfFiles.push(path.join(__dirname, dirPath, '/', file));
+      }
+    }
+
+    return arrayOfFiles;
+  }
+
+  function checkIfEoFIsEmpty(fileContent: string) {
+    const matches = fileContent.match(/\r?\n$/);
+    if (matches) {
+      return true;
+    }
+    return false;
+  }
+
+  const files = getAllFiles('./deployments', []);
+  for (const file of files) {
+    if (file.endsWith('.json')) {
+      const fileContents = fs.readFileSync(file, 'utf8');
+      if (!checkIfEoFIsEmpty(fileContents)) {
+        fs.appendFileSync(file, '\n');
+      }
+    }
+  }
+});
+
 task('abi', 'Create standalone ABI files for all smart contracts')
   .addOptionalParam('silent', 'Provide less details in the output', false, types.boolean)
   .setAction(async (args, hre) => {
@@ -186,7 +227,7 @@ task('abi', 'Create standalone ABI files for all smart contracts')
               console.log(' -- exporting', file.split('.')[0], 'ABI');
             }
             const data = JSON.parse(fs.readFileSync(sourceDir + '/' + file, 'utf8')).abi;
-            fs.writeFileSync(deployDir + '/' + file, JSON.stringify(data, undefined, 2));
+            fs.writeFileSync(deployDir + '/' + file, JSON.stringify(data, undefined, 2) + '\n');
           }
         }
       }
