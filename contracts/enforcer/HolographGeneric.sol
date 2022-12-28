@@ -191,20 +191,6 @@ contract HolographGeneric is Admin, Owner, Initializable, HolographGenericInterf
     destination.transfer(address(this).balance);
   }
 
-  function sourceExternalCall(address targetContract, bytes calldata targetPayload) external payable onlySource {
-    assembly {
-      let result := call(gas(), targetContract, callvalue(), targetPayload.offset, targetPayload.length, 0, 0)
-      returndatacopy(0, 0, returndatasize())
-      switch result
-      case 0 {
-        revert(0, returndatasize())
-      }
-      default {
-        return(0, returndatasize())
-      }
-    }
-  }
-
   /**
    * @dev Purposefully left empty, to prevent running out of gas errors when receiving native token payments.
    */
