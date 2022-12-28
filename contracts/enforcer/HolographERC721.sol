@@ -1072,7 +1072,7 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
       mstore(0x40, add(pos, 0x20))
       mstore(add(payload, mload(payload)), caller())
       // offset memory position by 32 bytes to skip the 32 bytes where bytes length is stored
-      // add 32 bytes to bytes length to include the appende msg.sender to calldata
+      // add 32 bytes to bytes length to include the appended msg.sender to calldata
       let result := call(
         gas(),
         sload(_sourceContractSlot),
