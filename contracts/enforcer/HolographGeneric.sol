@@ -191,6 +191,20 @@ contract HolographGeneric is Admin, Owner, Initializable, HolographGenericInterf
     destination.transfer(address(this).balance);
   }
 
+  function sourceExternalCall(address targetContract, bytes calldata targetPayload) external payable onlySource {
+    assembly {
+      let result := call(gas(), targetContract, callvalue(), targetPayload.offset, targetPayload.length, 0, 0)
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
+        revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
+      }
+    }
+  }
+
   /**
    * @dev Purposefully left empty, to prevent running out of gas errors when receiving native token payments.
    */
@@ -221,7 +235,17 @@ contract HolographGeneric is Admin, Owner, Initializable, HolographGenericInterf
       let pos := mload(0x40)
       mstore(0x40, add(pos, 0x20))
       mstore(add(payload, mload(payload)), caller())
-      let result := call(gas(), sload(_sourceContractSlot), callvalue(), payload, add(mload(payload), 0x20), 0, 0)
+      // offset memory position by 32 bytes to skip the 32 bytes where bytes length is stored
+      // add 32 bytes to bytes length to include the appende msg.sender to calldata
+      let result := call(
+        gas(),
+        sload(_sourceContractSlot),
+        callvalue(),
+        add(payload, 0x20),
+        add(mload(payload), 0x20),
+        0,
+        0
+      )
       returndatacopy(pos, 0, returndatasize())
       switch result
       case 0 {
