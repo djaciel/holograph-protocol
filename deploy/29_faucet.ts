@@ -44,7 +44,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const currentNetworkType: NetworkType = network.type;
 
-  if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.localhost) {
+  hre.deployments.log(currentNetworkType, environment);
+  if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.local) {
     if (environment != Environment.mainnet && environment != Environment.testnet) {
       const futureFaucetAddress = await genesisDeriveFutureAddress(
         hre,
