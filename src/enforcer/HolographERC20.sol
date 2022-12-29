@@ -177,6 +177,8 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
       let pos := mload(0x40)
       mstore(0x40, add(pos, 0x20))
       mstore(add(payload, add(mload(payload), 0x20)), caller())
+      // offset memory position by 32 bytes to skip the 32 bytes where bytes length is stored
+      // add 32 bytes to bytes length to include the appended msg.sender to calldata
       let result := call(
         gas(),
         sload(_sourceContractSlot),
