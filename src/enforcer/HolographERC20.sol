@@ -157,7 +157,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
     assembly {
       calldatacopy(0, 0, calldatasize())
       mstore(calldatasize(), caller())
-      let result := call(gas(), sload(_sourceContractSlot), callvalue(), 0, add(calldatasize(), 32), 0, 0)
+      let result := call(gas(), sload(_sourceContractSlot), callvalue(), 0, add(calldatasize(), 0x20), 0, 0)
       returndatacopy(0, 0, returndatasize())
       switch result
       case 0 {
@@ -176,8 +176,16 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
     assembly {
       let pos := mload(0x40)
       mstore(0x40, add(pos, 0x20))
-      mstore(add(payload, mload(payload)), caller())
-      let result := call(gas(), sload(_sourceContractSlot), callvalue(), payload, add(mload(payload), 0x20), 0, 0)
+      mstore(add(payload, add(mload(payload), 0x20)), caller())
+      let result := call(
+        gas(),
+        sload(_sourceContractSlot),
+        callvalue(),
+        add(payload, 0x20),
+        add(mload(payload), 0x20),
+        0,
+        0
+      )
       returndatacopy(pos, 0, returndatasize())
       switch result
       case 0 {
