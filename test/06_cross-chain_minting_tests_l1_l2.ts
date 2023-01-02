@@ -1,64 +1,24 @@
-declare var global: any;
-import Web3 from 'web3';
-import { AbiItem } from 'web3-utils';
 import { expect, assert } from 'chai';
 import { PreTest } from './utils';
 import setup from './utils';
-import { BigNumberish, BytesLike, BigNumber, ContractFactory } from 'ethers';
+import { BytesLike, BigNumber } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import {
   Signature,
   StrictECDSA,
   zeroAddress,
   functionHash,
-  XOR,
   hexToBytes,
   stringToHex,
-  buildDomainSeperator,
-  randomHex,
   generateInitCode,
   generateErc20Config,
   generateErc721Config,
-  LeanHardhatRuntimeEnvironment,
   getGasUsage,
-  remove0x,
   KeyOf,
   HASH,
-  executeJobGas,
-  adminCall,
 } from '../scripts/utils/helpers';
-import {
-  HolographERC20Event,
-  HolographERC721Event,
-  HolographERC1155Event,
-  ConfigureEvents,
-} from '../scripts/utils/events';
-import ChainId from '../scripts/utils/chain';
-import {
-  Admin,
-  CxipERC721,
-  ERC20Mock,
-  Holograph,
-  HolographBridge,
-  HolographBridgeProxy,
-  Holographer,
-  HolographERC20,
-  HolographERC721,
-  HolographFactory,
-  HolographFactoryProxy,
-  HolographGenesis,
-  HolographRegistry,
-  HolographRegistryProxy,
-  HToken,
-  HolographUtilityToken,
-  HolographInterfaces,
-  MockERC721Receiver,
-  Owner,
-  HolographRoyalties,
-  SampleERC20,
-  SampleERC721,
-} from '../typechain-types';
-import { DeploymentConfigStruct } from '../typechain-types/HolographFactory';
+import { HolographERC20Event, HolographERC721Event, ConfigureEvents } from '../scripts/utils/events';
+import { HolographERC20 } from '../typechain-types';
 import { GasParametersStructOutput } from '../typechain-types/LayerZeroModule';
 
 const hValueTrim = function (inputPayload: string | BytesLike): BytesLike {
@@ -129,7 +89,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
     return msgBaseGas.add(BigNumber.from(Math.floor((payload.length - 2) / 2)).mul(msgGasPerByte));
   };
 
-  let getHlgMsgGas = function (gasLimit: BigNmber, payload: string): BigNumber {
+  let getHlgMsgGas = function (gasLimit: BigNumber, payload: string): BigNumber {
     return gasLimit.add(jobBaseGas.add(BigNumber.from(Math.floor((payload.length - 2) / 2)).mul(jobGasPerByte)));
   };
 
@@ -399,7 +359,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
         await l2.operator.setMessagingModule(l2.mockLZEndpoint.address);
         // make call with mockLZEndpoint AS messaging module
-        await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(payload), payload, {
+        await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(String(payload)), payload, {
           gasLimit: TESTGASLIMIT,
         });
         // return messaging module back to original address
@@ -466,7 +426,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
         // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
         await l1.operator.setMessagingModule(l1.mockLZEndpoint.address);
         // make call with mockLZEndpoint AS messaging module
-        await l1.mockLZEndpoint.crossChainMessage(l1.operator.address, getLzMsgGas(payload), payload, {
+        await l1.mockLZEndpoint.crossChainMessage(l1.operator.address, getLzMsgGas(String(payload)), payload, {
           gasLimit: TESTGASLIMIT,
         });
         // return messaging module back to original address
@@ -1112,7 +1072,7 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
           await l2.operator.setMessagingModule(l2.mockLZEndpoint.address);
           // make call with mockLZEndpoint AS messaging module
-          await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(payload), payload, {
+          await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(String(payload)), payload, {
             gasLimit: TESTGASLIMIT,
           });
           // return messaging module back to original address
@@ -1133,6 +1093,97 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           expect(await l2.sampleErc721Enforcer.attach(l1.sampleErc721Holographer.address).ownerOf(thirdNFTl2)).to.equal(
             l2.deployer.address
           );
+        });
+
+        it('token #2 beaming from l1 to l2 should keep TokenURI', async function () {
+          const tokenURIBefore = await l1.sampleErc721.attach(l1.sampleErc721Holographer.address).tokenURI(secondNFTl1);
+
+          let data: BytesLike = generateInitCode(
+            ['address', 'address', 'uint256'],
+            [l1.deployer.address, l2.deployer.address, secondNFTl1.toHexString()]
+          );
+
+          let originalMessagingModule = await l2.operator.getMessagingModule();
+          let payload: BytesLike = await getRequestPayload(l1, l2, l1.sampleErc721Holographer.address, data);
+          let gasEstimates = await getEstimatedGas(l1, l2, l1.sampleErc721Holographer.address, data, payload);
+          payload = gasEstimates.payload;
+          let payloadHash: string = HASH(payload);
+
+          await l1.bridge.bridgeOutRequest(
+            l2.network.holographId,
+            l1.sampleErc721Holographer.address,
+            gasEstimates.estimatedGas,
+            GWEI,
+            data,
+            { value: gasEstimates.fee }
+          );
+          // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+          await l2.operator.setMessagingModule(l2.mockLZEndpoint.address);
+          // make call with mockLZEndpoint AS messaging module
+          await l2.mockLZEndpoint.crossChainMessage(l2.operator.address, getLzMsgGas(payload), payload, {
+            gasLimit: TESTGASLIMIT,
+          });
+          // return messaging module back to original address
+          await l2.operator.setMessagingModule(originalMessagingModule);
+          let operatorJob = await l2.operator.getJobDetails(payloadHash);
+          let operator = (operatorJob[2] as string).toLowerCase();
+          // execute job to leave operator bonded
+
+          await l2.operator
+            .connect(pickOperator(l2, operator))
+            .executeJob(payload, { gasLimit: gasEstimates.estimatedGas });
+
+          const tokenURIAfter = await l2.sampleErc721Enforcer
+            .attach(l1.sampleErc721Holographer.address)
+            .tokenURI(secondNFTl1);
+
+          expect(tokenURIBefore).to.be.equal(tokenURIAfter);
+        });
+
+        //TODO
+        it('token #2 beaming from l2 to l1 should keep TokenURI', async function () {
+          const tokenURIBefore = await l2.sampleErc721.attach(l1.sampleErc721Holographer.address).tokenURI(secondNFTl2);
+
+          let data: BytesLike = generateInitCode(
+            ['address', 'address', 'uint256'],
+            [l2.deployer.address, l1.deployer.address, secondNFTl2.toHexString()]
+          );
+
+          let originalMessagingModule = await l1.operator.getMessagingModule();
+          let payload: BytesLike = await getRequestPayload(l2, l1, l1.sampleErc721Holographer.address, data);
+          let gasEstimates = await getEstimatedGas(l2, l1, l1.sampleErc721Holographer.address, data, payload);
+          payload = gasEstimates.payload;
+          let payloadHash: string = HASH(payload);
+
+          await l2.bridge.bridgeOutRequest(
+            l1.network.holographId,
+            l1.sampleErc721Holographer.address,
+            gasEstimates.estimatedGas,
+            GWEI,
+            data,
+            { value: gasEstimates.fee }
+          );
+          // temporarily set MockLZEndpoint as messaging module, to allow for easy sending
+          await l1.operator.setMessagingModule(l1.mockLZEndpoint.address);
+          // make call with mockLZEndpoint AS messaging module
+          await l1.mockLZEndpoint.crossChainMessage(l1.operator.address, getLzMsgGas(payload), payload, {
+            gasLimit: TESTGASLIMIT,
+          });
+          // return messaging module back to original address
+          await l1.operator.setMessagingModule(originalMessagingModule);
+          let operatorJob = await l1.operator.getJobDetails(payloadHash);
+          let operator = (operatorJob[2] as string).toLowerCase();
+          // execute job to leave operator bonded
+
+          await l1.operator
+            .connect(pickOperator(l1, operator))
+            .executeJob(payload, { gasLimit: gasEstimates.estimatedGas });
+
+          const tokenURIAfter = await l1.sampleErc721Enforcer
+            .attach(l1.sampleErc721Holographer.address)
+            .tokenURI(secondNFTl2);
+
+          expect(tokenURIBefore).to.be.equal(tokenURIAfter);
         });
 
         /*
