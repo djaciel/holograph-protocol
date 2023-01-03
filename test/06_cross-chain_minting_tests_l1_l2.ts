@@ -1140,7 +1140,6 @@ describe('Testing cross-chain minting (L1 & L2)', async function () {
           expect(tokenURIBefore).to.be.equal(tokenURIAfter);
         });
 
-        //TODO
         it('token #2 beaming from l2 to l1 should keep TokenURI', async function () {
           const tokenURIBefore = await l2.sampleErc721.attach(l1.sampleErc721Holographer.address).tokenURI(secondNFTl2);
 
