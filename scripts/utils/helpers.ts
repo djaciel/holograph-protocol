@@ -350,7 +350,7 @@ const genesisDeriveFutureAddress = async function (
 };
 
 const getGasLimit = async function (
-  hre: HardhatRuntimeEnvironment,
+  hre: LeanHardhatRuntimeEnvironment,
   from: string | SignerWithAddress | SuperColdStorageSigner,
   to: string,
   data: Promise<UnsignedTransaction> | BytesLike = '',
@@ -385,7 +385,7 @@ type GasParams = {
 };
 
 type TransactionParams = {
-  hre: HardhatRuntimeEnvironment;
+  hre: LeanHardhatRuntimeEnvironment;
   from: string | SignerWithAddress | SuperColdStorageSigner;
   to: string | Contract;
   data?: Promise<UnsignedTransaction> | BytesLike;
@@ -512,13 +512,7 @@ const genesisDeployHelper = async function (
     const contractBytecode: BytesLike = ((await ethers.getContractFactory(name)) as ContractFactory).bytecode;
     const deployCode: BytesLike = generateDeployCode(chainId, salt, contractBytecode, initCode);
     const contractDeterministic = await deterministicCustom(name, {
-      ...(await txParams({
-        hre,
-        from: deployer,
-        to: holographGenesis?.address,
-        data: deployCode,
-        gasLimit: BigNumber.from('10000000'),
-      })),
+      ...(await txParams({ hre, from: deployer, to: holographGenesis?.address, data: deployCode })),
       args: [],
       log: true,
       deployerAddress: holographGenesis?.address,
