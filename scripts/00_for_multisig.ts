@@ -41,6 +41,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     process.exit();
   };
 
+  const holograph = await hre.ethers.getContract('Holograph', deployer);
+
   const holographRegistryProxy = await hre.ethers.getContract('HolographRegistryProxy', deployer);
   const holographRegistry = ((await hre.ethers.getContract('HolographRegistry', deployer)) as Contract).attach(
     holographRegistryProxy.address
@@ -63,15 +65,32 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const genericHash = '0x' + web3.utils.asciiToHex('HolographGeneric').substring(2).padStart(64, '0');
   if ((await holographRegistry.getContractTypeAddress(genericHash)) != futureGenericAddress) {
-    const genericTx = await holographRegistry
-      .setContractTypeAddress(genericHash, futureGenericAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographRegistry,
-          data: holographRegistry.populateTransaction.setContractTypeAddress(genericHash, futureGenericAddress),
-        })),
-      })
+    hre.deployments.log(
+      `Need to register "HolographGeneric" with HolographRegistry: ${
+        (await holographRegistry.populateTransaction.setContractTypeAddress(genericHash, futureGenericAddress)).data
+      }`
+    );
+    hre.deployments.log(`"HolographGeneric" hash is: ${genericHash}`);
+    const genericTx = await holograph
+      .adminCall(
+        holographRegistryProxy.address,
+        (
+          await holographRegistry.populateTransaction.setContractTypeAddress(genericHash, futureGenericAddress)
+        ).data,
+        {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holograph,
+            data: holograph.populateTransaction.adminCall(
+              holographRegistryProxy.address,
+              (
+                await holographRegistry.populateTransaction.setContractTypeAddress(genericHash, futureGenericAddress)
+              ).data
+            ),
+          })),
+        }
+      )
       .catch(error);
     hre.deployments.log('Transaction hash:', genericTx.hash);
     await genericTx.wait();
@@ -102,15 +121,32 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const erc721Hash = '0x' + web3.utils.asciiToHex('HolographERC721').substring(2).padStart(64, '0');
   if ((await holographRegistry.getContractTypeAddress(erc721Hash)) != futureErc721Address) {
-    const erc721Tx = await holographRegistry
-      .setContractTypeAddress(erc721Hash, futureErc721Address, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographRegistry,
-          data: holographRegistry.populateTransaction.setContractTypeAddress(erc721Hash, futureErc721Address),
-        })),
-      })
+    hre.deployments.log(
+      `Need to register "HolographERC721" with HolographRegistry: ${
+        (await holographRegistry.populateTransaction.setContractTypeAddress(erc721Hash, futureErc721Address)).data
+      }`
+    );
+    hre.deployments.log(`"HolographERC721" hash is: ${erc721Hash}`);
+    const erc721Tx = await holograph
+      .adminCall(
+        holographRegistryProxy.address,
+        (
+          await holographRegistry.populateTransaction.setContractTypeAddress(erc721Hash, futureErc721Address)
+        ).data,
+        {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holograph,
+            data: holograph.populateTransaction.adminCall(
+              holographRegistryProxy.address,
+              (
+                await holographRegistry.populateTransaction.setContractTypeAddress(erc721Hash, futureErc721Address)
+              ).data
+            ),
+          })),
+        }
+      )
       .catch(error);
     hre.deployments.log('Transaction hash:', erc721Tx.hash);
     await erc721Tx.wait();
@@ -131,15 +167,36 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const cxipErc721Hash = '0x' + web3.utils.asciiToHex('CxipERC721').substring(2).padStart(64, '0');
   if ((await holographRegistry.getContractTypeAddress(cxipErc721Hash)) != futureCxipErc721Address) {
-    const cxipErc721Tx = await holographRegistry
-      .setContractTypeAddress(cxipErc721Hash, futureCxipErc721Address, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographRegistry,
-          data: holographRegistry.populateTransaction.setContractTypeAddress(cxipErc721Hash, futureCxipErc721Address),
-        })),
-      })
+    hre.deployments.log(
+      `Need to register "CxipERC721" with HolographRegistry: ${
+        (await holographRegistry.populateTransaction.setContractTypeAddress(cxipErc721Hash, futureCxipErc721Address))
+          .data
+      }`
+    );
+    hre.deployments.log(`"CxipERC721" hash is: ${cxipErc721Hash}`);
+    const cxipErc721Tx = await holograph
+      .adminCall(
+        holographRegistryProxy.address,
+        (
+          await holographRegistry.populateTransaction.setContractTypeAddress(cxipErc721Hash, futureCxipErc721Address)
+        ).data,
+        {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holograph,
+            data: holograph.populateTransaction.adminCall(
+              holographRegistryProxy.address,
+              (
+                await holographRegistry.populateTransaction.setContractTypeAddress(
+                  cxipErc721Hash,
+                  futureCxipErc721Address
+                )
+              ).data
+            ),
+          })),
+        }
+      )
       .catch(error);
     hre.deployments.log('Transaction hash:', cxipErc721Tx.hash);
     await cxipErc721Tx.wait();
@@ -172,15 +229,32 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const erc20Hash = '0x' + web3.utils.asciiToHex('HolographERC20').substring(2).padStart(64, '0');
   if ((await holographRegistry.getContractTypeAddress(erc20Hash)) != futureErc20Address) {
-    const erc20Tx = await holographRegistry
-      .setContractTypeAddress(erc20Hash, futureErc20Address, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographRegistry,
-          data: holographRegistry.populateTransaction.setContractTypeAddress(erc20Hash, futureErc20Address),
-        })),
-      })
+    hre.deployments.log(
+      `Need to register "HolographERC20" with HolographRegistry: ${
+        (await holographRegistry.populateTransaction.setContractTypeAddress(erc20Hash, futureErc20Address)).data
+      }`
+    );
+    hre.deployments.log(`"HolographERC20" hash is: ${erc20Hash}`);
+    const erc20Tx = await holograph
+      .adminCall(
+        holographRegistryProxy.address,
+        (
+          await holographRegistry.populateTransaction.setContractTypeAddress(erc20Hash, futureErc20Address)
+        ).data,
+        {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holograph,
+            data: holograph.populateTransaction.adminCall(
+              holographRegistryProxy.address,
+              (
+                await holographRegistry.populateTransaction.setContractTypeAddress(erc20Hash, futureErc20Address)
+              ).data
+            ),
+          })),
+        }
+      )
       .catch(error);
     hre.deployments.log('Transaction hash:', erc20Tx.hash);
     await erc20Tx.wait();
@@ -199,15 +273,32 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const pa1dHash = '0x' + web3.utils.asciiToHex('HolographRoyalties').substring(2).padStart(64, '0');
   if ((await holographRegistry.getContractTypeAddress(pa1dHash)) != futureRoyaltiesAddress) {
-    const pa1dTx = await holographRegistry
-      .setContractTypeAddress(pa1dHash, futureRoyaltiesAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographRegistry,
-          data: holographRegistry.populateTransaction.setContractTypeAddress(pa1dHash, futureRoyaltiesAddress),
-        })),
-      })
+    hre.deployments.log(
+      `Need to register "HolographRoyalties" with HolographRegistry: ${
+        (await holographRegistry.populateTransaction.setContractTypeAddress(pa1dHash, futureRoyaltiesAddress)).data
+      }`
+    );
+    hre.deployments.log(`"HolographRoyalties" hash is: ${pa1dHash}`);
+    const pa1dTx = await holograph
+      .adminCall(
+        pa1dHash,
+        (
+          await holographRegistry.populateTransaction.setContractTypeAddress(pa1dHash, futureRoyaltiesAddress)
+        ).data,
+        {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holograph,
+            data: holograph.populateTransaction.adminCall(
+              pa1dHash,
+              (
+                await holographRegistry.populateTransaction.setContractTypeAddress(pa1dHash, futureRoyaltiesAddress)
+              ).data
+            ),
+          })),
+        }
+      )
       .catch(error);
     hre.deployments.log('Transaction hash:', pa1dTx.hash);
     await pa1dTx.wait();
@@ -220,12 +311,5 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ['RegisterTemplates'];
-func.dependencies = [
-  'HolographGenesis',
-  'DeploySources',
-  'DeployGeneric',
-  'DeployERC20',
-  'DeployERC721',
-  'DeployERC1155',
-];
+func.tags = ['ForMultisig'];
+func.dependencies = [];

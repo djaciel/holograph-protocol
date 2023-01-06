@@ -203,7 +203,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   }
 
   hre.deployments.log('checking HolographOperator HLG balance');
-  if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.localhost) {
+  if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.local) {
     if (environment != Environment.mainnet && environment != Environment.testnet) {
       const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
       if ((await hlgContract.balanceOf(operatorAddress)).isZero()) {

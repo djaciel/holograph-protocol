@@ -418,7 +418,8 @@ const getGasPrice = async function (): Promise<GasParams> {
       return {
         gasPrice: null,
         type: 2,
-        maxPriorityFeePerGas: gasPrice.sub(gasPricing.nextBlockFee!),
+        //maxPriorityFeePerGas: gasPrice.sub(gasPricing.nextBlockFee!),
+        maxPriorityFeePerGas: gasPrice,
         maxFeePerGas: gasPrice,
       };
     } else {
