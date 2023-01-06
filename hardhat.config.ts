@@ -1,5 +1,6 @@
 declare var global: any;
 import fs from 'fs';
+import path from 'path';
 import '@typechain/hardhat';
 import 'hardhat-gas-reporter';
 import '@holographxyz/hardhat-deploy-holographed';
@@ -57,6 +58,31 @@ const setDeployerKey = function (fallbackKey: string | number): string | number 
   } else {
     return fallbackKey;
   }
+};
+
+const dynamicNetworks = function (skipLocalhost: boolean = true): unknown {
+  let output = {};
+  for (const name of Object.keys(networks)) {
+    if (name != 'hardhat' && (!skipLocalhost || (skipLocalhost && name != 'localhost' && name != 'localhost2'))) {
+      let envKey = name.replace(/([A-Z]{1})/g, '_$1').toUpperCase();
+      output[name] = {
+        url: process.env[envKey + '_RPC_URL'] || networks[name].rpc,
+        chainId: networks[name].chain,
+        accounts: [process.env[envKey + '_PRIVATE_KEY'] || DEPLOYER],
+      };
+    }
+  }
+  return output;
+};
+
+const dynamicExternalDeployments = function (): unknown {
+  let output = {};
+  for (const name of Object.keys(networks)) {
+    if (name != 'hardhat') {
+      output[name] = ['node_modules/@holographxyz/holograph-genesis/deployments/' + name];
+    }
+  }
+  return output;
 };
 
 const AVALANCHE_PRIVATE_KEY = process.env.AVALANCHE_PRIVATE_KEY || DEPLOYER;
@@ -132,6 +158,46 @@ task('deploy', 'Deploy contracts').setAction(async (args, hre, runSuper) => {
   return runSuper(args);
 });
 
+task('deploymentsPrettier', 'Adds EOF new line to prevent prettier to change files').setAction(async (args) => {
+  if (!fs.existsSync('./deployments')) {
+    throw new Error('The directory "deployments" was not found.');
+  }
+
+  function getAllFiles(dirPath: string, arrayOfFiles: string[]) {
+    const files = fs.readdirSync(dirPath);
+
+    arrayOfFiles = arrayOfFiles || [];
+
+    for (const file of files) {
+      if (fs.statSync(dirPath + '/' + file).isDirectory()) {
+        arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles);
+      } else {
+        arrayOfFiles.push(path.join(__dirname, dirPath, '/', file));
+      }
+    }
+
+    return arrayOfFiles;
+  }
+
+  function checkIfEoFIsEmpty(fileContent: string) {
+    const matches = fileContent.match(/\r?\n$/);
+    if (matches) {
+      return true;
+    }
+    return false;
+  }
+
+  const files = getAllFiles('./deployments', []);
+  for (const file of files) {
+    if (file.endsWith('.json')) {
+      const fileContents = fs.readFileSync(file, 'utf8');
+      if (!checkIfEoFIsEmpty(fileContents)) {
+        fs.appendFileSync(file, '\n');
+      }
+    }
+  }
+});
+
 task('abi', 'Create standalone ABI files for all smart contracts')
   .addOptionalParam('silent', 'Provide less details in the output', false, types.boolean)
   .setAction(async (args, hre) => {
@@ -161,7 +227,7 @@ task('abi', 'Create standalone ABI files for all smart contracts')
               console.log(' -- exporting', file.split('.')[0], 'ABI');
             }
             const data = JSON.parse(fs.readFileSync(sourceDir + '/' + file, 'utf8')).abi;
-            fs.writeFileSync(deployDir + '/' + file, JSON.stringify(data, undefined, 2));
+            fs.writeFileSync(deployDir + '/' + file, JSON.stringify(data, undefined, 2) + '\n');
           }
         }
       }
@@ -187,33 +253,7 @@ const config: HardhatUserConfig = {
   },
   defaultNetwork: 'localhost',
   external: {
-    deployments: {
-      arbitrum: [DEPLOYMENT_PATH + '/external/arbitrum'],
-      arbitrumTestnetRinkeby: [DEPLOYMENT_PATH + '/external/arbitrumTestnetRinkeby'],
-      aurora: [DEPLOYMENT_PATH + '/external/aurora'],
-      auroraTestnet: [DEPLOYMENT_PATH + '/external/auroraTestnet'],
-      avalanche: [DEPLOYMENT_PATH + '/external/avalanche'],
-      avalancheTestnet: [DEPLOYMENT_PATH + '/external/avalancheTestnet'],
-      binanceSmartChain: [DEPLOYMENT_PATH + '/external/binanceSmartChain'],
-      binanceSmartChainTestnet: [DEPLOYMENT_PATH + '/external/binanceSmartChainTestnet'],
-      cronos: [DEPLOYMENT_PATH + '/external/cronos'],
-      cronosTestnet: [DEPLOYMENT_PATH + '/external/cronosTestnet'],
-      ethereum: [DEPLOYMENT_PATH + '/external/ethereum'],
-      ethereumTestnetGoerli: [DEPLOYMENT_PATH + '/external/ethereumTestnetGoerli'],
-      ethereumTestnetKovan: [DEPLOYMENT_PATH + '/external/ethereumTestnetKovan'],
-      ethereumTestnetRinkeby: [DEPLOYMENT_PATH + '/external/ethereumTestnetRinkeby'],
-      ethereumTestnetRopsten: [DEPLOYMENT_PATH + '/external/ethereumTestnetRopsten'],
-      fantom: [DEPLOYMENT_PATH + '/external/fantom'],
-      fantomTestnet: [DEPLOYMENT_PATH + '/external/fantomTestnet'],
-      gnosis: [DEPLOYMENT_PATH + '/external/gnosis'],
-      gnosisTestnetSokol: [DEPLOYMENT_PATH + '/external/gnosisTestnetSokol'],
-      localhost: [DEPLOYMENT_PATH + '/external/localhost'],
-      localhost2: [DEPLOYMENT_PATH + '/external/localhost2'],
-      optimism: [DEPLOYMENT_PATH + '/external/optimism'],
-      optimismTestnetKovan: [DEPLOYMENT_PATH + '/external/optimismTestnetKovan'],
-      polygon: [DEPLOYMENT_PATH + '/external/polygon'],
-      polygonTestnet: [DEPLOYMENT_PATH + '/external/polygonTestnet'],
-    },
+    deployments: dynamicExternalDeployments(),
   },
   networks: {
     localhost: {
@@ -248,54 +288,7 @@ const config: HardhatUserConfig = {
       },
       saveDeployments: false,
     },
-    avalanche: {
-      url: networks.avalanche.rpc,
-      chainId: networks.avalanche.chain,
-      accounts: [AVALANCHE_PRIVATE_KEY],
-    },
-    avalancheTestnet: {
-      url: networks.avalancheTestnet.rpc,
-      chainId: networks.avalancheTestnet.chain,
-      accounts: [AVALANCHE_TESTNET_PRIVATE_KEY],
-    },
-    binanceSmartChain: {
-      url: networks.binanceSmartChain.rpc,
-      chainId: networks.binanceSmartChain.chain,
-      accounts: [BINANCE_SMART_CHAIN_PRIVATE_KEY],
-    },
-    binanceSmartChainTestnet: {
-      url: networks.binanceSmartChainTestnet.rpc,
-      chainId: networks.binanceSmartChainTestnet.chain,
-      accounts: [BINANCE_SMART_CHAIN_TESTNET_PRIVATE_KEY],
-    },
-    ethereum: {
-      url: networks.ethereum.rpc,
-      chainId: networks.ethereum.chain,
-      accounts: [ETHEREUM_PRIVATE_KEY],
-    },
-    ethereumTestnetRinkeby: {
-      url: networks.ethereumTestnetRinkeby.rpc,
-      chainId: networks.ethereumTestnetRinkeby.chain,
-      accounts: [ETHEREUM_TESTNET_RINKEBY_PRIVATE_KEY],
-    },
-    ethereumTestnetGoerli: {
-      url: networks.ethereumTestnetGoerli.rpc,
-      chainId: networks.ethereumTestnetGoerli.chain,
-      accounts: [ETHEREUM_TESTNET_GOERLI_PRIVATE_KEY],
-    },
-    polygon: {
-      url: networks.polygon.rpc,
-      chainId: networks.polygon.chain,
-      accounts: [POLYGON_PRIVATE_KEY],
-    },
-    polygonTestnet: {
-      url: networks.polygonTestnet.rpc,
-      chainId: networks.polygonTestnet.chain,
-      accounts: [POLYGON_TESTNET_PRIVATE_KEY],
-    },
-    coverage: {
-      url: 'http://127.0.0.1:8555',
-    },
+    ...dynamicNetworks(),
   },
   namedAccounts: {
     deployer: setDeployerKey(0),

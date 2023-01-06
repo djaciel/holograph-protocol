@@ -29,9 +29,9 @@
     "init": "(ls .env >> /dev/null 2>&1 && cp .env ignore.original.env) ; cp sample.env .env",
     "abi": "hardhat abi",
     "build": "hardhat holograph-build-contracts",
-    "clean-compile": "hardhat clean ; hardhat compile",
+    "clean-compile": "hardhat clean ; hardhat compile ; hardhat deploymentsPrettier",
     "clean": "hardhat clean",
-    "compile": "hardhat compile",
+    "compile": "hardhat compile ; hardhat deploymentsPrettier",
     "deploy": "hardhat deploy",
     "deploy:localhost": "hardhat deploy --network localhost ; hardhat deploy --network localhost2",
     "ganache": ". ./.env ; rm -fr ./ganache/db ; mkdir -p ./ganache/db ; rm ./ganache/keys.json ; ganache-cli --accounts=11 --defaultBalanceEther=100 --deterministic --mnemonic=\"$MNEMONIC\" --port=8545 --hostname=0.0.0.0 --gasPrice=0 --gasLimit=10000000 --networkId=1338 --chainId=1338 --db=./ganache/db --acctKeys=./ganache/keys.json",
@@ -45,7 +45,8 @@
     "lint": "eslint . --ext .ts --config .eslintrc",
     "lint:fix": "eslint . --ext .ts --config .eslintrc --fix",
     "prettier:check": "prettier --ignore-unknown --check \"deploy/**/*.ts\" \"test/**/*.ts\" \"scripts/**/*.ts\"",
-    "prettier:fix": "prettier --loglevel error --ignore-path .gitignore --write ."
+    "prettier:fix": "prettier --loglevel error --ignore-path .gitignore --write .",
+    "prettier:deployments": "hardhat deploymentsPrettier"
   },
   "dependencies": {
     "@ethersproject/abstract-provider": "^5.7.0",
@@ -56,6 +57,7 @@
     "@holographxyz/environment": "0.1.10",
     "@holographxyz/hardhat-deploy-holographed": "^0.0.5",
     "@holographxyz/hardhat-holograph-contract-builder": "^0.0.4",
+    "@holographxyz/holograph-genesis": "^0.0.1",
     "@holographxyz/networks": "0.1.15",
     "chai-ethers": "^0.0.1",
     "ganache": "^7.2.0",

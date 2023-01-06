@@ -11,6 +11,7 @@ describe('Testing the Holograph Faucet', async () => {
 
   let ERC20: HolographERC20;
   let FAUCET: Faucet;
+  let FAUCET_PREFUND_AMOUNT: BigNumber;
 
   const DEFAULT_DRIP_AMOUNT = BigNumber.from('100000000000000000000'); // 100 eth
   const DEFAULT_DRIP_COOLDOWN = 24 * 60 * 60; // 24 hours in seconds
@@ -28,6 +29,7 @@ describe('Testing the Holograph Faucet', async () => {
     ERC20 = await l1.holographErc20.attach(await l1.holograph.getUtilityToken());
     FAUCET = l1.faucet;
 
+    FAUCET_PREFUND_AMOUNT = await ERC20.balanceOf(FAUCET.address);
     await ERC20.transfer(FAUCET.address, INITIAL_FAUCET_FUNDS);
   });
 
@@ -149,10 +151,13 @@ describe('Testing the Holograph Faucet', async () => {
       expect(await ERC20.balanceOf(l1.wallet3.address)).to.equal(DEFAULT_DRIP_AMOUNT);
     });
 
+    // NOTE: Faucet is prefunded outside of this test suite so FAUCET_PREFUND_AMOUNT is not 0 and therefore must be added to
+    // the balance that is transfered in the before hook of this test suite for the expected balance to be correct
+    // TODO: Remove either the logic that prefunds the faucet or use the prefund amount as the initial faucet funds
     it('withdrawAllTokens()', async function () {
       await FAUCET.withdrawAllTokens(l1.wallet4.address);
       expect(await ERC20.balanceOf(l1.wallet4.address)).to.equal(
-        INITIAL_FAUCET_FUNDS.sub(DEFAULT_DRIP_AMOUNT.mul(dripCount))
+        FAUCET_PREFUND_AMOUNT.add(INITIAL_FAUCET_FUNDS).sub(DEFAULT_DRIP_AMOUNT.mul(dripCount))
       );
       expect(await ERC20.balanceOf(FAUCET.address)).to.equal(0);
     });

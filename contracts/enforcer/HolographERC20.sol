@@ -256,7 +256,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
     assembly {
       calldatacopy(0, 0, calldatasize())
       mstore(calldatasize(), caller())
-      let result := call(gas(), sload(_sourceContractSlot), callvalue(), 0, add(calldatasize(), 32), 0, 0)
+      let result := call(gas(), sload(_sourceContractSlot), callvalue(), 0, add(calldatasize(), 0x20), 0, 0)
       returndatacopy(0, 0, returndatasize())
       switch result
       case 0 {
@@ -275,8 +275,18 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
     assembly {
       let pos := mload(0x40)
       mstore(0x40, add(pos, 0x20))
-      mstore(add(payload, mload(payload)), caller())
-      let result := call(gas(), sload(_sourceContractSlot), callvalue(), payload, add(mload(payload), 0x20), 0, 0)
+      mstore(add(payload, add(mload(payload), 0x20)), caller())
+      // offset memory position by 32 bytes to skip the 32 bytes where bytes length is stored
+      // add 32 bytes to bytes length to include the appended msg.sender to calldata
+      let result := call(
+        gas(),
+        sload(_sourceContractSlot),
+        callvalue(),
+        add(payload, 0x20),
+        add(mload(payload), 0x20),
+        0,
+        0
+      )
       returndatacopy(pos, 0, returndatasize())
       switch result
       case 0 {
@@ -440,17 +450,22 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
         amount
       );
       assembly {
-        mstore(add(sourcePayload, mload(sourcePayload)), caller())
+        // it is important to add 32 bytes in order to accommodate the first 32 bytes being used for storing length of bytes
+        mstore(add(sourcePayload, add(mload(sourcePayload), 0x20)), caller())
         let result := call(
           gas(),
           sload(_sourceContractSlot),
           callvalue(),
-          sourcePayload,
-          add(mload(sourcePayload), 32),
+          // start reading data from memory position, plus 32 bytes, to skip bytes length indicator
+          add(sourcePayload, 0x20),
+          // add an additional 32 bytes to bytes length to include the appended caller address
+          add(mload(sourcePayload), 0x20),
           0,
           0
         )
-        returndatacopy(data, 0, returndatasize())
+        // when reading back data, skip the first 32 bytes which is used to indicate bytes position in calldata
+        // also subtract 32 bytes from returndatasize to accomodate the skipped first 32 bytes
+        returndatacopy(data, 0x20, sub(returndatasize(), 0x20))
         switch result
         case 0 {
           revert(0, returndatasize())
