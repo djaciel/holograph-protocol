@@ -1,5 +1,5 @@
 describe('Holograph Bridge Contract', async function () {
-  it('Should successfully transfer token #3 from L1 to L2');
+  it('Should successfully transfer token #3 from CHAIN1 to CHAIN2');
   it('Should fail if we send a previously success bridge request.');
 
   describe('init():', async function () {
