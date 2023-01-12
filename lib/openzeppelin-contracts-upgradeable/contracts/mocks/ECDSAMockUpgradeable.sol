@@ -6,11 +6,10 @@ import "../utils/cryptography/ECDSAUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract ECDSAMockUpgradeable is Initializable {
-    function __ECDSAMock_init() internal onlyInitializing {
-    }
+    function __ECDSAMock_init() internal onlyInitializing {}
 
-    function __ECDSAMock_init_unchained() internal onlyInitializing {
-    }
+    function __ECDSAMock_init_unchained() internal onlyInitializing {}
+
     using ECDSAUpgradeable for bytes32;
     using ECDSAUpgradeable for bytes;
 

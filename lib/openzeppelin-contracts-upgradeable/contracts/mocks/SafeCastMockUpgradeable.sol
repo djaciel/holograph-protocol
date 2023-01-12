@@ -6,11 +6,10 @@ import "../utils/math/SafeCastUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract SafeCastMockUpgradeable is Initializable {
-    function __SafeCastMock_init() internal onlyInitializing {
-    }
+    function __SafeCastMock_init() internal onlyInitializing {}
 
-    function __SafeCastMock_init_unchained() internal onlyInitializing {
-    }
+    function __SafeCastMock_init_unchained() internal onlyInitializing {}
+
     using SafeCastUpgradeable for uint256;
     using SafeCastUpgradeable for int256;
 

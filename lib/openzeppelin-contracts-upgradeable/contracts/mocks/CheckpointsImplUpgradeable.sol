@@ -6,11 +6,10 @@ import "../utils/CheckpointsUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract CheckpointsImplUpgradeable is Initializable {
-    function __CheckpointsImpl_init() internal onlyInitializing {
-    }
+    function __CheckpointsImpl_init() internal onlyInitializing {}
 
-    function __CheckpointsImpl_init_unchained() internal onlyInitializing {
-    }
+    function __CheckpointsImpl_init_unchained() internal onlyInitializing {}
+
     using CheckpointsUpgradeable for CheckpointsUpgradeable.History;
 
     CheckpointsUpgradeable.History private _totalCheckpoints;

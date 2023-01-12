@@ -9,7 +9,8 @@ import "../governance/extensions/GovernorVotesCompUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract GovernorCompatibilityBravoMockUpgradeable is
-    Initializable, GovernorCompatibilityBravoUpgradeable,
+    Initializable,
+    GovernorCompatibilityBravoUpgradeable,
     GovernorSettingsUpgradeable,
     GovernorTimelockCompoundUpgradeable,
     GovernorVotesCompUpgradeable
@@ -72,7 +73,12 @@ contract GovernorCompatibilityBravoMockUpgradeable is
         return super.proposalEta(proposalId);
     }
 
-    function proposalThreshold() public view override(GovernorUpgradeable, GovernorSettingsUpgradeable) returns (uint256) {
+    function proposalThreshold()
+        public
+        view
+        override(GovernorUpgradeable, GovernorSettingsUpgradeable)
+        returns (uint256)
+    {
         return super.proposalThreshold();
     }
 
@@ -81,7 +87,12 @@ contract GovernorCompatibilityBravoMockUpgradeable is
         uint256[] memory values,
         bytes[] memory calldatas,
         string memory description
-    ) public virtual override(IGovernorUpgradeable, GovernorUpgradeable, GovernorCompatibilityBravoUpgradeable) returns (uint256) {
+    )
+        public
+        virtual
+        override(IGovernorUpgradeable, GovernorUpgradeable, GovernorCompatibilityBravoUpgradeable)
+        returns (uint256)
+    {
         return super.propose(targets, values, calldatas, description);
     }
 
@@ -135,7 +146,13 @@ contract GovernorCompatibilityBravoMockUpgradeable is
         return super._cancel(targets, values, calldatas, salt);
     }
 
-    function _executor() internal view virtual override(GovernorUpgradeable, GovernorTimelockCompoundUpgradeable) returns (address) {
+    function _executor()
+        internal
+        view
+        virtual
+        override(GovernorUpgradeable, GovernorTimelockCompoundUpgradeable)
+        returns (address)
+    {
         return super._executor();
     }
 

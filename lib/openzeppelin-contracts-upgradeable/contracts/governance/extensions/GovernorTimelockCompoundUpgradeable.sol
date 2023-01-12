@@ -74,7 +74,11 @@ interface ICompoundTimelockUpgradeable {
  *
  * _Available since v4.3._
  */
-abstract contract GovernorTimelockCompoundUpgradeable is Initializable, IGovernorTimelockUpgradeable, GovernorUpgradeable {
+abstract contract GovernorTimelockCompoundUpgradeable is
+    Initializable,
+    IGovernorTimelockUpgradeable,
+    GovernorUpgradeable
+{
     using SafeCastUpgradeable for uint256;
     using TimersUpgradeable for TimersUpgradeable.Timestamp;
 
@@ -98,21 +102,36 @@ abstract contract GovernorTimelockCompoundUpgradeable is Initializable, IGoverno
         __GovernorTimelockCompound_init_unchained(timelockAddress);
     }
 
-    function __GovernorTimelockCompound_init_unchained(ICompoundTimelockUpgradeable timelockAddress) internal onlyInitializing {
+    function __GovernorTimelockCompound_init_unchained(ICompoundTimelockUpgradeable timelockAddress)
+        internal
+        onlyInitializing
+    {
         _updateTimelock(timelockAddress);
     }
 
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165Upgradeable, GovernorUpgradeable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(IERC165Upgradeable, GovernorUpgradeable)
+        returns (bool)
+    {
         return interfaceId == type(IGovernorTimelockUpgradeable).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /**
      * @dev Overriden version of the {Governor-state} function with added support for the `Queued` and `Expired` status.
      */
-    function state(uint256 proposalId) public view virtual override(IGovernorUpgradeable, GovernorUpgradeable) returns (ProposalState) {
+    function state(uint256 proposalId)
+        public
+        view
+        virtual
+        override(IGovernorUpgradeable, GovernorUpgradeable)
+        returns (ProposalState)
+    {
         ProposalState status = super.state(proposalId);
 
         if (status != ProposalState.Succeeded) {

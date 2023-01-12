@@ -30,11 +30,10 @@ import "../../proxy/utils/Initializable.sol";
  * _Available since v4.5._
  */
 abstract contract VotesUpgradeable is Initializable, IVotesUpgradeable, ContextUpgradeable, EIP712Upgradeable {
-    function __Votes_init() internal onlyInitializing {
-    }
+    function __Votes_init() internal onlyInitializing {}
 
-    function __Votes_init_unchained() internal onlyInitializing {
-    }
+    function __Votes_init_unchained() internal onlyInitializing {}
+
     using CheckpointsUpgradeable for CheckpointsUpgradeable.History;
     using CountersUpgradeable for CountersUpgradeable.Counter;
 

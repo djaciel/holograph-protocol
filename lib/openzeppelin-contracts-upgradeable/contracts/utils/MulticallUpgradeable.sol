@@ -12,11 +12,10 @@ import "../proxy/utils/Initializable.sol";
  * _Available since v4.1._
  */
 abstract contract MulticallUpgradeable is Initializable {
-    function __Multicall_init() internal onlyInitializing {
-    }
+    function __Multicall_init() internal onlyInitializing {}
 
-    function __Multicall_init_unchained() internal onlyInitializing {
-    }
+    function __Multicall_init_unchained() internal onlyInitializing {}
+
     /**
      * @dev Receives and executes a batch of function calls on this contract.
      */

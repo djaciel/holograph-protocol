@@ -20,12 +20,16 @@ import "../../proxy/utils/Initializable.sol";
  *
  * _Available since v4.3._
  */
-abstract contract GovernorCompatibilityBravoUpgradeable is Initializable, IGovernorTimelockUpgradeable, IGovernorCompatibilityBravoUpgradeable, GovernorUpgradeable {
-    function __GovernorCompatibilityBravo_init() internal onlyInitializing {
-    }
+abstract contract GovernorCompatibilityBravoUpgradeable is
+    Initializable,
+    IGovernorTimelockUpgradeable,
+    IGovernorCompatibilityBravoUpgradeable,
+    GovernorUpgradeable
+{
+    function __GovernorCompatibilityBravo_init() internal onlyInitializing {}
 
-    function __GovernorCompatibilityBravo_init_unchained() internal onlyInitializing {
-    }
+    function __GovernorCompatibilityBravo_init_unchained() internal onlyInitializing {}
+
     using CountersUpgradeable for CountersUpgradeable.Counter;
     using TimersUpgradeable for TimersUpgradeable.BlockNumber;
 

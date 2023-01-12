@@ -3,20 +3,19 @@
 
 pragma solidity ^0.8.4;
 
-import "./IERC721AQueryableUpgradeable.sol";
-import "../ERC721AUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import './IERC721AQueryableUpgradeable.sol';
+import '../ERC721AUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 /**
  * @title ERC721A Queryable
  * @dev ERC721A subclass with convenience query functions.
  */
 abstract contract ERC721AQueryableUpgradeable is Initializable, ERC721AUpgradeable, IERC721AQueryableUpgradeable {
-    function __ERC721AQueryable_init() internal onlyInitializing {
-    }
+    function __ERC721AQueryable_init() internal onlyInitializing {}
 
-    function __ERC721AQueryable_init_unchained() internal onlyInitializing {
-    }
+    function __ERC721AQueryable_init_unchained() internal onlyInitializing {}
+
     /**
      * @dev Returns the `TokenOwnership` struct at `tokenId` without reverting.
      *

@@ -9,7 +9,8 @@ import "../governance/extensions/GovernorVotesQuorumFractionUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract GovernorTimelockControlMockUpgradeable is
-    Initializable, GovernorSettingsUpgradeable,
+    Initializable,
+    GovernorSettingsUpgradeable,
     GovernorTimelockControlUpgradeable,
     GovernorVotesQuorumFractionUpgradeable,
     GovernorCountingSimpleUpgradeable
@@ -80,7 +81,12 @@ contract GovernorTimelockControlMockUpgradeable is
         return super.state(proposalId);
     }
 
-    function proposalThreshold() public view override(GovernorUpgradeable, GovernorSettingsUpgradeable) returns (uint256) {
+    function proposalThreshold()
+        public
+        view
+        override(GovernorUpgradeable, GovernorSettingsUpgradeable)
+        returns (uint256)
+    {
         return super.proposalThreshold();
     }
 
@@ -103,7 +109,13 @@ contract GovernorTimelockControlMockUpgradeable is
         return super._cancel(targets, values, calldatas, descriptionHash);
     }
 
-    function _executor() internal view virtual override(GovernorUpgradeable, GovernorTimelockControlUpgradeable) returns (address) {
+    function _executor()
+        internal
+        view
+        virtual
+        override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
+        returns (address)
+    {
         return super._executor();
     }
 

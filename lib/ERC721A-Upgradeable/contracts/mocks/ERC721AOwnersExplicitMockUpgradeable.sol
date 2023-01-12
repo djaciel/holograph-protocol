@@ -3,8 +3,8 @@
 
 pragma solidity ^0.8.4;
 
-import "../extensions/ERC721AOwnersExplicitUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import '../extensions/ERC721AOwnersExplicitUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 contract ERC721AOwnersExplicitMockUpgradeable is Initializable, ERC721AOwnersExplicitUpgradeable {
     function __ERC721AOwnersExplicitMock_init(string memory name_, string memory symbol_) internal onlyInitializing {

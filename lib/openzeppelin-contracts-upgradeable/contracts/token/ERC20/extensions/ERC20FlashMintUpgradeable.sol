@@ -18,11 +18,10 @@ import "../../../proxy/utils/Initializable.sol";
  * _Available since v4.1._
  */
 abstract contract ERC20FlashMintUpgradeable is Initializable, ERC20Upgradeable, IERC3156FlashLenderUpgradeable {
-    function __ERC20FlashMint_init() internal onlyInitializing {
-    }
+    function __ERC20FlashMint_init() internal onlyInitializing {}
 
-    function __ERC20FlashMint_init_unchained() internal onlyInitializing {
-    }
+    function __ERC20FlashMint_init_unchained() internal onlyInitializing {}
+
     bytes32 private constant _RETURN_VALUE = keccak256("ERC3156FlashBorrower.onFlashLoan");
 
     /**

@@ -26,10 +26,17 @@ import "../../../proxy/utils/Initializable.sol";
  *
  * _Deprecated in favor of https://wizard.openzeppelin.com/[Contracts Wizard]._
  */
-contract ERC1155PresetMinterPauserUpgradeable is Initializable, ContextUpgradeable, AccessControlEnumerableUpgradeable, ERC1155BurnableUpgradeable, ERC1155PausableUpgradeable {
+contract ERC1155PresetMinterPauserUpgradeable is
+    Initializable,
+    ContextUpgradeable,
+    AccessControlEnumerableUpgradeable,
+    ERC1155BurnableUpgradeable,
+    ERC1155PausableUpgradeable
+{
     function initialize(string memory uri) public virtual initializer {
         __ERC1155PresetMinterPauser_init(uri);
     }
+
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 

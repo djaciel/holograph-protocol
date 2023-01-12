@@ -4,11 +4,10 @@ pragma solidity ^0.8.0;
 import "../proxy/utils/Initializable.sol";
 
 abstract contract ImplUpgradeable is Initializable {
-    function __Impl_init() internal onlyInitializing {
-    }
+    function __Impl_init() internal onlyInitializing {}
 
-    function __Impl_init_unchained() internal onlyInitializing {
-    }
+    function __Impl_init_unchained() internal onlyInitializing {}
+
     function version() public pure virtual returns (string memory);
 
     /**
@@ -20,11 +19,10 @@ abstract contract ImplUpgradeable is Initializable {
 }
 
 contract DummyImplementationUpgradeable is Initializable {
-    function __DummyImplementation_init() internal onlyInitializing {
-    }
+    function __DummyImplementation_init() internal onlyInitializing {}
 
-    function __DummyImplementation_init_unchained() internal onlyInitializing {
-    }
+    function __DummyImplementation_init_unchained() internal onlyInitializing {}
+
     uint256 public value;
     string public text;
     uint256[] public values;
@@ -76,11 +74,10 @@ contract DummyImplementationUpgradeable is Initializable {
 }
 
 contract DummyImplementationV2Upgradeable is Initializable, DummyImplementationUpgradeable {
-    function __DummyImplementationV2_init() internal onlyInitializing {
-    }
+    function __DummyImplementationV2_init() internal onlyInitializing {}
 
-    function __DummyImplementationV2_init_unchained() internal onlyInitializing {
-    }
+    function __DummyImplementationV2_init_unchained() internal onlyInitializing {}
+
     function migrate(uint256 newVal) public payable {
         value = newVal;
     }

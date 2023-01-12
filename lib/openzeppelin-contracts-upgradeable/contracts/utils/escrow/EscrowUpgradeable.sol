@@ -24,12 +24,13 @@ contract EscrowUpgradeable is Initializable, OwnableUpgradeable {
     function initialize() public virtual initializer {
         __Escrow_init();
     }
+
     function __Escrow_init() internal onlyInitializing {
         __Ownable_init_unchained();
     }
 
-    function __Escrow_init_unchained() internal onlyInitializing {
-    }
+    function __Escrow_init_unchained() internal onlyInitializing {}
+
     using AddressUpgradeable for address payable;
 
     event Deposited(address indexed payee, uint256 weiAmount);

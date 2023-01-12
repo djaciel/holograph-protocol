@@ -101,6 +101,13 @@
 
 pragma solidity 0.8.13;
 
-struct ZoraDecimal {
-  uint256 value;
+import "./HolographDecimal.sol";
+
+struct HolographBidShares {
+  // % of sale value that goes to the _previous_ owner of the nft
+  HolographDecimal prevOwner;
+  // % of sale value that goes to the original creator of the nft
+  HolographDecimal creator;
+  // % of sale value that goes to the seller (current owner) of the nft
+  HolographDecimal owner;
 }

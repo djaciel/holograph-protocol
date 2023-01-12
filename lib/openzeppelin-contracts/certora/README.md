@@ -21,7 +21,7 @@ The most important of these is `verifyAll.sh`, which checks
 all of the harnessed contracts (`certora/harness/Wizard*.sol`) against all of
 the specifications (`certora/spec/*.spec`).
 
-The other scripts run a subset of the specifications or the contracts.  You can
+The other scripts run a subset of the specifications or the contracts. You can
 verify different contracts or specifications by changing the `--verify` option,
 and you can run a single rule or method with the `--rule` or `--method` option.
 

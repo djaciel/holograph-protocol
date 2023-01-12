@@ -110,7 +110,7 @@ import "../interface/HolographerInterface.sol";
 
 /**
  * @title Holograph Utility Token.
- * @author CXIP-Labs
+ * @author Holograph Foundation
  * @notice A smart contract for minting and managing Holograph's ERC20 Utility Tokens.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */

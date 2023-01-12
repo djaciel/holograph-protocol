@@ -3,8 +3,8 @@
 
 pragma solidity ^0.8.4;
 
-import "../ERC721AUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import '../ERC721AUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 contract ERC721AMockUpgradeable is Initializable, ERC721AUpgradeable {
     function __ERC721AMock_init(string memory name_, string memory symbol_) internal onlyInitializing {

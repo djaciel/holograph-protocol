@@ -11,12 +11,15 @@ import "../proxy/utils/Initializable.sol";
 /**
  * @dev Extension of {AccessControl} that allows enumerating the members of each role.
  */
-abstract contract AccessControlEnumerableUpgradeable is Initializable, IAccessControlEnumerableUpgradeable, AccessControlUpgradeable {
-    function __AccessControlEnumerable_init() internal onlyInitializing {
-    }
+abstract contract AccessControlEnumerableUpgradeable is
+    Initializable,
+    IAccessControlEnumerableUpgradeable,
+    AccessControlUpgradeable
+{
+    function __AccessControlEnumerable_init() internal onlyInitializing {}
 
-    function __AccessControlEnumerable_init_unchained() internal onlyInitializing {
-    }
+    function __AccessControlEnumerable_init_unchained() internal onlyInitializing {}
+
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     mapping(bytes32 => EnumerableSetUpgradeable.AddressSet) private _roleMembers;
@@ -25,7 +28,9 @@ abstract contract AccessControlEnumerableUpgradeable is Initializable, IAccessCo
      * @dev See {IERC165-supportsInterface}.
      */
     function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
-        return interfaceId == type(IAccessControlEnumerableUpgradeable).interfaceId || super.supportsInterface(interfaceId);
+        return
+            interfaceId == type(IAccessControlEnumerableUpgradeable).interfaceId ||
+            super.supportsInterface(interfaceId);
     }
 
     /**

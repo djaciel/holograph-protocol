@@ -7,11 +7,10 @@ import "../utils/AddressUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract ClonesMockUpgradeable is Initializable {
-    function __ClonesMock_init() internal onlyInitializing {
-    }
+    function __ClonesMock_init() internal onlyInitializing {}
 
-    function __ClonesMock_init_unchained() internal onlyInitializing {
-    }
+    function __ClonesMock_init_unchained() internal onlyInitializing {}
+
     using AddressUpgradeable for address;
     using ClonesUpgradeable for address;
 

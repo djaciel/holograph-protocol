@@ -13,8 +13,7 @@ Publish the final release with `npm run release final`.
 Follow the general [OpenZeppelin Contracts release checklist].
 
 [details about release schedule]: https://docs.openzeppelin.com/contracts/releases-stability
-[OpenZeppelin Contracts release checklist]: https://github.com/OpenZeppelin/code-style/blob/master/RELEASE_CHECKLIST.md
-
+[openzeppelin contracts release checklist]: https://github.com/OpenZeppelin/code-style/blob/master/RELEASE_CHECKLIST.md
 
 ## Merging the release branch
 

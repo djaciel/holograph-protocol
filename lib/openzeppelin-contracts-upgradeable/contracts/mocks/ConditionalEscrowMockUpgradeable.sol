@@ -11,8 +11,8 @@ contract ConditionalEscrowMockUpgradeable is Initializable, ConditionalEscrowUpg
         __Ownable_init_unchained();
     }
 
-    function __ConditionalEscrowMock_init_unchained() internal onlyInitializing {
-    }
+    function __ConditionalEscrowMock_init_unchained() internal onlyInitializing {}
+
     mapping(address => bool) private _allowed;
 
     function setAllowed(address payee, bool allowed) public {

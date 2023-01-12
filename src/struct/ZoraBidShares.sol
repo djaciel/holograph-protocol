@@ -2,13 +2,13 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-import "./ZoraDecimal.sol";
+import "./HolographDecimal.sol";
 
-struct ZoraBidShares {
+struct HolographBidShares {
   // % of sale value that goes to the _previous_ owner of the nft
-  ZoraDecimal prevOwner;
+  HolographDecimal prevOwner;
   // % of sale value that goes to the original creator of the nft
-  ZoraDecimal creator;
+  HolographDecimal creator;
   // % of sale value that goes to the seller (current owner) of the nft
-  ZoraDecimal owner;
+  HolographDecimal owner;
 }

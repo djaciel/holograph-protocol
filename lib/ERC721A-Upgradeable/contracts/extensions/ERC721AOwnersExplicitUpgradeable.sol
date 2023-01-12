@@ -3,25 +3,24 @@
 
 pragma solidity ^0.8.4;
 
-import "../ERC721AUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import '../ERC721AUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 abstract contract ERC721AOwnersExplicitUpgradeable is Initializable, ERC721AUpgradeable {
-    function __ERC721AOwnersExplicit_init() internal onlyInitializing {
-    }
+    function __ERC721AOwnersExplicit_init() internal onlyInitializing {}
 
-    function __ERC721AOwnersExplicit_init_unchained() internal onlyInitializing {
-    }
+    function __ERC721AOwnersExplicit_init_unchained() internal onlyInitializing {}
+
     /**
      * No more ownership slots to explicity initialize.
      */
     error AllOwnershipsHaveBeenSet();
-    
+
     /**
      * The `quantity` must be more than zero.
      */
     error QuantityMustBeNonZero();
-    
+
     /**
      * At least one token needs to be minted.
      */

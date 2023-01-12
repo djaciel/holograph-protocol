@@ -57,7 +57,7 @@ pragma solidity ^0.8.4;
 import 'erc721a-upgradeable/contracts/ERC721AUpgradeable.sol';
 
 contract AzukiUpgradeable is ERC721AUpgradeable {
-  function initialize() initializer public {
+  function initialize() public initializer {
     __ERC721A_init('Azuki', 'AZUKI');
   }
 

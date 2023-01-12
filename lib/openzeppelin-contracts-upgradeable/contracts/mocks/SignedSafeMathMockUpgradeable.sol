@@ -6,11 +6,10 @@ import "../utils/math/SignedSafeMathUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract SignedSafeMathMockUpgradeable is Initializable {
-    function __SignedSafeMathMock_init() internal onlyInitializing {
-    }
+    function __SignedSafeMathMock_init() internal onlyInitializing {}
 
-    function __SignedSafeMathMock_init_unchained() internal onlyInitializing {
-    }
+    function __SignedSafeMathMock_init_unchained() internal onlyInitializing {}
+
     function mul(int256 a, int256 b) public pure returns (int256) {
         return SignedSafeMathUpgradeable.mul(a, b);
     }

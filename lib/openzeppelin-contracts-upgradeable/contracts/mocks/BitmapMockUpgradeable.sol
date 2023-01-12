@@ -6,11 +6,10 @@ import "../utils/structs/BitMapsUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract BitMapMockUpgradeable is Initializable {
-    function __BitMapMock_init() internal onlyInitializing {
-    }
+    function __BitMapMock_init() internal onlyInitializing {}
 
-    function __BitMapMock_init_unchained() internal onlyInitializing {
-    }
+    function __BitMapMock_init_unchained() internal onlyInitializing {}
+
     using BitMapsUpgradeable for BitMapsUpgradeable.BitMap;
 
     BitMapsUpgradeable.BitMap private _bitmap;

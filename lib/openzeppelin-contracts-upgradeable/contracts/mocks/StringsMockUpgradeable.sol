@@ -6,11 +6,10 @@ import "../utils/StringsUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract StringsMockUpgradeable is Initializable {
-    function __StringsMock_init() internal onlyInitializing {
-    }
+    function __StringsMock_init() internal onlyInitializing {}
 
-    function __StringsMock_init_unchained() internal onlyInitializing {
-    }
+    function __StringsMock_init_unchained() internal onlyInitializing {}
+
     function fromUint256(uint256 value) public pure returns (string memory) {
         return StringsUpgradeable.toString(value);
     }

@@ -8,11 +8,10 @@ import "../../proxy/utils/Initializable.sol";
 // This contract implements the pre-4.5 UUPS upgrade function with a rollback test.
 // It's used to test that newer UUPS contracts are considered valid upgrades by older UUPS contracts.
 contract UUPSUpgradeableLegacyMockUpgradeable is Initializable, UUPSUpgradeableMockUpgradeable {
-    function __UUPSUpgradeableLegacyMock_init() internal onlyInitializing {
-    }
+    function __UUPSUpgradeableLegacyMock_init() internal onlyInitializing {}
 
-    function __UUPSUpgradeableLegacyMock_init_unchained() internal onlyInitializing {
-    }
+    function __UUPSUpgradeableLegacyMock_init_unchained() internal onlyInitializing {}
+
     // Inlined from ERC1967Upgrade
     bytes32 private constant _ROLLBACK_SLOT = 0x4910fdfa16fed3260ed0e7147f7cc6da11a60208b5b9406d12a635614ffd9143;
 
@@ -37,14 +36,13 @@ contract UUPSUpgradeableLegacyMockUpgradeable is Initializable, UUPSUpgradeableM
         }
 
         // Perform rollback test if not already in progress
-        StorageSlotUpgradeable.BooleanSlot storage rollbackTesting = StorageSlotUpgradeable.getBooleanSlot(_ROLLBACK_SLOT);
+        StorageSlotUpgradeable.BooleanSlot storage rollbackTesting = StorageSlotUpgradeable.getBooleanSlot(
+            _ROLLBACK_SLOT
+        );
         if (!rollbackTesting.value) {
             // Trigger rollback using upgradeTo from the new implementation
             rollbackTesting.value = true;
-            __functionDelegateCall(
-                newImplementation,
-                abi.encodeWithSignature("upgradeTo(address)", oldImplementation)
-            );
+            __functionDelegateCall(newImplementation, abi.encodeWithSignature("upgradeTo(address)", oldImplementation));
             rollbackTesting.value = false;
             // Check rollback was effective
             require(oldImplementation == _getImplementation(), "ERC1967Upgrade: upgrade breaks further upgrades");

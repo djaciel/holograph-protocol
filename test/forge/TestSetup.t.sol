@@ -134,7 +134,6 @@ contract MyContractTest is Test, TestSetup {
 
   function testDeployments() public {
     bytes memory bytecode = abi.encodePacked(vm.getCode("HolographGenesis.sol:HolographGenesis"));
-    console.logBytes(bytecode);
     address anotherAddress;
     assembly {
       anotherAddress := create(0, add(bytecode, 0x20), mload(bytecode))

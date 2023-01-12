@@ -30,7 +30,8 @@ import "../../proxy/utils/Initializable.sol";
 contract ERC777Upgradeable is Initializable, ContextUpgradeable, IERC777Upgradeable, IERC20Upgradeable {
     using AddressUpgradeable for address;
 
-    IERC1820RegistryUpgradeable internal constant _ERC1820_REGISTRY = IERC1820RegistryUpgradeable(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
+    IERC1820RegistryUpgradeable internal constant _ERC1820_REGISTRY =
+        IERC1820RegistryUpgradeable(0x1820a4B7618BdE71Dce8cdc73aAB6C95905faD24);
 
     mapping(address => uint256) private _balances;
 
@@ -127,7 +128,13 @@ contract ERC777Upgradeable is Initializable, ContextUpgradeable, IERC777Upgradea
     /**
      * @dev Returns the amount of tokens owned by an account (`tokenHolder`).
      */
-    function balanceOf(address tokenHolder) public view virtual override(IERC20Upgradeable, IERC777Upgradeable) returns (uint256) {
+    function balanceOf(address tokenHolder)
+        public
+        view
+        virtual
+        override(IERC20Upgradeable, IERC777Upgradeable)
+        returns (uint256)
+    {
         return _balances[tokenHolder];
     }
 

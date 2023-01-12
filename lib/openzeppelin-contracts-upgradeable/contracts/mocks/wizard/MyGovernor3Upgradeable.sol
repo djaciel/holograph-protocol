@@ -9,13 +9,17 @@ import "../../governance/extensions/GovernorTimelockControlUpgradeable.sol";
 import "../../proxy/utils/Initializable.sol";
 
 contract MyGovernorUpgradeable is
-    Initializable, GovernorUpgradeable,
+    Initializable,
+    GovernorUpgradeable,
     GovernorTimelockControlUpgradeable,
     GovernorCompatibilityBravoUpgradeable,
     GovernorVotesUpgradeable,
     GovernorVotesQuorumFractionUpgradeable
 {
-    function __MyGovernor_init(IVotesUpgradeable _token, TimelockControllerUpgradeable _timelock) internal onlyInitializing {
+    function __MyGovernor_init(IVotesUpgradeable _token, TimelockControllerUpgradeable _timelock)
+        internal
+        onlyInitializing
+    {
         __EIP712_init_unchained("MyGovernor", version());
         __Governor_init_unchained("MyGovernor");
         __GovernorTimelockControl_init_unchained(_timelock);
@@ -62,7 +66,11 @@ contract MyGovernorUpgradeable is
         uint256[] memory values,
         bytes[] memory calldatas,
         string memory description
-    ) public override(GovernorUpgradeable, GovernorCompatibilityBravoUpgradeable, IGovernorUpgradeable) returns (uint256) {
+    )
+        public
+        override(GovernorUpgradeable, GovernorCompatibilityBravoUpgradeable, IGovernorUpgradeable)
+        returns (uint256)
+    {
         return super.propose(targets, values, calldatas, description);
     }
 
@@ -85,7 +93,12 @@ contract MyGovernorUpgradeable is
         return super._cancel(targets, values, calldatas, descriptionHash);
     }
 
-    function _executor() internal view override(GovernorUpgradeable, GovernorTimelockControlUpgradeable) returns (address) {
+    function _executor()
+        internal
+        view
+        override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
+        returns (address)
+    {
         return super._executor();
     }
 

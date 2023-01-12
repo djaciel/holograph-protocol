@@ -6,11 +6,10 @@ import "../utils/math/SignedMathUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract SignedMathMockUpgradeable is Initializable {
-    function __SignedMathMock_init() internal onlyInitializing {
-    }
+    function __SignedMathMock_init() internal onlyInitializing {}
 
-    function __SignedMathMock_init_unchained() internal onlyInitializing {
-    }
+    function __SignedMathMock_init_unchained() internal onlyInitializing {}
+
     function max(int256 a, int256 b) public pure returns (int256) {
         return SignedMathUpgradeable.max(a, b);
     }

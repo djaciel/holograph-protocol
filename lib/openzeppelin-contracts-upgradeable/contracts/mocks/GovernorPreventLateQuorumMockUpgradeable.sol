@@ -9,7 +9,8 @@ import "../governance/extensions/GovernorVotesUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract GovernorPreventLateQuorumMockUpgradeable is
-    Initializable, GovernorSettingsUpgradeable,
+    Initializable,
+    GovernorSettingsUpgradeable,
     GovernorVotesUpgradeable,
     GovernorCountingSimpleUpgradeable,
     GovernorPreventLateQuorumUpgradeable
@@ -29,7 +30,14 @@ contract GovernorPreventLateQuorumMockUpgradeable is
         __GovernorSettings_init_unchained(votingDelay_, votingPeriod_, 0);
         __GovernorVotes_init_unchained(token_);
         __GovernorPreventLateQuorum_init_unchained(voteExtension_);
-        __GovernorPreventLateQuorumMock_init_unchained(name_, token_, votingDelay_, votingPeriod_, quorum_, voteExtension_);
+        __GovernorPreventLateQuorumMock_init_unchained(
+            name_,
+            token_,
+            votingDelay_,
+            votingPeriod_,
+            quorum_,
+            voteExtension_
+        );
     }
 
     function __GovernorPreventLateQuorumMock_init_unchained(
@@ -57,7 +65,13 @@ contract GovernorPreventLateQuorumMockUpgradeable is
         return super.proposalDeadline(proposalId);
     }
 
-    function proposalThreshold() public view virtual override(GovernorUpgradeable, GovernorSettingsUpgradeable) returns (uint256) {
+    function proposalThreshold()
+        public
+        view
+        virtual
+        override(GovernorUpgradeable, GovernorSettingsUpgradeable)
+        returns (uint256)
+    {
         return super.proposalThreshold();
     }
 

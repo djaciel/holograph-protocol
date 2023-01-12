@@ -6,11 +6,10 @@ import "../utils/cryptography/SignatureCheckerUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract SignatureCheckerMockUpgradeable is Initializable {
-    function __SignatureCheckerMock_init() internal onlyInitializing {
-    }
+    function __SignatureCheckerMock_init() internal onlyInitializing {}
 
-    function __SignatureCheckerMock_init_unchained() internal onlyInitializing {
-    }
+    function __SignatureCheckerMock_init_unchained() internal onlyInitializing {}
+
     using SignatureCheckerUpgradeable for address;
 
     function isValidSignatureNow(

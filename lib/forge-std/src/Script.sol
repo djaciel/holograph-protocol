@@ -6,9 +6,9 @@ import {CommonBase} from "./Common.sol";
 import {console, console2, StdCheatsSafe, stdJson, stdMath, StdStorage, stdStorageSafe, StdUtils, VmSafe} from "./Components.sol";
 
 abstract contract ScriptBase is CommonBase {
-    VmSafe internal constant vmSafe = VmSafe(VM_ADDRESS);
+  VmSafe internal constant vmSafe = VmSafe(VM_ADDRESS);
 }
 
 abstract contract Script is ScriptBase, StdCheatsSafe, StdUtils {
-    bool public IS_SCRIPT = true;
+  bool public IS_SCRIPT = true;
 }

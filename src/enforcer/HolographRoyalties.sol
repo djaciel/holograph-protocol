@@ -11,11 +11,11 @@ import "../interface/HolographerInterface.sol";
 import "../interface/InitializableInterface.sol";
 import "../interface/HolographRoyaltiesInterface.sol";
 
-import "../struct/ZoraBidShares.sol";
+import "../struct/HolographBidShares.sol";
 
 /**
  * @title HolographRoyalties (previously PA1D)
- * @author CXIP-Labs
+ * @author Holograph Foundation
  * @notice A smart contract for providing royalty info, collecting royalties, and distributing it to configured payout wallets.
  * @dev This smart contract is not intended to be used directly. Apply it to any of your ERC721 or ERC1155 smart contracts through a delegatecall fallback.
  */
@@ -618,13 +618,13 @@ contract HolographRoyalties is Admin, Owner, Initializable {
     }
   }
 
-  // Zora
+  // Holograph
   // we indicate that this contract operates market functions
   function marketContract() public view returns (address) {
     return address(this);
   }
 
-  // Zora
+  // Holograph
   // we indicate that the receiver is the creator, to convince the smart contract to pay
   function tokenCreators(uint256 tokenId) public view returns (address) {
     address receiver = _getReceiver(tokenId);
@@ -634,9 +634,9 @@ contract HolographRoyalties is Admin, Owner, Initializable {
     return receiver;
   }
 
-  // Zora
+  // Holograph
   // we provide the percentage that needs to be paid out from the sale
-  function bidSharesForToken(uint256 tokenId) public view returns (ZoraBidShares memory bidShares) {
+  function bidSharesForToken(uint256 tokenId) public view returns (HolographBidShares memory bidShares) {
     // this information is outside of the scope of our
     bidShares.prevOwner.value = 0;
     bidShares.owner.value = 0;

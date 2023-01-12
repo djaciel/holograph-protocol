@@ -7,11 +7,10 @@ import "../proxy/utils/Initializable.sol";
 
 // UintToAddressMap
 contract UintToAddressMapMockUpgradeable is Initializable {
-    function __UintToAddressMapMock_init() internal onlyInitializing {
-    }
+    function __UintToAddressMapMock_init() internal onlyInitializing {}
 
-    function __UintToAddressMapMock_init_unchained() internal onlyInitializing {
-    }
+    function __UintToAddressMapMock_init_unchained() internal onlyInitializing {}
+
     using EnumerableMapUpgradeable for EnumerableMapUpgradeable.UintToAddressMap;
 
     event OperationResult(bool result);
@@ -62,11 +61,10 @@ contract UintToAddressMapMockUpgradeable is Initializable {
 
 // AddressToUintMap
 contract AddressToUintMapMockUpgradeable is Initializable {
-    function __AddressToUintMapMock_init() internal onlyInitializing {
-    }
+    function __AddressToUintMapMock_init() internal onlyInitializing {}
 
-    function __AddressToUintMapMock_init_unchained() internal onlyInitializing {
-    }
+    function __AddressToUintMapMock_init_unchained() internal onlyInitializing {}
+
     using EnumerableMapUpgradeable for EnumerableMapUpgradeable.AddressToUintMap;
 
     event OperationResult(bool result);

@@ -30,7 +30,8 @@ import "../../../proxy/utils/Initializable.sol";
  * _Deprecated in favor of https://wizard.openzeppelin.com/[Contracts Wizard]._
  */
 contract ERC721PresetMinterPauserAutoIdUpgradeable is
-    Initializable, ContextUpgradeable,
+    Initializable,
+    ContextUpgradeable,
     AccessControlEnumerableUpgradeable,
     ERC721EnumerableUpgradeable,
     ERC721BurnableUpgradeable,
@@ -43,6 +44,7 @@ contract ERC721PresetMinterPauserAutoIdUpgradeable is
     ) public virtual initializer {
         __ERC721PresetMinterPauserAutoId_init(name, symbol, baseTokenURI);
     }
+
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");

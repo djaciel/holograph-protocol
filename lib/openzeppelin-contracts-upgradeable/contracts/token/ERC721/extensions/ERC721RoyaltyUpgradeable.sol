@@ -22,15 +22,20 @@ import "../../../proxy/utils/Initializable.sol";
  * _Available since v4.5._
  */
 abstract contract ERC721RoyaltyUpgradeable is Initializable, ERC2981Upgradeable, ERC721Upgradeable {
-    function __ERC721Royalty_init() internal onlyInitializing {
-    }
+    function __ERC721Royalty_init() internal onlyInitializing {}
 
-    function __ERC721Royalty_init_unchained() internal onlyInitializing {
-    }
+    function __ERC721Royalty_init_unchained() internal onlyInitializing {}
+
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(ERC721Upgradeable, ERC2981Upgradeable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(ERC721Upgradeable, ERC2981Upgradeable)
+        returns (bool)
+    {
         return super.supportsInterface(interfaceId);
     }
 

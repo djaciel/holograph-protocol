@@ -6,11 +6,10 @@ import "./MulticallTokenMockUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract MulticallTestUpgradeable is Initializable {
-    function __MulticallTest_init() internal onlyInitializing {
-    }
+    function __MulticallTest_init() internal onlyInitializing {}
 
-    function __MulticallTest_init_unchained() internal onlyInitializing {
-    }
+    function __MulticallTest_init_unchained() internal onlyInitializing {}
+
     function testReturnValues(
         MulticallTokenMockUpgradeable multicallToken,
         address[] calldata recipients,

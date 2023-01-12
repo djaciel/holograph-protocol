@@ -23,6 +23,7 @@ contract ERC777PresetFixedSupplyUpgradeable is Initializable, ERC777Upgradeable 
     ) public virtual initializer {
         __ERC777PresetFixedSupply_init(name, symbol, defaultOperators, initialSupply, owner);
     }
+
     /**
      * @dev Mints `initialSupply` amount of token and transfers them to `owner`.
      *

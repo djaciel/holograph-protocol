@@ -64,7 +64,10 @@ library CheckpointsUpgradeable {
             self._checkpoints[pos - 1]._value = SafeCastUpgradeable.toUint224(value);
         } else {
             self._checkpoints.push(
-                Checkpoint({_blockNumber: SafeCastUpgradeable.toUint32(block.number), _value: SafeCastUpgradeable.toUint224(value)})
+                Checkpoint({
+                    _blockNumber: SafeCastUpgradeable.toUint32(block.number),
+                    _value: SafeCastUpgradeable.toUint224(value)
+                })
             );
         }
         return (old, value);

@@ -1,12 +1,13 @@
-Design Guidelines
-=======
+# Design Guidelines
 
 These are some global design goals in OpenZeppelin Contracts.
 
 #### D0 - Security in Depth
+
 We strive to provide secure, tested, audited code. To achieve this, we need to match intention with function. Thus, documentation, code clarity, community review and security discussions are fundamental.
 
 #### D1 - Simple and Modular
+
 Simpler code means easier audits, and better understanding of what each component does. We look for small files, small contracts, and small functions. If you can separate a contract into two independent functionalities you should probably do it.
 
 #### D2 - Naming Matters
@@ -26,6 +27,7 @@ A very important way to prevent vulnerabilities is to catch a contract’s incon
 Consistency on the way classes are used is paramount to an easier understanding of the library. The codebase should be as unified as possible. Read existing code and get inspired before you write your own. Follow the style guidelines. Don’t hesitate to ask for help on how to best write a specific piece of code.
 
 #### D6 - Regular Audits
+
 Following good programming practices is a way to reduce the risk of vulnerabilities, but professional code audits are still needed. We will perform regular code audits on major releases, and hire security professionals to provide independent review.
 
 # Style Guidelines
@@ -39,67 +41,66 @@ In order to be consistent with all the other Solidity projects, we follow the
 
 Any exception or additions specific to our project are documented below.
 
-* Try to avoid acronyms and abbreviations.
+- Try to avoid acronyms and abbreviations.
 
-* All state variables should be private.
+- All state variables should be private.
 
-* Private state variables should have an underscore prefix.
+- Private state variables should have an underscore prefix.
 
-    ```
-    contract TestContract {
-      uint256 private _privateVar;
-      uint256 internal _internalVar;
-    }
-    ```
+  ```
+  contract TestContract {
+    uint256 private _privateVar;
+    uint256 internal _internalVar;
+  }
+  ```
 
-* Parameters must not be prefixed with an underscore.
+- Parameters must not be prefixed with an underscore.
 
-    ```
-    function test(uint256 testParameter1, uint256 testParameter2) {
+  ```
+  function test(uint256 testParameter1, uint256 testParameter2) {
+  ...
+  }
+  ```
+
+- Internal and private functions should have an underscore prefix.
+
+  ```
+  function _testInternal() internal {
     ...
-    }
-    ```
+  }
+  ```
 
-* Internal and private functions should have an underscore prefix.
+  ```
+  function _testPrivate() private {
+    ...
+  }
+  ```
 
-    ```
-    function _testInternal() internal {
-      ...
-    }
-    ```
-
-    ```
-    function _testPrivate() private {
-      ...
-    }
-    ```
-
-* Events should be emitted immediately after the state change that they
+- Events should be emitted immediately after the state change that they
   represent, and consequently they should be named in past tense.
 
-    ```
-    function _burn(address who, uint256 value) internal {
-      super._burn(who, value);
-      emit TokensBurned(who, value);
-    }
-    ```
+  ```
+  function _burn(address who, uint256 value) internal {
+    super._burn(who, value);
+    emit TokensBurned(who, value);
+  }
+  ```
 
   Some standards (e.g. ERC20) use present tense, and in those cases the
   standard specification prevails.
-  
-* Interface names should have a capital I prefix.
 
-    ```
-    interface IERC777 {
-    ```
+- Interface names should have a capital I prefix.
 
+  ```
+  interface IERC777 {
+  ```
 
 ## Tests
 
-* Tests Must be Written Elegantly
+- Tests Must be Written Elegantly
 
-    Tests are a good way to show how to use the library, and maintaining them is extremely necessary. Don't write long tests, write helper functions to make them be as short and concise as possible (they should take just a few lines each), and use good variable names.
+  Tests are a good way to show how to use the library, and maintaining them is extremely necessary. Don't write long tests, write helper functions to make them be as short and concise as possible (they should take just a few lines each), and use good variable names.
 
-* Tests Must not be Random
+- Tests Must not be Random
 
-    Inputs for tests should not be generated randomly. Accounts used to create test contracts are an exception, those can be random. Also, the type and structure of outputs should be checked.
+  Inputs for tests should not be generated randomly. Accounts used to create test contracts are an exception, those can be random. Also, the type and structure of outputs should be checked.

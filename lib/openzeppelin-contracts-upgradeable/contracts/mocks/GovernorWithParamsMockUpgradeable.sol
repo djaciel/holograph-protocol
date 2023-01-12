@@ -6,7 +6,11 @@ import "../governance/extensions/GovernorCountingSimpleUpgradeable.sol";
 import "../governance/extensions/GovernorVotesUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
-contract GovernorWithParamsMockUpgradeable is Initializable, GovernorVotesUpgradeable, GovernorCountingSimpleUpgradeable {
+contract GovernorWithParamsMockUpgradeable is
+    Initializable,
+    GovernorVotesUpgradeable,
+    GovernorCountingSimpleUpgradeable
+{
     event CountParams(uint256 uintParam, string strParam);
 
     function __GovernorWithParamsMock_init(string memory name_, IVotesUpgradeable token_) internal onlyInitializing {

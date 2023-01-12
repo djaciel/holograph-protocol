@@ -20,7 +20,7 @@ contract ERC20VotesHarness is ERC20Votes {
      *
      * Emits events {DelegateChanged} and {DelegateVotesChanged}.
      */
-    function _delegate(address delegator, address delegatee) internal virtual override{
+    function _delegate(address delegator, address delegatee) internal virtual override {
         super._delegate(delegator, delegatee);
         _getPastVotes[delegator][block.number] -= balanceOf(delegator);
         _getPastVotes[delegatee][block.number] += balanceOf(delegator);

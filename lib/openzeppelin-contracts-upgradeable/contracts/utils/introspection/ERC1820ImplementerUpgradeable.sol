@@ -15,11 +15,10 @@ import "../../proxy/utils/Initializable.sol";
  * registration to be complete.
  */
 contract ERC1820ImplementerUpgradeable is Initializable, IERC1820ImplementerUpgradeable {
-    function __ERC1820Implementer_init() internal onlyInitializing {
-    }
+    function __ERC1820Implementer_init() internal onlyInitializing {}
 
-    function __ERC1820Implementer_init_unchained() internal onlyInitializing {
-    }
+    function __ERC1820Implementer_init_unchained() internal onlyInitializing {}
+
     bytes32 private constant _ERC1820_ACCEPT_MAGIC = keccak256("ERC1820_ACCEPT_MAGIC");
 
     mapping(bytes32 => mapping(address => bool)) private _supportedInterfaces;

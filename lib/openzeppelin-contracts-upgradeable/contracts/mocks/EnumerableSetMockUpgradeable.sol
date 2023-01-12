@@ -7,11 +7,10 @@ import "../proxy/utils/Initializable.sol";
 
 // Bytes32Set
 contract EnumerableBytes32SetMockUpgradeable is Initializable {
-    function __EnumerableBytes32SetMock_init() internal onlyInitializing {
-    }
+    function __EnumerableBytes32SetMock_init() internal onlyInitializing {}
 
-    function __EnumerableBytes32SetMock_init_unchained() internal onlyInitializing {
-    }
+    function __EnumerableBytes32SetMock_init_unchained() internal onlyInitializing {}
+
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.Bytes32Set;
 
     event OperationResult(bool result);
@@ -54,11 +53,10 @@ contract EnumerableBytes32SetMockUpgradeable is Initializable {
 
 // AddressSet
 contract EnumerableAddressSetMockUpgradeable is Initializable {
-    function __EnumerableAddressSetMock_init() internal onlyInitializing {
-    }
+    function __EnumerableAddressSetMock_init() internal onlyInitializing {}
 
-    function __EnumerableAddressSetMock_init_unchained() internal onlyInitializing {
-    }
+    function __EnumerableAddressSetMock_init_unchained() internal onlyInitializing {}
+
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
     event OperationResult(bool result);
@@ -101,11 +99,10 @@ contract EnumerableAddressSetMockUpgradeable is Initializable {
 
 // UintSet
 contract EnumerableUintSetMockUpgradeable is Initializable {
-    function __EnumerableUintSetMock_init() internal onlyInitializing {
-    }
+    function __EnumerableUintSetMock_init() internal onlyInitializing {}
 
-    function __EnumerableUintSetMock_init_unchained() internal onlyInitializing {
-    }
+    function __EnumerableUintSetMock_init_unchained() internal onlyInitializing {}
+
     using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
 
     event OperationResult(bool result);

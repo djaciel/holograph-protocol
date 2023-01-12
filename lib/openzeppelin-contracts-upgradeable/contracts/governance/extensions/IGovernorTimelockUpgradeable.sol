@@ -12,11 +12,10 @@ import "../../proxy/utils/Initializable.sol";
  * _Available since v4.3._
  */
 abstract contract IGovernorTimelockUpgradeable is Initializable, IGovernorUpgradeable {
-    function __IGovernorTimelock_init() internal onlyInitializing {
-    }
+    function __IGovernorTimelock_init() internal onlyInitializing {}
 
-    function __IGovernorTimelock_init_unchained() internal onlyInitializing {
-    }
+    function __IGovernorTimelock_init_unchained() internal onlyInitializing {}
+
     event ProposalQueued(uint256 proposalId, uint256 eta);
 
     function timelock() public view virtual returns (address);

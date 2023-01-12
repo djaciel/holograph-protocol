@@ -18,11 +18,10 @@ import "../../../proxy/utils/Initializable.sol";
  * _Available since v4.5._
  */
 abstract contract ERC721VotesUpgradeable is Initializable, ERC721Upgradeable, VotesUpgradeable {
-    function __ERC721Votes_init() internal onlyInitializing {
-    }
+    function __ERC721Votes_init() internal onlyInitializing {}
 
-    function __ERC721Votes_init_unchained() internal onlyInitializing {
-    }
+    function __ERC721Votes_init_unchained() internal onlyInitializing {}
+
     /**
      * @dev Adjusts votes when tokens are transferred.
      *

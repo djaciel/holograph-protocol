@@ -6,11 +6,10 @@ import "../utils/CountersUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract CountersImplUpgradeable is Initializable {
-    function __CountersImpl_init() internal onlyInitializing {
-    }
+    function __CountersImpl_init() internal onlyInitializing {}
 
-    function __CountersImpl_init_unchained() internal onlyInitializing {
-    }
+    function __CountersImpl_init_unchained() internal onlyInitializing {}
+
     using CountersUpgradeable for CountersUpgradeable.Counter;
 
     CountersUpgradeable.Counter private _counter;

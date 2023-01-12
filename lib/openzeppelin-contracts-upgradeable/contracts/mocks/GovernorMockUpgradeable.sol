@@ -9,7 +9,8 @@ import "../governance/extensions/GovernorVotesQuorumFractionUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract GovernorMockUpgradeable is
-    Initializable, GovernorProposalThresholdUpgradeable,
+    Initializable,
+    GovernorProposalThresholdUpgradeable,
     GovernorSettingsUpgradeable,
     GovernorVotesQuorumFractionUpgradeable,
     GovernorCountingSimpleUpgradeable
@@ -45,7 +46,12 @@ contract GovernorMockUpgradeable is
         return _cancel(targets, values, calldatas, salt);
     }
 
-    function proposalThreshold() public view override(GovernorUpgradeable, GovernorSettingsUpgradeable) returns (uint256) {
+    function proposalThreshold()
+        public
+        view
+        override(GovernorUpgradeable, GovernorSettingsUpgradeable)
+        returns (uint256)
+    {
         return super.proposalThreshold();
     }
 

@@ -10,14 +10,18 @@ import "../../governance/extensions/GovernorTimelockControlUpgradeable.sol";
 import "../../proxy/utils/Initializable.sol";
 
 contract MyGovernor2Upgradeable is
-    Initializable, GovernorUpgradeable,
+    Initializable,
+    GovernorUpgradeable,
     GovernorTimelockControlUpgradeable,
     GovernorProposalThresholdUpgradeable,
     GovernorVotesUpgradeable,
     GovernorVotesQuorumFractionUpgradeable,
     GovernorCountingSimpleUpgradeable
 {
-    function __MyGovernor2_init(IVotesUpgradeable _token, TimelockControllerUpgradeable _timelock) internal onlyInitializing {
+    function __MyGovernor2_init(IVotesUpgradeable _token, TimelockControllerUpgradeable _timelock)
+        internal
+        onlyInitializing
+    {
         __EIP712_init_unchained("MyGovernor", version());
         __Governor_init_unchained("MyGovernor");
         __GovernorTimelockControl_init_unchained(_timelock);
@@ -50,7 +54,12 @@ contract MyGovernor2Upgradeable is
         return super.quorum(blockNumber);
     }
 
-    function state(uint256 proposalId) public view override(GovernorUpgradeable, GovernorTimelockControlUpgradeable) returns (ProposalState) {
+    function state(uint256 proposalId)
+        public
+        view
+        override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
+        returns (ProposalState)
+    {
         return super.state(proposalId);
     }
 
@@ -59,7 +68,11 @@ contract MyGovernor2Upgradeable is
         uint256[] memory values,
         bytes[] memory calldatas,
         string memory description
-    ) public override(GovernorUpgradeable, GovernorProposalThresholdUpgradeable, IGovernorUpgradeable) returns (uint256) {
+    )
+        public
+        override(GovernorUpgradeable, GovernorProposalThresholdUpgradeable, IGovernorUpgradeable)
+        returns (uint256)
+    {
         return super.propose(targets, values, calldatas, description);
     }
 
@@ -82,7 +95,12 @@ contract MyGovernor2Upgradeable is
         return super._cancel(targets, values, calldatas, descriptionHash);
     }
 
-    function _executor() internal view override(GovernorUpgradeable, GovernorTimelockControlUpgradeable) returns (address) {
+    function _executor()
+        internal
+        view
+        override(GovernorUpgradeable, GovernorTimelockControlUpgradeable)
+        returns (address)
+    {
         return super._executor();
     }
 

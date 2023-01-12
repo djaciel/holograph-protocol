@@ -3,9 +3,9 @@
 
 pragma solidity ^0.8.4;
 
-import "../extensions/ERC721AQueryableUpgradeable.sol";
-import "../extensions/ERC721ABurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import '../extensions/ERC721AQueryableUpgradeable.sol';
+import '../extensions/ERC721ABurnableUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 contract ERC721AQueryableMockUpgradeable is Initializable, ERC721AQueryableUpgradeable, ERC721ABurnableUpgradeable {
     function __ERC721AQueryableMock_init(string memory name_, string memory symbol_) internal onlyInitializing {

@@ -6,11 +6,10 @@ import "../utils/cryptography/MerkleProofUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract MerkleProofWrapperUpgradeable is Initializable {
-    function __MerkleProofWrapper_init() internal onlyInitializing {
-    }
+    function __MerkleProofWrapper_init() internal onlyInitializing {}
 
-    function __MerkleProofWrapper_init_unchained() internal onlyInitializing {
-    }
+    function __MerkleProofWrapper_init_unchained() internal onlyInitializing {}
+
     function verify(
         bytes32[] memory proof,
         bytes32 root,

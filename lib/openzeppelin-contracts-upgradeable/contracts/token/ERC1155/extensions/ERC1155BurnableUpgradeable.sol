@@ -13,11 +13,10 @@ import "../../../proxy/utils/Initializable.sol";
  * _Available since v3.1._
  */
 abstract contract ERC1155BurnableUpgradeable is Initializable, ERC1155Upgradeable {
-    function __ERC1155Burnable_init() internal onlyInitializing {
-    }
+    function __ERC1155Burnable_init() internal onlyInitializing {}
 
-    function __ERC1155Burnable_init_unchained() internal onlyInitializing {
-    }
+    function __ERC1155Burnable_init_unchained() internal onlyInitializing {}
+
     function burn(
         address account,
         uint256 id,

@@ -12,11 +12,10 @@ import "../../proxy/utils/Initializable.sol";
  * _Available since v4.3._
  */
 abstract contract IGovernorCompatibilityBravoUpgradeable is Initializable, IGovernorUpgradeable {
-    function __IGovernorCompatibilityBravo_init() internal onlyInitializing {
-    }
+    function __IGovernorCompatibilityBravo_init() internal onlyInitializing {}
 
-    function __IGovernorCompatibilityBravo_init_unchained() internal onlyInitializing {
-    }
+    function __IGovernorCompatibilityBravo_init_unchained() internal onlyInitializing {}
+
     /**
      * @dev Proposal structure from Compound Governor Bravo. Not actually used by the compatibility layer, as
      * {{proposal}} returns a very different structure.

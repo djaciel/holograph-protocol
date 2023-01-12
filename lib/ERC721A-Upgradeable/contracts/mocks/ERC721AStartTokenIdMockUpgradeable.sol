@@ -3,9 +3,9 @@
 
 pragma solidity ^0.8.4;
 
-import "./ERC721AMockUpgradeable.sol";
-import "./StartTokenIdHelperUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import './ERC721AMockUpgradeable.sol';
+import './StartTokenIdHelperUpgradeable.sol';
+import '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 
 contract ERC721AStartTokenIdMockUpgradeable is Initializable, StartTokenIdHelperUpgradeable, ERC721AMockUpgradeable {
     function __ERC721AStartTokenIdMock_init(

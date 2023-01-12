@@ -6,11 +6,10 @@ import "../utils/TimersUpgradeable.sol";
 import "../proxy/utils/Initializable.sol";
 
 contract TimersTimestampImplUpgradeable is Initializable {
-    function __TimersTimestampImpl_init() internal onlyInitializing {
-    }
+    function __TimersTimestampImpl_init() internal onlyInitializing {}
 
-    function __TimersTimestampImpl_init_unchained() internal onlyInitializing {
-    }
+    function __TimersTimestampImpl_init_unchained() internal onlyInitializing {}
+
     using TimersUpgradeable for TimersUpgradeable.Timestamp;
 
     TimersUpgradeable.Timestamp private _timer;

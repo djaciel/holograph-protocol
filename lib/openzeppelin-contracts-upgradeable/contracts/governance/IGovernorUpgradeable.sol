@@ -12,11 +12,10 @@ import "../proxy/utils/Initializable.sol";
  * _Available since v4.3._
  */
 abstract contract IGovernorUpgradeable is Initializable, IERC165Upgradeable {
-    function __IGovernor_init() internal onlyInitializing {
-    }
+    function __IGovernor_init() internal onlyInitializing {}
 
-    function __IGovernor_init_unchained() internal onlyInitializing {
-    }
+    function __IGovernor_init_unchained() internal onlyInitializing {}
+
     enum ProposalState {
         Pending,
         Active,

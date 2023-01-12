@@ -93,7 +93,14 @@ contract GovernorCompatibilityBravoMockUpgradeableWithInit is GovernorCompatibil
         uint256 proposalThreshold_,
         ICompoundTimelockUpgradeable timelock_
     ) payable initializer {
-        __GovernorCompatibilityBravoMock_init(name_, token_, votingDelay_, votingPeriod_, proposalThreshold_, timelock_);
+        __GovernorCompatibilityBravoMock_init(
+            name_,
+            token_,
+            votingDelay_,
+            votingPeriod_,
+            proposalThreshold_,
+            timelock_
+        );
     }
 }
 import "../token/ERC20/ERC20Upgradeable.sol";

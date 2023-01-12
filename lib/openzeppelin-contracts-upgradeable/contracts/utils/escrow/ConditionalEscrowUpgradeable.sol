@@ -16,8 +16,8 @@ abstract contract ConditionalEscrowUpgradeable is Initializable, EscrowUpgradeab
         __Ownable_init_unchained();
     }
 
-    function __ConditionalEscrow_init_unchained() internal onlyInitializing {
-    }
+    function __ConditionalEscrow_init_unchained() internal onlyInitializing {}
+
     /**
      * @dev Returns whether an address is allowed to withdraw their funds. To be
      * implemented by derived contracts.

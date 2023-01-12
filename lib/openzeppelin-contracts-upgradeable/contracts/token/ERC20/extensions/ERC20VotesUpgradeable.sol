@@ -26,11 +26,10 @@ import "../../../proxy/utils/Initializable.sol";
  * _Available since v4.2._
  */
 abstract contract ERC20VotesUpgradeable is Initializable, IVotesUpgradeable, ERC20PermitUpgradeable {
-    function __ERC20Votes_init() internal onlyInitializing {
-    }
+    function __ERC20Votes_init() internal onlyInitializing {}
 
-    function __ERC20Votes_init_unchained() internal onlyInitializing {
-    }
+    function __ERC20Votes_init_unchained() internal onlyInitializing {}
+
     struct Checkpoint {
         uint32 fromBlock;
         uint224 votes;
@@ -241,7 +240,12 @@ abstract contract ERC20VotesUpgradeable is Initializable, IVotesUpgradeable, ERC
         if (pos > 0 && ckpts[pos - 1].fromBlock == block.number) {
             ckpts[pos - 1].votes = SafeCastUpgradeable.toUint224(newWeight);
         } else {
-            ckpts.push(Checkpoint({fromBlock: SafeCastUpgradeable.toUint32(block.number), votes: SafeCastUpgradeable.toUint224(newWeight)}));
+            ckpts.push(
+                Checkpoint({
+                    fromBlock: SafeCastUpgradeable.toUint32(block.number),
+                    votes: SafeCastUpgradeable.toUint224(newWeight)
+                })
+            );
         }
     }
 

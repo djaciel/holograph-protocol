@@ -2,7 +2,7 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-import "../struct/ZoraBidShares.sol";
+import "../struct/HolographBidShares.sol";
 
 interface HolographRoyaltiesInterface {
   function initHolographRoyalties(bytes memory data) external returns (bytes4);
@@ -50,7 +50,7 @@ interface HolographRoyaltiesInterface {
 
   function tokenCreators(uint256 tokenId) external view returns (address);
 
-  function bidSharesForToken(uint256 tokenId) external view returns (ZoraBidShares memory bidShares);
+  function bidSharesForToken(uint256 tokenId) external view returns (HolographBidShares memory bidShares);
 
   function getStorageSlot(string calldata slot) external pure returns (bytes32);
 

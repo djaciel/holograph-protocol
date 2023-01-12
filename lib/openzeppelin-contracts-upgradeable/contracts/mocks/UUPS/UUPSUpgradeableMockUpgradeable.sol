@@ -7,11 +7,10 @@ import "../../proxy/utils/UUPSUpgradeable.sol";
 import "../../proxy/utils/Initializable.sol";
 
 contract UUPSUpgradeableMockUpgradeable is Initializable, CountersImplUpgradeable, UUPSUpgradeable {
-    function __UUPSUpgradeableMock_init() internal onlyInitializing {
-    }
+    function __UUPSUpgradeableMock_init() internal onlyInitializing {}
 
-    function __UUPSUpgradeableMock_init_unchained() internal onlyInitializing {
-    }
+    function __UUPSUpgradeableMock_init_unchained() internal onlyInitializing {}
+
     // Not having any checks in this function is dangerous! Do not do this outside tests!
     function _authorizeUpgrade(address) internal virtual override {}
 
@@ -24,11 +23,10 @@ contract UUPSUpgradeableMockUpgradeable is Initializable, CountersImplUpgradeabl
 }
 
 contract UUPSUpgradeableUnsafeMockUpgradeable is Initializable, UUPSUpgradeableMockUpgradeable {
-    function __UUPSUpgradeableUnsafeMock_init() internal onlyInitializing {
-    }
+    function __UUPSUpgradeableUnsafeMock_init() internal onlyInitializing {}
 
-    function __UUPSUpgradeableUnsafeMock_init_unchained() internal onlyInitializing {
-    }
+    function __UUPSUpgradeableUnsafeMock_init_unchained() internal onlyInitializing {}
+
     function upgradeTo(address newImplementation) external virtual override {
         ERC1967UpgradeUpgradeable._upgradeToAndCall(newImplementation, bytes(""), false);
     }

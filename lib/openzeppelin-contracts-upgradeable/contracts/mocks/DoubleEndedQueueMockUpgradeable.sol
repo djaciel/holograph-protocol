@@ -7,11 +7,10 @@ import "../proxy/utils/Initializable.sol";
 
 // Bytes32Deque
 contract Bytes32DequeMockUpgradeable is Initializable {
-    function __Bytes32DequeMock_init() internal onlyInitializing {
-    }
+    function __Bytes32DequeMock_init() internal onlyInitializing {}
 
-    function __Bytes32DequeMock_init_unchained() internal onlyInitializing {
-    }
+    function __Bytes32DequeMock_init_unchained() internal onlyInitializing {}
+
     using DoubleEndedQueueUpgradeable for DoubleEndedQueueUpgradeable.Bytes32Deque;
 
     event OperationResult(bytes32 value);

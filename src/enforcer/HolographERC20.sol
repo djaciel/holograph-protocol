@@ -30,7 +30,7 @@ import "../interface/Ownable.sol";
 
 /**
  * @title Holograph Bridgeable ERC-20 Token
- * @author CXIP-Labs
+ * @author Holograph Foundation
  * @notice A smart contract for minting and managing Holograph Bridgeable ERC20 Tokens.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */

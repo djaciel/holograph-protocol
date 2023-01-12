@@ -21,8 +21,8 @@ abstract contract ERC1155PausableUpgradeable is Initializable, ERC1155Upgradeabl
         __Pausable_init_unchained();
     }
 
-    function __ERC1155Pausable_init_unchained() internal onlyInitializing {
-    }
+    function __ERC1155Pausable_init_unchained() internal onlyInitializing {}
+
     /**
      * @dev See {ERC1155-_beforeTokenTransfer}.
      *

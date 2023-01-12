@@ -24,7 +24,11 @@ import "../../proxy/utils/Initializable.sol";
  *
  * _Available since v4.3._
  */
-abstract contract GovernorTimelockControlUpgradeable is Initializable, IGovernorTimelockUpgradeable, GovernorUpgradeable {
+abstract contract GovernorTimelockControlUpgradeable is
+    Initializable,
+    IGovernorTimelockUpgradeable,
+    GovernorUpgradeable
+{
     TimelockControllerUpgradeable private _timelock;
     mapping(uint256 => bytes32) private _timelockIds;
 
@@ -40,21 +44,36 @@ abstract contract GovernorTimelockControlUpgradeable is Initializable, IGovernor
         __GovernorTimelockControl_init_unchained(timelockAddress);
     }
 
-    function __GovernorTimelockControl_init_unchained(TimelockControllerUpgradeable timelockAddress) internal onlyInitializing {
+    function __GovernorTimelockControl_init_unchained(TimelockControllerUpgradeable timelockAddress)
+        internal
+        onlyInitializing
+    {
         _updateTimelock(timelockAddress);
     }
 
     /**
      * @dev See {IERC165-supportsInterface}.
      */
-    function supportsInterface(bytes4 interfaceId) public view virtual override(IERC165Upgradeable, GovernorUpgradeable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        virtual
+        override(IERC165Upgradeable, GovernorUpgradeable)
+        returns (bool)
+    {
         return interfaceId == type(IGovernorTimelockUpgradeable).interfaceId || super.supportsInterface(interfaceId);
     }
 
     /**
      * @dev Overriden version of the {Governor-state} function with added support for the `Queued` status.
      */
-    function state(uint256 proposalId) public view virtual override(IGovernorUpgradeable, GovernorUpgradeable) returns (ProposalState) {
+    function state(uint256 proposalId)
+        public
+        view
+        virtual
+        override(IGovernorUpgradeable, GovernorUpgradeable)
+        returns (ProposalState)
+    {
         ProposalState status = super.state(proposalId);
 
         if (status != ProposalState.Succeeded) {
