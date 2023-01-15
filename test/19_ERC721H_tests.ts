@@ -9,12 +9,12 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 describe('ERC721H Contract', async function () {
   let erc721H: ERC721H;
-  let l1: PreTest;
+  let chain1: PreTest;
   let mockExternalCall: MockExternalCall;
 
   before(async function () {
-    l1 = await setup();
-    erc721H = await ethers.getContractAt('ERC721H', l1.sampleErc721Holographer.address);
+    chain1 = await setup();
+    erc721H = await ethers.getContractAt('ERC721H', chain1.sampleErc721Holographer.address);
     const mockExternalCallFactory = await ethers.getContractFactory<MockExternalCall__factory>('MockExternalCall');
     mockExternalCall = await mockExternalCallFactory.deploy();
     await mockExternalCall.deployed();
@@ -24,12 +24,12 @@ describe('ERC721H Contract', async function () {
     const ABI = [fnAbi];
     const iface = new ethers.utils.Interface(ABI);
     const encodedFunctionData = iface.encodeFunctionData(fnName, args);
-    await expect(mockExternalCall.connect(l1.deployer).callExternalFn(erc721H.address, encodedFunctionData)).to.not.be
-      .reverted;
+    await expect(mockExternalCall.connect(chain1.deployer).callExternalFn(erc721H.address, encodedFunctionData)).to.not
+      .be.reverted;
   }
 
   function testPrivateFunction(functionName: string, user?: SignerWithAddress) {
-    const sender = user ?? l1.deployer;
+    const sender = user ?? chain1.deployer;
     const contract = erc721H.connect(sender) as any;
     const method = contract[functionName];
     expect(typeof method).to.equal('undefined');
@@ -38,8 +38,8 @@ describe('ERC721H Contract', async function () {
 
   describe('init()', async function () {
     it('should fail be initialized twice', async function () {
-      const initCode = generateInitCode(['address'], [l1.deployer.address]);
-      await expect(erc721H.connect(l1.deployer).init(initCode)).to.be.revertedWith(
+      const initCode = generateInitCode(['address'], [chain1.deployer.address]);
+      await expect(erc721H.connect(chain1.deployer).init(initCode)).to.be.revertedWith(
         HOLOGRAPHER_ALREADY_INITIALIZED_ERROR_MSG
       );
     });
@@ -47,12 +47,12 @@ describe('ERC721H Contract', async function () {
 
   describe('owner()', async function () {
     it('should return the correct owner address', async function () {
-      const ownerAddress = await erc721H.connect(l1.deployer).owner();
-      expect(ownerAddress).to.equal(l1.deployer.address);
+      const ownerAddress = await erc721H.connect(chain1.deployer).owner();
+      expect(ownerAddress).to.equal(chain1.deployer.address);
     });
     it('should fail when comparing to wrong address', async function () {
-      const ownerAddress = await erc721H.connect(l1.wallet10).owner();
-      expect(ownerAddress).to.not.equal(l1.wallet10.address);
+      const ownerAddress = await erc721H.connect(chain1.wallet10).owner();
+      expect(ownerAddress).to.not.equal(chain1.wallet10.address);
     });
     it('should allow external contract to call fn', async function () {
       await testExternalCallToFunction('function owner() external view returns (address)', 'owner');
@@ -65,7 +65,7 @@ describe('ERC721H Contract', async function () {
     });
     it('should allow external contract to call fn with params', async function () {
       await testExternalCallToFunction('function isOwner(address wallet) external view returns (bool)', 'isOwner', [
-        l1.deployer.address,
+        chain1.deployer.address,
       ]);
     });
   });
@@ -75,12 +75,12 @@ describe('ERC721H Contract', async function () {
     const invalidInterface = functionHash('invalidMethod(address,address,uint256,bytes)');
 
     it('should return true if interface is valid', async function () {
-      const supportsInterface = await erc721H.connect(l1.deployer).supportsInterface(validInterface);
+      const supportsInterface = await erc721H.connect(chain1.deployer).supportsInterface(validInterface);
       expect(supportsInterface).to.equal(true);
     });
 
     it('should return false if interface is invalid', async function () {
-      const supportsInterface = await erc721H.connect(l1.deployer).supportsInterface(invalidInterface);
+      const supportsInterface = await erc721H.connect(chain1.deployer).supportsInterface(invalidInterface);
       expect(supportsInterface).to.equal(false);
     });
 
