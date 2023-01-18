@@ -137,14 +137,14 @@ const animatedLoader = function (text: string) {
   }, 100);
 };
 
-export default async function (l2?: boolean): Promise<PreTest> {
-  if (l2) {
+export default async function (chain2?: boolean): Promise<PreTest> {
+  if (chain2) {
     global.__companionNetwork = true;
   } else {
     global.__companionNetwork = false;
   }
   const web3 = new Web3();
-  let { hre, hre2 } = await hreSplit(hre1, l2);
+  let { hre, hre2 } = await hreSplit(hre1, chain2);
   const salt = hre.deploymentSalt;
   const network: Network = networks[hre.networkName];
   const network2: Network = networks[hre2.networkName];
