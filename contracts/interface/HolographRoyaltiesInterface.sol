@@ -101,7 +101,7 @@
 
 pragma solidity 0.8.13;
 
-import "../struct/HolographBidShares.sol";
+import "../struct/ZoraBidShares.sol";
 
 interface HolographRoyaltiesInterface {
   function initHolographRoyalties(bytes memory data) external returns (bytes4);

@@ -2,7 +2,7 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-import "../struct/HolographBidShares.sol";
+import "../struct/ZoraBidShares.sol";
 
 interface HolographRoyaltiesInterface {
   function initHolographRoyalties(bytes memory data) external returns (bytes4);

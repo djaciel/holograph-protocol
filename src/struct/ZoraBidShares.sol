@@ -2,7 +2,7 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-import "./HolographDecimal.sol";
+import "./ZoraDecimal.sol";
 
 struct HolographBidShares {
   // % of sale value that goes to the _previous_ owner of the nft

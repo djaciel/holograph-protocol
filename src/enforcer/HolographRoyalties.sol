@@ -11,7 +11,7 @@ import "../interface/HolographerInterface.sol";
 import "../interface/InitializableInterface.sol";
 import "../interface/HolographRoyaltiesInterface.sol";
 
-import "../struct/HolographBidShares.sol";
+import "../struct/ZoraBidShares.sol";
 
 /**
  * @title HolographRoyalties (previously PA1D)
