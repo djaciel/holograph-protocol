@@ -14,6 +14,11 @@ import {ERC721Drop} from "./ERC721Drop.sol";
 
 /// @notice Holograph NFT Creator V1
 contract HolographNFTCreatorV1 is Initializable {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.holograph')) - 1)
+   */
+  bytes32 constant _holographSlot = precomputeslot("eip1967.Holograph.holograph");
+
   string private constant CANNOT_BE_ZERO = "Cannot be 0 address";
 
   /// @notice Emitted when a edition is created reserving the corresponding token IDs.
@@ -35,17 +40,19 @@ contract HolographNFTCreatorV1 is Initializable {
    */
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
-    (address implementationAddress, address editionMetadataRendererAddress, address dropMetadataRendererAddress, address holograph) = abi.decode(
-      initPayload,
-      (address, address, address, address)
-    );
+    (
+      address implementationAddress,
+      address editionMetadataRendererAddress,
+      address dropMetadataRendererAddress,
+      address holograph
+    ) = abi.decode(initPayload, (address, address, address, address));
     require(implementationAddress != address(0), CANNOT_BE_ZERO);
     require(address(editionMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
     require(address(dropMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
 
     implementation = implementationAddress;
-    editionMetadataRenderer = editionMetadataRendererAddress;
-    dropMetadataRenderer = dropMetadataRendererAddress;
+    editionMetadataRenderer = EditionMetadataRenderer(editionMetadataRendererAddress);
+    dropMetadataRenderer = DropMetadataRenderer(dropMetadataRendererAddress);
 
     assembly {
       sstore(_holographSlot, holograph)
@@ -55,12 +62,7 @@ contract HolographNFTCreatorV1 is Initializable {
     return InitializableInterface.init.selector;
   }
 
-
   constructor() {}
-
-  /// @dev Function to determine who is allowed to upgrade this contract.
-  /// @param _newImplementation: unused in access check
-  function _authorizeUpgrade(address _newImplementation) internal override onlyOwner {}
 
   function createAndConfigureDrop(
     string memory name,
@@ -74,11 +76,30 @@ contract HolographNFTCreatorV1 is Initializable {
     bytes memory metadataInitializer
   ) public returns (address payable newDropAddress) {
     // get initial implementation to get variables that used to be set as immutable
-    ERC721Drop impl = ERC721Drop(implementation);
+    ERC721Drop impl = ERC721Drop(payable(implementation));
     // do not use constructor arguments
     ERC721DropProxy newDrop = new ERC721DropProxy();
     // run init to connect proxy to initial implementation, and to configure the drop
-    newDrop.init(abi.encode(implementation, abi.encode(impl.holographFeeManager, impl.holographERC721TransferHelper, impl.factoryUpgradeGate, impl.marketFilterDAOAddress, name, symbol, defaultAdmin, fundsRecipient, editionSize, royaltyBPS, setupCalls, metadataRenderer, metadataInitializer)));
+    newDrop.init(
+      abi.encode(
+        implementation,
+        abi.encode(
+          impl.holographFeeManager,
+          impl.holographERC721TransferHelper,
+          impl.factoryUpgradeGate,
+          impl.marketFilterDAOAddress,
+          name,
+          symbol,
+          defaultAdmin,
+          fundsRecipient,
+          editionSize,
+          royaltyBPS,
+          setupCalls,
+          metadataRenderer,
+          metadataInitializer
+        )
+      )
+    );
     newDropAddress = payable(address(newDrop));
   }
 

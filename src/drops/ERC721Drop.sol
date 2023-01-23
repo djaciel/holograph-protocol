@@ -66,8 +66,8 @@ contract ERC721Drop is
   uint256 constant FUNDS_SEND_GAS_LIMIT = 210_000;
 
   /// @notice Access control roles
-  bytes32 constant MINTER_ROLE = keccak256("MINTER");
-  bytes32 constant SALES_MANAGER_ROLE = keccak256("SALES_MANAGER");
+  bytes32 public MINTER_ROLE = keccak256("MINTER");
+  bytes32 public SALES_MANAGER_ROLE = keccak256("SALES_MANAGER");
 
   /// @dev HOLOGRAPH V3 transfer helper address for auto-approval
   address public holographERC721TransferHelper;
@@ -81,9 +81,9 @@ contract ERC721Drop is
   /// @notice Max royalty BPS
   uint16 constant MAX_ROYALTY_BPS = 50_00;
 
-  addresspublic marketFilterDAOAddress;
+  address public marketFilterDAOAddress;
 
-  IOperatorFilterRegistry constant operatorFilterRegistry =
+  IOperatorFilterRegistry public operatorFilterRegistry =
     IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
 
   /// @notice Only allow for users with admin access
@@ -165,10 +165,13 @@ contract ERC721Drop is
       address payable _fundsRecipient,
       uint64 _editionSize,
       uint16 _royaltyBPS,
-      bytes[] calldata _setupCalls,
+      bytes[] memory _setupCalls,
       address _metadataRenderer,
       bytes memory _metadataRendererInit
-    ) = abi.decode(initPayload, (address, address, address, address, string, string, address, address, uint64, uint16, bytes[], address, bytes));
+    ) = abi.decode(
+        initPayload,
+        (address, address, address, address, string, string, address, address, uint64, uint16, bytes[], address, bytes)
+      );
 
     holographFeeManager = IHolographFeeManager(_holographFeeManager);
     holographERC721TransferHelper = _holographERC721TransferHelper;
@@ -201,10 +204,10 @@ contract ERC721Drop is
 
     // Setup config variables
     config.editionSize = _editionSize;
-    config.metadataRenderer = _metadataRenderer;
+    config.metadataRenderer = IMetadataRenderer(_metadataRenderer);
     config.royaltyBPS = _royaltyBPS;
     config.fundsRecipient = _fundsRecipient;
-    _metadataRenderer.initializeWithData(IMetadataRenderer(_metadataRendererInit));
+    IMetadataRenderer(_metadataRenderer).initializeWithData(_metadataRendererInit);
 
     _setInitialized();
     return InitializableInterface.init.selector;

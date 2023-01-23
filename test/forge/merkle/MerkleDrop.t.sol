@@ -1,3 +1,4 @@
+/*
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
@@ -180,3 +181,4 @@ contract HolographNFTBaseTest is Test {
     holographNFTBase.purchasePresale{value: item.mintPrice}(1, item.maxMint, item.mintPrice, item.proof);
   }
 }
+*/

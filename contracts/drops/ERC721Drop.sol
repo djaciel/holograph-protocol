@@ -15,6 +15,8 @@ pragma solidity ^0.8.13;
 
  */
 
+import "../abstract/Initializable.sol";
+
 import {ERC721AUpgradeable} from "erc721a-upgradeable/ERC721AUpgradeable.sol";
 import {IERC721AUpgradeable} from "erc721a-upgradeable/IERC721AUpgradeable.sol";
 import {IERC2981Upgradeable, IERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
@@ -44,6 +46,7 @@ import {ERC721DropStorageV1} from "./storage/ERC721DropStorageV1.sol";
  *
  */
 contract ERC721Drop is
+  Initializable,
   ERC721AUpgradeable,
   UUPSUpgradeable,
   IERC2981Upgradeable,
@@ -57,30 +60,30 @@ contract ERC721Drop is
   ERC721DropStorageV1
 {
   /// @dev This is the max mint batch size for the optimized ERC721A mint contract
-  uint256 internal immutable MAX_MINT_BATCH_SIZE = 8;
+  uint256 constant MAX_MINT_BATCH_SIZE = 8;
 
   /// @dev Gas limit to send funds
-  uint256 internal immutable FUNDS_SEND_GAS_LIMIT = 210_000;
+  uint256 constant FUNDS_SEND_GAS_LIMIT = 210_000;
 
   /// @notice Access control roles
-  bytes32 public immutable MINTER_ROLE = keccak256("MINTER");
-  bytes32 public immutable SALES_MANAGER_ROLE = keccak256("SALES_MANAGER");
+  bytes32 public MINTER_ROLE = keccak256("MINTER");
+  bytes32 public SALES_MANAGER_ROLE = keccak256("SALES_MANAGER");
 
   /// @dev HOLOGRAPH V3 transfer helper address for auto-approval
-  address internal immutable holographERC721TransferHelper;
+  address public holographERC721TransferHelper;
 
   /// @dev Factory upgrade gate
-  IFactoryUpgradeGate internal immutable factoryUpgradeGate;
+  IFactoryUpgradeGate public factoryUpgradeGate;
 
   /// @dev Holograph Fee Manager address
-  IHolographFeeManager public immutable holographFeeManager;
+  IHolographFeeManager public holographFeeManager;
 
   /// @notice Max royalty BPS
   uint16 constant MAX_ROYALTY_BPS = 50_00;
 
-  address immutable marketFilterDAOAddress;
+  address public marketFilterDAOAddress;
 
-  IOperatorFilterRegistry immutable operatorFilterRegistry =
+  IOperatorFilterRegistry public operatorFilterRegistry =
     IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
 
   /// @notice Only allow for users with admin access
@@ -147,43 +150,34 @@ contract ERC721Drop is
     return 1;
   }
 
-  /// @notice Global constructor – these variables will not change with further proxy deploys
-  /// @dev Marked as an initializer to prevent storage being used of base implementation. Can only be init'd by a proxy.
-  /// @param _holographFeeManager Holograph Fee Manager
-  /// @param _holographERC721TransferHelper Transfer helper
-  constructor(
-    IHolographFeeManager _holographFeeManager,
-    address _holographERC721TransferHelper,
-    IFactoryUpgradeGate _factoryUpgradeGate,
-    address _marketFilterDAOAddress
-  ) initializer {
-    holographFeeManager = _holographFeeManager;
-    holographERC721TransferHelper = _holographERC721TransferHelper;
-    factoryUpgradeGate = _factoryUpgradeGate;
-    marketFilterDAOAddress = _marketFilterDAOAddress;
-  }
+  constructor() {}
 
-  ///  @dev Create a new drop contract
-  ///  @param _contractName Contract name
-  ///  @param _contractSymbol Contract symbol
-  ///  @param _initialOwner User that owns and can mint the edition, gets royalty and sales payouts and can update the base url if needed.
-  ///  @param _fundsRecipient Wallet/user that receives funds from sale
-  ///  @param _editionSize Number of editions that can be minted in total. If type(uint64).max, unlimited editions can be minted as an open edition.
-  ///  @param _royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty.
-  ///  @param _setupCalls Bytes-encoded list of setup multicalls
-  ///  @param _metadataRenderer Renderer contract to use
-  ///  @param _metadataRendererInit Renderer data initial contract
-  function initialize(
-    string memory _contractName,
-    string memory _contractSymbol,
-    address _initialOwner,
-    address payable _fundsRecipient,
-    uint64 _editionSize,
-    uint16 _royaltyBPS,
-    bytes[] calldata _setupCalls,
-    IMetadataRenderer _metadataRenderer,
-    bytes memory _metadataRendererInit
-  ) public initializer {
+  function init(bytes memory initPayload) external override returns (bytes4) {
+    require(!_isInitialized(), "HOLOGRAPH: already initialized");
+    (
+      address _holographFeeManager,
+      address _holographERC721TransferHelper,
+      address _factoryUpgradeGate,
+      address _marketFilterDAOAddress,
+      string memory _contractName,
+      string memory _contractSymbol,
+      address _initialOwner,
+      address payable _fundsRecipient,
+      uint64 _editionSize,
+      uint16 _royaltyBPS,
+      bytes[] memory _setupCalls,
+      address _metadataRenderer,
+      bytes memory _metadataRendererInit
+    ) = abi.decode(
+        initPayload,
+        (address, address, address, address, string, string, address, address, uint64, uint16, bytes[], address, bytes)
+      );
+
+    holographFeeManager = IHolographFeeManager(_holographFeeManager);
+    holographERC721TransferHelper = _holographERC721TransferHelper;
+    factoryUpgradeGate = IFactoryUpgradeGate(_factoryUpgradeGate);
+    marketFilterDAOAddress = _marketFilterDAOAddress;
+
     // Setup ERC721A
     __ERC721A_init(_contractName, _contractSymbol);
     // Setup access control
@@ -210,10 +204,13 @@ contract ERC721Drop is
 
     // Setup config variables
     config.editionSize = _editionSize;
-    config.metadataRenderer = _metadataRenderer;
+    config.metadataRenderer = IMetadataRenderer(_metadataRenderer);
     config.royaltyBPS = _royaltyBPS;
     config.fundsRecipient = _fundsRecipient;
-    _metadataRenderer.initializeWithData(_metadataRendererInit);
+    IMetadataRenderer(_metadataRenderer).initializeWithData(_metadataRendererInit);
+
+    _setInitialized();
+    return InitializableInterface.init.selector;
   }
 
   /// @dev Getter for admin role associated with the contract to handle metadata

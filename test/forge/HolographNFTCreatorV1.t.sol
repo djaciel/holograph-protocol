@@ -24,13 +24,29 @@ contract HolographNFTCreatorV1Test is Test {
     HolographFeeManager feeManager = new HolographFeeManager(500, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
     dropImpl = new ERC721Drop();
-    dropImpl.init(abi.encode(address(feeManager), address(1234), address(0), address(0), "Contract Name", "Contract Symbol", address(0), address(0), uint64(0), uint16(0), new bytes[](0), address(0), new bytes(0)));
+    dropImpl.init(
+      abi.encode(
+        address(feeManager),
+        address(0x1234),
+        address(0x0),
+        address(0x0),
+        "Contract Name",
+        "Contract Symbol",
+        address(0x0),
+        address(0x0),
+        uint64(0),
+        uint16(0),
+        new bytes[](0),
+        address(0x0),
+        new bytes(0)
+      )
+    );
     editionMetadataRenderer = new EditionMetadataRenderer();
     dropMetadataRenderer = new DropMetadataRenderer();
     // do not use constructor arguments
     HolographNFTCreatorV1 impl = new HolographNFTCreatorV1();
     // init source deployment with null/zero values
-    impl.init(abi.encode(address(0), EditionMetadataRenderer(address(0)), DropMetadataRenderer(address(0))));
+    impl.init(abi.encode(address(0x0), EditionMetadataRenderer(address(0x0)), DropMetadataRenderer(address(0x0))));
     // do not use constructor arguments
     HolographNFTCreatorProxy creatorProxy = new HolographNFTCreatorProxy();
     // init proxy deployment with actual values

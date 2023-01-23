@@ -71,18 +71,26 @@ contract ERC721DropTest is Test {
   }
 
   modifier setupHolographNFTBase(uint64 editionSize) {
-    bytes[] memory setupCalls = new bytes[](0);
-    holographNFTBase.initialize({
-      _contractName: "Test NFT",
-      _contractSymbol: "TNFT",
-      _initialOwner: DEFAULT_OWNER_ADDRESS,
-      _fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
-      _editionSize: editionSize,
-      _royaltyBPS: 800,
-      _setupCalls: setupCalls,
-      _metadataRenderer: dummyRenderer,
-      _metadataRendererInit: ""
-    });
+    ERC721DropProxy(payable(address(holographNFTBase))).init(
+      abi.encode(
+        impl,
+        abi.encode(
+          address(feeManager),
+          address(0x1234),
+          factoryUpgradeGate,
+          address(0x0),
+          "Test NFT",
+          "TNFT",
+          DEFAULT_OWNER_ADDRESS,
+          payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
+          editionSize,
+          uint16(800),
+          new bytes[](0),
+          dummyRenderer,
+          new bytes(0)
+        )
+      )
+    );
 
     _;
   }
@@ -95,15 +103,49 @@ contract ERC721DropTest is Test {
     ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x123456)));
 
     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    impl = address(new ERC721Drop(feeManager, address(0x1234), factoryUpgradeGate, address(0x0)));
-    address payable newDrop = payable(address(new ERC721DropProxy(impl, "")));
+    impl = address(new ERC721Drop());
+    ERC721Drop(payable(impl)).init(
+      abi.encode(
+        address(feeManager),
+        address(0x1234),
+        address(0x0),
+        address(0x0),
+        "Contract Name",
+        "Contract Symbol",
+        address(0x0),
+        address(0x0),
+        uint64(0),
+        uint16(0),
+        new bytes[](0),
+        address(0x0),
+        new bytes(0)
+      )
+    );
+    address payable newDrop = payable(address(new ERC721DropProxy()));
     holographNFTBase = ERC721Drop(newDrop);
   }
 
   modifier factoryWithSubscriptionAddress(address subscriptionAddress) {
     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    impl = address(new ERC721Drop(feeManager, address(0x1234), factoryUpgradeGate, address(subscriptionAddress)));
-    address payable newDrop = payable(address(new ERC721DropProxy(impl, "")));
+    impl = address(new ERC721Drop());
+    ERC721Drop(payable(impl)).init(
+      abi.encode(
+        address(feeManager),
+        address(0x1234),
+        factoryUpgradeGate,
+        subscriptionAddress,
+        "Contract Name",
+        "Contract Symbol",
+        address(0x0),
+        address(0x0),
+        uint64(0),
+        uint16(0),
+        new bytes[](0),
+        address(0x0),
+        new bytes(0)
+      )
+    );
+    address payable newDrop = payable(address(new ERC721DropProxy()));
     holographNFTBase = ERC721Drop(newDrop);
 
     _;
@@ -129,19 +171,27 @@ contract ERC721DropTest is Test {
     require(keccak256(bytes(name)) == keccak256(bytes("Test NFT")));
     require(keccak256(bytes(symbol)) == keccak256(bytes("TNFT")));
 
-    vm.expectRevert("Initializable: contract is already initialized");
-    bytes[] memory setupCalls = new bytes[](0);
-    holographNFTBase.initialize({
-      _contractName: "Test NFT",
-      _contractSymbol: "TNFT",
-      _initialOwner: DEFAULT_OWNER_ADDRESS,
-      _fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
-      _editionSize: 10,
-      _royaltyBPS: 800,
-      _setupCalls: setupCalls,
-      _metadataRenderer: dummyRenderer,
-      _metadataRendererInit: ""
-    });
+    vm.expectRevert("HOLOGRAPH: already initialized");
+    ERC721DropProxy(payable(address(holographNFTBase))).init(
+      abi.encode(
+        impl,
+        abi.encode(
+          address(feeManager),
+          address(0x1234),
+          factoryUpgradeGate,
+          address(0x0),
+          "Test NFT",
+          "TNFT",
+          DEFAULT_OWNER_ADDRESS,
+          payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
+          uint64(10),
+          uint16(800),
+          new bytes[](0),
+          dummyRenderer,
+          new bytes(0)
+        )
+      )
+    );
   }
 
   function test_SubscriptionEnabled()
@@ -223,19 +273,34 @@ contract ERC721DropTest is Test {
       presaleMerkleRoot: bytes32(0)
     });
 
-    vm.deal(address(456), uint256(amount) * 2);
-    vm.prank(address(456));
+    vm.deal(address(0x456), uint256(amount) * 2);
+    vm.prank(address(0x456));
     holographNFTBase.purchase{value: amount}(1);
 
     assertEq(holographNFTBase.saleDetails().maxSupply, 10);
     assertEq(holographNFTBase.saleDetails().totalMinted, 1);
-    require(holographNFTBase.ownerOf(1) == address(456), "owner is wrong for new minted token");
+    require(holographNFTBase.ownerOf(1) == address(0x456), "owner is wrong for new minted token");
     assertEq(address(holographNFTBase).balance, amount);
   }
 
   function test_UpgradeApproved() public setupHolographNFTBase(10) {
-    address newImpl = address(
-      new ERC721Drop(HolographFeeManager(address(0xadadad)), address(0x3333), factoryUpgradeGate, address(0x0))
+    address newImpl = address(new ERC721Drop());
+    ERC721Drop(payable(newImpl)).init(
+      abi.encode(
+        address(0xadadad),
+        address(0x3333),
+        factoryUpgradeGate,
+        address(0x0),
+        "Contract Name",
+        "Contract Symbol",
+        address(0x0),
+        address(0x0),
+        uint64(0),
+        uint16(0),
+        new bytes[](0),
+        address(0x0),
+        new bytes(0)
+      )
     );
 
     address[] memory lastImpls = new address[](1);
@@ -261,8 +326,8 @@ contract ERC721DropTest is Test {
 
     assertTrue(!holographNFTBase.saleDetails().publicSaleActive);
 
-    vm.deal(address(456), 1 ether);
-    vm.prank(address(456));
+    vm.deal(address(0x456), 1 ether);
+    vm.prank(address(0x456));
     vm.expectRevert(IERC721Drop.Sale_Inactive.selector);
     holographNFTBase.purchase{value: 0.1 ether}(1);
 
@@ -286,11 +351,11 @@ contract ERC721DropTest is Test {
     assertTrue(holographNFTBase.saleDetails().publicSaleActive);
     assertTrue(!holographNFTBase.saleDetails().presaleActive);
 
-    vm.prank(address(456));
+    vm.prank(address(0x456));
     holographNFTBase.purchase{value: 0.1 ether}(1);
 
     assertEq(holographNFTBase.saleDetails().totalMinted, 1);
-    assertEq(holographNFTBase.ownerOf(1), address(456));
+    assertEq(holographNFTBase.ownerOf(1), address(0x456));
   }
 
   function test_Mint() public setupHolographNFTBase(10) {
@@ -357,8 +422,8 @@ contract ERC721DropTest is Test {
   }
 
   function test_MintWrongValue() public setupHolographNFTBase(10) {
-    vm.deal(address(456), 1 ether);
-    vm.prank(address(456));
+    vm.deal(address(0x456), 1 ether);
+    vm.prank(address(0x456));
     vm.expectRevert(IERC721Drop.Sale_Inactive.selector);
     holographNFTBase.purchase{value: 0.12 ether}(1);
     vm.prank(DEFAULT_OWNER_ADDRESS);
@@ -371,7 +436,7 @@ contract ERC721DropTest is Test {
       maxSalePurchasePerAddress: 2,
       presaleMerkleRoot: bytes32(0)
     });
-    vm.prank(address(456));
+    vm.prank(address(0x456));
     vm.expectRevert(abi.encodeWithSelector(IERC721Drop.Purchase_WrongPrice.selector, 0.15 ether));
     holographNFTBase.purchase{value: 0.12 ether}(1);
   }
@@ -417,14 +482,14 @@ contract ERC721DropTest is Test {
       maxSalePurchasePerAddress: limit,
       presaleMerkleRoot: bytes32(0)
     });
-    vm.deal(address(456), 1_000_000 ether);
-    vm.prank(address(456));
+    vm.deal(address(0x456), 1_000_000 ether);
+    vm.prank(address(0x456));
     holographNFTBase.purchase{value: 0.1 ether * uint256(limit)}(limit);
 
     assertEq(holographNFTBase.saleDetails().totalMinted, limit);
 
-    vm.deal(address(444), 1_000_000 ether);
-    vm.prank(address(444));
+    vm.deal(address(0x444), 1_000_000 ether);
+    vm.prank(address(0x444));
     vm.expectRevert(IERC721Drop.Purchase_TooManyForAddress.selector);
     holographNFTBase.purchase{value: 0.1 ether * (uint256(limit) + 1)}(uint256(limit) + 1);
 
@@ -556,8 +621,8 @@ contract ERC721DropTest is Test {
       presaleMerkleRoot: bytes32(0)
     });
 
-    vm.deal(address(456), uint256(1) * 2);
-    vm.prank(address(456));
+    vm.deal(address(0x456), uint256(1) * 2);
+    vm.prank(address(0x456));
     vm.expectRevert(IERC721Drop.Mint_SoldOut.selector);
     holographNFTBase.purchase{value: 1}(1);
   }
@@ -629,7 +694,7 @@ contract ERC721DropTest is Test {
     holographNFTBase.adminMintAirdrop(airdrop);
     vm.stopPrank();
 
-    vm.prank(address(1));
+    vm.prank(address(0x1));
     vm.expectRevert(IERC721AUpgradeable.TransferCallerNotOwnerNorApproved.selector);
     holographNFTBase.burn(1);
   }
