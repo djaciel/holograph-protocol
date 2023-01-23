@@ -23,19 +23,20 @@ contract HolographNFTCreatorV1Test is Test {
     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
     HolographFeeManager feeManager = new HolographFeeManager(500, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    dropImpl = new ERC721Drop(feeManager, address(1234), FactoryUpgradeGate(address(0)), address(0));
+    dropImpl = new ERC721Drop();
+    dropImpl.init(abi.encode(address(feeManager), address(1234), address(0), address(0), "Contract Name", "Contract Symbol", address(0), address(0), uint64(0), uint16(0), new bytes[](0), address(0), new bytes(0)));
     editionMetadataRenderer = new EditionMetadataRenderer();
     dropMetadataRenderer = new DropMetadataRenderer();
-    HolographNFTCreatorV1 impl = new HolographNFTCreatorV1(
-      address(dropImpl),
-      editionMetadataRenderer,
-      dropMetadataRenderer
-    );
-    creator = HolographNFTCreatorV1(
-      address(
-        new HolographNFTCreatorProxy(address(impl), abi.encodeWithSelector(HolographNFTCreatorV1.initialize.selector))
-      )
-    );
+    // do not use constructor arguments
+    HolographNFTCreatorV1 impl = new HolographNFTCreatorV1();
+    // init source deployment with null/zero values
+    impl.init(abi.encode(address(0), EditionMetadataRenderer(address(0)), DropMetadataRenderer(address(0))));
+    // do not use constructor arguments
+    HolographNFTCreatorProxy creatorProxy = new HolographNFTCreatorProxy();
+    // init proxy deployment with actual values
+    creatorProxy.init(abi.encode(impl, abi.encode(address(dropImpl), editionMetadataRenderer, dropMetadataRenderer)));
+    // map proxy out to full contract interface
+    creator = HolographNFTCreatorV1(address(creatorProxy));
   }
 
   function test_CreateEdition() public {

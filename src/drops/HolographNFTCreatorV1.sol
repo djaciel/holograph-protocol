@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
 
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+/*SOLIDITY_COMPILER_VERSION*/
+
+import "../abstract/Admin.sol";
+import "../abstract/Initializable.sol";
 
 import {ERC721DropProxy} from "./ERC721DropProxy.sol";
-import {Version} from "./utils/Version.sol";
 import {EditionMetadataRenderer} from "./metadata/EditionMetadataRenderer.sol";
 import {IERC721Drop} from "./interfaces/IERC721Drop.sol";
 import {DropMetadataRenderer} from "./metadata/DropMetadataRenderer.sol";
@@ -13,44 +13,50 @@ import {IMetadataRenderer} from "./interfaces/IMetadataRenderer.sol";
 import {ERC721Drop} from "./ERC721Drop.sol";
 
 /// @notice Holograph NFT Creator V1
-contract HolographNFTCreatorV1 is OwnableUpgradeable, UUPSUpgradeable, Version(5) {
+contract HolographNFTCreatorV1 is Initializable {
   string private constant CANNOT_BE_ZERO = "Cannot be 0 address";
 
   /// @notice Emitted when a edition is created reserving the corresponding token IDs.
   event CreatedDrop(address indexed creator, address indexed editionContractAddress, uint256 editionSize);
 
   /// @notice Address for implementation of HolographNFTBase to clone
-  address public immutable implementation;
+  address public implementation;
 
   /// @notice Edition metdata renderer
-  EditionMetadataRenderer public immutable editionMetadataRenderer;
+  EditionMetadataRenderer public editionMetadataRenderer;
 
   /// @notice Drop metdata renderer
-  DropMetadataRenderer public immutable dropMetadataRenderer;
+  DropMetadataRenderer public dropMetadataRenderer;
 
-  /// @notice Initializes factory with address of implementation logic
-  /// @param _implementation SingleEditionMintable logic implementation contract to clone
-  /// @param _editionMetadataRenderer Metadata renderer for editions
-  /// @param _dropMetadataRenderer Metadata renderer for drops
-  constructor(
-    address _implementation,
-    EditionMetadataRenderer _editionMetadataRenderer,
-    DropMetadataRenderer _dropMetadataRenderer
-  ) {
-    require(_implementation != address(0), CANNOT_BE_ZERO);
-    require(address(_editionMetadataRenderer) != address(0), CANNOT_BE_ZERO);
-    require(address(_dropMetadataRenderer) != address(0), CANNOT_BE_ZERO);
+  /**
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract
+   * @param initPayload abi encoded payload to use for contract initilaization
+   */
+  function init(bytes memory initPayload) external override returns (bytes4) {
+    require(!_isInitialized(), "HOLOGRAPH: already initialized");
+    (address implementationAddress, address editionMetadataRendererAddress, address dropMetadataRendererAddress, address holograph) = abi.decode(
+      initPayload,
+      (address, address, address, address)
+    );
+    require(implementationAddress != address(0), CANNOT_BE_ZERO);
+    require(address(editionMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
+    require(address(dropMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
 
-    implementation = _implementation;
-    editionMetadataRenderer = _editionMetadataRenderer;
-    dropMetadataRenderer = _dropMetadataRenderer;
+    implementation = implementationAddress;
+    editionMetadataRenderer = editionMetadataRendererAddress;
+    dropMetadataRenderer = dropMetadataRendererAddress;
+
+    assembly {
+      sstore(_holographSlot, holograph)
+    }
+
+    _setInitialized();
+    return InitializableInterface.init.selector;
   }
 
-  /// @dev Initializes the proxy contract
-  function initialize() external initializer {
-    __Ownable_init();
-    __UUPSUpgradeable_init();
-  }
+
+  constructor() {}
 
   /// @dev Function to determine who is allowed to upgrade this contract.
   /// @param _newImplementation: unused in access check
@@ -67,20 +73,13 @@ contract HolographNFTCreatorV1 is OwnableUpgradeable, UUPSUpgradeable, Version(5
     IMetadataRenderer metadataRenderer,
     bytes memory metadataInitializer
   ) public returns (address payable newDropAddress) {
-    ERC721DropProxy newDrop = new ERC721DropProxy(implementation, "");
-
+    // get initial implementation to get variables that used to be set as immutable
+    ERC721Drop impl = ERC721Drop(implementation);
+    // do not use constructor arguments
+    ERC721DropProxy newDrop = new ERC721DropProxy();
+    // run init to connect proxy to initial implementation, and to configure the drop
+    newDrop.init(abi.encode(implementation, abi.encode(impl.holographFeeManager, impl.holographERC721TransferHelper, impl.factoryUpgradeGate, impl.marketFilterDAOAddress, name, symbol, defaultAdmin, fundsRecipient, editionSize, royaltyBPS, setupCalls, metadataRenderer, metadataInitializer)));
     newDropAddress = payable(address(newDrop));
-    ERC721Drop(newDropAddress).initialize({
-      _contractName: name,
-      _contractSymbol: symbol,
-      _initialOwner: defaultAdmin,
-      _fundsRecipient: fundsRecipient,
-      _editionSize: editionSize,
-      _royaltyBPS: royaltyBPS,
-      _setupCalls: setupCalls,
-      _metadataRenderer: metadataRenderer,
-      _metadataRendererInit: metadataInitializer
-    });
   }
 
   //        ,-.
