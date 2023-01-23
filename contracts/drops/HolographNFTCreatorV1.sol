@@ -80,6 +80,7 @@ contract HolographNFTCreatorV1 is Initializable {
     // do not use constructor arguments
     ERC721DropProxy newDrop = new ERC721DropProxy();
     // run init to connect proxy to initial implementation, and to configure the drop
+/*
     newDrop.init(
       abi.encode(
         implementation,
@@ -100,6 +101,7 @@ contract HolographNFTCreatorV1 is Initializable {
         )
       )
     );
+*/
     newDropAddress = payable(address(newDrop));
   }
 
