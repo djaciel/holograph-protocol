@@ -25,6 +25,8 @@ import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/se
 import {MerkleProofUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
+import {DropInitializer} from "../struct/DropInitializer.sol";
+
 import {IHolographFeeManager} from "./interfaces/IHolographFeeManager.sol";
 import {IMetadataRenderer} from "./interfaces/IMetadataRenderer.sol";
 import {IOperatorFilterRegistry} from "./interfaces/IOperatorFilterRegistry.sol";
@@ -152,49 +154,33 @@ contract ERC721Drop is
 
   constructor() {}
 
+  ///  @dev Initialize a new drop contract
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
-    /*
-    (
-      address _holographFeeManager,
-      address _holographERC721TransferHelper,
-      address _factoryUpgradeGate,
-      address _marketFilterDAOAddress,
-      string memory _contractName,
-      string memory _contractSymbol,
-      address _initialOwner,
-      address payable _fundsRecipient,
-      uint64 _editionSize,
-      uint16 _royaltyBPS,
-      bytes[] memory _setupCalls,
-      address _metadataRenderer,
-      bytes memory _metadataRendererInit
-    ) = abi.decode(
-        initPayload,
-        (address, address, address, address, string, string, address, address, uint64, uint16, bytes[], address, bytes)
-      );
 
-    holographFeeManager = IHolographFeeManager(_holographFeeManager);
-    holographERC721TransferHelper = _holographERC721TransferHelper;
-    factoryUpgradeGate = IFactoryUpgradeGate(_factoryUpgradeGate);
-    marketFilterDAOAddress = _marketFilterDAOAddress;
+    DropInitializer memory initializer = abi.decode(initPayload, (DropInitializer));
+
+    holographFeeManager = IHolographFeeManager(initializer.holographFeeManager);
+    holographERC721TransferHelper = initializer.holographERC721TransferHelper;
+    factoryUpgradeGate = IFactoryUpgradeGate(initializer.factoryUpgradeGate);
+    marketFilterDAOAddress = initializer.marketFilterDAOAddress;
 
     // Setup ERC721A
-    __ERC721A_init(_contractName, _contractSymbol);
+    __ERC721A_init(initializer.contractName, initializer.contractSymbol);
     // Setup access control
     __AccessControl_init();
     // Setup re-entracy guard
     __ReentrancyGuard_init();
     // Setup the owner role
-    _setupRole(DEFAULT_ADMIN_ROLE, _initialOwner);
+    _setupRole(DEFAULT_ADMIN_ROLE, initializer.initialOwner);
     // Set ownership to original sender of contract call
-    _setOwner(_initialOwner);
+    _setOwner(initializer.initialOwner);
 
-    if (_setupCalls.length > 0) {
+    if (initializer.setupCalls.length > 0) {
       // Setup temporary role
       _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
       // Execute setupCalls
-      multicall(_setupCalls);
+      multicall(initializer.setupCalls);
       // Remove temporary role
       _revokeRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
@@ -204,12 +190,12 @@ contract ERC721Drop is
     }
 
     // Setup config variables
-    config.editionSize = _editionSize;
-    config.metadataRenderer = IMetadataRenderer(_metadataRenderer);
-    config.royaltyBPS = _royaltyBPS;
-    config.fundsRecipient = _fundsRecipient;
-    IMetadataRenderer(_metadataRenderer).initializeWithData(_metadataRendererInit);
-    */
+    config.editionSize = initializer.editionSize;
+    config.metadataRenderer = IMetadataRenderer(initializer.metadataRenderer);
+    config.royaltyBPS = initializer.royaltyBPS;
+    config.fundsRecipient = initializer.fundsRecipient;
+    IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
+
     _setInitialized();
     return InitializableInterface.init.selector;
   }
