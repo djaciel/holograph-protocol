@@ -1,9 +1,12 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.13;
+pragma solidity ^0.8.13;
 
 import "../abstract/Admin.sol";
 import "../abstract/Initializable.sol";
+
+import {DropInitializer} from "../struct/DropInitializer.sol";
 
 import {ERC721DropProxy} from "./ERC721DropProxy.sol";
 import {EditionMetadataRenderer} from "./metadata/EditionMetadataRenderer.sol";
@@ -79,29 +82,25 @@ contract HolographNFTCreatorV1 is Initializable {
     ERC721Drop impl = ERC721Drop(payable(implementation));
     // do not use constructor arguments
     ERC721DropProxy newDrop = new ERC721DropProxy();
-    // run init to connect proxy to initial implementation, and to configure the drop
-/*
-    newDrop.init(
-      abi.encode(
-        implementation,
-        abi.encode(
-          impl.holographFeeManager,
-          impl.holographERC721TransferHelper,
-          impl.factoryUpgradeGate,
-          impl.marketFilterDAOAddress,
-          name,
-          symbol,
-          defaultAdmin,
-          fundsRecipient,
-          editionSize,
-          royaltyBPS,
-          setupCalls,
-          metadataRenderer,
-          metadataInitializer
-        )
-      )
+
+    DropInitializer memory dropInitializer = DropInitializer(
+      impl.holographFeeManager.address,
+      impl.holographERC721TransferHelper.address,
+      impl.factoryUpgradeGate.address,
+      impl.marketFilterDAOAddress.address,
+      name,
+      symbol,
+      defaultAdmin,
+      fundsRecipient,
+      editionSize,
+      royaltyBPS,
+      setupCalls,
+      address(metadataRenderer),
+      metadataInitializer
     );
-*/
+
+    // run init to connect proxy to initial implementation, and to configure the drop
+    newDrop.init(abi.encode(implementation, abi.encode(dropInitializer)));
     newDropAddress = payable(address(newDrop));
   }
 

@@ -154,7 +154,7 @@ contract ERC721Drop is
 
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
-/*
+    /*
     (
       address _holographFeeManager,
       address _holographERC721TransferHelper,
@@ -209,7 +209,7 @@ contract ERC721Drop is
     config.royaltyBPS = _royaltyBPS;
     config.fundsRecipient = _fundsRecipient;
     IMetadataRenderer(_metadataRenderer).initializeWithData(_metadataRendererInit);
-*/
+    */
     _setInitialized();
     return InitializableInterface.init.selector;
   }
