@@ -4,20 +4,6 @@ pragma solidity ^0.8.13;
 import {IFactoryUpgradeGate} from "./interfaces/IFactoryUpgradeGate.sol";
 import "./utils/OwnableSkeleton.sol";
 
-/**
-
- ________   _____   ____    ______      ____
-/\_____  \ /\  __`\/\  _`\ /\  _  \    /\  _`\
-\/____//'/'\ \ \/\ \ \ \L\ \ \ \L\ \   \ \ \/\ \  _ __   ___   _____     ____
-     //'/'  \ \ \ \ \ \ ,  /\ \  __ \   \ \ \ \ \/\`'__\/ __`\/\ '__`\  /',__\
-    //'/'___ \ \ \_\ \ \ \\ \\ \ \/\ \   \ \ \_\ \ \ \//\ \L\ \ \ \L\ \/\__, `\
-    /\_______\\ \_____\ \_\ \_\ \_\ \_\   \ \____/\ \_\\ \____/\ \ ,__/\/\____/
-    \/_______/ \/_____/\/_/\/ /\/_/\/_/    \/___/  \/_/ \/___/  \ \ \/  \/___/
-                                                                 \ \_\
-                                                                  \/_/
-
- */
-
 /// @notice This contract handles gating allowed upgrades for Holograph drops contracts
 contract FactoryUpgradeGate is IFactoryUpgradeGate, OwnableSkeleton {
   /// @notice Private mapping of valid upgrade paths

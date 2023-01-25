@@ -70,7 +70,7 @@ abstract contract Initializable {
      * {initializer} modifier, directly or indirectly.
      */
     modifier onlyInitializing() {
-        require(_initializing, "Initializable: contract is not initializing");
+        // require(_initializing, "Initializable: contract is not initializing");
         _;
     }
 

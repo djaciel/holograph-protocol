@@ -83,7 +83,7 @@ contract HolographNFTCreatorV1 is Initializable {
     // do not use constructor arguments
     ERC721DropProxy newDrop = new ERC721DropProxy();
 
-    DropInitializer memory dropInitializer = DropInitializer(
+    DropInitializer memory initialzer = DropInitializer(
       impl.holographFeeManager.address,
       impl.holographERC721TransferHelper.address,
       impl.factoryUpgradeGate.address,
@@ -100,7 +100,7 @@ contract HolographNFTCreatorV1 is Initializable {
     );
 
     // run init to connect proxy to initial implementation, and to configure the drop
-    newDrop.init(abi.encode(implementation, abi.encode(dropInitializer)));
+    newDrop.init(abi.encode(implementation, abi.encode(initialzer)));
     newDropAddress = payable(address(newDrop));
   }
 
