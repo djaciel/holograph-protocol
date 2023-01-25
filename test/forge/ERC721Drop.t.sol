@@ -54,6 +54,7 @@ contract ERC721DropTest is Test {
     uint256 feeAmount
   );
 
+  ERC721DropProxy erc721DropProxy;
   ERC721Drop holographNFTBase;
   MockUser mockUser;
   DummyMetadataRenderer public dummyRenderer = new DummyMetadataRenderer();
@@ -75,62 +76,6 @@ contract ERC721DropTest is Test {
   }
 
   modifier setupHolographNFTBase(uint64 editionSize) {
-    // // The stuff below should be moved to setup
-    // vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    // feeManager = new HolographFeeManager(0, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    // factoryUpgradeGate = new FactoryUpgradeGate(UPGRADE_GATE_ADMIN_ADDRESS);
-    // vm.etch(address(0x000000000000AAeB6D7670E522A718067333cd4E), address(new OperatorFilterRegistry()).code);
-    // ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x123456)));
-    // vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-
-    // impl = address(new ERC721Drop());
-    // // address payable newDrop = payable(address(new ERC721DropProxy()));
-    // // holographNFTBase = ERC721Drop(newDrop);
-    // vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    // feeManager.setFeeOverride(address(holographNFTBase), 500);
-    // ////////////////////////
-
-    // DropInitializer memory initializer = DropInitializer({
-    //   holographFeeManager: address(feeManager),
-    //   holographERC721TransferHelper: address(0x1234),
-    //   factoryUpgradeGate: address(factoryUpgradeGate),
-    //   marketFilterDAOAddress: address(0x0),
-    //   contractName: "Test NFT",
-    //   contractSymbol: "TNFT",
-    //   initialOwner: DEFAULT_OWNER_ADDRESS,
-    //   fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
-    //   editionSize: editionSize,
-    //   royaltyBPS: 800,
-    //   setupCalls: new bytes[](0),
-    //   metadataRenderer: address(dummyRenderer),
-    //   metadataRendererInit: ""
-    // });
-
-    // ERC721DropProxy erc721DropProxy = new ERC721DropProxy();
-    // erc721DropProxy.init(abi.encode(new ERC721Drop(), abi.encode(initializer)));
-
-    // address payable newDrop = payable(address(erc721DropProxy));
-    // holographNFTBase = ERC721Drop(newDrop);
-
-    _;
-  }
-
-  function setUp() public {
-    // The stuff below should be moved to setup
-    vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    feeManager = new HolographFeeManager(0, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    factoryUpgradeGate = new FactoryUpgradeGate(UPGRADE_GATE_ADMIN_ADDRESS);
-    vm.etch(address(0x000000000000AAeB6D7670E522A718067333cd4E), address(new OperatorFilterRegistry()).code);
-    ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x123456)));
-    vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-
-    impl = address(new ERC721Drop());
-    // address payable newDrop = payable(address(new ERC721DropProxy()));
-    // holographNFTBase = ERC721Drop(newDrop);
-    vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    feeManager.setFeeOverride(address(holographNFTBase), 500);
-    ////////////////////////
-
     DropInitializer memory initializer = DropInitializer({
       holographFeeManager: address(feeManager),
       holographERC721TransferHelper: address(0x1234),
@@ -140,15 +85,34 @@ contract ERC721DropTest is Test {
       contractSymbol: "TNFT",
       initialOwner: DEFAULT_OWNER_ADDRESS,
       fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
-      editionSize: 10,
+      editionSize: editionSize,
       royaltyBPS: 800,
       setupCalls: new bytes[](0),
       metadataRenderer: address(dummyRenderer),
       metadataRendererInit: ""
     });
 
-    ERC721DropProxy erc721DropProxy = new ERC721DropProxy();
+    erc721DropProxy = new ERC721DropProxy();
     erc721DropProxy.init(abi.encode(new ERC721Drop(), abi.encode(initializer)));
+
+    address payable newDrop = payable(address(erc721DropProxy));
+    holographNFTBase = ERC721Drop(newDrop);
+
+    _;
+  }
+
+  function setUp() public {
+    vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    feeManager = new HolographFeeManager(0, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    factoryUpgradeGate = new FactoryUpgradeGate(UPGRADE_GATE_ADMIN_ADDRESS);
+    vm.etch(address(0x000000000000AAeB6D7670E522A718067333cd4E), address(new OperatorFilterRegistry()).code);
+    ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x123456)));
+    vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    // impl = address(new ERC721Drop(feeManager, address(0x1234), factoryUpgradeGate, address(0x0)));
+    // address payable newDrop = payable(address(new ERC721DropProxy()));
+    // holographNFTBase = ERC721Drop(newDrop);
+    // vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    // feeManager.setFeeOverride(address(holographNFTBase), 500);
 
     address payable newDrop = payable(address(erc721DropProxy));
     holographNFTBase = ERC721Drop(newDrop);
@@ -284,27 +248,27 @@ contract ERC721DropTest is Test {
   //   vm.stopPrank();
   // }
 
-  // function test_Purchase(uint64 amount) public setupHolographNFTBase(10) {
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.setSaleConfiguration({
-  //     publicSaleStart: 0,
-  //     publicSaleEnd: type(uint64).max,
-  //     presaleStart: 0,
-  //     presaleEnd: 0,
-  //     publicSalePrice: amount,
-  //     maxSalePurchasePerAddress: 2,
-  //     presaleMerkleRoot: bytes32(0)
-  //   });
+  function test_Purchase(uint64 amount) public setupHolographNFTBase(10) {
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.setSaleConfiguration({
+      publicSaleStart: 0,
+      publicSaleEnd: type(uint64).max,
+      presaleStart: 0,
+      presaleEnd: 0,
+      publicSalePrice: amount,
+      maxSalePurchasePerAddress: 2,
+      presaleMerkleRoot: bytes32(0)
+    });
 
-  //   vm.deal(address(0x456), uint256(amount) * 2);
-  //   vm.prank(address(0x456));
-  //   holographNFTBase.purchase{value: amount}(1);
+    vm.deal(address(0x456), uint256(amount) * 2);
+    vm.prank(address(0x456));
+    holographNFTBase.purchase{value: amount}(1);
 
-  //   assertEq(holographNFTBase.saleDetails().maxSupply, 10);
-  //   assertEq(holographNFTBase.saleDetails().totalMinted, 1);
-  //   require(holographNFTBase.ownerOf(1) == address(0x456), "owner is wrong for new minted token");
-  //   assertEq(address(holographNFTBase).balance, amount);
-  // }
+    assertEq(holographNFTBase.saleDetails().maxSupply, 10);
+    assertEq(holographNFTBase.saleDetails().totalMinted, 1);
+    require(holographNFTBase.ownerOf(1) == address(0x456), "owner is wrong for new minted token");
+    assertEq(address(holographNFTBase).balance, amount);
+  }
 
   // function test_UpgradeApproved() public setupHolographNFTBase(10) {
   //   address newImpl = address(new ERC721Drop());
@@ -335,134 +299,134 @@ contract ERC721DropTest is Test {
   //   assertEq(address(holographNFTBase.holographFeeManager()), address(0xadadad));
   // }
 
-  // function test_PurchaseTime() public setupHolographNFTBase(10) {
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.setSaleConfiguration({
-  //     publicSaleStart: 0,
-  //     publicSaleEnd: 0,
-  //     presaleStart: 0,
-  //     presaleEnd: 0,
-  //     publicSalePrice: 0.1 ether,
-  //     maxSalePurchasePerAddress: 2,
-  //     presaleMerkleRoot: bytes32(0)
-  //   });
+  function test_PurchaseTime() public setupHolographNFTBase(10) {
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.setSaleConfiguration({
+      publicSaleStart: 0,
+      publicSaleEnd: 0,
+      presaleStart: 0,
+      presaleEnd: 0,
+      publicSalePrice: 0.1 ether,
+      maxSalePurchasePerAddress: 2,
+      presaleMerkleRoot: bytes32(0)
+    });
 
-  //   assertTrue(!holographNFTBase.saleDetails().publicSaleActive);
+    assertTrue(!holographNFTBase.saleDetails().publicSaleActive);
 
-  //   vm.deal(address(0x456), 1 ether);
-  //   vm.prank(address(0x456));
-  //   vm.expectRevert(IERC721Drop.Sale_Inactive.selector);
-  //   holographNFTBase.purchase{value: 0.1 ether}(1);
+    vm.deal(address(0x456), 1 ether);
+    vm.prank(address(0x456));
+    vm.expectRevert(IERC721Drop.Sale_Inactive.selector);
+    holographNFTBase.purchase{value: 0.1 ether}(1);
 
-  //   assertEq(holographNFTBase.saleDetails().maxSupply, 10);
-  //   assertEq(holographNFTBase.saleDetails().totalMinted, 0);
+    assertEq(holographNFTBase.saleDetails().maxSupply, 10);
+    assertEq(holographNFTBase.saleDetails().totalMinted, 0);
 
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.setSaleConfiguration({
-  //     publicSaleStart: 9 * 3600,
-  //     publicSaleEnd: 11 * 3600,
-  //     presaleStart: 0,
-  //     presaleEnd: 0,
-  //     maxSalePurchasePerAddress: 20,
-  //     publicSalePrice: 0.1 ether,
-  //     presaleMerkleRoot: bytes32(0)
-  //   });
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.setSaleConfiguration({
+      publicSaleStart: 9 * 3600,
+      publicSaleEnd: 11 * 3600,
+      presaleStart: 0,
+      presaleEnd: 0,
+      maxSalePurchasePerAddress: 20,
+      publicSalePrice: 0.1 ether,
+      presaleMerkleRoot: bytes32(0)
+    });
 
-  //   assertTrue(!holographNFTBase.saleDetails().publicSaleActive);
-  //   // jan 1st 1980
-  //   vm.warp(10 * 3600);
-  //   assertTrue(holographNFTBase.saleDetails().publicSaleActive);
-  //   assertTrue(!holographNFTBase.saleDetails().presaleActive);
+    assertTrue(!holographNFTBase.saleDetails().publicSaleActive);
+    // jan 1st 1980
+    vm.warp(10 * 3600);
+    assertTrue(holographNFTBase.saleDetails().publicSaleActive);
+    assertTrue(!holographNFTBase.saleDetails().presaleActive);
 
-  //   vm.prank(address(0x456));
-  //   holographNFTBase.purchase{value: 0.1 ether}(1);
+    vm.prank(address(0x456));
+    holographNFTBase.purchase{value: 0.1 ether}(1);
 
-  //   assertEq(holographNFTBase.saleDetails().totalMinted, 1);
-  //   assertEq(holographNFTBase.ownerOf(1), address(0x456));
-  // }
+    assertEq(holographNFTBase.saleDetails().totalMinted, 1);
+    assertEq(holographNFTBase.ownerOf(1), address(0x456));
+  }
 
-  // function test_Mint() public setupHolographNFTBase(10) {
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.adminMint(DEFAULT_OWNER_ADDRESS, 1);
-  //   assertEq(holographNFTBase.saleDetails().maxSupply, 10);
-  //   assertEq(holographNFTBase.saleDetails().totalMinted, 1);
-  //   require(holographNFTBase.ownerOf(1) == DEFAULT_OWNER_ADDRESS, "Owner is wrong for new minted token");
-  // }
+  function test_Mint() public setupHolographNFTBase(10) {
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.adminMint(DEFAULT_OWNER_ADDRESS, 1);
+    assertEq(holographNFTBase.saleDetails().maxSupply, 10);
+    assertEq(holographNFTBase.saleDetails().totalMinted, 1);
+    require(holographNFTBase.ownerOf(1) == DEFAULT_OWNER_ADDRESS, "Owner is wrong for new minted token");
+  }
 
-  // function test_MintMulticall() public setupHolographNFTBase(10) {
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
-  //   bytes[] memory calls = new bytes[](3);
-  //   calls[0] = abi.encodeWithSelector(IERC721Drop.adminMint.selector, DEFAULT_OWNER_ADDRESS, 5);
-  //   calls[1] = abi.encodeWithSelector(IERC721Drop.adminMint.selector, address(0x123), 3);
-  //   calls[2] = abi.encodeWithSelector(IERC721Drop.saleDetails.selector);
-  //   bytes[] memory results = holographNFTBase.multicall(calls);
+  function test_MintMulticall() public setupHolographNFTBase(10) {
+    vm.startPrank(DEFAULT_OWNER_ADDRESS);
+    bytes[] memory calls = new bytes[](3);
+    calls[0] = abi.encodeWithSelector(IERC721Drop.adminMint.selector, DEFAULT_OWNER_ADDRESS, 5);
+    calls[1] = abi.encodeWithSelector(IERC721Drop.adminMint.selector, address(0x123), 3);
+    calls[2] = abi.encodeWithSelector(IERC721Drop.saleDetails.selector);
+    bytes[] memory results = holographNFTBase.multicall(calls);
 
-  //   (bool saleActive, bool presaleActive, uint256 publicSalePrice, , , , , , , , ) = abi.decode(
-  //     results[2],
-  //     (bool, bool, uint256, uint64, uint64, uint64, uint64, bytes32, uint256, uint256, uint256)
-  //   );
-  //   assertTrue(!saleActive);
-  //   assertTrue(!presaleActive);
-  //   assertEq(publicSalePrice, 0);
-  //   uint256 firstMintedId = abi.decode(results[0], (uint256));
-  //   uint256 secondMintedId = abi.decode(results[1], (uint256));
-  //   assertEq(firstMintedId, 5);
-  //   assertEq(secondMintedId, 8);
-  // }
+    (bool saleActive, bool presaleActive, uint256 publicSalePrice, , , , , , , , ) = abi.decode(
+      results[2],
+      (bool, bool, uint256, uint64, uint64, uint64, uint64, bytes32, uint256, uint256, uint256)
+    );
+    assertTrue(!saleActive);
+    assertTrue(!presaleActive);
+    assertEq(publicSalePrice, 0);
+    uint256 firstMintedId = abi.decode(results[0], (uint256));
+    uint256 secondMintedId = abi.decode(results[1], (uint256));
+    assertEq(firstMintedId, 5);
+    assertEq(secondMintedId, 8);
+  }
 
-  // function test_UpdatePriceMulticall() public setupHolographNFTBase(10) {
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
-  //   bytes[] memory calls = new bytes[](3);
-  //   calls[0] = abi.encodeWithSelector(
-  //     IERC721Drop.setSaleConfiguration.selector,
-  //     0.1 ether,
-  //     2,
-  //     0,
-  //     type(uint64).max,
-  //     0,
-  //     0,
-  //     bytes32(0)
-  //   );
-  //   calls[1] = abi.encodeWithSelector(IERC721Drop.adminMint.selector, address(0x123), 3);
-  //   calls[2] = abi.encodeWithSelector(IERC721Drop.adminMint.selector, address(0x123), 3);
-  //   bytes[] memory results = holographNFTBase.multicall(calls);
+  function test_UpdatePriceMulticall() public setupHolographNFTBase(10) {
+    vm.startPrank(DEFAULT_OWNER_ADDRESS);
+    bytes[] memory calls = new bytes[](3);
+    calls[0] = abi.encodeWithSelector(
+      IERC721Drop.setSaleConfiguration.selector,
+      0.1 ether,
+      2,
+      0,
+      type(uint64).max,
+      0,
+      0,
+      bytes32(0)
+    );
+    calls[1] = abi.encodeWithSelector(IERC721Drop.adminMint.selector, address(0x123), 3);
+    calls[2] = abi.encodeWithSelector(IERC721Drop.adminMint.selector, address(0x123), 3);
+    bytes[] memory results = holographNFTBase.multicall(calls);
 
-  //   IERC721Drop.SaleDetails memory saleDetails = holographNFTBase.saleDetails();
+    IERC721Drop.SaleDetails memory saleDetails = holographNFTBase.saleDetails();
 
-  //   assertTrue(saleDetails.publicSaleActive);
-  //   assertTrue(!saleDetails.presaleActive);
-  //   assertEq(saleDetails.publicSalePrice, 0.1 ether);
-  //   uint256 firstMintedId = abi.decode(results[1], (uint256));
-  //   uint256 secondMintedId = abi.decode(results[2], (uint256));
-  //   assertEq(firstMintedId, 3);
-  //   assertEq(secondMintedId, 6);
-  //   vm.stopPrank();
-  //   vm.startPrank(address(0x111));
-  //   vm.deal(address(0x111), 0.3 ether);
-  //   holographNFTBase.purchase{value: 0.2 ether}(2);
-  //   assertEq(holographNFTBase.balanceOf(address(0x111)), 2);
-  //   vm.stopPrank();
-  // }
+    assertTrue(saleDetails.publicSaleActive);
+    assertTrue(!saleDetails.presaleActive);
+    assertEq(saleDetails.publicSalePrice, 0.1 ether);
+    uint256 firstMintedId = abi.decode(results[1], (uint256));
+    uint256 secondMintedId = abi.decode(results[2], (uint256));
+    assertEq(firstMintedId, 3);
+    assertEq(secondMintedId, 6);
+    vm.stopPrank();
+    vm.startPrank(address(0x111));
+    vm.deal(address(0x111), 0.3 ether);
+    holographNFTBase.purchase{value: 0.2 ether}(2);
+    assertEq(holographNFTBase.balanceOf(address(0x111)), 2);
+    vm.stopPrank();
+  }
 
-  // function test_MintWrongValue() public setupHolographNFTBase(10) {
-  //   vm.deal(address(0x456), 1 ether);
-  //   vm.prank(address(0x456));
-  //   vm.expectRevert(IERC721Drop.Sale_Inactive.selector);
-  //   holographNFTBase.purchase{value: 0.12 ether}(1);
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.setSaleConfiguration({
-  //     publicSaleStart: 0,
-  //     publicSaleEnd: type(uint64).max,
-  //     presaleStart: 0,
-  //     presaleEnd: 0,
-  //     publicSalePrice: 0.15 ether,
-  //     maxSalePurchasePerAddress: 2,
-  //     presaleMerkleRoot: bytes32(0)
-  //   });
-  //   vm.prank(address(0x456));
-  //   vm.expectRevert(abi.encodeWithSelector(IERC721Drop.Purchase_WrongPrice.selector, 0.15 ether));
-  //   holographNFTBase.purchase{value: 0.12 ether}(1);
-  // }
+  function test_MintWrongValue() public setupHolographNFTBase(10) {
+    vm.deal(address(0x456), 1 ether);
+    vm.prank(address(0x456));
+    vm.expectRevert(IERC721Drop.Sale_Inactive.selector);
+    holographNFTBase.purchase{value: 0.12 ether}(1);
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.setSaleConfiguration({
+      publicSaleStart: 0,
+      publicSaleEnd: type(uint64).max,
+      presaleStart: 0,
+      presaleEnd: 0,
+      publicSalePrice: 0.15 ether,
+      maxSalePurchasePerAddress: 2,
+      presaleMerkleRoot: bytes32(0)
+    });
+    vm.prank(address(0x456));
+    vm.expectRevert(abi.encodeWithSelector(IERC721Drop.Purchase_WrongPrice.selector, 0.15 ether));
+    holographNFTBase.purchase{value: 0.12 ether}(1);
+  }
 
   // function test_Withdraw(uint128 amount) public setupHolographNFTBase(10) {
   //   vm.assume(amount > 0.01 ether);
@@ -492,237 +456,237 @@ contract ERC721DropTest is Test {
   //   );
   // }
 
-  // function test_MintLimit(uint8 limit) public setupHolographNFTBase(5000) {
-  //   // set limit to speed up tests
-  //   vm.assume(limit > 0 && limit < 50);
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.setSaleConfiguration({
-  //     publicSaleStart: 0,
-  //     publicSaleEnd: type(uint64).max,
-  //     presaleStart: 0,
-  //     presaleEnd: 0,
-  //     publicSalePrice: 0.1 ether,
-  //     maxSalePurchasePerAddress: limit,
-  //     presaleMerkleRoot: bytes32(0)
-  //   });
-  //   vm.deal(address(0x456), 1_000_000 ether);
-  //   vm.prank(address(0x456));
-  //   holographNFTBase.purchase{value: 0.1 ether * uint256(limit)}(limit);
+  function test_MintLimit(uint8 limit) public setupHolographNFTBase(5000) {
+    // set limit to speed up tests
+    vm.assume(limit > 0 && limit < 50);
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.setSaleConfiguration({
+      publicSaleStart: 0,
+      publicSaleEnd: type(uint64).max,
+      presaleStart: 0,
+      presaleEnd: 0,
+      publicSalePrice: 0.1 ether,
+      maxSalePurchasePerAddress: limit,
+      presaleMerkleRoot: bytes32(0)
+    });
+    vm.deal(address(0x456), 1_000_000 ether);
+    vm.prank(address(0x456));
+    holographNFTBase.purchase{value: 0.1 ether * uint256(limit)}(limit);
 
-  //   assertEq(holographNFTBase.saleDetails().totalMinted, limit);
+    assertEq(holographNFTBase.saleDetails().totalMinted, limit);
 
-  //   vm.deal(address(0x444), 1_000_000 ether);
-  //   vm.prank(address(0x444));
-  //   vm.expectRevert(IERC721Drop.Purchase_TooManyForAddress.selector);
-  //   holographNFTBase.purchase{value: 0.1 ether * (uint256(limit) + 1)}(uint256(limit) + 1);
+    vm.deal(address(0x444), 1_000_000 ether);
+    vm.prank(address(0x444));
+    vm.expectRevert(IERC721Drop.Purchase_TooManyForAddress.selector);
+    holographNFTBase.purchase{value: 0.1 ether * (uint256(limit) + 1)}(uint256(limit) + 1);
 
-  //   assertEq(holographNFTBase.saleDetails().totalMinted, limit);
-  // }
+    assertEq(holographNFTBase.saleDetails().totalMinted, limit);
+  }
 
-  // function testSetSalesConfiguration() public setupHolographNFTBase(10) {
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.setSaleConfiguration({
-  //     publicSaleStart: 0,
-  //     publicSaleEnd: type(uint64).max,
-  //     presaleStart: 0,
-  //     presaleEnd: 100,
-  //     publicSalePrice: 0.1 ether,
-  //     maxSalePurchasePerAddress: 10,
-  //     presaleMerkleRoot: bytes32(0)
-  //   });
+  function testSetSalesConfiguration() public setupHolographNFTBase(10) {
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.setSaleConfiguration({
+      publicSaleStart: 0,
+      publicSaleEnd: type(uint64).max,
+      presaleStart: 0,
+      presaleEnd: 100,
+      publicSalePrice: 0.1 ether,
+      maxSalePurchasePerAddress: 10,
+      presaleMerkleRoot: bytes32(0)
+    });
 
-  //   (, , , , , uint64 presaleEndLookup, ) = holographNFTBase.salesConfig();
-  //   assertEq(presaleEndLookup, 100);
+    (, , , , , uint64 presaleEndLookup, ) = holographNFTBase.salesConfig();
+    assertEq(presaleEndLookup, 100);
 
-  //   address SALES_MANAGER_ADDR = address(0x11002);
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.grantRole(holographNFTBase.SALES_MANAGER_ROLE(), SALES_MANAGER_ADDR);
-  //   vm.stopPrank();
-  //   vm.prank(SALES_MANAGER_ADDR);
-  //   holographNFTBase.setSaleConfiguration({
-  //     publicSaleStart: 0,
-  //     publicSaleEnd: type(uint64).max,
-  //     presaleStart: 100,
-  //     presaleEnd: 0,
-  //     publicSalePrice: 0.1 ether,
-  //     maxSalePurchasePerAddress: 1003,
-  //     presaleMerkleRoot: bytes32(0)
-  //   });
+    address SALES_MANAGER_ADDR = address(0x11002);
+    vm.startPrank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.grantRole(holographNFTBase.SALES_MANAGER_ROLE(), SALES_MANAGER_ADDR);
+    vm.stopPrank();
+    vm.prank(SALES_MANAGER_ADDR);
+    holographNFTBase.setSaleConfiguration({
+      publicSaleStart: 0,
+      publicSaleEnd: type(uint64).max,
+      presaleStart: 100,
+      presaleEnd: 0,
+      publicSalePrice: 0.1 ether,
+      maxSalePurchasePerAddress: 1003,
+      presaleMerkleRoot: bytes32(0)
+    });
 
-  //   (, , , , uint64 presaleStartLookup2, uint64 presaleEndLookup2, ) = holographNFTBase.salesConfig();
-  //   assertEq(presaleEndLookup2, 0);
-  //   assertEq(presaleStartLookup2, 100);
-  // }
+    (, , , , uint64 presaleStartLookup2, uint64 presaleEndLookup2, ) = holographNFTBase.salesConfig();
+    assertEq(presaleEndLookup2, 0);
+    assertEq(presaleStartLookup2, 100);
+  }
 
-  // function test_GlobalLimit(uint16 limit) public setupHolographNFTBase(uint64(limit)) {
-  //   vm.assume(limit > 0);
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.adminMint(DEFAULT_OWNER_ADDRESS, limit);
-  //   vm.expectRevert(IERC721Drop.Mint_SoldOut.selector);
-  //   holographNFTBase.adminMint(DEFAULT_OWNER_ADDRESS, 1);
-  // }
+  function test_GlobalLimit(uint16 limit) public setupHolographNFTBase(uint64(limit)) {
+    vm.assume(limit > 0);
+    vm.startPrank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.adminMint(DEFAULT_OWNER_ADDRESS, limit);
+    vm.expectRevert(IERC721Drop.Mint_SoldOut.selector);
+    holographNFTBase.adminMint(DEFAULT_OWNER_ADDRESS, 1);
+  }
 
-  // function test_WithdrawNotAllowed() public setupHolographNFTBase(10) {
-  //   vm.expectRevert(IERC721Drop.Access_WithdrawNotAllowed.selector);
-  //   holographNFTBase.withdraw();
-  // }
+  function test_WithdrawNotAllowed() public setupHolographNFTBase(10) {
+    vm.expectRevert(IERC721Drop.Access_WithdrawNotAllowed.selector);
+    holographNFTBase.withdraw();
+  }
 
-  // function test_InvalidFinalizeOpenEdition() public setupHolographNFTBase(5) {
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.setSaleConfiguration({
-  //     publicSaleStart: 0,
-  //     publicSaleEnd: type(uint64).max,
-  //     presaleStart: 0,
-  //     presaleEnd: 0,
-  //     publicSalePrice: 0.2 ether,
-  //     presaleMerkleRoot: bytes32(0),
-  //     maxSalePurchasePerAddress: 5
-  //   });
-  //   holographNFTBase.purchase{value: 0.6 ether}(3);
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.adminMint(address(0x1234), 2);
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   vm.expectRevert(IERC721Drop.Admin_UnableToFinalizeNotOpenEdition.selector);
-  //   holographNFTBase.finalizeOpenEdition();
-  // }
+  function test_InvalidFinalizeOpenEdition() public setupHolographNFTBase(5) {
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.setSaleConfiguration({
+      publicSaleStart: 0,
+      publicSaleEnd: type(uint64).max,
+      presaleStart: 0,
+      presaleEnd: 0,
+      publicSalePrice: 0.2 ether,
+      presaleMerkleRoot: bytes32(0),
+      maxSalePurchasePerAddress: 5
+    });
+    holographNFTBase.purchase{value: 0.6 ether}(3);
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.adminMint(address(0x1234), 2);
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    vm.expectRevert(IERC721Drop.Admin_UnableToFinalizeNotOpenEdition.selector);
+    holographNFTBase.finalizeOpenEdition();
+  }
 
-  // function test_ValidFinalizeOpenEdition() public setupHolographNFTBase(type(uint64).max) {
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.setSaleConfiguration({
-  //     publicSaleStart: 0,
-  //     publicSaleEnd: type(uint64).max,
-  //     presaleStart: 0,
-  //     presaleEnd: 0,
-  //     publicSalePrice: 0.2 ether,
-  //     presaleMerkleRoot: bytes32(0),
-  //     maxSalePurchasePerAddress: 10
-  //   });
-  //   holographNFTBase.purchase{value: 0.6 ether}(3);
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.adminMint(address(0x1234), 2);
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.finalizeOpenEdition();
-  //   vm.expectRevert(IERC721Drop.Mint_SoldOut.selector);
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.adminMint(address(0x1234), 2);
-  //   vm.expectRevert(IERC721Drop.Mint_SoldOut.selector);
-  //   holographNFTBase.purchase{value: 0.6 ether}(3);
-  // }
+  function test_ValidFinalizeOpenEdition() public setupHolographNFTBase(type(uint64).max) {
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.setSaleConfiguration({
+      publicSaleStart: 0,
+      publicSaleEnd: type(uint64).max,
+      presaleStart: 0,
+      presaleEnd: 0,
+      publicSalePrice: 0.2 ether,
+      presaleMerkleRoot: bytes32(0),
+      maxSalePurchasePerAddress: 10
+    });
+    holographNFTBase.purchase{value: 0.6 ether}(3);
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.adminMint(address(0x1234), 2);
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.finalizeOpenEdition();
+    vm.expectRevert(IERC721Drop.Mint_SoldOut.selector);
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.adminMint(address(0x1234), 2);
+    vm.expectRevert(IERC721Drop.Mint_SoldOut.selector);
+    holographNFTBase.purchase{value: 0.6 ether}(3);
+  }
 
-  // function test_AdminMint() public setupHolographNFTBase(10) {
-  //   address minter = address(0x32402);
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.adminMint(DEFAULT_OWNER_ADDRESS, 1);
-  //   require(holographNFTBase.balanceOf(DEFAULT_OWNER_ADDRESS) == 1, "Wrong balance");
-  //   holographNFTBase.grantRole(holographNFTBase.MINTER_ROLE(), minter);
-  //   vm.stopPrank();
-  //   vm.prank(minter);
-  //   holographNFTBase.adminMint(minter, 1);
-  //   require(holographNFTBase.balanceOf(minter) == 1, "Wrong balance");
-  //   assertEq(holographNFTBase.saleDetails().totalMinted, 2);
-  // }
+  function test_AdminMint() public setupHolographNFTBase(10) {
+    address minter = address(0x32402);
+    vm.startPrank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.adminMint(DEFAULT_OWNER_ADDRESS, 1);
+    require(holographNFTBase.balanceOf(DEFAULT_OWNER_ADDRESS) == 1, "Wrong balance");
+    holographNFTBase.grantRole(holographNFTBase.MINTER_ROLE(), minter);
+    vm.stopPrank();
+    vm.prank(minter);
+    holographNFTBase.adminMint(minter, 1);
+    require(holographNFTBase.balanceOf(minter) == 1, "Wrong balance");
+    assertEq(holographNFTBase.saleDetails().totalMinted, 2);
+  }
 
-  // function test_EditionSizeZero() public setupHolographNFTBase(0) {
-  //   address minter = address(0x32402);
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
-  //   vm.expectRevert(IERC721Drop.Mint_SoldOut.selector);
-  //   holographNFTBase.adminMint(DEFAULT_OWNER_ADDRESS, 1);
-  //   holographNFTBase.grantRole(holographNFTBase.MINTER_ROLE(), minter);
-  //   vm.stopPrank();
-  //   vm.prank(minter);
-  //   vm.expectRevert(IERC721Drop.Mint_SoldOut.selector);
-  //   holographNFTBase.adminMint(minter, 1);
+  function test_EditionSizeZero() public setupHolographNFTBase(0) {
+    address minter = address(0x32402);
+    vm.startPrank(DEFAULT_OWNER_ADDRESS);
+    vm.expectRevert(IERC721Drop.Mint_SoldOut.selector);
+    holographNFTBase.adminMint(DEFAULT_OWNER_ADDRESS, 1);
+    holographNFTBase.grantRole(holographNFTBase.MINTER_ROLE(), minter);
+    vm.stopPrank();
+    vm.prank(minter);
+    vm.expectRevert(IERC721Drop.Mint_SoldOut.selector);
+    holographNFTBase.adminMint(minter, 1);
 
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.setSaleConfiguration({
-  //     publicSaleStart: 0,
-  //     publicSaleEnd: type(uint64).max,
-  //     presaleStart: 0,
-  //     presaleEnd: 0,
-  //     publicSalePrice: 1,
-  //     maxSalePurchasePerAddress: 2,
-  //     presaleMerkleRoot: bytes32(0)
-  //   });
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.setSaleConfiguration({
+      publicSaleStart: 0,
+      publicSaleEnd: type(uint64).max,
+      presaleStart: 0,
+      presaleEnd: 0,
+      publicSalePrice: 1,
+      maxSalePurchasePerAddress: 2,
+      presaleMerkleRoot: bytes32(0)
+    });
 
-  //   vm.deal(address(0x456), uint256(1) * 2);
-  //   vm.prank(address(0x456));
-  //   vm.expectRevert(IERC721Drop.Mint_SoldOut.selector);
-  //   holographNFTBase.purchase{value: 1}(1);
-  // }
+    vm.deal(address(0x456), uint256(1) * 2);
+    vm.prank(address(0x456));
+    vm.expectRevert(IERC721Drop.Mint_SoldOut.selector);
+    holographNFTBase.purchase{value: 1}(1);
+  }
 
   // // test Admin airdrop
-  // function test_AdminMintAirdrop() public setupHolographNFTBase(1000) {
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
-  //   address[] memory toMint = new address[](4);
-  //   toMint[0] = address(0x10);
-  //   toMint[1] = address(0x11);
-  //   toMint[2] = address(0x12);
-  //   toMint[3] = address(0x13);
-  //   holographNFTBase.adminMintAirdrop(toMint);
-  //   assertEq(holographNFTBase.saleDetails().totalMinted, 4);
-  //   assertEq(holographNFTBase.balanceOf(address(0x10)), 1);
-  //   assertEq(holographNFTBase.balanceOf(address(0x11)), 1);
-  //   assertEq(holographNFTBase.balanceOf(address(0x12)), 1);
-  //   assertEq(holographNFTBase.balanceOf(address(0x13)), 1);
-  // }
+  function test_AdminMintAirdrop() public setupHolographNFTBase(1000) {
+    vm.startPrank(DEFAULT_OWNER_ADDRESS);
+    address[] memory toMint = new address[](4);
+    toMint[0] = address(0x10);
+    toMint[1] = address(0x11);
+    toMint[2] = address(0x12);
+    toMint[3] = address(0x13);
+    holographNFTBase.adminMintAirdrop(toMint);
+    assertEq(holographNFTBase.saleDetails().totalMinted, 4);
+    assertEq(holographNFTBase.balanceOf(address(0x10)), 1);
+    assertEq(holographNFTBase.balanceOf(address(0x11)), 1);
+    assertEq(holographNFTBase.balanceOf(address(0x12)), 1);
+    assertEq(holographNFTBase.balanceOf(address(0x13)), 1);
+  }
 
-  // function test_AdminMintAirdropFails() public setupHolographNFTBase(1000) {
-  //   vm.startPrank(address(0x10));
-  //   address[] memory toMint = new address[](4);
-  //   toMint[0] = address(0x10);
-  //   toMint[1] = address(0x11);
-  //   toMint[2] = address(0x12);
-  //   toMint[3] = address(0x13);
-  //   bytes32 minterRole = holographNFTBase.MINTER_ROLE();
-  //   vm.expectRevert(abi.encodeWithSignature("Access_MissingRoleOrAdmin(bytes32)", minterRole));
-  //   holographNFTBase.adminMintAirdrop(toMint);
-  // }
+  function test_AdminMintAirdropFails() public setupHolographNFTBase(1000) {
+    vm.startPrank(address(0x10));
+    address[] memory toMint = new address[](4);
+    toMint[0] = address(0x10);
+    toMint[1] = address(0x11);
+    toMint[2] = address(0x12);
+    toMint[3] = address(0x13);
+    bytes32 minterRole = holographNFTBase.MINTER_ROLE();
+    vm.expectRevert(abi.encodeWithSignature("Access_MissingRoleOrAdmin(bytes32)", minterRole));
+    holographNFTBase.adminMintAirdrop(toMint);
+  }
 
-  // // test admin mint non-admin permissions
-  // function test_AdminMintBatch() public setupHolographNFTBase(1000) {
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.adminMint(DEFAULT_OWNER_ADDRESS, 100);
-  //   assertEq(holographNFTBase.saleDetails().totalMinted, 100);
-  //   assertEq(holographNFTBase.balanceOf(DEFAULT_OWNER_ADDRESS), 100);
-  // }
+  // test admin mint non-admin permissions
+  function test_AdminMintBatch() public setupHolographNFTBase(1000) {
+    vm.startPrank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.adminMint(DEFAULT_OWNER_ADDRESS, 100);
+    assertEq(holographNFTBase.saleDetails().totalMinted, 100);
+    assertEq(holographNFTBase.balanceOf(DEFAULT_OWNER_ADDRESS), 100);
+  }
 
-  // function test_AdminMintBatchFails() public setupHolographNFTBase(1000) {
-  //   vm.startPrank(address(0x10));
-  //   bytes32 role = holographNFTBase.MINTER_ROLE();
-  //   vm.expectRevert(abi.encodeWithSignature("Access_MissingRoleOrAdmin(bytes32)", role));
-  //   holographNFTBase.adminMint(address(0x10), 100);
-  // }
+  function test_AdminMintBatchFails() public setupHolographNFTBase(1000) {
+    vm.startPrank(address(0x10));
+    bytes32 role = holographNFTBase.MINTER_ROLE();
+    vm.expectRevert(abi.encodeWithSignature("Access_MissingRoleOrAdmin(bytes32)", role));
+    holographNFTBase.adminMint(address(0x10), 100);
+  }
 
-  // function test_Burn() public setupHolographNFTBase(10) {
-  //   address minter = address(0x32402);
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.grantRole(holographNFTBase.MINTER_ROLE(), minter);
-  //   vm.stopPrank();
-  //   vm.startPrank(minter);
-  //   address[] memory airdrop = new address[](1);
-  //   airdrop[0] = minter;
-  //   holographNFTBase.adminMintAirdrop(airdrop);
-  //   holographNFTBase.burn(1);
-  //   vm.stopPrank();
-  // }
+  function test_Burn() public setupHolographNFTBase(10) {
+    address minter = address(0x32402);
+    vm.startPrank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.grantRole(holographNFTBase.MINTER_ROLE(), minter);
+    vm.stopPrank();
+    vm.startPrank(minter);
+    address[] memory airdrop = new address[](1);
+    airdrop[0] = minter;
+    holographNFTBase.adminMintAirdrop(airdrop);
+    holographNFTBase.burn(1);
+    vm.stopPrank();
+  }
 
-  // function test_BurnNonOwner() public setupHolographNFTBase(10) {
-  //   address minter = address(0x32402);
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
-  //   holographNFTBase.grantRole(holographNFTBase.MINTER_ROLE(), minter);
-  //   vm.stopPrank();
-  //   vm.startPrank(minter);
-  //   address[] memory airdrop = new address[](1);
-  //   airdrop[0] = minter;
-  //   holographNFTBase.adminMintAirdrop(airdrop);
-  //   vm.stopPrank();
+  function test_BurnNonOwner() public setupHolographNFTBase(10) {
+    address minter = address(0x32402);
+    vm.startPrank(DEFAULT_OWNER_ADDRESS);
+    holographNFTBase.grantRole(holographNFTBase.MINTER_ROLE(), minter);
+    vm.stopPrank();
+    vm.startPrank(minter);
+    address[] memory airdrop = new address[](1);
+    airdrop[0] = minter;
+    holographNFTBase.adminMintAirdrop(airdrop);
+    vm.stopPrank();
 
-  //   vm.prank(address(0x1));
-  //   vm.expectRevert(IERC721AUpgradeable.TransferCallerNotOwnerNorApproved.selector);
-  //   holographNFTBase.burn(1);
-  // }
+    vm.prank(address(0x1));
+    vm.expectRevert(IERC721AUpgradeable.TransferCallerNotOwnerNorApproved.selector);
+    holographNFTBase.burn(1);
+  }
 
-  // // Add test burn failure state for users that don't own the token
+  // Add test burn failure state for users that don't own the token
 
   // function test_EIP165() public view {
   //   require(holographNFTBase.supportsInterface(0x01ffc9a7), "supports 165");
