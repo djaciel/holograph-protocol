@@ -75,6 +75,47 @@ contract ERC721DropTest is Test {
   }
 
   modifier setupHolographNFTBase(uint64 editionSize) {
+    // // The stuff below should be moved to setup
+    // vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    // feeManager = new HolographFeeManager(0, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    // factoryUpgradeGate = new FactoryUpgradeGate(UPGRADE_GATE_ADMIN_ADDRESS);
+    // vm.etch(address(0x000000000000AAeB6D7670E522A718067333cd4E), address(new OperatorFilterRegistry()).code);
+    // ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x123456)));
+    // vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+
+    // impl = address(new ERC721Drop());
+    // // address payable newDrop = payable(address(new ERC721DropProxy()));
+    // // holographNFTBase = ERC721Drop(newDrop);
+    // vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    // feeManager.setFeeOverride(address(holographNFTBase), 500);
+    // ////////////////////////
+
+    // DropInitializer memory initializer = DropInitializer({
+    //   holographFeeManager: address(feeManager),
+    //   holographERC721TransferHelper: address(0x1234),
+    //   factoryUpgradeGate: address(factoryUpgradeGate),
+    //   marketFilterDAOAddress: address(0x0),
+    //   contractName: "Test NFT",
+    //   contractSymbol: "TNFT",
+    //   initialOwner: DEFAULT_OWNER_ADDRESS,
+    //   fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
+    //   editionSize: editionSize,
+    //   royaltyBPS: 800,
+    //   setupCalls: new bytes[](0),
+    //   metadataRenderer: address(dummyRenderer),
+    //   metadataRendererInit: ""
+    // });
+
+    // ERC721DropProxy erc721DropProxy = new ERC721DropProxy();
+    // erc721DropProxy.init(abi.encode(new ERC721Drop(), abi.encode(initializer)));
+
+    // address payable newDrop = payable(address(erc721DropProxy));
+    // holographNFTBase = ERC721Drop(newDrop);
+
+    _;
+  }
+
+  function setUp() public {
     // The stuff below should be moved to setup
     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
     feeManager = new HolographFeeManager(0, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
@@ -99,7 +140,7 @@ contract ERC721DropTest is Test {
       contractSymbol: "TNFT",
       initialOwner: DEFAULT_OWNER_ADDRESS,
       fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
-      editionSize: editionSize,
+      editionSize: 10,
       royaltyBPS: 800,
       setupCalls: new bytes[](0),
       metadataRenderer: address(dummyRenderer),
@@ -111,22 +152,6 @@ contract ERC721DropTest is Test {
 
     address payable newDrop = payable(address(erc721DropProxy));
     holographNFTBase = ERC721Drop(newDrop);
-
-    _;
-  }
-
-  function setUp() public {
-    // vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    // feeManager = new HolographFeeManager(0, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    // factoryUpgradeGate = new FactoryUpgradeGate(UPGRADE_GATE_ADMIN_ADDRESS);
-    // vm.etch(address(0x000000000000AAeB6D7670E522A718067333cd4E), address(new OperatorFilterRegistry()).code);
-    // ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x123456)));
-    // vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    // impl = address(new ERC721Drop(feeManager, address(0x1234), factoryUpgradeGate, address(0x0)));
-    // address payable newDrop = payable(address(new ERC721DropProxy()));
-    // holographNFTBase = ERC721Drop(newDrop);
-    // vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    // feeManager.setFeeOverride(address(holographNFTBase), 500);
   }
 
   // modifier factoryWithSubscriptionAddress(address subscriptionAddress) {
@@ -158,41 +183,38 @@ contract ERC721DropTest is Test {
   function test_Init() public setupHolographNFTBase(10) {
     console.log("test_Init");
     require(holographNFTBase.owner() == DEFAULT_OWNER_ADDRESS, "Default owner set wrong");
-    // (
-    //   IMetadataRenderer renderer,
-    //   uint64 editionSize,
-    //   uint16 royaltyBPS,
-    //   address payable fundsRecipient
-    // ) = holographNFTBase.config();
-    // require(address(renderer) == address(dummyRenderer));
-    // require(editionSize == 10, "EditionSize is wrong");
-    // require(royaltyBPS == 800, "RoyaltyBPS is wrong");
-    // require(fundsRecipient == payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS), "FundsRecipient is wrong");
-    // string memory name = holographNFTBase.name();
-    // string memory symbol = holographNFTBase.symbol();
-    // require(keccak256(bytes(name)) == keccak256(bytes("Test NFT")));
-    // require(keccak256(bytes(symbol)) == keccak256(bytes("TNFT")));
-    // vm.expectRevert("HOLOGRAPH: already initialized");
-    // ERC721DropProxy(payable(address(holographNFTBase))).init(
-    //   abi.encode(
-    //     impl,
-    //     abi.encode(
-    //       address(feeManager),
-    //       address(0x1234),
-    //       factoryUpgradeGate,
-    //       address(0x0),
-    //       "Test NFT",
-    //       "TNFT",
-    //       DEFAULT_OWNER_ADDRESS,
-    //       payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
-    //       uint64(10),
-    //       uint16(800),
-    //       new bytes[](0),
-    //       dummyRenderer,
-    //       new bytes(0)
-    //     )
-    //   )
-    // );
+    (
+      IMetadataRenderer renderer,
+      uint64 editionSize,
+      uint16 royaltyBPS,
+      address payable fundsRecipient
+    ) = holographNFTBase.config();
+    require(address(renderer) == address(dummyRenderer));
+    require(editionSize == 10, "EditionSize is wrong");
+    require(royaltyBPS == 800, "RoyaltyBPS is wrong");
+    require(fundsRecipient == payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS), "FundsRecipient is wrong");
+    string memory name = holographNFTBase.name();
+    string memory symbol = holographNFTBase.symbol();
+    require(keccak256(bytes(name)) == keccak256(bytes("Test NFT")));
+    require(keccak256(bytes(symbol)) == keccak256(bytes("TNFT")));
+    vm.expectRevert("HOLOGRAPH: already initialized");
+    holographNFTBase.init(
+      abi.encode(
+        address(feeManager),
+        address(0x1234),
+        factoryUpgradeGate,
+        address(0x0),
+        "Test NFT",
+        "TNFT",
+        DEFAULT_OWNER_ADDRESS,
+        payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
+        uint64(10),
+        uint16(800),
+        new bytes[](0),
+        dummyRenderer,
+        new bytes(0)
+      )
+    );
   }
 
   // function test_SubscriptionEnabled()
