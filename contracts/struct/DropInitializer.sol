@@ -14,7 +14,7 @@ pragma solidity ^0.8.13;
 ///  @param _metadataRendererInit Renderer data initial contract
 struct DropInitializer {
   address holographFeeManager;
-  address holographERC721TransferHelper;
+  address ERC721TransferHelper;
   address factoryUpgradeGate;
   address marketFilterDAOAddress;
   string contractName;

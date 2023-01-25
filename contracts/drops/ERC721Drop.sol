@@ -44,7 +44,7 @@ contract ERC721Drop is
   PublicMulticall,
   OwnableSkeleton,
   FundsReceiver,
-  Version(9),
+  Version(0),
   ERC721DropStorageV1
 {
   /// @dev This is the max mint batch size for the optimized ERC721A mint contract
@@ -54,11 +54,11 @@ contract ERC721Drop is
   uint256 constant FUNDS_SEND_GAS_LIMIT = 210_000;
 
   /// @notice Access control roles
-  bytes32 public MINTER_ROLE = keccak256("MINTER");
-  bytes32 public SALES_MANAGER_ROLE = keccak256("SALES_MANAGER");
+  bytes32 public constant MINTER_ROLE = keccak256("MINTER");
+  bytes32 public constant SALES_MANAGER_ROLE = keccak256("SALES_MANAGER");
 
   /// @dev HOLOGRAPH V3 transfer helper address for auto-approval
-  address public holographERC721TransferHelper;
+  address public ERC721TransferHelper;
 
   /// @dev Factory upgrade gate
   IFactoryUpgradeGate public factoryUpgradeGate;
@@ -128,26 +128,13 @@ contract ERC721Drop is
     _;
   }
 
-  /// @notice Getter for last minted token ID (gets next token id and subtracts 1)
-  function _lastMintedTokenId() internal view returns (uint256) {
-    return _currentIndex - 1;
-  }
-
-  /// @notice Start token ID for minting (1-100 vs 0-99)
-  function _startTokenId() internal pure override returns (uint256) {
-    return 1;
-  }
-
-  constructor() {}
-
   /// @dev Initialize a new drop contract
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
 
     DropInitializer memory initializer = abi.decode(initPayload, (DropInitializer));
-
     holographFeeManager = IHolographFeeManager(initializer.holographFeeManager);
-    holographERC721TransferHelper = initializer.holographERC721TransferHelper;
+    ERC721TransferHelper = initializer.ERC721TransferHelper;
     factoryUpgradeGate = IFactoryUpgradeGate(initializer.factoryUpgradeGate);
     marketFilterDAOAddress = initializer.marketFilterDAOAddress;
 
@@ -185,6 +172,18 @@ contract ERC721Drop is
     _setInitialized();
     return InitializableInterface.init.selector;
   }
+
+  /// @notice Getter for last minted token ID (gets next token id and subtracts 1)
+  function _lastMintedTokenId() internal view returns (uint256) {
+    return _currentIndex - 1;
+  }
+
+  /// @notice Start token ID for minting (1-100 vs 0-99)
+  function _startTokenId() internal pure override returns (uint256) {
+    return 1;
+  }
+
+  constructor() {}
 
   /// @dev Getter for admin role associated with the contract to handle metadata
   /// @return boolean if address is admin
@@ -279,7 +278,7 @@ contract ERC721Drop is
     override(ERC721AUpgradeable)
     returns (bool)
   {
-    if (operator == holographERC721TransferHelper) {
+    if (operator == ERC721TransferHelper) {
       return true;
     }
     return super.isApprovedForAll(nftOwner, operator);
