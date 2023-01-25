@@ -140,7 +140,7 @@ contract ERC721Drop is
 
   constructor() {}
 
-  ///  @dev Initialize a new drop contract
+  /// @dev Initialize a new drop contract
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
 

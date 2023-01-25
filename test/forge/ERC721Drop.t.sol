@@ -75,6 +75,21 @@ contract ERC721DropTest is Test {
   }
 
   modifier setupHolographNFTBase(uint64 editionSize) {
+    // The stuff below should be moved to setup
+    vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    feeManager = new HolographFeeManager(0, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    factoryUpgradeGate = new FactoryUpgradeGate(UPGRADE_GATE_ADMIN_ADDRESS);
+    vm.etch(address(0x000000000000AAeB6D7670E522A718067333cd4E), address(new OperatorFilterRegistry()).code);
+    ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x123456)));
+    vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+
+    impl = address(new ERC721Drop());
+    // address payable newDrop = payable(address(new ERC721DropProxy()));
+    // holographNFTBase = ERC721Drop(newDrop);
+    vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    feeManager.setFeeOverride(address(holographNFTBase), 500);
+    ////////////////////////
+
     DropInitializer memory initializer = DropInitializer({
       holographFeeManager: address(feeManager),
       holographERC721TransferHelper: address(0x1234),
@@ -91,40 +106,27 @@ contract ERC721DropTest is Test {
       metadataRendererInit: ""
     });
 
-    ERC721Drop drop = new ERC721Drop();
-    ERC721DropProxy proxy = new ERC721DropProxy();
-    proxy.init(abi.encode(drop, abi.encode(initializer)));
+    ERC721DropProxy erc721DropProxy = new ERC721DropProxy();
+    erc721DropProxy.init(abi.encode(new ERC721Drop(), abi.encode(initializer)));
+
+    address payable newDrop = payable(address(erc721DropProxy));
+    holographNFTBase = ERC721Drop(newDrop);
 
     _;
   }
 
   function setUp() public {
     // vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    // feeManager = new HolographFeeManager(500, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    // feeManager = new HolographFeeManager(0, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
     // factoryUpgradeGate = new FactoryUpgradeGate(UPGRADE_GATE_ADMIN_ADDRESS);
     // vm.etch(address(0x000000000000AAeB6D7670E522A718067333cd4E), address(new OperatorFilterRegistry()).code);
     // ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x123456)));
     // vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    // impl = address(new ERC721Drop());
-    // ERC721Drop(payable(impl)).init(
-    //   abi.encode(
-    //     address(feeManager),
-    //     address(0x1234),
-    //     address(0x0),
-    //     address(0x0),
-    //     "Contract Name",
-    //     "Contract Symbol",
-    //     address(0x0),
-    //     address(0x0),
-    //     uint64(0),
-    //     uint16(0),
-    //     new bytes[](0),
-    //     address(0x0),
-    //     new bytes(0)
-    //   )
-    // );
+    // impl = address(new ERC721Drop(feeManager, address(0x1234), factoryUpgradeGate, address(0x0)));
     // address payable newDrop = payable(address(new ERC721DropProxy()));
     // holographNFTBase = ERC721Drop(newDrop);
+    // vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    // feeManager.setFeeOverride(address(holographNFTBase), 500);
   }
 
   // modifier factoryWithSubscriptionAddress(address subscriptionAddress) {
@@ -155,7 +157,7 @@ contract ERC721DropTest is Test {
 
   function test_Init() public setupHolographNFTBase(10) {
     console.log("test_Init");
-    // require(holographNFTBase.owner() == DEFAULT_OWNER_ADDRESS, "Default owner set wrong");
+    require(holographNFTBase.owner() == DEFAULT_OWNER_ADDRESS, "Default owner set wrong");
     // (
     //   IMetadataRenderer renderer,
     //   uint64 editionSize,
