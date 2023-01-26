@@ -18,7 +18,7 @@ contract HolographNFTCreatorV1 is Initializable {
   /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.holograph')) - 1)
    */
-  bytes32 constant _holographSlot = precomputeslot("eip1967.Holograph.holograph");
+  bytes32 constant _holographSlot = 0xb4107f746e9496e8452accc7de63d1c5e14c19f510932daa04077cd49e8bd77a;
 
   string private constant CANNOT_BE_ZERO = "Cannot be 0 address";
 
@@ -42,11 +42,11 @@ contract HolographNFTCreatorV1 is Initializable {
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (
-      address implementationAddress,
-      address editionMetadataRendererAddress,
-      address dropMetadataRendererAddress,
-      address holograph
-    ) = abi.decode(initPayload, (address, address, address, address));
+      address implementationAddress, 
+      address editionMetadataRendererAddress, 
+      address dropMetadataRendererAddress
+    ) = abi.decode(initPayload, (address, address, address));
+    
     require(implementationAddress != address(0), CANNOT_BE_ZERO);
     require(address(editionMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
     require(address(dropMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
@@ -55,9 +55,9 @@ contract HolographNFTCreatorV1 is Initializable {
     editionMetadataRenderer = EditionMetadataRenderer(editionMetadataRendererAddress);
     dropMetadataRenderer = DropMetadataRenderer(dropMetadataRendererAddress);
 
-    assembly {
-      sstore(_holographSlot, holograph)
-    }
+    // assembly {
+    //   sstore(_holographSlot, holograph)
+    // }
 
     _setInitialized();
     return InitializableInterface.init.selector;
@@ -76,10 +76,9 @@ contract HolographNFTCreatorV1 is Initializable {
     IMetadataRenderer metadataRenderer,
     bytes memory metadataInitializer
   ) public returns (address payable newDropAddress) {
-    // get initial implementation to get variables that used to be set as immutable
+    // Get initial implementation to get variables that used to be set as immutable
     ERC721Drop impl = ERC721Drop(payable(implementation));
-    // do not use constructor arguments
-    ERC721DropProxy newDrop = new ERC721DropProxy();
+    ERC721DropProxy erc721DropProxy = new ERC721DropProxy();
     DropInitializer memory initialzer = DropInitializer(
       impl.holographFeeManager.address,
       impl.holographERC721TransferHelper.address,
@@ -96,9 +95,9 @@ contract HolographNFTCreatorV1 is Initializable {
       metadataInitializer
     );
 
-    // run init to connect proxy to initial implementation, and to configure the drop
-    newDrop.init(abi.encode(implementation, abi.encode(initialzer)));
-    newDropAddress = payable(address(newDrop));
+    // Run init to connect proxy to initial implementation, and to configure the drop
+    erc721DropProxy.init(abi.encode(implementation, abi.encode(initialzer)));
+    newDropAddress = payable(address(erc721DropProxy));
   }
 
   //        ,-.
@@ -317,4 +316,5 @@ contract HolographNFTCreatorV1 is Initializable {
         metadataInitializer: metadataInitializer
       });
   }
+
 }

@@ -316,4 +316,5 @@ contract HolographNFTCreatorV1 is Initializable {
         metadataInitializer: metadataInitializer
       });
   }
+
 }
