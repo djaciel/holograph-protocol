@@ -3,18 +3,22 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-///  @param _contractName Contract name
-///  @param _contractSymbol Contract symbol
-///  @param _initialOwner User that owns and can mint the edition, gets royalty and sales payouts and can update the base url if needed.
-///  @param _fundsRecipient Wallet/user that receives funds from sale
-///  @param _editionSize Number of editions that can be minted in total. If type(uint64).max, unlimited editions can be minted as an open edition.
-///  @param _royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty.
-///  @param _setupCalls Bytes-encoded list of setup multicalls
-///  @param _metadataRenderer Renderer contract to use
-///  @param _metadataRendererInit Renderer data initial contract
+/// @param holographFeeManager Holograph Fee Manager
+/// @param holographERC721TransferHelper Transfer helper
+/// @param factoryUpgradeGate Factory upgrade gate - A registry contract allowing for upgrades to be allowed
+/// @param marketFilterDAOAddress Market filter DAO address - Manage subscription to the DAO for marketplace filtering based off royalty payouts.
+/// @param contractName Contract name
+/// @param contractSymbol Contract symbol
+/// @param initialOwner User that owns and can mint the edition, gets royalty and sales payouts and can update the base url if needed.
+/// @param fundsRecipient Wallet/user that receives funds from sale
+/// @param editionSize Number of editions that can be minted in total. If type(uint64).max, unlimited editions can be minted as an open edition.
+/// @param royaltyBPS BPS of the royalty set on the contract. Can be 0 for no royalty.
+/// @param setupCalls Bytes-encoded list of setup multicalls
+/// @param metadataRenderer Renderer contract to use
+/// @param metadataRendererInit Renderer data initial contract
 struct DropInitializer {
   address holographFeeManager;
-  address ERC721TransferHelper;
+  address holographERC721TransferHelper;
   address factoryUpgradeGate;
   address marketFilterDAOAddress;
   string contractName;

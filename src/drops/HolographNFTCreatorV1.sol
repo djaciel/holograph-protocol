@@ -85,7 +85,7 @@ contract HolographNFTCreatorV1 is Initializable {
 
     DropInitializer memory initialzer = DropInitializer(
       impl.holographFeeManager.address,
-      impl.ERC721TransferHelper.address,
+      impl.holographERC721TransferHelper.address,
       impl.factoryUpgradeGate.address,
       impl.marketFilterDAOAddress.address,
       name,

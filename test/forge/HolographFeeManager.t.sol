@@ -17,7 +17,7 @@ contract HolographFeeManagerTest is Test {
   }
 
   function test_GetDefaultFee() public {
-    (address payable recipient, uint256 feeBps) = feeManager.getHOLOGRAPHWithdrawFeesBPS(address(0x0));
+    (address payable recipient, uint256 feeBps) = feeManager.getWithdrawFeesBps(address(0x0));
 
     require(recipient == DEFAULT_ADMIN_ADDRESS, "Recipient is wrong");
     require(feeBps == 1234, "Default fee not recognized");
@@ -27,7 +27,7 @@ contract HolographFeeManagerTest is Test {
     vm.prank(DEFAULT_ADMIN_ADDRESS);
     feeManager.setFeeOverride(address(0x1234), 1444);
 
-    (address payable recipient, uint256 feeBps) = feeManager.getHOLOGRAPHWithdrawFeesBPS(address(0x1234));
+    (address payable recipient, uint256 feeBps) = feeManager.getWithdrawFeesBps(address(0x1234));
 
     require(recipient == DEFAULT_ADMIN_ADDRESS, "Recipient is wrong");
     require(feeBps == 1444, "Fee not recognized");
@@ -38,7 +38,7 @@ contract HolographFeeManagerTest is Test {
     vm.prank(DEFAULT_ADMIN_ADDRESS);
     feeManager.transferOwnership(newOwnerAddress);
 
-    (address payable recipient, uint256 feeBps) = feeManager.getHOLOGRAPHWithdrawFeesBPS(mediaContract);
+    (address payable recipient, uint256 feeBps) = feeManager.getWithdrawFeesBps(mediaContract);
 
     require(recipient == newOwnerAddress, "Recipient is wrong");
     require(feeBps == 1234, "Default fee not recognized");
@@ -49,7 +49,7 @@ contract HolographFeeManagerTest is Test {
     feeManager.transferOwnership(address(mockUser));
 
     {
-      (address payable recipient, uint256 feeBps) = feeManager.getHOLOGRAPHWithdrawFeesBPS(mediaContract);
+      (address payable recipient, uint256 feeBps) = feeManager.getWithdrawFeesBps(mediaContract);
       require(recipient == address(mockUser), "Recipient is wrong");
       require(feeBps == 1234, "Default fee not recognized");
     }
@@ -58,7 +58,7 @@ contract HolographFeeManagerTest is Test {
     feeManager.setFeeOverride(mediaContract, 1200);
 
     {
-      (address payable recipient, uint256 feeBps) = feeManager.getHOLOGRAPHWithdrawFeesBPS(mediaContract);
+      (address payable recipient, uint256 feeBps) = feeManager.getWithdrawFeesBps(mediaContract);
       require(recipient == address(mockUser), "Recipient is wrong");
       require(feeBps == 1200, "Updated fee is wrong");
     }

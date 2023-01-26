@@ -58,7 +58,7 @@ contract ERC721Drop is
   bytes32 public constant SALES_MANAGER_ROLE = keccak256("SALES_MANAGER");
 
   /// @dev HOLOGRAPH V3 transfer helper address for auto-approval
-  address public ERC721TransferHelper;
+  address public holographERC721TransferHelper;
 
   /// @dev Factory upgrade gate
   IFactoryUpgradeGate public factoryUpgradeGate;
@@ -134,7 +134,7 @@ contract ERC721Drop is
 
     DropInitializer memory initializer = abi.decode(initPayload, (DropInitializer));
     holographFeeManager = IHolographFeeManager(initializer.holographFeeManager);
-    ERC721TransferHelper = initializer.ERC721TransferHelper;
+    holographERC721TransferHelper = initializer.holographERC721TransferHelper;
     factoryUpgradeGate = IFactoryUpgradeGate(initializer.factoryUpgradeGate);
     marketFilterDAOAddress = initializer.marketFilterDAOAddress;
 
@@ -278,7 +278,7 @@ contract ERC721Drop is
     override(ERC721AUpgradeable)
     returns (bool)
   {
-    if (operator == ERC721TransferHelper) {
+    if (operator == holographERC721TransferHelper) {
       return true;
     }
     return super.isApprovedForAll(nftOwner, operator);
@@ -287,7 +287,7 @@ contract ERC721Drop is
   /// @dev Gets the holograph fee for amount of withdraw
   /// @param amount amount of funds to get fee for
   function holographFeeForAmount(uint256 amount) public returns (address payable, uint256) {
-    (address payable recipient, uint256 bps) = holographFeeManager.getHOLOGRAPHWithdrawFeesBPS(address(this));
+    (address payable recipient, uint256 bps) = holographFeeManager.getWithdrawFeesBps(address(this));
     return (recipient, (amount * bps) / 10_000);
   }
 

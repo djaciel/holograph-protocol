@@ -21,7 +21,7 @@ contract HolographFeeManager is Ownable, IHolographFeeManager {
     emit FeeOverrideSet(mediaContract, amountBPS);
   }
 
-  function getHOLOGRAPHWithdrawFeesBPS(address mediaContract) external view returns (address payable, uint256) {
+  function getWithdrawFeesBps(address mediaContract) external view returns (address payable, uint256) {
     if (feeOverride[mediaContract] > 0) {
       return (payable(owner()), feeOverride[mediaContract]);
     }
