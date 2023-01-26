@@ -14,7 +14,7 @@ import {IMetadataRenderer} from "./interfaces/IMetadataRenderer.sol";
 import {ERC721Drop} from "./ERC721Drop.sol";
 
 /// @notice Holograph NFT Creator V1
-contract HolographNFTCreatorV1 is Initializable {
+contract HolographDropCreator is Initializable {
   /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.holograph')) - 1)
    */
@@ -104,7 +104,7 @@ contract HolographNFTCreatorV1 is Initializable {
   //        `-'
   //        /|\
   //         |                    ,----------------.              ,----------.
-  //        / \                   |HolographNFTCreatorV1|              |ERC721Drop|
+  //        / \                   |HolographDropCreator|              |ERC721Drop|
   //      Caller                  `-------+--------'              `----+-----'
   //        |                       createDrop()                       |
   //        | --------------------------------------------------------->
@@ -126,7 +126,7 @@ contract HolographNFTCreatorV1 is Initializable {
   //        | return drop contract address|                            |
   //        | <----------------------------                            |
   //      Caller                  ,-------+--------.              ,----+-----.
-  //        ,-.                   |HolographNFTCreatorV1|              |ERC721Drop|
+  //        ,-.                   |HolographDropCreator|              |ERC721Drop|
   //        `-'                   `----------------'              `----------'
   //        /|\
   //         |
@@ -183,7 +183,7 @@ contract HolographNFTCreatorV1 is Initializable {
   //        `-'
   //        /|\
   //         |                    ,----------------.              ,----------.
-  //        / \                   |HolographNFTCreatorV1|              |ERC721Drop|
+  //        / \                   |HolographDropCreator|              |ERC721Drop|
   //      Caller                  `-------+--------'              `----+-----'
   //        |                       createDrop()                       |
   //        | --------------------------------------------------------->
@@ -205,7 +205,7 @@ contract HolographNFTCreatorV1 is Initializable {
   //        | return drop contract address|                            |
   //        | <----------------------------                            |
   //      Caller                  ,-------+--------.              ,----+-----.
-  //        ,-.                   |HolographNFTCreatorV1|              |ERC721Drop|
+  //        ,-.                   |HolographDropCreator|              |ERC721Drop|
   //        `-'                   `----------------'              `----------'
   //        /|\
   //         |
@@ -250,7 +250,7 @@ contract HolographNFTCreatorV1 is Initializable {
   //        `-'
   //        /|\
   //         |                    ,----------------.              ,----------.
-  //        / \                   |HolographNFTCreatorV1|              |ERC721Drop|
+  //        / \                   |HolographDropCreator|              |ERC721Drop|
   //      Caller                  `-------+--------'              `----+-----'
   //        |                      createEdition()                     |
   //        | --------------------------------------------------------->
@@ -272,7 +272,7 @@ contract HolographNFTCreatorV1 is Initializable {
   //        | return drop contract address|                            |
   //        | <----------------------------                            |
   //      Caller                  ,-------+--------.              ,----+-----.
-  //        ,-.                   |HolographNFTCreatorV1|              |ERC721Drop|
+  //        ,-.                   |HolographDropCreator|              |ERC721Drop|
   //        `-'                   `----------------'              `----------'
   //        /|\
   //         |
@@ -316,5 +316,4 @@ contract HolographNFTCreatorV1 is Initializable {
         metadataInitializer: metadataInitializer
       });
   }
-
 }

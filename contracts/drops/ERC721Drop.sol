@@ -36,7 +36,7 @@ import {ERC721DropStorageV1} from "./storage/ERC721DropStorageV1.sol";
 contract ERC721Drop is
   Initializable,
   ERC721AUpgradeable,
-  // UUPSUpgradeable,
+  UUPSUpgradeable,
   IERC2981Upgradeable,
   ReentrancyGuardUpgradeable,
   AccessControlUpgradeable,
@@ -195,11 +195,11 @@ contract ERC721Drop is
   /// @notice Connects this contract to the factory upgrade gate
   /// @param newImplementation proposed new upgrade implementation
   /// @dev Only can be called by admin
-  // function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {
-  //   if (!factoryUpgradeGate.isValidUpgradePath({_newImpl: newImplementation, _currentImpl: _getImplementation()})) {
-  //     revert Admin_InvalidUpgradeAddress(newImplementation);
-  //   }
-  // }
+  function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {
+    if (!factoryUpgradeGate.isValidUpgradePath({_newImpl: newImplementation, _currentImpl: _getImplementation()})) {
+      revert Admin_InvalidUpgradeAddress(newImplementation);
+    }
+  }
 
   //        ,-.
   //        `-'
