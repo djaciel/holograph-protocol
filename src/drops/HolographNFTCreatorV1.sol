@@ -1,6 +1,4 @@
 // SPDX-License-Identifier: MIT
-
-/*SOLIDITY_COMPILER_VERSION*/
 pragma solidity ^0.8.13;
 
 import "../abstract/Admin.sol";
@@ -27,7 +25,7 @@ contract HolographNFTCreatorV1 is Initializable {
   /// @notice Emitted when a edition is created reserving the corresponding token IDs.
   event CreatedDrop(address indexed creator, address indexed editionContractAddress, uint256 editionSize);
 
-  /// @notice Address for implementation of HolographNFTBase to clone
+  /// @notice Address for ERC721Drop of implementation contract to clone
   address public implementation;
 
   /// @notice Edition metdata renderer
@@ -82,7 +80,6 @@ contract HolographNFTCreatorV1 is Initializable {
     ERC721Drop impl = ERC721Drop(payable(implementation));
     // do not use constructor arguments
     ERC721DropProxy newDrop = new ERC721DropProxy();
-
     DropInitializer memory initialzer = DropInitializer(
       impl.holographFeeManager.address,
       impl.holographERC721TransferHelper.address,

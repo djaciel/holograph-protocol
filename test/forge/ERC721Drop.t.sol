@@ -36,8 +36,8 @@ contract ERC721DropTest is Test {
     uint256 feeAmount
   );
 
-  ERC721DropProxy public erc721DropProxy;
   ERC721Drop public erc721Drop;
+  ERC721DropProxy public erc721DropProxy;
   MockUser public mockUser;
   DummyMetadataRenderer public dummyRenderer = new DummyMetadataRenderer();
   HolographFeeManager public feeManager;
@@ -73,10 +73,11 @@ contract ERC721DropTest is Test {
       metadataRendererInit: ""
     });
 
+    erc721Drop = new ERC721Drop();
     erc721DropProxy = new ERC721DropProxy();
-    erc721DropProxy.init(abi.encode(new ERC721Drop(), abi.encode(initializer)));
-    address payable newDrop = payable(address(erc721DropProxy));
-    erc721Drop = ERC721Drop(newDrop);
+    erc721DropProxy.init(abi.encode(erc721Drop, abi.encode(initializer)));
+    address payable erc721DropProxyAddress = payable(address(erc721DropProxy));
+    erc721Drop = ERC721Drop(erc721DropProxyAddress);
 
     _;
   }
@@ -117,9 +118,6 @@ contract ERC721DropTest is Test {
     ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x123456)));
     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
     feeManager.setFeeOverride(address(erc721Drop), 500);
-
-    address payable newDrop = payable(address(erc721DropProxy));
-    erc721Drop = ERC721Drop(newDrop);
   }
 
   function test_Init() public setupTestDrop(10) {
