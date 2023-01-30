@@ -9,6 +9,5 @@
     "reason-string": false,
     "compiler-version": false,
     "func-name-mixedcase": false
-  },
-  "plugins": ["prettier"]
+  }
 }
