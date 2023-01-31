@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, Vm} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
 import {DeploymentConfig} from "../../contracts/struct/DeploymentConfig.sol";
@@ -210,7 +210,11 @@ contract HolographDropCreatorTest is Test {
     console.log("Registry address: ", address(factory.getRegistry()));
     console.log("Signer address: ", signer);
 
+    vm.recordLogs();
     factory.deployHolographableContract(config, signature, alice);
+    Vm.Log[] memory entries = vm.getRecordedLogs();
+    address newDropAddress = address(uint160(uint256(entries[0].topics[1])));
+    console.log("New drop address: ", newDropAddress);
 
     // TODO: Test checks start here - Reenable when ready
     // ERC721Drop drop = ERC721Drop(payable(deployedEdition));
