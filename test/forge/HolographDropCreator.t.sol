@@ -34,7 +34,7 @@ contract HolographDropCreatorTest is Test {
   EditionMetadataRenderer public editionMetadataRenderer;
   DropMetadataRenderer public dropMetadataRenderer;
 
-  address public signer;
+  address public alice;
 
   function setUp() public {
     uint256 forkId = vm.createFork("http://localhost:8545");
@@ -60,7 +60,7 @@ contract HolographDropCreatorTest is Test {
     // creator = HolographDropCreator(creatorProxyAddress);
 
     // Setup signer wallet
-    signer = vm.addr(1);
+    alice = vm.addr(1);
   }
 
   function getDeploymentConfig(DropInitializer memory initializer) public returns (DeploymentConfig memory) {
@@ -72,6 +72,57 @@ contract HolographDropCreatorTest is Test {
         byteCode: abi.encode(0x0), // for custom contract is not used
         initCode: abi.encode(initializer) // init code is used to initialize the ERC721Drop enforcer
       });
+  }
+
+  /**
+   * @dev Internal function used for verifying a signature
+   */
+  function _verifySigner(
+    bytes32 r,
+    bytes32 s,
+    uint8 v,
+    bytes32 hash,
+    address signer
+  ) private returns (bool) {
+    // console.logBytes32(r);
+    // console.logBytes32(s);
+    // console.logUint(v);
+
+    if (v < 27) {
+      v += 27;
+    }
+    if (v != 27 && v != 28) {
+      return false;
+    }
+    // prevent signature malleability by checking if s-value is in the upper range
+    if (uint256(s) > 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0) {
+      // if s-value is in upper range, calculate a new s-value
+      s = bytes32(0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141 - uint256(s));
+      // flip the v-value
+      if (v == 27) {
+        v = 28;
+      } else {
+        v = 27;
+      }
+      // check if s-value is still in upper range
+      if (uint256(s) > 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0) {
+        return false;
+      }
+    }
+    /**
+     * @dev signature is checked against EIP-191 first, then directly, to support legacy wallets
+     */
+    return (signer != address(0) &&
+      (ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)), v, r, s) == signer ||
+        ecrecover(hash, v, r, s) == signer));
+  }
+
+  function _isContract(address contractAddress) private view returns (bool) {
+    bytes32 codehash;
+    assembly {
+      codehash := extcodehash(contractAddress)
+    }
+    return (codehash != 0x0 && codehash != 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470);
   }
 
   function test_CreateEdition() public {
@@ -135,10 +186,23 @@ contract HolographDropCreatorTest is Test {
     (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hash);
     Verification memory signature = Verification(r, s, v);
 
+    address signer = ecrecover(hash, v, r, s);
+    assertEq(alice, signer);
+
+    bool isSigner = _verifySigner(r, s, v, hash, alice);
+    assertEq(isSigner, true);
+
     // Pass the payload hash, with the signature, and signer's address
-    // address deployedEdition = creator.createEdition(config, signature, alice);
-    HolographFactory factory = HolographFactory(payable(0x9b7e233AE485d7FF9204d85Ac27D7CC359a5E230)); // TODO: Replace with factory address
-    factory.deployHolographableContract(config, signature, signer);
+    HolographFactory factory = HolographFactory(payable(0x5Db4dB97fDfFB29cD85eA5484C3722095c413fc7)); // TODO: Replace with `getFactoryAddress`'
+
+    console.log("Factory address: ", address(factory));
+    console.log("Holograph address: ", address(factory.getHolograph()));
+    console.log("Registry address: ", address(factory.getRegistry()));
+
+    console.log("Signer address: ", signer);
+    // console.log("Signature: ", signature.r);
+
+    factory.deployHolographableContract(config, signature, alice);
 
     // TODO: Test checks start here - Reenable when ready
     // ERC721Drop drop = ERC721Drop(payable(deployedEdition));
