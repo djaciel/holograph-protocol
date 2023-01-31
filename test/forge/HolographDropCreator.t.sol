@@ -87,6 +87,7 @@ contract HolographDropCreatorTest is Test {
     // console.logBytes32(r);
     // console.logBytes32(s);
     // console.logUint(v);
+    console.logBytes32(hash);
 
     if (v < 27) {
       v += 27;
@@ -182,7 +183,16 @@ contract HolographDropCreatorTest is Test {
 
     // Get deployment config, hash it, and then sign it
     DeploymentConfig memory config = getDeploymentConfig(initializer);
-    bytes32 hash = keccak256(abi.encode(config));
+    bytes32 hash = keccak256(
+      abi.encodePacked(
+        config.contractType,
+        config.chainType,
+        config.salt,
+        keccak256(config.byteCode),
+        keccak256(config.initCode),
+        alice
+      )
+    );
     (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hash);
     Verification memory signature = Verification(r, s, v);
 
@@ -198,9 +208,7 @@ contract HolographDropCreatorTest is Test {
     console.log("Factory address: ", address(factory));
     console.log("Holograph address: ", address(factory.getHolograph()));
     console.log("Registry address: ", address(factory.getRegistry()));
-
     console.log("Signer address: ", signer);
-    // console.log("Signature: ", signature.r);
 
     factory.deployHolographableContract(config, signature, alice);
 
