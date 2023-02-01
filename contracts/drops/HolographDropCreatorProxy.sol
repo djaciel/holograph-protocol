@@ -106,7 +106,7 @@ import "../abstract/Initializable.sol";
 
 import "../interface/InitializableInterface.sol";
 
-contract HolographNFTCreatorProxy is Admin, Initializable {
+contract HolographDropCreatorProxy is Admin, Initializable {
   /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.nftCreator')) - 1)
    */

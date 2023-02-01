@@ -130,35 +130,25 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     salt,
     'HolographERC721Drop',
     generateInitCode(
-      ['string', 'string', 'uint16', 'uint256', 'bool', 'bytes'],
+      ['tuple(address,address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)'],
       [
-        'Holograph ERC721 Drop Collection', // contractName
-        'hDROP', // contractSymbol
-        1000, // contractBps == 0%
-        ConfigureEvents([]), // eventConfig
-        true, // skipInit
-        generateInitCode(
-          ['tuple(address,address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)'],
-          [
-            [
-              '0x0000000000000000000000000000000000000000', // holographFeeManager
-              '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
-              '0x0000000000000000000000000000000000000000', // factoryUpgradeGate
-              '0x0000000000000000000000000000000000000000', // marketFilterDAOAddress
-              'Holograph ERC721 Drop Collection', // contractName
-              'hDROP', // contractSymbol
-              deployer.address, // initialOwner
-              deployer.address, // fundsRecipient
-              1000, // 1000 editions
-              1000, // 10% royalty
-              [], // setupCalls
-              '0x0000000000000000000000000000000000000000', // metadataRenderer
-              '0x', // metadataRendererInit
-            ],
-          ]
-        ), // initCode
+        [
+          '0x0000000000000000000000000000000000000000', // holographFeeManager
+          '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
+          '0x0000000000000000000000000000000000000000', // factoryUpgradeGate
+          '0x0000000000000000000000000000000000000000', // marketFilterDAOAddress
+          'Holograph ERC721 Drop Collection', // contractName
+          'hDROP', // contractSymbol
+          deployer.address, // initialOwner
+          deployer.address, // fundsRecipient
+          1000, // 1000 editions
+          1000, // 10% royalty
+          [], // setupCalls
+          '0x0000000000000000000000000000000000000000', // metadataRenderer
+          generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
+        ],
       ]
-    )
+    ) // initCode
   );
   hre.deployments.log('the future "HolographERC721Drop" address is', futureErc721DropAddress);
 
