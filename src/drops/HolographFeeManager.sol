@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.13;
 
 import {IHolographFeeManager} from "./interfaces/IHolographFeeManager.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";

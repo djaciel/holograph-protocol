@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.13;
 
 import {IFactoryUpgradeGate} from "./interfaces/IFactoryUpgradeGate.sol";
 import "./utils/OwnableSkeleton.sol";

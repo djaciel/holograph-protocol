@@ -5,7 +5,7 @@ optimizer_runs = 5000
 out = 'dist/artifacts'
 test = 'test'
 src = 'contracts'
-libs = ['lib']
+libs = ['node_modules', 'lib']
 gas_reports = ['*']
 
 fs_permissions = [{ access = "read", path = "./dist/artifacts"}]

@@ -7,6 +7,7 @@ import '@holographxyz/hardhat-deploy-holographed';
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
+import '@nomicfoundation/hardhat-foundry';
 import { subtask } from 'hardhat/config';
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from 'hardhat/builtin-tasks/task-names';
 
@@ -143,10 +144,11 @@ global.__DEPLOYMENT_SALT = '0x' + DEPLOYMENT_SALT.toString(16).padStart(64, '0')
 
 // This subtask runs before the actual hardhat compile task
 // THis is used to filter out the contracts/drops folder from compilation since those are handled by foundry
-subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(async (_, __, runSuper) => {
-  const paths = await runSuper();
-  return paths.filter((p) => !p.includes('contracts/drops/'));
-});
+// TODO: Disabled for now
+// subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(async (_, __, runSuper) => {
+//   const paths = await runSuper();
+//   return paths.filter((p) => !p.includes('contracts/drops/'));
+// });
 
 // this task runs before the actual hardhat deploy task
 task('deploy', 'Deploy contracts').setAction(async (args, hre, runSuper) => {

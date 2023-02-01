@@ -1,7 +1,5 @@
-/*SOLIDITY_COMPILER_VERSION*/
-
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.13;
 
 /// @param holographFeeManager Holograph Fee Manager
 /// @param holographERC721TransferHelper Transfer helper

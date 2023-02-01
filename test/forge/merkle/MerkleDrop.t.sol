@@ -1,5 +1,5 @@
 // // SPDX-License-Identifier: MIT
-// pragma solidity ^0.8.13;
+// pragma solidity 0.8.13;
 
 // import {Test} from "forge-std/Test.sol";
 // import {IERC721Drop} from "../../../contracts/drops/interfaces/IERC721Drop.sol";

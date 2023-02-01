@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT pragma solidity ^0.8.13; /*** **** :WARNING: **** This file is auto-generated from a
+// SPDX-License-Identifier: MIT pragma solidity 0.8.13; /*** **** :WARNING: **** This file is auto-generated from a
 template (MerkleData.sol.ejs). **** To update, update the template not the resulting test file. **** **** ***/ contract
 MerkleData { struct MerkleEntry { address user; uint256 maxMint; uint256 mintPrice; bytes32[] proof; } struct TestData {
 MerkleEntry[] entries; bytes32 root; } mapping(string => TestData) public data; function getTestSetByName(string memory
