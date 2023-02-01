@@ -1,6 +1,7 @@
 declare var global: any;
 import { Contract } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DeployFunction, Deployment } from '@holographxyz/hardhat-deploy-holographed/types';
 import { LeanHardhatRuntimeEnvironment, hreSplit, txParams } from '../scripts/utils/helpers';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
