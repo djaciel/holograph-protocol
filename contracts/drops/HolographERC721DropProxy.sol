@@ -106,7 +106,7 @@ import "../abstract/Initializable.sol";
 
 import "../interface/InitializableInterface.sol";
 
-contract ERC721DropProxy is Admin, Initializable {
+contract HolographERC721DropProxy is Admin, Initializable {
   /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.erc721Drop')) - 1)
    */

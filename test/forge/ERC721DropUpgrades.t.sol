@@ -4,17 +4,17 @@ pragma solidity 0.8.13;
 import {Test} from "forge-std/Test.sol";
 import {IERC721AUpgradeable} from "erc721a-upgradeable/IERC721AUpgradeable.sol";
 
-import {IERC721Drop} from "../../contracts/drops/interfaces/IERC721Drop.sol";
-import {ERC721Drop} from "../../contracts/drops/ERC721Drop.sol";
+import {IHolographERC721Drop} from "../../contracts/drops/interfaces/IHolographERC721Drop.sol";
+import {HolographERC721Drop} from "../../contracts/drops/HolographERC721Drop.sol";
 import {HolographFeeManager} from "../../contracts/drops/HolographFeeManager.sol";
 import {DummyMetadataRenderer} from "./utils/DummyMetadataRenderer.sol";
 import {MockUser} from "./utils/MockUser.sol";
 import {IMetadataRenderer} from "../../contracts/drops/interfaces/IMetadataRenderer.sol";
 import {FactoryUpgradeGate} from "../../contracts/drops/FactoryUpgradeGate.sol";
-import {ERC721DropProxy} from "../../contracts/drops/ERC721DropProxy.sol";
+import {HolographERC721DropProxy} from "../../contracts/drops/HolographERC721DropProxy.sol";
 
-contract ERC721DropTest is Test {
-  ERC721Drop holographNFTBase;
+contract HolographERC721DropTest is Test {
+  HolographERC721Drop holographNFTBase;
   MockUser mockUser;
   DummyMetadataRenderer public dummyRenderer = new DummyMetadataRenderer();
   HolographFeeManager public feeManager;

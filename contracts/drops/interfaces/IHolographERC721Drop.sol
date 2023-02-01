@@ -4,7 +4,7 @@ pragma solidity 0.8.13;
 import {IMetadataRenderer} from "../interfaces/IMetadataRenderer.sol";
 
 /// @notice Interface for HOLOGRAPH Drops contract
-interface IERC721Drop {
+interface IHolographERC721Drop {
   // Access errors
 
   /// @notice Only admin can access this function

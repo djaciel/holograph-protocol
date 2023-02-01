@@ -2,14 +2,14 @@
 pragma solidity 0.8.13;
 
 import {IMetadataRenderer} from "../interfaces/IMetadataRenderer.sol";
-import {IERC721Drop} from "../interfaces/IERC721Drop.sol";
+import {IHolographERC721Drop} from "../interfaces/IHolographERC721Drop.sol";
 import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/interfaces/IERC721MetadataUpgradeable.sol";
 import {IERC2981Upgradeable} from "@openzeppelin/contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 import {NFTMetadataRenderer} from "../utils/NFTMetadataRenderer.sol";
 import {MetadataRenderAdminCheck} from "./MetadataRenderAdminCheck.sol";
 
 interface DropConfigGetter {
-  function config() external view returns (IERC721Drop.Configuration memory config);
+  function config() external view returns (IHolographERC721Drop.Configuration memory config);
 }
 
 /// @notice EditionMetadataRenderer for editions support
@@ -85,7 +85,7 @@ contract EditionMetadataRenderer is IMetadataRenderer, MetadataRenderAdminCheck 
   function contractURI() external view override returns (string memory) {
     address target = msg.sender;
     TokenEditionInfo storage editionInfo = tokenInfos[target];
-    IERC721Drop.Configuration memory config = DropConfigGetter(target).config();
+    IHolographERC721Drop.Configuration memory config = DropConfigGetter(target).config();
 
     return
       NFTMetadataRenderer.encodeContractURIJSON({
@@ -105,7 +105,7 @@ contract EditionMetadataRenderer is IMetadataRenderer, MetadataRenderAdminCheck 
     address target = msg.sender;
 
     TokenEditionInfo memory info = tokenInfos[target];
-    IERC721Drop media = IERC721Drop(target);
+    IHolographERC721Drop media = IHolographERC721Drop(target);
 
     uint256 maxSupply = media.saleDetails().maxSupply;
 

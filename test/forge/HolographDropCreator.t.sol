@@ -11,7 +11,7 @@ import {IMetadataRenderer} from "../../contracts/drops/interfaces/IMetadataRende
 import "../../contracts/drops/HolographDropCreator.sol";
 import "../../contracts/drops/HolographDropCreatorProxy.sol";
 import "../../contracts/drops/HolographFeeManager.sol";
-import "../../contracts/drops/ERC721Drop.sol";
+import "../../contracts/drops/HolographERC721Drop.sol";
 
 import {HolographFactory} from "../../contracts/HolographFactory.sol";
 
@@ -28,7 +28,7 @@ contract HolographDropCreatorTest is Test {
   address payable public constant DEFAULT_FUNDS_RECIPIENT_ADDRESS = payable(address(0x21303));
   address payable public constant DEFAULT_HOLOGRAPH_DAO_ADDRESS = payable(address(0x999));
 
-  ERC721Drop public erc721Drop;
+  HolographERC721Drop public erc721Drop;
   HolographDropCreator public impl;
   HolographDropCreator public creator;
   EditionMetadataRenderer public editionMetadataRenderer;
@@ -66,7 +66,7 @@ contract HolographDropCreatorTest is Test {
   function getDeploymentConfig(DropInitializer memory initializer) public returns (DeploymentConfig memory) {
     return
       DeploymentConfig({
-        contractType: "HolographERC721DropEnforcer",
+        contractType: "HolographERC721Drop",
         chainType: 1338, // holograph.getChainId(),
         salt: 0x0000000000000000000000000000000000000000000000000000000000000001, // random salt from user
         byteCode: abi.encode(0x0), // for custom contract is not used
@@ -141,7 +141,7 @@ contract HolographDropCreatorTest is Test {
     bytes memory metadataInitializer = abi.encode(description, imageURI, animationURI);
 
     // Setup sale config
-    IERC721Drop.SalesConfiguration memory saleConfig = IERC721Drop.SalesConfiguration({
+    IHolographERC721Drop.SalesConfiguration memory saleConfig = IHolographERC721Drop.SalesConfiguration({
       publicSaleStart: 0,
       publicSaleEnd: type(uint64).max,
       presaleStart: 0,
@@ -153,7 +153,7 @@ contract HolographDropCreatorTest is Test {
 
     bytes[] memory setupData = new bytes[](1);
     setupData[0] = abi.encodeWithSelector(
-      ERC721Drop.setSaleConfiguration.selector,
+      HolographERC721Drop.setSaleConfiguration.selector,
       saleConfig.publicSalePrice,
       saleConfig.maxSalePurchasePerAddress,
       saleConfig.publicSaleStart,
@@ -232,7 +232,7 @@ contract HolographDropCreatorTest is Test {
   //     1000,
   //     100,
   //     DEFAULT_FUNDS_RECIPIENT_ADDRESS,
-  //     IERC721Drop.SalesConfiguration({
+  //     IHolographERC721Drop.SalesConfiguration({
   //       publicSaleStart: 0,
   //       publicSaleEnd: type(uint64).max,
   //       presaleStart: 0,
@@ -258,7 +258,7 @@ contract HolographDropCreatorTest is Test {
   //     1000,
   //     100,
   //     DEFAULT_FUNDS_RECIPIENT_ADDRESS,
-  //     IERC721Drop.SalesConfiguration({
+  //     IHolographERC721Drop.SalesConfiguration({
   //       publicSaleStart: 0,
   //       publicSaleEnd: type(uint64).max,
   //       presaleStart: 0,

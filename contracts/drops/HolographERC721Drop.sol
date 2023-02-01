@@ -16,7 +16,7 @@ import {DropInitializer} from "../struct/DropInitializer.sol";
 import {IHolographFeeManager} from "./interfaces/IHolographFeeManager.sol";
 import {IMetadataRenderer} from "./interfaces/IMetadataRenderer.sol";
 import {IOperatorFilterRegistry} from "./interfaces/IOperatorFilterRegistry.sol";
-import {IERC721Drop} from "./interfaces/IERC721Drop.sol";
+import {IHolographERC721Drop} from "./interfaces/IHolographERC721Drop.sol";
 import {IOwnable} from "./interfaces/IOwnable.sol";
 import {IFactoryUpgradeGate} from "./interfaces/IFactoryUpgradeGate.sol";
 
@@ -27,20 +27,20 @@ import {PublicMulticall} from "./utils/PublicMulticall.sol";
 import {ERC721DropStorageV1} from "./storage/ERC721DropStorageV1.sol";
 
 /**
- * @notice HOLOGRAPH NFT Base contract for Drops and Editions
+ * @notice HOLOGRAPH NFT contract for Drops and Editions
  *
  * @dev For drops: assumes 1. linear mint order, 2. max number of mints needs to be less than max_uint64
  *       (if you have more than 18 quintillion linear mints you should probably not be using this contract)
  *
  */
-contract ERC721Drop is
+contract HolographERC721Drop is
   Initializable,
   ERC721AUpgradeable,
   UUPSUpgradeable,
   IERC2981Upgradeable,
   ReentrancyGuardUpgradeable,
   AccessControlUpgradeable,
-  IERC721Drop,
+  IHolographERC721Drop,
   PublicMulticall,
   OwnableSkeleton,
   FundsReceiver,
@@ -240,10 +240,10 @@ contract ERC721Drop is
   }
 
   /// @notice Sale details
-  /// @return IERC721Drop.SaleDetails sale information details
-  function saleDetails() external view returns (IERC721Drop.SaleDetails memory) {
+  /// @return IHolographERC721Drop.SaleDetails sale information details
+  function saleDetails() external view returns (IHolographERC721Drop.SaleDetails memory) {
     return
-      IERC721Drop.SaleDetails({
+      IHolographERC721Drop.SaleDetails({
         publicSaleActive: _publicSaleActive(),
         presaleActive: _presaleActive(),
         publicSalePrice: salesConfig.publicSalePrice,
@@ -260,9 +260,14 @@ contract ERC721Drop is
 
   /// @dev Number of NFTs the user has minted per address
   /// @param minter to get counts for
-  function mintedPerAddress(address minter) external view override returns (IERC721Drop.AddressMintDetails memory) {
+  function mintedPerAddress(address minter)
+    external
+    view
+    override
+    returns (IHolographERC721Drop.AddressMintDetails memory)
+  {
     return
-      IERC721Drop.AddressMintDetails({
+      IHolographERC721Drop.AddressMintDetails({
         presaleMints: presaleMintsByAddress[minter],
         publicMints: _numberMinted(minter) - presaleMintsByAddress[minter],
         totalMints: _numberMinted(minter)
@@ -341,7 +346,7 @@ contract ERC721Drop is
   //                       |                             |<---'
   //                       |                             |
   //                       |                             |----.
-  //                       |                             |    | emit IERC721Drop.Sale()
+  //                       |                             |    | emit IHolographERC721Drop.Sale()
   //                       |                             |<---'
   //                       |                             |
   //                       | return first minted token ID|
@@ -383,7 +388,7 @@ contract ERC721Drop is
     _mintNFTs(_msgSender(), quantity);
     uint256 firstMintedTokenId = _lastMintedTokenId() - quantity;
 
-    emit IERC721Drop.Sale({
+    emit IHolographERC721Drop.Sale({
       to: _msgSender(),
       quantity: quantity,
       pricePerToken: salePrice,
@@ -455,7 +460,7 @@ contract ERC721Drop is
   //                       |                                   |<---'
   //                       |                                   |
   //                       |                                   |----.
-  //                       |                                   |    | emit IERC721Drop.Sale()
+  //                       |                                   |    | emit IHolographERC721Drop.Sale()
   //                       |                                   |<---'
   //                       |                                   |
   //                       |    return first minted token ID   |
@@ -502,7 +507,7 @@ contract ERC721Drop is
     _mintNFTs(_msgSender(), quantity);
     uint256 firstMintedTokenId = _lastMintedTokenId() - quantity;
 
-    emit IERC721Drop.Sale({
+    emit IHolographERC721Drop.Sale({
       to: _msgSender(),
       quantity: quantity,
       pricePerToken: pricePerToken,
@@ -991,7 +996,7 @@ contract ERC721Drop is
 
   /// @notice Simple override for owner interface.
   /// @return user owner address
-  function owner() public view override(OwnableSkeleton, IERC721Drop) returns (address) {
+  function owner() public view override(OwnableSkeleton, IHolographERC721Drop) returns (address) {
     return super.owner();
   }
 
@@ -1029,6 +1034,6 @@ contract ERC721Drop is
       super.supportsInterface(interfaceId) ||
       type(IOwnable).interfaceId == interfaceId ||
       type(IERC2981Upgradeable).interfaceId == interfaceId ||
-      type(IERC721Drop).interfaceId == interfaceId;
+      type(IHolographERC721Drop).interfaceId == interfaceId;
   }
 }

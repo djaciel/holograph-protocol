@@ -5,15 +5,15 @@ import {EditionMetadataRenderer} from "../../../contracts/drops/metadata/Edition
 import {MetadataRenderAdminCheck} from "../../../contracts/drops/metadata/MetadataRenderAdminCheck.sol";
 import {IMetadataRenderer} from "../../../contracts/drops/interfaces/IMetadataRenderer.sol";
 import {DropMockBase} from "./DropMockBase.sol";
-import {IERC721Drop} from "../../../contracts/drops/interfaces/IERC721Drop.sol";
+import {IHolographERC721Drop} from "../../../contracts/drops/interfaces/IHolographERC721Drop.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract IERC721OnChainDataMock {
-  IERC721Drop.SaleDetails private saleDetailsInternal;
-  IERC721Drop.Configuration private configInternal;
+  IHolographERC721Drop.SaleDetails private saleDetailsInternal;
+  IHolographERC721Drop.Configuration private configInternal;
 
   constructor(uint256 totalMinted, uint256 maxSupply) {
-    saleDetailsInternal = IERC721Drop.SaleDetails({
+    saleDetailsInternal = IHolographERC721Drop.SaleDetails({
       publicSaleActive: false,
       presaleActive: false,
       publicSalePrice: 0,
@@ -27,7 +27,7 @@ contract IERC721OnChainDataMock {
       maxSupply: maxSupply
     });
 
-    configInternal = IERC721Drop.Configuration({
+    configInternal = IHolographERC721Drop.Configuration({
       metadataRenderer: IMetadataRenderer(address(0x0)),
       editionSize: 12,
       royaltyBPS: 1000,
@@ -39,11 +39,11 @@ contract IERC721OnChainDataMock {
     return "MOCK NAME";
   }
 
-  function saleDetails() external returns (IERC721Drop.SaleDetails memory) {
+  function saleDetails() external returns (IHolographERC721Drop.SaleDetails memory) {
     return saleDetailsInternal;
   }
 
-  function config() external returns (IERC721Drop.Configuration memory) {
+  function config() external returns (IHolographERC721Drop.Configuration memory) {
     return configInternal;
   }
 }
