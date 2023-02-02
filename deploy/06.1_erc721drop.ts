@@ -31,21 +31,21 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
   }
 
-  // DropInitializer memory initialzer = DropInitializer(
-  //   impl.holographFeeManager.address,
-  //   impl.holographERC721TransferHelper.address,
-  //   impl.factoryUpgradeGate.address,
-  //   impl.marketFilterDAOAddress.address,
-  //   name,
-  //   symbol,
-  //   defaultAdmin,
-  //   fundsRecipient,
-  //   editionSize,
-  //   royaltyBPS,
-  //   setupCalls,
-  //   address(metadataRenderer),
-  //   metadataInitializer
-  // );
+  // DropInitializer memory initializer = DropInitializer({
+  //   holographFeeManager: address(feeManager),
+  //   holographERC721TransferHelper: address(0x1234),
+  //   factoryUpgradeGate: address(factoryUpgradeGate),
+  //   marketFilterDAOAddress: address(0x0),
+  //   contractName: "Test NFT",
+  //   contractSymbol: "TNFT",
+  //   initialOwner: DEFAULT_OWNER_ADDRESS,
+  //   fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
+  //   editionSize: editionSize,
+  //   royaltyBPS: 800,
+  //   setupCalls: new bytes[](0),
+  //   metadataRenderer: address(dummyRenderer),
+  //   metadataRendererInit: ""
+  // });
   const salt = hre.deploymentSalt;
   const futureErc721DropAddress = await genesisDeriveFutureAddress(
     hre,
@@ -55,15 +55,15 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ['tuple(address,address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)'],
       [
         [
-          '0x0000000000000000000000000000000000000000', // holographFeeManager
-          '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
-          '0x0000000000000000000000000000000000000000', // factoryUpgradeGate
-          '0x0000000000000000000000000000000000000000', // marketFilterDAOAddress
+          '0x0000000000000000000000000000000000000001', // holographFeeManager
+          '0x0000000000000000000000000000000000000002', // holographERC721TransferHelper
+          '0x0000000000000000000000000000000000000003', // factoryUpgradeGate
+          '0x0000000000000000000000000000000000000004', // marketFilterDAOAddress
           'Holograph ERC721 Drop Collection', // contractName
           'hDROP', // contractSymbol
           deployer.address, // initialOwner
           deployer.address, // fundsRecipient
-          1000, // 1000 editions
+          100, // 100 editions
           1000, // 10% royalty
           [], // setupCalls (sales configuration)
           '0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f', // metadataRenderer
@@ -85,15 +85,15 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         ['tuple(address,address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)'],
         [
           [
-            '0x0000000000000000000000000000000000000000', // holographFeeManager
-            '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
-            '0x0000000000000000000000000000000000000000', // factoryUpgradeGate
-            '0x0000000000000000000000000000000000000000', // marketFilterDAOAddress
+            '0x0000000000000000000000000000000000000001', // holographFeeManager
+            '0x0000000000000000000000000000000000000002', // holographERC721TransferHelper
+            '0x0000000000000000000000000000000000000003', // factoryUpgradeGate
+            '0x0000000000000000000000000000000000000004', // marketFilterDAOAddress
             'Holograph ERC721 Drop Collection', // contractName
             'hDROP', // contractSymbol
             deployer.address, // initialOwner
             deployer.address, // fundsRecipient
-            1000, // 1000 editions
+            100, // 100 editions
             1000, // 10% royalty
             [], // setupCalls (sales configuration)
             '0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f', // metadataRenderer
