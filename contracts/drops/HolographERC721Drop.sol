@@ -9,7 +9,6 @@ import {IERC2981Upgradeable, IERC165Upgradeable} from "@openzeppelin/contracts-u
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
 import {MerkleProofUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
-import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
 import {DropInitializer} from "../struct/DropInitializer.sol";
 
@@ -18,11 +17,9 @@ import {IMetadataRenderer} from "./interfaces/IMetadataRenderer.sol";
 import {IOperatorFilterRegistry} from "./interfaces/IOperatorFilterRegistry.sol";
 import {IHolographERC721Drop} from "./interfaces/IHolographERC721Drop.sol";
 import {IOwnable} from "./interfaces/IOwnable.sol";
-import {IFactoryUpgradeGate} from "./interfaces/IFactoryUpgradeGate.sol";
 
 import {OwnableSkeleton} from "./utils/OwnableSkeleton.sol";
 import {FundsReceiver} from "./utils/FundsReceiver.sol";
-import {Version} from "./utils/Version.sol";
 import {PublicMulticall} from "./utils/PublicMulticall.sol";
 import {ERC721DropStorageV1} from "./storage/ERC721DropStorageV1.sol";
 
@@ -36,7 +33,6 @@ import {ERC721DropStorageV1} from "./storage/ERC721DropStorageV1.sol";
 contract HolographERC721Drop is
   Initializable,
   ERC721AUpgradeable,
-  UUPSUpgradeable,
   IERC2981Upgradeable,
   ReentrancyGuardUpgradeable,
   AccessControlUpgradeable,
@@ -44,9 +40,11 @@ contract HolographERC721Drop is
   PublicMulticall,
   OwnableSkeleton,
   FundsReceiver,
-  Version(0),
   ERC721DropStorageV1
 {
+  bool private _initialized;
+  bool private _initializing;
+
   /// @dev This is the max mint batch size for the optimized ERC721A mint contract
   uint256 constant MAX_MINT_BATCH_SIZE = 8;
 
@@ -59,9 +57,6 @@ contract HolographERC721Drop is
 
   /// @dev HOLOGRAPH V3 transfer helper address for auto-approval
   address public holographERC721TransferHelper;
-
-  /// @dev Factory upgrade gate
-  IFactoryUpgradeGate public factoryUpgradeGate;
 
   /// @dev Holograph Fee Manager address
   IHolographFeeManager public holographFeeManager;
@@ -131,23 +126,23 @@ contract HolographERC721Drop is
   /// @dev Initialize a new drop contract
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
-
+    _initialized = false;
+    _initializing = true;
     DropInitializer memory initializer = abi.decode(initPayload, (DropInitializer));
     holographFeeManager = IHolographFeeManager(initializer.holographFeeManager);
     holographERC721TransferHelper = initializer.holographERC721TransferHelper;
-    factoryUpgradeGate = IFactoryUpgradeGate(initializer.factoryUpgradeGate);
     marketFilterDAOAddress = initializer.marketFilterDAOAddress;
 
     // Setup ERC721A
-    __ERC721A_init(initializer.contractName, initializer.contractSymbol);
+//    __ERC721A_init(initializer.contractName, initializer.contractSymbol);
     // Setup access control
-    __AccessControl_init();
+//    __AccessControl_init();
     // Setup re-entracy guard
-    __ReentrancyGuard_init();
+//    __ReentrancyGuard_init();
     // Setup the owner role
-    _setupRole(DEFAULT_ADMIN_ROLE, initializer.initialOwner);
+//    _setupRole(DEFAULT_ADMIN_ROLE, initializer.initialOwner);
     // Set ownership to original sender of contract call
-    _setOwner(initializer.initialOwner);
+//    _setOwner(initializer.initialOwner);
 
     if (initializer.setupCalls.length > 0) {
       // Setup temporary role
@@ -167,9 +162,11 @@ contract HolographERC721Drop is
     config.metadataRenderer = IMetadataRenderer(initializer.metadataRenderer);
     config.royaltyBPS = initializer.royaltyBPS;
     config.fundsRecipient = initializer.fundsRecipient;
-    IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
+    //IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
 
     _setInitialized();
+    _initializing = false;
+    _initialized = true;
     return InitializableInterface.init.selector;
   }
 
@@ -189,16 +186,6 @@ contract HolographERC721Drop is
   /// @return boolean if address is admin
   function isAdmin(address user) external view returns (bool) {
     return hasRole(DEFAULT_ADMIN_ROLE, user);
-  }
-
-  // TODO: Not supported without UUPS
-  /// @notice Connects this contract to the factory upgrade gate
-  /// @param newImplementation proposed new upgrade implementation
-  /// @dev Only can be called by admin
-  function _authorizeUpgrade(address newImplementation) internal override onlyAdmin {
-    if (!factoryUpgradeGate.isValidUpgradePath({_newImpl: newImplementation, _currentImpl: _getImplementation()})) {
-      revert Admin_InvalidUpgradeAddress(newImplementation);
-    }
   }
 
   //        ,-.

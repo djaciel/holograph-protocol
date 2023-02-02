@@ -42,11 +42,11 @@ contract HolographDropCreator is Initializable {
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (
-      address implementationAddress, 
-      address editionMetadataRendererAddress, 
+      address implementationAddress,
+      address editionMetadataRendererAddress,
       address dropMetadataRendererAddress
     ) = abi.decode(initPayload, (address, address, address));
-    
+
     require(implementationAddress != address(0), CANNOT_BE_ZERO);
     require(address(editionMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
     require(address(dropMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
@@ -82,7 +82,7 @@ contract HolographDropCreator is Initializable {
     DropInitializer memory initialzer = DropInitializer(
       impl.holographFeeManager.address,
       impl.holographERC721TransferHelper.address,
-      impl.factoryUpgradeGate.address,
+      address(0),
       impl.marketFilterDAOAddress.address,
       name,
       symbol,

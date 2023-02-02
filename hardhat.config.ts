@@ -1,6 +1,7 @@
 declare var global: any;
 import fs from 'fs';
 import path from 'path';
+import 'hardhat-preprocessor';
 import '@typechain/hardhat';
 import 'hardhat-gas-reporter';
 import '@holographxyz/hardhat-deploy-holographed';
@@ -19,6 +20,14 @@ import { NetworkType, Network, Networks, networks } from '@holographxyz/networks
 import { GasService } from './scripts/utils/gas-service';
 import dotenv from 'dotenv';
 dotenv.config();
+
+function getRemappings() {
+  return fs
+    .readFileSync("remappings.txt", "utf8")
+    .split("\n")
+    .filter(Boolean) // remove empty lines
+    .map((line) => line.trim().split("="));
+}
 
 function hex2buffer(input: string): Uint8Array {
   input = input.toLowerCase().trim();
@@ -260,7 +269,24 @@ task('abi', 'Create standalone ABI files for all smart contracts')
  * @type import('hardhat/config').HardhatUserConfig
  */
 const config: HardhatUserConfig = {
+  preprocess: {
+    eachLine: (hre) => ({
+      transform: (line: string) => {
+        if (line.match(/^\s*import /i)) {
+          for (const [from, to] of getRemappings()) {
+            if (line.includes(from)) {
+              line = line.replace(from, to);
+              break;
+            }
+          }
+        }
+        return line;
+      },
+    }),
+  },
   paths: {
+    sources: "contracts",
+    cache: "cache_hardhat",
     deployments: DEPLOYMENT_PATH + '/' + currentEnvironment,
   },
   defaultNetwork: 'localhost',
