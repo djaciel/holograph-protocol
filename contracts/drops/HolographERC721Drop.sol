@@ -134,15 +134,15 @@ contract HolographERC721Drop is
     marketFilterDAOAddress = initializer.marketFilterDAOAddress;
 
     // Setup ERC721A
-//    __ERC721A_init(initializer.contractName, initializer.contractSymbol);
+    //    __ERC721A_init(initializer.contractName, initializer.contractSymbol);
     // Setup access control
-//    __AccessControl_init();
+    //    __AccessControl_init();
     // Setup re-entracy guard
-//    __ReentrancyGuard_init();
+    //    __ReentrancyGuard_init();
     // Setup the owner role
-//    _setupRole(DEFAULT_ADMIN_ROLE, initializer.initialOwner);
+    _setupRole(DEFAULT_ADMIN_ROLE, initializer.initialOwner);
     // Set ownership to original sender of contract call
-//    _setOwner(initializer.initialOwner);
+    _setOwner(initializer.initialOwner);
 
     if (initializer.setupCalls.length > 0) {
       // Setup temporary role

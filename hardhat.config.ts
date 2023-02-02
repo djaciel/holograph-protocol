@@ -23,10 +23,10 @@ dotenv.config();
 
 function getRemappings() {
   return fs
-    .readFileSync("remappings.txt", "utf8")
-    .split("\n")
+    .readFileSync('remappings.txt', 'utf8')
+    .split('\n')
     .filter(Boolean) // remove empty lines
-    .map((line) => line.trim().split("="));
+    .map((line) => line.trim().split('='));
 }
 
 function hex2buffer(input: string): Uint8Array {
@@ -285,8 +285,8 @@ const config: HardhatUserConfig = {
     }),
   },
   paths: {
-    sources: "contracts",
-    cache: "cache_hardhat",
+    sources: 'contracts',
+    cache: 'cache_hardhat',
     deployments: DEPLOYMENT_PATH + '/' + currentEnvironment,
   },
   defaultNetwork: 'localhost',
