@@ -3,8 +3,8 @@ pragma solidity 0.8.13;
 
 import {IMetadataRenderer} from "../interfaces/IMetadataRenderer.sol";
 import {IHolographERC721Drop} from "../interfaces/IHolographERC721Drop.sol";
-import {IERC721MetadataUpgradeable} from "@openzeppelin/contracts-upgradeable/interfaces/IERC721MetadataUpgradeable.sol";
-import {IERC2981Upgradeable} from "@openzeppelin/contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
+import {IERC721MetadataUpgradeable} from "../lib/openzeppelin-contracts-upgradeable/interfaces/IERC721MetadataUpgradeable.sol";
+import {IERC2981Upgradeable} from "../lib/openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 import {NFTMetadataRenderer} from "../utils/NFTMetadataRenderer.sol";
 import {MetadataRenderAdminCheck} from "./MetadataRenderAdminCheck.sol";
 
