@@ -19,10 +19,6 @@ import {MockMetadataRenderer} from "./metadata/MockMetadataRenderer.sol";
 import {FactoryUpgradeGate} from "../../contracts/drops/FactoryUpgradeGate.sol";
 import {IERC721AUpgradeable} from "../../contracts/drops/lib/erc721a-upgradeable/ERC721AUpgradeable.sol";
 
-contract Dummy {
-  constructor() {}
-}
-
 contract HolographDropCreatorTest is Test {
   address public constant DEFAULT_OWNER_ADDRESS = address(0x23499);
   address payable public constant DEFAULT_FUNDS_RECIPIENT_ADDRESS = payable(address(0x001));
@@ -64,17 +60,16 @@ contract HolographDropCreatorTest is Test {
     // Map proxy out to full contract interface
     creator = HolographDropCreator(creatorProxyAddress);
 
-    // Create the edition
     address deployedEdition = creator.createEdition(
-      "Holograph ERC721 Drop Collection",
-      "hDROP",
+      "Holograph ERC721 Edition Collection",
+      "hEDITION",
       100,
       1000,
       DEFAULT_FUNDS_RECIPIENT_ADDRESS,
       DEFAULT_FUNDS_RECIPIENT_ADDRESS,
       IHolographERC721Drop.SalesConfiguration({
         publicSaleStart: 0,
-        publicSaleEnd: type(uint64).max,
+        publicSaleEnd: type(uint64).max, // Never ends
         presaleStart: 0,
         presaleEnd: 0,
         publicSalePrice: 0.1 ether,
@@ -91,6 +86,92 @@ contract HolographDropCreatorTest is Test {
     vm.deal(DEFAULT_FUNDS_RECIPIENT_ADDRESS, 10 ether);
     drop.purchase{value: 1 ether}(10);
     assertEq(drop.totalSupply(), 10);
+  }
+
+  function test_CreateDrop() public {
+    // Create implementations
+    HolographERC721Drop erc721Drop = new HolographERC721Drop();
+    HolographDropCreator impl = new HolographDropCreator();
+    HolographDropCreatorProxy creatorProxy = new HolographDropCreatorProxy();
+
+    // Initialize proxy deployment with actual values
+    creatorProxy.init(
+      abi.encode(impl, abi.encode(address(erc721Drop), address(editionMetadataRenderer), address(dropMetadataRenderer)))
+    );
+    address payable creatorProxyAddress = payable(address(creatorProxy));
+
+    // Map proxy out to full contract interface
+    creator = HolographDropCreator(creatorProxyAddress);
+
+    address deployedDrop = creator.createDrop(
+      "Holograph ERC721 Drop Collection",
+      "hDROP",
+      100,
+      1000,
+      DEFAULT_FUNDS_RECIPIENT_ADDRESS,
+      DEFAULT_FUNDS_RECIPIENT_ADDRESS,
+      IHolographERC721Drop.SalesConfiguration({
+        publicSaleStart: 0,
+        publicSaleEnd: type(uint64).max,
+        presaleStart: 0,
+        presaleEnd: 0,
+        publicSalePrice: 0,
+        maxSalePurchasePerAddress: 0,
+        presaleMerkleRoot: bytes32(0)
+      }),
+      "metadataURI",
+      "metadataContractURI"
+    );
+    HolographERC721Drop drop = HolographERC721Drop(payable(deployedDrop));
+    drop.purchase(10);
+    assertEq(drop.totalSupply(), 10);
+  }
+
+  function test_CreateGenericDrop() public {
+    // Create implementations
+    HolographERC721Drop erc721Drop = new HolographERC721Drop();
+    HolographDropCreator impl = new HolographDropCreator();
+    HolographDropCreatorProxy creatorProxy = new HolographDropCreatorProxy();
+
+    // Initialize proxy deployment with actual values
+    creatorProxy.init(
+      abi.encode(impl, abi.encode(address(erc721Drop), address(editionMetadataRenderer), address(dropMetadataRenderer)))
+    );
+    address payable creatorProxyAddress = payable(address(creatorProxy));
+
+    // Map proxy out to full contract interface
+    creator = HolographDropCreator(creatorProxyAddress);
+
+    MockMetadataRenderer mockRenderer = new MockMetadataRenderer();
+
+    address deployedDrop = creator.setupDropsContract(
+      "name",
+      "symbol",
+      100,
+      1000,
+      DEFAULT_FUNDS_RECIPIENT_ADDRESS,
+      DEFAULT_FUNDS_RECIPIENT_ADDRESS,
+      IHolographERC721Drop.SalesConfiguration({
+        publicSaleStart: 0,
+        publicSaleEnd: type(uint64).max,
+        presaleStart: 0,
+        presaleEnd: 0,
+        publicSalePrice: 0,
+        maxSalePurchasePerAddress: 0,
+        presaleMerkleRoot: bytes32(0)
+      }),
+      mockRenderer,
+      ""
+    );
+    HolographERC721Drop drop = HolographERC721Drop(payable(deployedDrop));
+    HolographERC721Drop.SaleDetails memory saleDetails = drop.saleDetails();
+    assertEq(saleDetails.publicSaleStart, 0);
+    assertEq(saleDetails.publicSaleEnd, type(uint64).max);
+    vm.expectRevert(IERC721AUpgradeable.URIQueryForNonexistentToken.selector);
+    drop.tokenURI(1);
+    assertEq(drop.contractURI(), "DEMO");
+    drop.purchase(1);
+    assertEq(drop.tokenURI(1), "DEMO");
   }
 
   function test_CreateHolographEdition() public {
@@ -181,63 +262,6 @@ contract HolographDropCreatorTest is Test {
     drop.purchase{value: 1 ether}(10);
     assertEq(drop.totalSupply(), 10);
   }
-
-  // function test_CreateDrop() public {
-  //   address deployedDrop = creator.createDrop(
-  //     "name",
-  //     "symbol",
-  //     DEFAULT_FUNDS_RECIPIENT_ADDRESS,
-  //     1000,
-  //     100,
-  //     DEFAULT_FUNDS_RECIPIENT_ADDRESS,
-  //     IHolographERC721Drop.SalesConfiguration({
-  //       publicSaleStart: 0,
-  //       publicSaleEnd: type(uint64).max,
-  //       presaleStart: 0,
-  //       presaleEnd: 0,
-  //       publicSalePrice: 0,
-  //       maxSalePurchasePerAddress: 0,
-  //       presaleMerkleRoot: bytes32(0)
-  //     }),
-  //     "metadata_uri",
-  //     "metadata_contract_uri"
-  //   );
-  //   ERC721Drop drop = ERC721Drop(payable(deployedDrop));
-  //   drop.purchase(10);
-  //   assertEq(drop.totalSupply(), 10);
-  // }
-
-  // function test_CreateGenericDrop() public {
-  //   MockMetadataRenderer mockRenderer = new MockMetadataRenderer();
-  //   address deployedDrop = creator.setupDropsContract(
-  //     "name",
-  //     "symbol",
-  //     DEFAULT_FUNDS_RECIPIENT_ADDRESS,
-  //     1000,
-  //     100,
-  //     DEFAULT_FUNDS_RECIPIENT_ADDRESS,
-  //     IHolographERC721Drop.SalesConfiguration({
-  //       publicSaleStart: 0,
-  //       publicSaleEnd: type(uint64).max,
-  //       presaleStart: 0,
-  //       presaleEnd: 0,
-  //       publicSalePrice: 0,
-  //       maxSalePurchasePerAddress: 0,
-  //       presaleMerkleRoot: bytes32(0)
-  //     }),
-  //     mockRenderer,
-  //     ""
-  //   );
-  //   ERC721Drop drop = ERC721Drop(payable(deployedDrop));
-  //   ERC721Drop.SaleDetails memory saleDetails = drop.saleDetails();
-  //   assertEq(saleDetails.publicSaleStart, 0);
-  //   assertEq(saleDetails.publicSaleEnd, type(uint64).max);
-  //   vm.expectRevert(IERC721AUpgradeable.URIQueryForNonexistentToken.selector);
-  //   drop.tokenURI(1);
-  //   assertEq(drop.contractURI(), "DEMO");
-  //   drop.purchase(1);
-  //   assertEq(drop.tokenURI(1), "DEMO");
-  // }
 
   // HELPERS
   function getDeploymentConfig(DropInitializer memory initializer) public returns (DeploymentConfig memory) {

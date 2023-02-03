@@ -42,6 +42,7 @@ contract HolographERC721Drop is
   FundsReceiver,
   ERC721DropStorageV1
 {
+  /// @dev keep track of initialization state
   bool private _initialized;
   bool private _initializing;
 

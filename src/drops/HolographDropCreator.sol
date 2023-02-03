@@ -143,9 +143,9 @@ contract HolographDropCreator is Initializable {
   function setupDropsContract(
     string memory name,
     string memory symbol,
-    address defaultAdmin,
     uint64 editionSize,
     uint16 royaltyBPS,
+    address defaultAdmin,
     address payable fundsRecipient,
     IHolographERC721Drop.SalesConfiguration memory saleConfig,
     IMetadataRenderer metadataRenderer,
@@ -223,9 +223,9 @@ contract HolographDropCreator is Initializable {
   function createDrop(
     string memory name,
     string memory symbol,
-    address defaultAdmin,
     uint64 editionSize,
     uint16 royaltyBPS,
+    address defaultAdmin,
     address payable fundsRecipient,
     IHolographERC721Drop.SalesConfiguration memory saleConfig,
     string memory metadataURIBase,
