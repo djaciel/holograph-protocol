@@ -169,7 +169,7 @@ contract HolographERC721Drop is
     config.metadataRenderer = IMetadataRenderer(initializer.metadataRenderer);
     config.royaltyBPS = initializer.royaltyBPS;
     config.fundsRecipient = initializer.fundsRecipient;
-    //IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
+    // IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
 
     _setInitialized();
     _initializing = false;
