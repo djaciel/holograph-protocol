@@ -32,10 +32,10 @@ contract ERC721AUpgradeable is Initializable, ContextUpgradeable, ERC165Upgradea
     uint256 internal _burnCounter;
 
     // Token name
-    string private _name;
+    string internal _name; // NOTE: Updated from private to internal for Holograph
 
     // Token symbol
-    string private _symbol;
+    string internal _symbol; // NOTE: Updated from private to internal for Holograph
 
     // Mapping from token ID to ownership details
     // An empty struct value does not necessarily mean the token is unowned. See _ownershipOf implementation for details.
