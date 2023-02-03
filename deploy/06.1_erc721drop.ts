@@ -55,19 +55,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ['tuple(address,address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)'],
       [
         [
-          '0x0000000000000000000000000000000000000001', // holographFeeManager
-          '0x0000000000000000000000000000000000000002', // holographERC721TransferHelper
-          '0x0000000000000000000000000000000000000003', // factoryUpgradeGate
-          '0x0000000000000000000000000000000000000004', // marketFilterDAOAddress
+          '0x0000000000000000000000000000000000000000', // holographFeeManager
+          '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
+          '0x0000000000000000000000000000000000000000', // factoryUpgradeGate
+          '0x0000000000000000000000000000000000000000', // marketFilterDAOAddress
           'Holograph ERC721 Drop Collection', // contractName
           'hDROP', // contractSymbol
           deployer.address, // initialOwner
           deployer.address, // fundsRecipient
-          100, // 100 editions
+          1000, // 1000 editions
           1000, // 10% royalty
-          [], // setupCalls (sales configuration)
-          '0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f', // metadataRenderer
-          generateInitCode(['string', 'string', 'string'], ['desc', 'image', 'animation']), // metadataRendererInit
+          [], // setupCalls
+          '0x0000000000000000000000000000000000000000', // metadataRenderer
+          generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
         ],
       ]
     ) // initCode
@@ -85,19 +85,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         ['tuple(address,address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)'],
         [
           [
-            '0x0000000000000000000000000000000000000001', // holographFeeManager
-            '0x0000000000000000000000000000000000000002', // holographERC721TransferHelper
-            '0x0000000000000000000000000000000000000003', // factoryUpgradeGate
-            '0x0000000000000000000000000000000000000004', // marketFilterDAOAddress
+            '0x0000000000000000000000000000000000000000', // holographFeeManager
+            '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
+            '0x0000000000000000000000000000000000000000', // factoryUpgradeGate
+            '0x0000000000000000000000000000000000000000', // marketFilterDAOAddress
             'Holograph ERC721 Drop Collection', // contractName
             'hDROP', // contractSymbol
             deployer.address, // initialOwner
             deployer.address, // fundsRecipient
-            100, // 100 editions
+            1000, // 1000 editions
             1000, // 10% royalty
-            [], // setupCalls (sales configuration)
-            '0x5615dEB798BB3E4dFa0139dFa1b3D433Cc23b72f', // metadataRenderer
-            generateInitCode(['string', 'string', 'string'], ['desc', 'image', 'animation']), // metadataRendererInit
+            [], // setupCalls
+            '0x0000000000000000000000000000000000000000', // metadataRenderer
+            generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
           ],
         ]
       ), // initCode

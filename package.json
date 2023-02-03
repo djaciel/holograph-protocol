@@ -63,6 +63,7 @@
     "@holographxyz/networks": "0.1.15",
     "chai-ethers": "^0.0.1",
     "ganache": "^7.2.0",
+    "hardhat-preprocessor": "^0.1.5",
     "path": "^0.12.7",
     "super-cold-storage-signer": "^0.0.4",
     "truffle-hdwallet-provider": "^1.0.17",

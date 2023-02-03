@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
 
-import {StringsUpgradeable} from "@openzeppelin/contracts-upgradeable/utils/StringsUpgradeable.sol";
+import {StringsUpgradeable} from "./../lib/openzeppelin-contracts-upgradeable/utils/StringsUpgradeable.sol";
 import {IMetadataRenderer} from "../interfaces/IMetadataRenderer.sol";
 import {MetadataRenderAdminCheck} from "./MetadataRenderAdminCheck.sol";
 
