@@ -3,8 +3,8 @@ pragma solidity 0.8.13;
 
 import "../abstract/Initializable.sol";
 
-import {ERC721AUpgradeable} from "erc721a-upgradeable/ERC721AUpgradeable.sol";
-import {IERC721AUpgradeable} from "erc721a-upgradeable/IERC721AUpgradeable.sol";
+import {ERC721AUpgradeable} from "./lib/erc721a-upgradeable/contracts/ERC721AUpgradeable.sol";
+import {IERC721AUpgradeable} from "./lib/erc721a-upgradeable/contracts/erc721a-upgradeable/IERC721AUpgradeable.sol";
 import {IERC2981Upgradeable, IERC165Upgradeable} from "@openzeppelin/contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
 import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {ReentrancyGuardUpgradeable} from "@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";

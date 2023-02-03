@@ -17,7 +17,7 @@ import {HolographFactory} from "../../contracts/HolographFactory.sol";
 
 import {MockMetadataRenderer} from "./metadata/MockMetadataRenderer.sol";
 import {FactoryUpgradeGate} from "../../contracts/drops/FactoryUpgradeGate.sol";
-import {IERC721AUpgradeable} from "erc721a-upgradeable/IERC721AUpgradeable.sol";
+import {IERC721AUpgradeable} from "../../contracts/drops/lib/erc721a-upgradeable/ERC721AUpgradeable.sol";
 
 contract Dummy {
   constructor() {}

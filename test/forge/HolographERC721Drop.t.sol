@@ -4,7 +4,7 @@ pragma solidity 0.8.13;
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
-import {IERC721AUpgradeable} from "erc721a-upgradeable/IERC721AUpgradeable.sol";
+import {IERC721AUpgradeable} from "../../contracts/drops/lib/erc721a-upgradeable/IERC721AUpgradeable.sol";
 
 import {DropInitializer} from "../../contracts/struct/DropInitializer.sol";
 
