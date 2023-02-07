@@ -1,12 +1,17 @@
 declare var global: any;
 import fs from 'fs';
 import path from 'path';
+import 'hardhat-preprocessor';
 import '@typechain/hardhat';
 import 'hardhat-gas-reporter';
 import '@holographxyz/hardhat-deploy-holographed';
 import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
+import '@nomicfoundation/hardhat-foundry';
+import { subtask } from 'hardhat/config';
+import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from 'hardhat/builtin-tasks/task-names';
+
 import { types, task, HardhatUserConfig } from 'hardhat/config';
 import '@holographxyz/hardhat-holograph-contract-builder';
 import { BigNumber } from 'ethers';
@@ -16,7 +21,15 @@ import { GasService } from './scripts/utils/gas-service';
 import dotenv from 'dotenv';
 dotenv.config();
 
-function hex2buffer(input: string): Uin8Array {
+function getRemappings() {
+  return fs
+    .readFileSync('remappings.txt', 'utf8')
+    .split('\n')
+    .filter(Boolean) // remove empty lines
+    .map((line) => line.trim().split('='));
+}
+
+function hex2buffer(input: string): Uint8Array {
   input = input.toLowerCase().trim();
   if (input.startsWith('0x')) {
     input = input.substring(2).trim();
@@ -47,7 +60,7 @@ if (
   global.__superColdStorage = {
     address: process.env.SUPER_COLD_STORAGE_ADDRESS,
     domain: process.env.SUPER_COLD_STORAGE_DOMAIN,
-    authorization: process.env.SUPER_COLD_STORAGE_AUTHORIZATION, //String.fromCharCode.apply(null, hex2buffer(process.env.SUPER_COLD_STORAGE_AUTHORIZATION)),
+    authorization: process.env.SUPER_COLD_STORAGE_AUTHORIZATION, // String.fromCharCode.apply(null, hex2buffer(process.env.SUPER_COLD_STORAGE_AUTHORIZATION)),
     ca: String.fromCharCode.apply(null, hex2buffer(process.env.SUPER_COLD_STORAGE_CA)),
   };
 }
@@ -137,6 +150,14 @@ const DEPLOYMENT_SALT = selectDeploymentSalt();
 const DEPLOYMENT_PATH = process.env.DEPLOYMENT_PATH || 'deployments';
 
 global.__DEPLOYMENT_SALT = '0x' + DEPLOYMENT_SALT.toString(16).padStart(64, '0');
+
+// This subtask runs before the actual hardhat compile task
+// THis is used to filter out the contracts/drops folder from compilation since those are handled by foundry
+// TODO: Disabled for now
+// subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(async (_, __, runSuper) => {
+//   const paths = await runSuper();
+//   return paths.filter((p) => !p.includes('contracts/drops/'));
+// });
 
 // this task runs before the actual hardhat deploy task
 task('deploy', 'Deploy contracts').setAction(async (args, hre, runSuper) => {
@@ -248,7 +269,24 @@ task('abi', 'Create standalone ABI files for all smart contracts')
  * @type import('hardhat/config').HardhatUserConfig
  */
 const config: HardhatUserConfig = {
+  preprocess: {
+    eachLine: (hre) => ({
+      transform: (line: string) => {
+        if (line.match(/^\s*import /i)) {
+          for (const [from, to] of getRemappings()) {
+            if (line.includes(from)) {
+              line = line.replace(from, to);
+              break;
+            }
+          }
+        }
+        return line;
+      },
+    }),
+  },
   paths: {
+    sources: 'contracts',
+    cache: 'cache_hardhat',
     deployments: DEPLOYMENT_PATH + '/' + currentEnvironment,
   },
   defaultNetwork: 'localhost',

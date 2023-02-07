@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.13;
 
 import "../abstract/Admin.sol";
 import "../abstract/Initializable.sol";
 
 import {DropInitializer} from "../struct/DropInitializer.sol";
 
-import {ERC721DropProxy} from "./ERC721DropProxy.sol";
+import {HolographERC721DropProxy} from "./HolographERC721DropProxy.sol";
 import {EditionMetadataRenderer} from "./metadata/EditionMetadataRenderer.sol";
-import {IERC721Drop} from "./interfaces/IERC721Drop.sol";
+import {IHolographERC721Drop} from "./interfaces/IHolographERC721Drop.sol";
 import {DropMetadataRenderer} from "./metadata/DropMetadataRenderer.sol";
 import {IMetadataRenderer} from "./interfaces/IMetadataRenderer.sol";
-import {ERC721Drop} from "./ERC721Drop.sol";
+import {HolographERC721Drop} from "./HolographERC721Drop.sol";
 
 /// @notice Holograph NFT Creator V1
 contract HolographDropCreator is Initializable {
@@ -25,7 +25,7 @@ contract HolographDropCreator is Initializable {
   /// @notice Emitted when a edition is created reserving the corresponding token IDs.
   event CreatedDrop(address indexed creator, address indexed editionContractAddress, uint256 editionSize);
 
-  /// @notice Address for ERC721Drop of implementation contract to clone
+  /// @notice Address for HolographERC721Drop of implementation contract to clone
   address public implementation;
 
   /// @notice Edition metdata renderer
@@ -42,11 +42,11 @@ contract HolographDropCreator is Initializable {
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (
-      address implementationAddress, 
-      address editionMetadataRendererAddress, 
+      address implementationAddress,
+      address editionMetadataRendererAddress,
       address dropMetadataRendererAddress
     ) = abi.decode(initPayload, (address, address, address));
-    
+
     require(implementationAddress != address(0), CANNOT_BE_ZERO);
     require(address(editionMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
     require(address(dropMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
@@ -77,12 +77,11 @@ contract HolographDropCreator is Initializable {
     bytes memory metadataInitializer
   ) public returns (address payable newDropAddress) {
     // Get initial implementation to get variables that used to be set as immutable
-    ERC721Drop impl = ERC721Drop(payable(implementation));
-    ERC721DropProxy erc721DropProxy = new ERC721DropProxy();
+    HolographERC721Drop impl = HolographERC721Drop(payable(implementation));
+    HolographERC721DropProxy erc721DropProxy = new HolographERC721DropProxy();
     DropInitializer memory initialzer = DropInitializer(
       impl.holographFeeManager.address,
       impl.holographERC721TransferHelper.address,
-      impl.factoryUpgradeGate.address,
       impl.marketFilterDAOAddress.address,
       name,
       symbol,
@@ -104,7 +103,7 @@ contract HolographDropCreator is Initializable {
   //        `-'
   //        /|\
   //         |                    ,----------------.              ,----------.
-  //        / \                   |HolographDropCreator|              |ERC721Drop|
+  //        / \                   |HolographDropCreator|              |HolographERC721Drop|
   //      Caller                  `-------+--------'              `----+-----'
   //        |                       createDrop()                       |
   //        | --------------------------------------------------------->
@@ -126,7 +125,7 @@ contract HolographDropCreator is Initializable {
   //        | return drop contract address|                            |
   //        | <----------------------------                            |
   //      Caller                  ,-------+--------.              ,----+-----.
-  //        ,-.                   |HolographDropCreator|              |ERC721Drop|
+  //        ,-.                   |HolographDropCreator|              |HolographERC721Drop|
   //        `-'                   `----------------'              `----------'
   //        /|\
   //         |
@@ -143,17 +142,17 @@ contract HolographDropCreator is Initializable {
   function setupDropsContract(
     string memory name,
     string memory symbol,
-    address defaultAdmin,
     uint64 editionSize,
     uint16 royaltyBPS,
+    address defaultAdmin,
     address payable fundsRecipient,
-    IERC721Drop.SalesConfiguration memory saleConfig,
+    IHolographERC721Drop.SalesConfiguration memory saleConfig,
     IMetadataRenderer metadataRenderer,
     bytes memory metadataInitializer
   ) public returns (address) {
     bytes[] memory setupData = new bytes[](1);
     setupData[0] = abi.encodeWithSelector(
-      ERC721Drop.setSaleConfiguration.selector,
+      HolographERC721Drop.setSaleConfiguration.selector,
       saleConfig.publicSalePrice,
       saleConfig.maxSalePurchasePerAddress,
       saleConfig.publicSaleStart,
@@ -183,7 +182,7 @@ contract HolographDropCreator is Initializable {
   //        `-'
   //        /|\
   //         |                    ,----------------.              ,----------.
-  //        / \                   |HolographDropCreator|              |ERC721Drop|
+  //        / \                   |HolographDropCreator|              |HolographERC721Drop|
   //      Caller                  `-------+--------'              `----+-----'
   //        |                       createDrop()                       |
   //        | --------------------------------------------------------->
@@ -223,11 +222,11 @@ contract HolographDropCreator is Initializable {
   function createDrop(
     string memory name,
     string memory symbol,
-    address defaultAdmin,
     uint64 editionSize,
     uint16 royaltyBPS,
+    address defaultAdmin,
     address payable fundsRecipient,
-    IERC721Drop.SalesConfiguration memory saleConfig,
+    IHolographERC721Drop.SalesConfiguration memory saleConfig,
     string memory metadataURIBase,
     string memory metadataContractURI
   ) external returns (address) {
@@ -250,7 +249,7 @@ contract HolographDropCreator is Initializable {
   //        `-'
   //        /|\
   //         |                    ,----------------.              ,----------.
-  //        / \                   |HolographDropCreator|              |ERC721Drop|
+  //        / \                   |HolographDropCreator|              |HolographERC721Drop|
   //      Caller                  `-------+--------'              `----+-----'
   //        |                      createEdition()                     |
   //        | --------------------------------------------------------->
@@ -296,7 +295,7 @@ contract HolographDropCreator is Initializable {
     uint16 royaltyBPS,
     address payable fundsRecipient,
     address defaultAdmin,
-    IERC721Drop.SalesConfiguration memory saleConfig,
+    IHolographERC721Drop.SalesConfiguration memory saleConfig,
     string memory description,
     string memory animationURI,
     string memory imageURI

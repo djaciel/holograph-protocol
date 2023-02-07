@@ -3,6 +3,7 @@ import fs from 'fs';
 import Web3 from 'web3';
 import { BytesLike, ContractFactory, Contract } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import {
   LeanHardhatRuntimeEnvironment,
@@ -46,6 +47,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     holographRegistryProxy.address
   );
 
+  // Register Generic
   const futureGenericAddress = await genesisDeriveFutureAddress(
     hre,
     salt,
@@ -82,6 +84,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"HolographGeneric" is already registered');
   }
 
+  // Register ERC721
   const futureErc721Address = await genesisDeriveFutureAddress(
     hre,
     salt,
@@ -121,6 +124,55 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"HolographERC721" is already registered');
   }
 
+  // Register ERC721Drop
+  const futureErc721DropAddress = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'HolographERC721Drop',
+    generateInitCode(
+      ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)'],
+      [
+        [
+          '0x0000000000000000000000000000000000000000', // holographFeeManager
+          '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
+          '0x0000000000000000000000000000000000000000', // marketFilterDAOAddress
+          'Holograph ERC721 Drop Collection', // contractName
+          'hDROP', // contractSymbol
+          deployer.address, // initialOwner
+          deployer.address, // fundsRecipient
+          1000, // 1000 editions
+          1000, // 10% royalty
+          [], // setupCalls
+          '0x0000000000000000000000000000000000000000', // metadataRenderer
+          generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
+        ],
+      ]
+    ) // initCode
+  );
+  hre.deployments.log('the future "HolographERC721Drop" address is', futureErc721DropAddress);
+
+  const erc721DropHash = '0x' + web3.utils.asciiToHex('HolographERC721Drop').substring(2).padStart(64, '0');
+  if ((await holographRegistry.getContractTypeAddress(erc721DropHash)) != futureErc721DropAddress) {
+    const erc721DropTx = await holographRegistry
+      .setContractTypeAddress(erc721DropHash, futureErc721DropAddress, {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holographRegistry,
+          data: holographRegistry.populateTransaction.setContractTypeAddress(erc721DropHash, futureErc721DropAddress),
+        })),
+      })
+      .catch(error);
+    hre.deployments.log('Transaction hash:', erc721DropTx.hash);
+    await erc721DropTx.wait();
+    hre.deployments.log(
+      `Registered "HolographERC721Drop" to: ${await holographRegistry.getContractTypeAddress(erc721DropHash)}`
+    );
+  } else {
+    hre.deployments.log('"HolographERC721Drop" is already registered');
+  }
+
+  // Register CxipERC721
   const futureCxipErc721Address = await genesisDeriveFutureAddress(
     hre,
     salt,
@@ -150,6 +202,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"CxipERC721" is already registered');
   }
 
+  // Register ERC20
   const futureErc20Address = await genesisDeriveFutureAddress(
     hre,
     salt,
@@ -189,6 +242,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"HolographERC20" is already registered');
   }
 
+  // Register Royalties
   const futureRoyaltiesAddress = await genesisDeriveFutureAddress(
     hre,
     salt,
@@ -227,5 +281,6 @@ func.dependencies = [
   'DeployGeneric',
   'DeployERC20',
   'DeployERC721',
+  'DeployERC721Drop',
   'DeployERC1155',
 ];

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.13;
 
 import {IOperatorFilterRegistry} from "../../../contracts/drops/interfaces/IOperatorFilterRegistry.sol";
 import {OwnableWithConfirmation} from "../../../contracts/drops/utils/OwnableWithConfirmation.sol";

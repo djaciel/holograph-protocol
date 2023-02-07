@@ -1630,7 +1630,7 @@ One way in which this becomes problematic is because of how holographed ERC20s p
 ### Proof of Concept:
 
     // SPDX-License-Identifier: UNLICENSED
-    pragma solidity ^0.8.13;
+    pragma solidity 0.8.13;
 
     import "forge-std/Test.sol";
     import "../contracts/HolographFactory.sol";

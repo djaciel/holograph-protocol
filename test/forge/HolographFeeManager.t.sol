@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.13;
 
 import {HolographFeeManager} from "../../contracts/drops/HolographFeeManager.sol";
 import {MockUser} from "./utils/MockUser.sol";

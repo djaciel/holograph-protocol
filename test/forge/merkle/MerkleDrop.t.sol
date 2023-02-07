@@ -1,13 +1,13 @@
 // // SPDX-License-Identifier: MIT
-// pragma solidity ^0.8.13;
+// pragma solidity 0.8.13;
 
 // import {Test} from "forge-std/Test.sol";
-// import {IERC721Drop} from "../../../contracts/drops/interfaces/IERC721Drop.sol";
-// import {ERC721Drop} from "../../../contracts/drops/ERC721Drop.sol";
+// import {IHolographERC721Drop} from "../../../contracts/drops/interfaces/IHolographERC721Drop.sol";
+// import {HolographERC721Drop} from "../../../contracts/drops/HolographERC721Drop.sol";
 // import {HolographFeeManager} from "../../../contracts/drops/HolographFeeManager.sol";
 // import {DummyMetadataRenderer} from "../utils/DummyMetadataRenderer.sol";
 // import {FactoryUpgradeGate} from "../../../contracts/drops/FactoryUpgradeGate.sol";
-// import {ERC721DropProxy} from "../../../contracts/drops/ERC721DropProxy.sol";
+// import {HolographERC721DropProxy} from "../../../contracts/drops/HolographERC721DropProxy.sol";
 
 // import {MerkleData} from "./MerkleData.sol";
 
@@ -44,7 +44,7 @@
 //     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
 
 //     address impl = address(new ERC721Drop(feeManager, address(1234), FactoryUpgradeGate(address(0)), address(0)));
-//     address payable newDrop = payable(address(new ERC721DropProxy(impl, "")));
+//     address payable newDrop = payable(address(new HolographERC721DropProxy(impl, "")));
 //     holographNFTBase = ERC721Drop(newDrop);
 //     merkleData = new MerkleData();
 //   }
@@ -103,7 +103,7 @@
 //     vm.deal(address(item.user), 1 ether);
 //     vm.startPrank(address(item.user));
 
-//     vm.expectRevert(IERC721Drop.Presale_TooManyForAddress.selector);
+//     vm.expectRevert(IHolographERC721Drop.Presale_TooManyForAddress.selector);
 //     holographNFTBase.purchasePresale{value: item.mintPrice * 3}(3, item.maxMint, item.mintPrice, item.proof);
 
 //     holographNFTBase.purchasePresale{value: item.mintPrice * 1}(1, item.maxMint, item.mintPrice, item.proof);
@@ -111,12 +111,12 @@
 //     assertEq(holographNFTBase.saleDetails().totalMinted, 2);
 //     require(holographNFTBase.ownerOf(1) == address(item.user), "owner is wrong for new minted token");
 
-//     vm.expectRevert(IERC721Drop.Presale_TooManyForAddress.selector);
+//     vm.expectRevert(IHolographERC721Drop.Presale_TooManyForAddress.selector);
 //     holographNFTBase.purchasePresale{value: item.mintPrice * 1}(1, item.maxMint, item.mintPrice, item.proof);
 
 //     holographNFTBase.purchase{value: 0.1 ether}(1);
 //     require(holographNFTBase.ownerOf(3) == address(item.user), "owner is wrong for new minted token");
-//     vm.expectRevert(IERC721Drop.Purchase_TooManyForAddress.selector);
+//     vm.expectRevert(IHolographERC721Drop.Purchase_TooManyForAddress.selector);
 //     holographNFTBase.purchase{value: 0.1 ether}(1);
 //     vm.stopPrank();
 //   }
@@ -153,7 +153,7 @@
 //     vm.deal(address(item.user), 1 ether);
 //     vm.startPrank(address(item.user));
 
-//     vm.expectRevert(IERC721Drop.Mint_SoldOut.selector);
+//     vm.expectRevert(IHolographERC721Drop.Mint_SoldOut.selector);
 //     holographNFTBase.purchasePresale{value: item.mintPrice}(1, item.maxMint, item.mintPrice, item.proof);
 //     vm.stopPrank();
 //   }
@@ -176,7 +176,7 @@
 
 //     vm.startPrank(address(0x10));
 //     MerkleData.MerkleEntry memory item = merkleData.getTestSetByName("test-3-addresses").entries[0];
-//     vm.expectRevert(IERC721Drop.Presale_Inactive.selector);
+//     vm.expectRevert(IHolographERC721Drop.Presale_Inactive.selector);
 //     holographNFTBase.purchasePresale{value: item.mintPrice}(1, item.maxMint, item.mintPrice, item.proof);
 //   }
 // }

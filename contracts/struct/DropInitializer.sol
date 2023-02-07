@@ -1,11 +1,8 @@
-pragma solidity 0.8.13;
-
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity 0.8.13;
 
 /// @param holographFeeManager Holograph Fee Manager
 /// @param holographERC721TransferHelper Transfer helper
-/// @param factoryUpgradeGate Factory upgrade gate - A registry contract allowing for upgrades to be allowed
 /// @param marketFilterDAOAddress Market filter DAO address - Manage subscription to the DAO for marketplace filtering based off royalty payouts.
 /// @param contractName Contract name
 /// @param contractSymbol Contract symbol
@@ -19,7 +16,6 @@ pragma solidity ^0.8.13;
 struct DropInitializer {
   address holographFeeManager;
   address holographERC721TransferHelper;
-  address factoryUpgradeGate;
   address marketFilterDAOAddress;
   string contractName;
   string contractSymbol;
