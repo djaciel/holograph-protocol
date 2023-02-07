@@ -57,7 +57,7 @@ contract HolographERC721DropTest is Test {
     DropInitializer memory initializer = DropInitializer({
       holographFeeManager: address(feeManager),
       holographERC721TransferHelper: address(0x1234),
-      marketFilterDAOAddress: address(0x0),
+      marketFilterAddress: address(0x0),
       contractName: "Test NFT",
       contractSymbol: "TNFT",
       initialOwner: DEFAULT_OWNER_ADDRESS,
@@ -86,7 +86,7 @@ contract HolographERC721DropTest is Test {
   //     holographFeeManager: address(feeManager),
   //     holographERC721TransferHelper: address(0x1234),
   //     factoryUpgradeGate: address(factoryUpgradeGate),
-  //     marketFilterDAOAddress: address(subscriptionAddress),
+  //     marketFilterAddress: address(subscriptionAddress),
   //     contractName: "Test NFT",
   //     contractSymbol: "TNFT",
   //     initialOwner: DEFAULT_OWNER_ADDRESS,
@@ -160,8 +160,8 @@ contract HolographERC721DropTest is Test {
   //   vm.stopPrank();
   //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
 
-  //   console.log("subscriptionAddress: %s", erc721Drop.marketFilterDAOAddress());
-  //   erc721Drop.manageMarketFilterDAOSubscription(true);
+  //   console.log("subscriptionAddress: %s", erc721Drop.marketFilterAddress());
+  //   erc721Drop.manageMarketFilterSubscription(true);
   //   erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 10);
   //   erc721Drop.setApprovalForAll(address(0xcafeea3), true);
   //   vm.stopPrank();
@@ -171,7 +171,7 @@ contract HolographERC721DropTest is Test {
   //   );
   //   erc721Drop.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x123456), 1);
   //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   erc721Drop.manageMarketFilterDAOSubscription(false);
+  //   erc721Drop.manageMarketFilterSubscription(false);
   //   vm.prank(address(0xcafeea3));
   //   erc721Drop.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x123456), 1);
   // }
@@ -183,7 +183,7 @@ contract HolographERC721DropTest is Test {
   // {
   //   vm.startPrank(address(0xcafecafe));
   //   vm.expectRevert(IHolographERC721Drop.Access_OnlyAdmin.selector);
-  //   erc721Drop.manageMarketFilterDAOSubscription(true);
+  //   erc721Drop.manageMarketFilterSubscription(true);
   //   vm.stopPrank();
   // }
 

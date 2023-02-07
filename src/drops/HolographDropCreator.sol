@@ -82,7 +82,7 @@ contract HolographDropCreator is Initializable {
     DropInitializer memory initialzer = DropInitializer(
       impl.holographFeeManager.address,
       impl.holographERC721TransferHelper.address,
-      impl.marketFilterDAOAddress.address,
+      impl.marketFilterAddress.address,
       name,
       symbol,
       defaultAdmin,

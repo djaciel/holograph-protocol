@@ -52,7 +52,7 @@ contract HolographDropCreatorTest is Test {
     vm.selectFork(forkId);
 
     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    HolographFeeManager holographFeeManager = new HolographFeeManager(500, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    holographFeeManager = new HolographFeeManager(500, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
     editionMetadataRenderer = new EditionMetadataRenderer();
     dropMetadataRenderer = new DropMetadataRenderer();
 

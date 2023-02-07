@@ -3,7 +3,7 @@ pragma solidity 0.8.13;
 
 /// @param holographFeeManager Holograph Fee Manager
 /// @param holographERC721TransferHelper Transfer helper
-/// @param marketFilterDAOAddress Market filter DAO address - Manage subscription to the DAO for marketplace filtering based off royalty payouts.
+/// @param marketFilterAddress Market filter address - Manage subscription to the for marketplace filtering based off royalty payouts.
 /// @param contractName Contract name
 /// @param contractSymbol Contract symbol
 /// @param initialOwner User that owns and can mint the edition, gets royalty and sales payouts and can update the base url if needed.
@@ -16,7 +16,7 @@ pragma solidity 0.8.13;
 struct DropInitializer {
   address holographFeeManager;
   address holographERC721TransferHelper;
-  address marketFilterDAOAddress;
+  address marketFilterAddress;
   string contractName;
   string contractSymbol;
   address initialOwner;
