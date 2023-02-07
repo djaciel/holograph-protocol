@@ -130,12 +130,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     salt,
     'HolographERC721Drop',
     generateInitCode(
-      ['tuple(address,address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)'],
+      ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)'],
       [
         [
           '0x0000000000000000000000000000000000000000', // holographFeeManager
           '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
-          '0x0000000000000000000000000000000000000000', // factoryUpgradeGate
           '0x0000000000000000000000000000000000000000', // marketFilterDAOAddress
           'Holograph ERC721 Drop Collection', // contractName
           'hDROP', // contractSymbol

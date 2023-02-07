@@ -16,7 +16,6 @@ import "../../contracts/drops/HolographERC721Drop.sol";
 import {HolographFactory} from "../../contracts/HolographFactory.sol";
 
 import {MockMetadataRenderer} from "./metadata/MockMetadataRenderer.sol";
-import {FactoryUpgradeGate} from "../../contracts/drops/FactoryUpgradeGate.sol";
 import {IERC721AUpgradeable} from "../../contracts/drops/lib/erc721a-upgradeable/ERC721AUpgradeable.sol";
 
 contract HolographDropCreatorTest is Test {
@@ -230,7 +229,6 @@ contract HolographDropCreatorTest is Test {
     DropInitializer memory initializer = DropInitializer(
       address(holographFeeManager), // HolographFeeManager,
       address(0), // HolographERC721TransferHelper
-      address(0), // FactoryUpgradeGate,
       DEFAULT_HOLOGRAPH_DAO_ADDRESS,
       name,
       symbol,
@@ -307,7 +305,6 @@ contract HolographDropCreatorTest is Test {
     DropInitializer memory initializer = DropInitializer(
       address(holographFeeManager), // HolographFeeManager,
       address(0), // HolographERC721TransferHelper
-      address(0), // FactoryUpgradeGate,
       DEFAULT_HOLOGRAPH_DAO_ADDRESS,
       name,
       symbol,

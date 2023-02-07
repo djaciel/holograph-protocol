@@ -15,7 +15,6 @@ import {MockUser} from "./utils/MockUser.sol";
 import {IOperatorFilterRegistry} from "../../contracts/drops/interfaces/IOperatorFilterRegistry.sol";
 import {IMetadataRenderer} from "../../contracts/drops/interfaces/IMetadataRenderer.sol";
 import {IHolographERC721Drop} from "../../contracts/drops/interfaces/IHolographERC721Drop.sol";
-import {FactoryUpgradeGate} from "../../contracts/drops/FactoryUpgradeGate.sol";
 import {HolographERC721DropProxy} from "../../contracts/drops/HolographERC721DropProxy.sol";
 import {OperatorFilterRegistry} from "./filter/OperatorFilterRegistry.sol";
 import {OperatorFilterRegistryErrorsAndEvents} from "./filter/OperatorFilterRegistryErrorsAndEvents.sol";
@@ -41,11 +40,9 @@ contract HolographERC721DropTest is Test {
   MockUser public mockUser;
   DummyMetadataRenderer public dummyRenderer = new DummyMetadataRenderer();
   HolographFeeManager public feeManager;
-  FactoryUpgradeGate public factoryUpgradeGate;
   address public constant DEFAULT_OWNER_ADDRESS = address(0x23499);
   address payable public constant DEFAULT_FUNDS_RECIPIENT_ADDRESS = payable(address(0x21303));
   address payable public constant DEFAULT_HOLOGRAPH_DAO_ADDRESS = payable(address(0x999));
-  address public constant UPGRADE_GATE_ADMIN_ADDRESS = address(0x942924224);
   address public constant MEDIA_CONTRACT = address(0x123456);
   address public ownedSubscriptionManager;
 
@@ -60,7 +57,6 @@ contract HolographERC721DropTest is Test {
     DropInitializer memory initializer = DropInitializer({
       holographFeeManager: address(feeManager),
       holographERC721TransferHelper: address(0x1234),
-      factoryUpgradeGate: address(factoryUpgradeGate),
       marketFilterDAOAddress: address(0x0),
       contractName: "Test NFT",
       contractSymbol: "TNFT",
@@ -113,7 +109,6 @@ contract HolographERC721DropTest is Test {
   function setUp() public {
     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
     feeManager = new HolographFeeManager(500, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    factoryUpgradeGate = new FactoryUpgradeGate(UPGRADE_GATE_ADMIN_ADDRESS);
     vm.etch(address(0x000000000000AAeB6D7670E522A718067333cd4E), address(new OperatorFilterRegistry()).code);
     ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x123456)));
     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
@@ -137,7 +132,6 @@ contract HolographERC721DropTest is Test {
       abi.encode(
         address(feeManager),
         address(0x1234),
-        factoryUpgradeGate,
         address(0x0),
         "Test NFT",
         "TNFT",

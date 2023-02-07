@@ -10,7 +10,6 @@ import {HolographFeeManager} from "../../contracts/drops/HolographFeeManager.sol
 import {DummyMetadataRenderer} from "./utils/DummyMetadataRenderer.sol";
 import {MockUser} from "./utils/MockUser.sol";
 import {IMetadataRenderer} from "../../contracts/drops/interfaces/IMetadataRenderer.sol";
-import {FactoryUpgradeGate} from "../../contracts/drops/FactoryUpgradeGate.sol";
 import {HolographERC721DropProxy} from "../../contracts/drops/HolographERC721DropProxy.sol";
 
 contract HolographERC721DropTest is Test {
