@@ -16,7 +16,7 @@ pragma solidity 0.8.13;
 struct DropInitializer {
   address holographFeeManager;
   address holographERC721TransferHelper;
-  address marketFilterDAOAddress;
+  address marketFilterAddress;
   string contractName;
   string contractSymbol;
   address initialOwner;
