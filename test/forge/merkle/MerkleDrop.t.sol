@@ -6,20 +6,33 @@
 // import {HolographERC721Drop} from "../../../contracts/drops/HolographERC721Drop.sol";
 // import {HolographFeeManager} from "../../../contracts/drops/HolographFeeManager.sol";
 // import {DummyMetadataRenderer} from "../utils/DummyMetadataRenderer.sol";
-// import {FactoryUpgradeGate} from "../../../contracts/drops/FactoryUpgradeGate.sol";
 // import {HolographERC721DropProxy} from "../../../contracts/drops/HolographERC721DropProxy.sol";
 
 // import {MerkleData} from "./MerkleData.sol";
 
 // contract HolographNFTBaseTest is Test {
-//   ERC721Drop holographNFTBase;
+//   HolographERC721Drop public erc721Drop;
 //   DummyMetadataRenderer public dummyRenderer = new DummyMetadataRenderer();
-//   HolographFeeManager public feeManager;
+//   HolographFeeManager public holographFeeManager;
 //   MerkleData public merkleData;
 //   address public constant DEFAULT_OWNER_ADDRESS = address(0x23499);
 //   address payable public constant DEFAULT_FUNDS_RECIPIENT_ADDRESS = payable(address(0x21303));
 //   address payable public constant DEFAULT_HOLOGRAPH_DAO_ADDRESS = payable(address(0x999));
 //   address public constant mediaContract = address(0x123456);
+
+//   // Drop properties
+//   string private name;
+//   string private symbol;
+//   uint64 private editionSize;
+//   uint16 private royaltyBPS;
+//   string private description;
+//   string private imageURI;
+//   string private animationURI;
+//   string private metadataURI;
+//   string private metadataContractURI;
+//   address payable private defaultAdmin;
+//   address payable private fundsRecipient;
+//   bytes private metadataInitializer;
 
 //   modifier setupTestDrop() {
 //     bytes[] memory setupCalls = new bytes[](0);
@@ -40,7 +53,7 @@
 
 //   function setUp() public {
 //     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-//     feeManager = new HolographFeeManager(250, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+//     holographFeeManager = new HolographFeeManager(250, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
 //     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
 
 //     address impl = address(new ERC721Drop(feeManager, address(1234), FactoryUpgradeGate(address(0)), address(0)));

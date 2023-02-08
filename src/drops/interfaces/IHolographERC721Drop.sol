@@ -6,7 +6,6 @@ import {IMetadataRenderer} from "../interfaces/IMetadataRenderer.sol";
 /// @notice Interface for HOLOGRAPH Drops contract
 interface IHolographERC721Drop {
   // Access errors
-
   /// @notice Only admin can access this function
   error Access_OnlyAdmin();
   /// @notice Missing the given role or admin access
@@ -20,9 +19,9 @@ interface IHolographERC721Drop {
   /// @dev Used when strict enforcement of marketplaces for creator royalties is desired.
   error OperatorNotAllowed(address operator);
 
-  /// @notice Thrown when there is no active market filter DAO address supported for the current chain
+  /// @notice Thrown when there is no active market filter address supported for the current chain
   /// @dev Used for enabling and disabling filter for the given chain.
-  error MarketFilterDAOAddressNotSupportedForChain();
+  error MarketFilterAddressNotSupportedForChain();
 
   /// @notice Used when the operator filter registry external call fails
   /// @dev Used for bubbling error up to clients.
@@ -49,6 +48,8 @@ interface IHolographERC721Drop {
   error Setup_RoyaltyPercentageTooHigh(uint16 maxRoyaltyBPS);
   /// @notice Invalid admin upgrade address
   error Admin_InvalidUpgradeAddress(address proposedAddress);
+  /// @notice Invalid fund recipient adress
+  error Admin_InvalidFundRecipientAddress(address newRecipientAddress);
   /// @notice Unable to finalize an edition not marked as open (size set to uint64_max_value)
   error Admin_UnableToFinalizeNotOpenEdition();
 

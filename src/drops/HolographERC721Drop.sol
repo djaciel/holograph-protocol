@@ -27,7 +27,6 @@ import {ERC721DropStorageV1} from "./storage/ERC721DropStorageV1.sol";
  * @notice HOLOGRAPH NFT contract for Drops and Editions
  *
  * @dev For drops: assumes 1. linear mint order, 2. max number of mints needs to be less than max_uint64
- *       (if you have more than 18 quintillion linear mints you should probably not be using this contract)
  *
  */
 contract HolographERC721Drop is
@@ -42,7 +41,7 @@ contract HolographERC721Drop is
   FundsReceiver,
   ERC721DropStorageV1
 {
-  /// @dev keep track of initialization state
+  /// @dev keep track of initialization state (Initializable)
   bool private _initialized;
   bool private _initializing;
 
@@ -56,7 +55,7 @@ contract HolographERC721Drop is
   bytes32 public constant MINTER_ROLE = keccak256("MINTER");
   bytes32 public constant SALES_MANAGER_ROLE = keccak256("SALES_MANAGER");
 
-  /// @dev HOLOGRAPH V3 transfer helper address for auto-approval
+  /// @dev HOLOGRAPH transfer helper address for auto-approval
   address public holographERC721TransferHelper;
 
   /// @dev Holograph Fee Manager address
@@ -65,7 +64,7 @@ contract HolographERC721Drop is
   /// @notice Max royalty BPS
   uint16 constant MAX_ROYALTY_BPS = 50_00;
 
-  address public marketFilterDAOAddress;
+  address public marketFilterAddress;
 
   IOperatorFilterRegistry public operatorFilterRegistry =
     IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
@@ -124,15 +123,20 @@ contract HolographERC721Drop is
     _;
   }
 
+  constructor() {}
+
   /// @dev Initialize a new drop contract
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
+
+    // TODO: OZ Initializable pattern (review)
     _initialized = false;
     _initializing = true;
+
     DropInitializer memory initializer = abi.decode(initPayload, (DropInitializer));
     holographFeeManager = IHolographFeeManager(initializer.holographFeeManager);
     holographERC721TransferHelper = initializer.holographERC721TransferHelper;
-    marketFilterDAOAddress = initializer.marketFilterDAOAddress;
+    marketFilterAddress = initializer.marketFilterAddress;
 
     // Setup ERC721A
     // Call to ERC721AUpgradeable init has been replaced with the following
@@ -141,12 +145,10 @@ contract HolographERC721Drop is
     _symbol = initializer.contractSymbol;
     _currentIndex = _startTokenId();
 
+    // Setup AccessControl
+    // TODO: OZ Initializable pattern. AccessControl does not set anything in _init_ (review)
     // Setup access control
     // __AccessControl_init();
-
-    // // Setup re-entracy guard
-    // __ReentrancyGuard_init();
-
     // Setup the owner role
     _setupRole(DEFAULT_ADMIN_ROLE, initializer.initialOwner);
     // Set ownership to original sender of contract call
@@ -161,6 +163,10 @@ contract HolographERC721Drop is
       _revokeRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
+    // TODO: OZ Initializable pattern. Need to initialize to _NOT_ENTERED (review)
+    // Setup re-entracy guard
+    // __ReentrancyGuard_init();
+
     if (config.royaltyBPS > MAX_ROYALTY_BPS) {
       revert Setup_RoyaltyPercentageTooHigh(MAX_ROYALTY_BPS);
     }
@@ -170,11 +176,16 @@ contract HolographERC721Drop is
     config.metadataRenderer = IMetadataRenderer(initializer.metadataRenderer);
     config.royaltyBPS = initializer.royaltyBPS;
     config.fundsRecipient = initializer.fundsRecipient;
-    // IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
 
-    _setInitialized();
+    // TODO: Need to make sure to initialize the metadata renderer
+    IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
+
+    // TODO: OZ Initializable pattern (review)
     _initializing = false;
     _initialized = true;
+
+    // Holograph initialization
+    _setInitialized();
     return InitializableInterface.init.selector;
   }
 
@@ -187,8 +198,6 @@ contract HolographERC721Drop is
   function _startTokenId() internal pure override returns (uint256) {
     return 1;
   }
-
-  constructor() {}
 
   /// @dev Getter for admin role associated with the contract to handle metadata
   /// @return boolean if address is admin
@@ -269,7 +278,7 @@ contract HolographERC721Drop is
       });
   }
 
-  /// @dev Setup auto-approval for Holograph v3 access to sell NFT
+  /// @dev Setup auto-approval for marketplace access to sell NFT
   ///      Still requires approval for module
   /// @param nftOwner owner of the nft
   /// @param operator operator wishing to transfer/burn/etc the NFTs
@@ -353,7 +362,7 @@ contract HolographERC721Drop is
   //                        |
   //                       / \
   /**
-      @dev This allows the user to purchase a edition edition
+      @dev This allows the user to purchase/mint a edition
            at the given price in the contract.
      */
   function purchase(uint256 quantity)
@@ -531,17 +540,17 @@ contract HolographERC721Drop is
     return ret;
   }
 
-  /// @notice Manage subscription to the DAO for marketplace filtering based off royalty payouts.
+  /// @notice Manage subscription for marketplace filtering based off royalty payouts.
   /// @param enable Enable filtering to non-royalty payout marketplaces
-  function manageMarketFilterDAOSubscription(bool enable) external onlyAdmin {
+  function manageMarketFilterSubscription(bool enable) external onlyAdmin {
     address self = address(this);
-    if (marketFilterDAOAddress == address(0x0)) {
-      revert MarketFilterDAOAddressNotSupportedForChain();
+    if (marketFilterAddress == address(0x0)) {
+      revert MarketFilterAddressNotSupportedForChain();
     }
     if (!operatorFilterRegistry.isRegistered(self) && enable) {
-      operatorFilterRegistry.registerAndSubscribe(self, marketFilterDAOAddress);
+      operatorFilterRegistry.registerAndSubscribe(self, marketFilterAddress);
     } else if (enable) {
-      operatorFilterRegistry.subscribe(self, marketFilterDAOAddress);
+      operatorFilterRegistry.subscribe(self, marketFilterAddress);
     } else {
       operatorFilterRegistry.unsubscribe(self, false);
       operatorFilterRegistry.unregister(self);
@@ -614,7 +623,7 @@ contract HolographERC721Drop is
   //                       /|\
   //                        |
   //                       / \
-  /// @notice Mint admin
+  /// @notice Admin mint tokens to a recipient for free
   /// @param recipient recipient to mint to
   /// @param quantity quantity to mint
   function adminMint(address recipient, uint256 quantity)
@@ -672,7 +681,7 @@ contract HolographERC721Drop is
   //                       /|\
   //                        |
   //                       / \
-  /// @dev This mints multiple editions to the given list of addresses.
+  /// @dev Mints multiple editions to the given list of addresses.
   /// @param recipients list of addresses to send the newly minted editions to
   function adminMintAirdrop(address[] calldata recipients)
     external
@@ -839,7 +848,10 @@ contract HolographERC721Drop is
   /// @notice Set a different funds recipient
   /// @param newRecipientAddress new funds recipient address
   function setFundsRecipient(address payable newRecipientAddress) external onlyRoleOrAdmin(SALES_MANAGER_ROLE) {
-    // TODO(iain): funds recipient cannot be 0?
+    if (newRecipientAddress == address(0)) {
+      revert Admin_InvalidFundRecipientAddress(newRecipientAddress);
+    }
+
     config.fundsRecipient = newRecipientAddress;
     emit FundsRecipientChanged(newRecipientAddress, _msgSender());
   }

@@ -20,6 +20,15 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       coldStorage.ca
     );
   }
+
+  // Deploy contracts used by the ERC721 drop
+  // Must deploy the metadata renderer first so we can pass the address to the ERC721 drop for initialization
+  const EditionMetadataRenderer = await hre.deployments.deploy('EditionMetadataRenderer', {
+    from: accounts[1].address,
+    args: [],
+    log: true,
+  });
+
   const salt = hre.deploymentSalt;
   const futureErc721DropAddress = await genesisDeriveFutureAddress(
     hre,
@@ -39,7 +48,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           1000, // 1000 editions
           1000, // 10% royalty
           [], // setupCalls
-          '0x0000000000000000000000000000000000000000', // metadataRenderer
+          EditionMetadataRenderer.address, // metadataRenderer
           generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
         ],
       ]
@@ -68,7 +77,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             1000, // 1000 editions
             1000, // 10% royalty
             [], // setupCalls
-            '0x0000000000000000000000000000000000000000', // metadataRenderer
+            EditionMetadataRenderer.address, // metadataRenderer
             generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
           ],
         ]
