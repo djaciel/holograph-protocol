@@ -206,6 +206,27 @@ When the project is built, the code in the `src` folder gets written to the `con
 
 Again, files from the `src` directory are automatically transpiled into the `contracts` directory each time that **hardhat** compiles the contracts.
 
+### Running tests
+
+There are two sets of tests. The main test suite uses Hardhat. To run them start your local chains that the contracts will be deployed to using:
+
+`yarn run ganache-x2`
+
+Keep in mind that two networks are spun up in order to facilitate the multichain tests that bridge from one network to the other.
+Next run the hardhat tests with:
+
+`yarn test`
+
+The newer tests for Drops use Foundry. Please make sure you have Foundry installed by following the instructions [here](https://github.com/foundry-rs/foundry).
+
+Currently the Foundry tests require "forking" from a local chain that has the rest of the Holograph protocol contracts already deployed. To do this, with the local ganache chains still running from the `ganache-x2` command mentioned above, run deploy with:
+
+`yarn deploy:localhost`
+
+Then you can run the Foundry tests with:
+
+`forge test`
+
 ### Making Changes
 
 **Before pushing your work to the repo, make sure to prepare your code**
