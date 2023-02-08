@@ -178,7 +178,7 @@ contract HolographERC721Drop is
     config.fundsRecipient = initializer.fundsRecipient;
 
     // TODO: Need to make sure to initialize the metadata renderer
-    // IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
+    IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
 
     // TODO: OZ Initializable pattern (review)
     _initializing = false;

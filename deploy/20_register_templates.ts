@@ -124,6 +124,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"HolographERC721" is already registered');
   }
 
+  // Get the contracts rquired for the ERC721Drop
+  const EditionMetadataRenderer = await hre.deployments.get('EditionMetadataRenderer');
+
   // Register ERC721Drop
   const futureErc721DropAddress = await genesisDeriveFutureAddress(
     hre,
@@ -143,7 +146,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           1000, // 1000 editions
           1000, // 10% royalty
           [], // setupCalls
-          '0x0000000000000000000000000000000000000000', // metadataRenderer
+          EditionMetadataRenderer.address, // metadataRenderer
           generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
         ],
       ]
