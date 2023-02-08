@@ -27,7 +27,6 @@ import {ERC721DropStorageV1} from "./storage/ERC721DropStorageV1.sol";
  * @notice HOLOGRAPH NFT contract for Drops and Editions
  *
  * @dev For drops: assumes 1. linear mint order, 2. max number of mints needs to be less than max_uint64
- *       (if you have more than 18 quintillion linear mints you should probably not be using this contract)
  *
  */
 contract HolographERC721Drop is
@@ -42,7 +41,7 @@ contract HolographERC721Drop is
   FundsReceiver,
   ERC721DropStorageV1
 {
-  /// @dev keep track of initialization state
+  /// @dev keep track of initialization state (Initializable)
   bool private _initialized;
   bool private _initializing;
 
@@ -56,7 +55,7 @@ contract HolographERC721Drop is
   bytes32 public constant MINTER_ROLE = keccak256("MINTER");
   bytes32 public constant SALES_MANAGER_ROLE = keccak256("SALES_MANAGER");
 
-  /// @dev HOLOGRAPH V3 transfer helper address for auto-approval
+  /// @dev HOLOGRAPH transfer helper address for auto-approval
   address public holographERC721TransferHelper;
 
   /// @dev Holograph Fee Manager address
@@ -124,11 +123,16 @@ contract HolographERC721Drop is
     _;
   }
 
+  constructor() {}
+
   /// @dev Initialize a new drop contract
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
+
+    // TODO: OZ Initializable pattern (review)
     _initialized = false;
     _initializing = true;
+
     DropInitializer memory initializer = abi.decode(initPayload, (DropInitializer));
     holographFeeManager = IHolographFeeManager(initializer.holographFeeManager);
     holographERC721TransferHelper = initializer.holographERC721TransferHelper;
@@ -141,12 +145,10 @@ contract HolographERC721Drop is
     _symbol = initializer.contractSymbol;
     _currentIndex = _startTokenId();
 
+    // Setup AccessControl
+    // TODO: OZ Initializable pattern. AccessControl does not set anything in _init_ (review)
     // Setup access control
     // __AccessControl_init();
-
-    // // Setup re-entracy guard
-    // __ReentrancyGuard_init();
-
     // Setup the owner role
     _setupRole(DEFAULT_ADMIN_ROLE, initializer.initialOwner);
     // Set ownership to original sender of contract call
@@ -161,6 +163,10 @@ contract HolographERC721Drop is
       _revokeRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
+    // TODO: OZ Initializable pattern. Need to initialize to _NOT_ENTERED (review)
+    // Setup re-entracy guard
+    // __ReentrancyGuard_init();
+
     if (config.royaltyBPS > MAX_ROYALTY_BPS) {
       revert Setup_RoyaltyPercentageTooHigh(MAX_ROYALTY_BPS);
     }
@@ -170,11 +176,16 @@ contract HolographERC721Drop is
     config.metadataRenderer = IMetadataRenderer(initializer.metadataRenderer);
     config.royaltyBPS = initializer.royaltyBPS;
     config.fundsRecipient = initializer.fundsRecipient;
+
+    // TODO: Need to make sure to initialize the metadata renderer
     // IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
 
-    _setInitialized();
+    // TODO: OZ Initializable pattern (review)
     _initializing = false;
     _initialized = true;
+
+    // Holograph initialization
+    _setInitialized();
     return InitializableInterface.init.selector;
   }
 
@@ -187,8 +198,6 @@ contract HolographERC721Drop is
   function _startTokenId() internal pure override returns (uint256) {
     return 1;
   }
-
-  constructor() {}
 
   /// @dev Getter for admin role associated with the contract to handle metadata
   /// @return boolean if address is admin
