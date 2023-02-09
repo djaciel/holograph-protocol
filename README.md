@@ -208,6 +208,8 @@ Again, files from the `src` directory are automatically transpiled into the `con
 
 ### Running tests
 
+> NOTE: At this time some tests require hardcoded referencing hardcoded addresses on the local network that are deployed deterministically based on a salt parameter that is stored in the `.env` file. For local development, please set `DEVELOP_DEPLOYMENT_SALT=1000`.
+
 There are two sets of tests. The main test suite uses Hardhat. To run them start your local chains that the contracts will be deployed to using:
 
 `yarn run ganache-x2`

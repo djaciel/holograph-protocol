@@ -690,12 +690,12 @@ contract HolographERC721Drop is
     canMintTokens(recipients.length)
     returns (uint256)
   {
-    uint256 atId = _currentIndex;
-    uint256 startAt = atId;
+    uint256 currentId = _currentIndex;
+    uint256 startAt = currentId;
 
     unchecked {
-      for (uint256 endAt = atId + recipients.length; atId < endAt; atId++) {
-        _mintNFTs(recipients[atId - startAt], 1);
+      for (uint256 endAt = currentId + recipients.length; currentId < endAt; currentId++) {
+        _mintNFTs(recipients[currentId - startAt], 1);
       }
     }
     return _lastMintedTokenId();
