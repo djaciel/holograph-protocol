@@ -2,7 +2,13 @@ declare var global: any;
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
-import { hreSplit, genesisDeployHelper, generateInitCode, genesisDeriveFutureAddress } from '../scripts/utils/helpers';
+import {
+  hreSplit,
+  txParams,
+  genesisDeployHelper,
+  generateInitCode,
+  genesisDeriveFutureAddress,
+} from '../scripts/utils/helpers';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
@@ -21,15 +27,24 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
   }
 
+  const salt = hre.deploymentSalt;
+
   // Deploy contracts used by the ERC721 drop
   // Must deploy the metadata renderer first so we can pass the address to the ERC721 drop for initialization
   const EditionMetadataRenderer = await hre.deployments.deploy('EditionMetadataRenderer', {
-    from: accounts[1].address,
+    ...(await txParams({
+      hre,
+      from: deployer,
+      to: '0x0000000000000000000000000000000000000000',
+      gasLimit: await hre.ethers.provider.estimateGas(
+        (await hre.ethers.getContractFactory('EditionMetadataRenderer')).getDeployTransaction()
+      ),
+    })),
     args: [],
     log: true,
+    waitConfirmations: 1,
   });
 
-  const salt = hre.deploymentSalt;
   const futureErc721DropAddress = await genesisDeriveFutureAddress(
     hre,
     salt,

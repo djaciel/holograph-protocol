@@ -64,7 +64,6 @@ contract HolographERC721Drop is
   /// @notice Max royalty BPS
   uint16 constant MAX_ROYALTY_BPS = 50_00;
 
-  /// @notice Market filter address for opensea filter registry
   address public marketFilterAddress;
 
   IOperatorFilterRegistry public operatorFilterRegistry =
