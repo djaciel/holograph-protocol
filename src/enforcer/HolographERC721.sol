@@ -929,7 +929,7 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    * @dev Any function call that is not covered here, will automatically be sent over to the source contract.
    */
   fallback() external payable {
-    // we check if royalties support the function, send there, otherwise revert to source
+    // Check if royalties support the function, send there, otherwise revert to source
     address _target;
     if (HolographInterfacesInterface(_interfaces()).supportsInterface(InterfaceType.ROYALTIES, msg.sig)) {
       _target = _royalties();

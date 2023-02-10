@@ -30,6 +30,30 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // Salt is used for deterministic address generation
   const salt = hre.deploymentSalt;
 
+  // Fee manager
+  // Fee is 5%
+  const feeBPS = 500;
+  const futureFeeManagerAddress = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'HolographFeeManager',
+    generateInitCode(['uint256', 'address'], [feeBPS, deployer.address]) // initCode
+  );
+  hre.deployments.log('the future "HolographFeeManager" address is', futureFeeManagerAddress);
+  let feeManagerDeployedCode: string = await hre.provider.send('eth_getCode', [futureFeeManagerAddress, 'latest']);
+
+  if (feeManagerDeployedCode == '0x' || feeManagerDeployedCode == '') {
+    await genesisDeployHelper(
+      hre,
+      salt,
+      'HolographFeeManager',
+      generateInitCode(['uint256', 'address'], [feeBPS, deployer.address]), // initCode
+      futureFeeManagerAddress
+    );
+  } else {
+    hre.deployments.log('"EditionMetadataRenderer" is already deployed.');
+  }
+
   // Metadata renderer
   const futureEditionMetadataRendererAddress = await genesisDeriveFutureAddress(
     hre,
@@ -64,9 +88,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)'],
       [
         [
-          '0x0000000000000000000000000000000000000000', // holographFeeManager
+          futureFeeManagerAddress, // holographFeeManager
           '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
-          '0x0000000000000000000000000000000000000000', // marketFilterDAOAddress
+          '0x000000000000AAeB6D7670E522A718067333cd4E', // marketFilterAddress (opensea)
           'Holograph ERC721 Drop Collection', // contractName
           'hDROP', // contractSymbol
           deployer.address, // initialOwner
@@ -93,9 +117,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)'],
         [
           [
-            '0x0000000000000000000000000000000000000000', // holographFeeManager
+            futureFeeManagerAddress, // holographFeeManager
             '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
-            '0x0000000000000000000000000000000000000000', // marketFilterDAOAddress
+            '0x000000000000AAeB6D7670E522A718067333cd4E', // marketFilterAddress
             'Holograph ERC721 Drop Collection', // contractName
             'hDROP', // contractSymbol
             deployer.address, // initialOwner

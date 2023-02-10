@@ -1043,4 +1043,55 @@ contract HolographERC721Drop is
       type(IERC2981Upgradeable).interfaceId == interfaceId ||
       type(IHolographERC721Drop).interfaceId == interfaceId;
   }
+
+  // /**
+  //  *** ---------------------------------- ***
+  //  ***                                    ***
+  //  ***        FALLBACK FUNCTIONS          ***
+  //  ***                                    ***
+  //  *** ---------------------------------- ***
+  //  ***/
+
+  // /**
+  //  * @dev Purposefully left empty, to prevent running out of gas errors when receiving native token payments.
+  //  */
+  // receive() external payable {}
+
+  // /**
+  //  * @notice Fallback to the source contract.
+  //  * @dev Any function call that is not covered here, will automatically be sent over to the source contract.
+  //  */
+  // fallback() external payable {
+  //   // Check if royalties support the function, send there, otherwise revert to source
+  //   address _target;
+  //   if (HolographInterfacesInterface(_interfaces()).supportsInterface(InterfaceType.ROYALTIES, msg.sig)) {
+  //     _target = _royalties();
+  //     assembly {
+  //       calldatacopy(0, 0, calldatasize())
+  //       let result := delegatecall(gas(), _target, 0, calldatasize(), 0, 0)
+  //       returndatacopy(0, 0, returndatasize())
+  //       switch result
+  //       case 0 {
+  //         revert(0, returndatasize())
+  //       }
+  //       default {
+  //         return(0, returndatasize())
+  //       }
+  //     }
+  //   } else {
+  //     assembly {
+  //       calldatacopy(0, 0, calldatasize())
+  //       mstore(calldatasize(), caller())
+  //       let result := call(gas(), sload(_sourceContractSlot), callvalue(), 0, add(calldatasize(), 0x20), 0, 0)
+  //       returndatacopy(0, 0, returndatasize())
+  //       switch result
+  //       case 0 {
+  //         revert(0, returndatasize())
+  //       }
+  //       default {
+  //         return(0, returndatasize())
+  //       }
+  //     }
+  //   }
+  // }
 }
