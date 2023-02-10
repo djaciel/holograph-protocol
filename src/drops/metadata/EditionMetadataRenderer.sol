@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
 
+import "../../abstract/Initializable.sol";
+
 import {IMetadataRenderer} from "../interfaces/IMetadataRenderer.sol";
 import {IHolographERC721Drop} from "../interfaces/IHolographERC721Drop.sol";
 import {IERC721MetadataUpgradeable} from "../lib/openzeppelin-contracts-upgradeable/interfaces/IERC721MetadataUpgradeable.sol";
@@ -13,7 +15,7 @@ interface DropConfigGetter {
 }
 
 /// @notice EditionMetadataRenderer for editions support
-contract EditionMetadataRenderer is IMetadataRenderer, MetadataRenderAdminCheck {
+contract EditionMetadataRenderer is Initializable, IMetadataRenderer, MetadataRenderAdminCheck {
   /// @notice Storage for token edition information
   struct TokenEditionInfo {
     string description;
@@ -34,6 +36,18 @@ contract EditionMetadataRenderer is IMetadataRenderer, MetadataRenderAdminCheck 
 
   /// @notice Token information mapping storage
   mapping(address => TokenEditionInfo) public tokenInfos;
+
+  /**
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract
+   * @dev A blank init function is required to be able to call genesisDeriveFutureAddress to get the deterministic address
+   * @dev Since no data is required to be intialized the selector is just returned and _setInitialized() does not need to be called
+   */
+  function init(
+    bytes memory /* initPayload */
+  ) external pure override returns (bytes4) {
+    return InitializableInterface.init.selector;
+  }
 
   /// @notice Update media URIs
   /// @param target target for contract to update metadata for

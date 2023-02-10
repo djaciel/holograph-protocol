@@ -1,12 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
 
+import "../../abstract/Initializable.sol";
+
 import {StringsUpgradeable} from "./../lib/openzeppelin-contracts-upgradeable/utils/StringsUpgradeable.sol";
 import {IMetadataRenderer} from "../interfaces/IMetadataRenderer.sol";
 import {MetadataRenderAdminCheck} from "./MetadataRenderAdminCheck.sol";
 
 /// @notice Drops metadata system
-contract DropMetadataRenderer is IMetadataRenderer, MetadataRenderAdminCheck {
+contract DropMetadataRenderer is Initializable, IMetadataRenderer, MetadataRenderAdminCheck {
   error MetadataFrozen();
 
   /// Event to mark updated metadata information
@@ -34,6 +36,18 @@ contract DropMetadataRenderer is IMetadataRenderer, MetadataRenderAdminCheck {
 
   /// @notice Optional provenance hashes for NFT metadata by contract
   mapping(address => bytes32) public provenanceHashes;
+
+  /**
+   * @notice Used internally to initialize the contract instead of through a constructor
+   * @dev This function is called by the deployer/factory when creating a contract
+   * @dev A blank init function is required to be able to call genesisDeriveFutureAddress to get the deterministic address
+   * @dev Since no data is required to be intialized the selector is just returned and _setInitialized() does not need to be called
+   */
+  function init(
+    bytes memory /* initPayload */
+  ) external pure override returns (bytes4) {
+    return InitializableInterface.init.selector;
+  }
 
   /// @notice Standard init for drop metadata from root drop contract
   /// @param data passed in for initialization

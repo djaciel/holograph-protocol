@@ -1,7 +1,7 @@
 declare var global: any;
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
-import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
+import { DeployFunction, DeployOptions } from '@holographxyz/hardhat-deploy-holographed/types';
 import {
   hreSplit,
   txParams,
@@ -27,24 +27,35 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
   }
 
+  // Salt is used for deterministic address generation
   const salt = hre.deploymentSalt;
 
-  // Deploy contracts used by the ERC721 drop
-  // Must deploy the metadata renderer first so we can pass the address to the ERC721 drop for initialization
-  const EditionMetadataRenderer = await hre.deployments.deploy('EditionMetadataRenderer', {
-    ...(await txParams({
-      hre,
-      from: deployer,
-      to: '0x0000000000000000000000000000000000000000',
-      gasLimit: await hre.ethers.provider.estimateGas(
-        (await hre.ethers.getContractFactory('EditionMetadataRenderer')).getDeployTransaction()
-      ),
-    })),
-    args: [],
-    log: true,
-    waitConfirmations: 1,
-  });
+  // Metadata renderer
+  const futureEditionMetadataRendererAddress = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'EditionMetadataRenderer',
+    generateInitCode([], []) // initCode
+  );
+  hre.deployments.log('the future "EditionMetadataRenderer" address is', futureEditionMetadataRendererAddress);
+  let editionMetadataRendererDeployedCode: string = await hre.provider.send('eth_getCode', [
+    futureEditionMetadataRendererAddress,
+    'latest',
+  ]);
 
+  if (editionMetadataRendererDeployedCode == '0x' || editionMetadataRendererDeployedCode == '') {
+    await genesisDeployHelper(
+      hre,
+      salt,
+      'EditionMetadataRenderer',
+      generateInitCode([], []), // initCode
+      futureEditionMetadataRendererAddress
+    );
+  } else {
+    hre.deployments.log('"EditionMetadataRenderer" is already deployed.');
+  }
+
+  // Deploy the ERC721 drop enforcer
   const futureErc721DropAddress = await genesisDeriveFutureAddress(
     hre,
     salt,
@@ -63,7 +74,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           1000, // 1000 editions
           1000, // 10% royalty
           [], // setupCalls
-          EditionMetadataRenderer.address, // metadataRenderer
+          futureEditionMetadataRendererAddress, // metadataRenderer
           generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
         ],
       ]
@@ -92,7 +103,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             1000, // 1000 editions
             1000, // 10% royalty
             [], // setupCalls
-            EditionMetadataRenderer.address, // metadataRenderer
+            futureEditionMetadataRendererAddress, // metadataRenderer
             generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
           ],
         ]
