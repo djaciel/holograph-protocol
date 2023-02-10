@@ -544,7 +544,7 @@ contract HolographERC721Drop is
   /// @param enable Enable filtering to non-royalty payout marketplaces
   function manageMarketFilterSubscription(bool enable) external onlyAdmin {
     address self = address(this);
-    if (marketFilterAddress == address(0x0)) {
+    if (marketFilterAddress == address(0)) {
       revert MarketFilterAddressNotSupportedForChain();
     }
     if (!operatorFilterRegistry.isRegistered(self) && enable) {

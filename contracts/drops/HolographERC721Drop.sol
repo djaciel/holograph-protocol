@@ -64,6 +64,7 @@ contract HolographERC721Drop is
   /// @notice Max royalty BPS
   uint16 constant MAX_ROYALTY_BPS = 50_00;
 
+  /// @notice Market filter address for opensea filter registry
   address public marketFilterAddress;
 
   IOperatorFilterRegistry public operatorFilterRegistry =
@@ -544,7 +545,7 @@ contract HolographERC721Drop is
   /// @param enable Enable filtering to non-royalty payout marketplaces
   function manageMarketFilterSubscription(bool enable) external onlyAdmin {
     address self = address(this);
-    if (marketFilterAddress == address(0x0)) {
+    if (marketFilterAddress == address(0)) {
       revert MarketFilterAddressNotSupportedForChain();
     }
     if (!operatorFilterRegistry.isRegistered(self) && enable) {
