@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+
+/*SOLIDITY_COMPILER_VERSION*/
 
 import {IOperatorFilterRegistry} from "../interfaces/IOperatorFilterRegistry.sol";
 import {OwnableWithConfirmation} from "../utils/OwnableWithConfirmation.sol";

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+
+/*SOLIDITY_COMPILER_VERSION*/
 
 import {IHolographERC721Drop} from "../interfaces/IHolographERC721Drop.sol";
 

@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+
+/*SOLIDITY_COMPILER_VERSION*/
 
 /**
  * @notice This allows this contract to receive native currency funds from other contracts
