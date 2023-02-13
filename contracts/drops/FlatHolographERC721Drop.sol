@@ -9,16 +9,16 @@ import {IOperatorFilterRegistry} from "./interfaces/IOperatorFilterRegistry.sol"
 import {IHolographERC721Drop} from "./interfaces/IHolographERC721Drop.sol";
 import {IOwnable} from "./interfaces/IOwnable.sol";
 import {IAccessControlUpgradeable} from "./interfaces/IAccessControlUpgradeable.sol";
+import {IERC721Upgradeable} from "./interfaces/IERC721Upgradeable.sol";
+import {IERC721ReceiverUpgradeable} from "./interfaces/IERC721ReceiverUpgradeable.sol";
+import {IERC721MetadataUpgradeable} from "./interfaces/IERC721MetadataUpgradeable.sol";
+import {IERC165Upgradeable} from "./interfaces/IERC165Upgradeable.sol";
+import {IERC2981Upgradeable} from "./interfaces/IERC2981Upgradeable.sol";
+import {IERC721AUpgradeable} from "./interfaces/IERC721AUpgradeable.sol";
 
 import {DropInitializer} from "../struct/DropInitializer.sol";
 
-import {IERC721Upgradeable} from "./lib/openzeppelin-contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol";
-import {IERC721ReceiverUpgradeable} from "./lib/openzeppelin-contracts-upgradeable/token/ERC721/IERC721ReceiverUpgradeable.sol";
-import {IERC721MetadataUpgradeable} from "./lib/openzeppelin-contracts-upgradeable/token/ERC721/extensions/IERC721MetadataUpgradeable.sol";
-import {IERC2981Upgradeable, IERC165Upgradeable} from "./lib/openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
-import {IERC721AUpgradeable} from "./lib/erc721a-upgradeable/IERC721AUpgradeable.sol";
-
-library StringsUpgradeable {
+library Strings {
   bytes16 private constant _HEX_SYMBOLS = "0123456789abcdef";
 
   /**
@@ -78,7 +78,7 @@ library StringsUpgradeable {
   }
 }
 
-library MerkleProofUpgradeable {
+library MerkleProof {
   /**
    * @dev Returns true if a `leaf` can be proved to be a part of a Merkle tree
    * defined by `root`. For this, a `proof` must be provided, containing
@@ -550,11 +550,7 @@ library AddressUpgradeable {
   }
 }
 
-abstract contract ContextUpgradeable is Initializable {
-  function __Context_init() internal onlyInitializing {}
-
-  function __Context_init_unchained() internal onlyInitializing {}
-
+abstract contract Context {
   function _msgSender() internal view virtual returns (address) {
     return msg.sender;
   }
@@ -562,41 +558,18 @@ abstract contract ContextUpgradeable is Initializable {
   function _msgData() internal view virtual returns (bytes calldata) {
     return msg.data;
   }
-
-  /**
-   * @dev This empty reserved space is put in place to allow future versions to add new
-   * variables without shifting down storage in the inheritance chain.
-   * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-   */
-  uint256[50] private __gap;
 }
 
-abstract contract ERC165Upgradeable is Initializable, IERC165Upgradeable {
-  function __ERC165_init() internal onlyInitializing {}
-
-  function __ERC165_init_unchained() internal onlyInitializing {}
-
+abstract contract ERC165 is IERC165Upgradeable {
   /**
    * @dev See {IERC165-supportsInterface}.
    */
   function supportsInterface(bytes4 interfaceId) public view virtual override returns (bool) {
     return interfaceId == type(IERC165Upgradeable).interfaceId;
   }
-
-  /**
-   * @dev This empty reserved space is put in place to allow future versions to add new
-   * variables without shifting down storage in the inheritance chain.
-   * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-   */
-  uint256[50] private __gap;
 }
 
-abstract contract AccessControlUpgradeable is
-  Initializable,
-  ContextUpgradeable,
-  IAccessControlUpgradeable,
-  ERC165Upgradeable
-{
+abstract contract AccessControlUpgradeable is Initializable, Context, IAccessControlUpgradeable, ERC165 {
   function __AccessControl_init() internal onlyInitializing {}
 
   function __AccessControl_init_unchained() internal onlyInitializing {}
@@ -664,9 +637,9 @@ abstract contract AccessControlUpgradeable is
         string(
           abi.encodePacked(
             "AccessControl: account ",
-            StringsUpgradeable.toHexString(uint160(account), 20),
+            Strings.toHexString(uint160(account), 20),
             " is missing role ",
-            StringsUpgradeable.toHexString(uint256(role), 32)
+            Strings.toHexString(uint256(role), 32)
           )
         )
       );
@@ -861,9 +834,9 @@ abstract contract PublicMulticall {
   }
 }
 
-abstract contract ERC721AUpgradeable is Initializable, ContextUpgradeable, ERC165Upgradeable, IERC721AUpgradeable {
+abstract contract ERC721AUpgradeable is Initializable, Context, ERC165, IERC721AUpgradeable {
   using AddressUpgradeable for address;
-  using StringsUpgradeable for uint256;
+  using Strings for uint256;
 
   // The tokenId of the next token to be minted.
   uint256 internal _currentIndex;
@@ -936,7 +909,7 @@ abstract contract ERC721AUpgradeable is Initializable, ContextUpgradeable, ERC16
     public
     view
     virtual
-    override(ERC165Upgradeable, IERC165Upgradeable)
+    override(ERC165, IERC165Upgradeable)
     returns (bool)
   {
     return
@@ -1967,7 +1940,7 @@ contract FlatHolographERC721Drop is
     bytes32[] calldata merkleProof
   ) external payable nonReentrant canMintTokens(quantity) onlyPresaleActive returns (uint256) {
     if (
-      !MerkleProofUpgradeable.verify(
+      !MerkleProof.verify(
         merkleProof,
         salesConfig.presaleMerkleRoot,
         keccak256(
@@ -2514,7 +2487,7 @@ contract FlatHolographERC721Drop is
   function supportsInterface(bytes4 interfaceId)
     public
     view
-    override(IERC165Upgradeable, ERC721AUpgradeable, AccessControlUpgradeable)
+    override(ERC721AUpgradeable, AccessControlUpgradeable)
     returns (bool)
   {
     return
