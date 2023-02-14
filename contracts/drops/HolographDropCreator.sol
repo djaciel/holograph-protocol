@@ -56,10 +56,6 @@ contract HolographDropCreator is Initializable {
     editionMetadataRenderer = EditionMetadataRenderer(editionMetadataRendererAddress);
     dropMetadataRenderer = DropMetadataRenderer(dropMetadataRendererAddress);
 
-    // assembly {
-    //   sstore(_holographSlot, holograph)
-    // }
-
     _setInitialized();
     return InitializableInterface.init.selector;
   }

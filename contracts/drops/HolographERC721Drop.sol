@@ -4,6 +4,10 @@ pragma solidity 0.8.13;
 
 import "./abstract/Initializable.sol";
 
+import "../interface/HolographInterface.sol";
+import "../interface/HolographInterfacesInterface.sol";
+import "../interface/HolographRegistryInterface.sol";
+import "../interface/HolographRoyaltiesInterface.sol";
 import {IHolographFeeManager} from "./interfaces/IHolographFeeManager.sol";
 import {IMetadataRenderer} from "./interfaces/IMetadataRenderer.sol";
 import {IOperatorFilterRegistry} from "./interfaces/IOperatorFilterRegistry.sol";
@@ -1495,6 +1499,15 @@ contract HolographERC721Drop is
   FundsReceiver,
   ERC721DropStorageV1
 {
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.holograph')) - 1)
+   */
+  bytes32 constant _holographSlot = 0xb4107f746e9496e8452accc7de63d1c5e14c19f510932daa04077cd49e8bd77a;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.sourceContract')) - 1)
+   */
+  bytes32 constant _sourceContractSlot = 0x27d542086d1e831d40b749e7f5509a626c3047a36d160781c40d5acc83e5b074;
+
   /// @dev keep track of initialization state (Initializable)
   bool private _initialized;
   bool private _initializing;
@@ -1587,7 +1600,7 @@ contract HolographERC721Drop is
     _initialized = false;
     _initializing = true;
 
-    DropInitializer memory initializer = abi.decode(initPayload, (DropInitializer));
+    (DropInitializer memory initializer, bool skipInit) = abi.decode(initPayload, (DropInitializer, bool));
     holographFeeManager = IHolographFeeManager(initializer.holographFeeManager);
     holographERC721TransferHelper = initializer.holographERC721TransferHelper;
     marketFilterAddress = initializer.marketFilterAddress;
@@ -1623,6 +1636,16 @@ contract HolographERC721Drop is
 
     if (config.royaltyBPS > MAX_ROYALTY_BPS) {
       revert Setup_RoyaltyPercentageTooHigh(MAX_ROYALTY_BPS);
+    }
+
+    // Setup Holograph Royalties
+    if (skipInit) {
+      _royalties().delegatecall(
+        abi.encodeWithSelector(
+          HolographRoyaltiesInterface.initHolographRoyalties.selector,
+          abi.encode(uint256(config.royaltyBPS), uint256(0))
+        )
+      );
     }
 
     // Setup config variables
@@ -2498,23 +2521,47 @@ contract HolographERC721Drop is
       type(IHolographERC721Drop).interfaceId == interfaceId;
   }
 
-  // /**
-  //  *** ---------------------------------- ***
-  //  ***                                    ***
-  //  ***        FALLBACK FUNCTIONS          ***
-  //  ***                                    ***
-  //  *** ---------------------------------- ***
-  //  ***/
+  /**
+   *** ---------------------------------- ***
+   ***                                    ***
+   ***        INTERFACE FUNCTIONS         ***
+   ***                                    ***
+   *** ---------------------------------- ***
+   ***/
 
-  // /**
-  //  * @dev Purposefully left empty, to prevent running out of gas errors when receiving native token payments.
-  //  */
-  // receive() external payable {}
+  function _holograph() private view returns (HolographInterface holograph) {
+    assembly {
+      holograph := sload(_holographSlot)
+    }
+  }
 
-  // /**
-  //  * @notice Fallback to the source contract.
-  //  * @dev Any function call that is not covered here, will automatically be sent over to the source contract.
-  //  */
+  /**
+   * @dev Get the interfaces contract address.
+   */
+  function _interfaces() private view returns (address) {
+    return _holograph().getInterfaces();
+  }
+
+  /**
+   * @dev Get the bridge contract address.
+   */
+  function _royalties() private view returns (address) {
+    return
+      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573);
+  }
+
+  /**
+   *** ---------------------------------- ***
+   ***                                    ***
+   ***        FALLBACK FUNCTIONS          ***
+   ***                                    ***
+   *** ---------------------------------- ***
+   ***/
+
+  /**
+   * @notice Fallback to the source contract.
+   * @dev Any function call that is not covered here, will automatically be sent over to the source contract.
+   */
   // fallback() external payable {
   //   // Check if royalties support the function, send there, otherwise revert to source
   //   address _target;
@@ -2533,19 +2580,20 @@ contract HolographERC721Drop is
   //       }
   //     }
   //   } else {
-  //     assembly {
-  //       calldatacopy(0, 0, calldatasize())
-  //       mstore(calldatasize(), caller())
-  //       let result := call(gas(), sload(_sourceContractSlot), callvalue(), 0, add(calldatasize(), 0x20), 0, 0)
-  //       returndatacopy(0, 0, returndatasize())
-  //       switch result
-  //       case 0 {
-  //         revert(0, returndatasize())
-  //       }
-  //       default {
-  //         return(0, returndatasize())
-  //       }
-  //     }
+  //     revert("We got here");
+  //     // assembly {
+  //     //   calldatacopy(0, 0, calldatasize())
+  //     //   mstore(calldatasize(), caller())
+  //     //   let result := call(gas(), sload(_sourceContractSlot), callvalue(), 0, add(calldatasize(), 0x20), 0, 0)
+  //     //   returndatacopy(0, 0, returndatasize())
+  //     //   switch result
+  //     //   case 0 {
+  //     //     revert(0, returndatasize())
+  //     //   }
+  //     //   default {
+  //     //     return(0, returndatasize())
+  //     //   }
+  //     // }
   //   }
   // }
 }
