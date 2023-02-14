@@ -4,7 +4,7 @@ pragma solidity 0.8.13;
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
-import {IERC721AUpgradeable} from "../../contracts/drops/lib/erc721a-upgradeable/IERC721AUpgradeable.sol";
+import {IERC721AUpgradeable} from "../../contracts/drops/interfaces/IERC721AUpgradeable.sol";
 
 import {DropInitializer} from "../../contracts/struct/DropInitializer.sol";
 
@@ -112,7 +112,8 @@ contract HolographERC721DropTest is Test {
 
   function setUp() public {
     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    feeManager = new HolographFeeManager(500, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    feeManager = new HolographFeeManager();
+    feeManager.init(abi.encode(500, DEFAULT_HOLOGRAPH_DAO_ADDRESS));
     vm.etch(address(0x000000000000AAeB6D7670E522A718067333cd4E), address(new OperatorFilterRegistry()).code);
     ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x666)));
     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);

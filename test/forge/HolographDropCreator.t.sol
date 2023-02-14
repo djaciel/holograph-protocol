@@ -9,14 +9,14 @@ import {Verification} from "../../contracts/struct/Verification.sol";
 
 import {IMetadataRenderer} from "../../contracts/drops/interfaces/IMetadataRenderer.sol";
 import "../../contracts/drops/HolographDropCreator.sol";
-import "../../contracts/drops/HolographDropCreatorProxy.sol";
+import {HolographDropCreatorProxy} from "../../contracts/drops/HolographDropCreatorProxy.sol";
 import "../../contracts/drops/HolographFeeManager.sol";
-import "../../contracts/drops/HolographERC721Drop.sol";
+import {HolographERC721Drop} from "../../contracts/drops/HolographERC721Drop.sol";
 
 import {HolographFactory} from "../../contracts/HolographFactory.sol";
 
 import {MockMetadataRenderer} from "./metadata/MockMetadataRenderer.sol";
-import {IERC721AUpgradeable} from "../../contracts/drops/lib/erc721a-upgradeable/ERC721AUpgradeable.sol";
+import {IERC721AUpgradeable} from "../../contracts/drops/interfaces/IERC721AUpgradeable.sol";
 
 contract HolographDropCreatorTest is Test {
   address public constant DEFAULT_OWNER_ADDRESS = address(0x23499);
@@ -52,7 +52,8 @@ contract HolographDropCreatorTest is Test {
     vm.selectFork(forkId);
 
     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    holographFeeManager = new HolographFeeManager(500, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+    holographFeeManager = new HolographFeeManager();
+    holographFeeManager.init(abi.encode(500, DEFAULT_HOLOGRAPH_DAO_ADDRESS));
     editionMetadataRenderer = new EditionMetadataRenderer();
     dropMetadataRenderer = new DropMetadataRenderer();
 

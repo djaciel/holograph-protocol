@@ -2,7 +2,7 @@
 pragma solidity 0.8.13;
 
 import {Test} from "forge-std/Test.sol";
-import {IERC721AUpgradeable} from "../../contracts/drops/lib/erc721a-upgradeable/IERC721AUpgradeable.sol";
+import {IERC721AUpgradeable} from "../../contracts/drops/interfaces/IERC721AUpgradeable.sol";
 
 import {IHolographERC721Drop} from "../../contracts/drops/interfaces/IHolographERC721Drop.sol";
 import {HolographERC721Drop} from "../../contracts/drops/HolographERC721Drop.sol";
