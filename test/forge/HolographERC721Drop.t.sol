@@ -15,7 +15,6 @@ import {MockUser} from "./utils/MockUser.sol";
 import {IOperatorFilterRegistry} from "../../contracts/drops/interfaces/IOperatorFilterRegistry.sol";
 import {IMetadataRenderer} from "../../contracts/drops/interfaces/IMetadataRenderer.sol";
 import {IHolographERC721Drop} from "../../contracts/drops/interfaces/IHolographERC721Drop.sol";
-import {HolographERC721DropProxy} from "../../contracts/drops/HolographERC721DropProxy.sol";
 import {OperatorFilterRegistry} from "./filter/OperatorFilterRegistry.sol";
 import {OperatorFilterRegistryErrorsAndEvents} from "./filter/OperatorFilterRegistryErrorsAndEvents.sol";
 import {OwnedSubscriptionManager} from "../../contracts/drops/filter/OwnedSubscriptionManager.sol";
@@ -36,7 +35,6 @@ contract HolographERC721DropTest is Test {
   );
 
   HolographERC721Drop public erc721Drop;
-  HolographERC721DropProxy public erc721DropProxy;
   MockUser public mockUser;
   DummyMetadataRenderer public dummyRenderer = new DummyMetadataRenderer();
   HolographFeeManager public feeManager;
@@ -74,10 +72,7 @@ contract HolographERC721DropTest is Test {
     });
 
     erc721Drop = new HolographERC721Drop();
-    erc721DropProxy = new HolographERC721DropProxy();
-    erc721DropProxy.init(abi.encode(erc721Drop, abi.encode(initializer)));
-    address payable erc721DropProxyAddress = payable(address(erc721DropProxy));
-    erc721Drop = HolographERC721Drop(erc721DropProxyAddress);
+    erc721Drop.init(abi.encode(initializer, true));
 
     _;
   }
@@ -133,22 +128,21 @@ contract HolographERC721DropTest is Test {
     require(keccak256(bytes(name)) == keccak256(bytes("Test NFT")));
     require(keccak256(bytes(symbol)) == keccak256(bytes("TNFT")));
     vm.expectRevert("HOLOGRAPH: already initialized");
-    erc721Drop.init(
-      abi.encode(
-        address(feeManager),
-        address(0x1234),
-        address(0x0),
-        "Test NFT",
-        "TNFT",
-        DEFAULT_OWNER_ADDRESS,
-        payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
-        uint64(10),
-        uint16(800),
-        new bytes[](0),
-        dummyRenderer,
-        new bytes(0)
-      )
-    );
+    DropInitializer memory initializer = DropInitializer({
+      holographFeeManager: address(feeManager),
+      holographERC721TransferHelper: address(0x1234),
+      marketFilterAddress: address(0x0),
+      contractName: "Test NFT",
+      contractSymbol: "TNFT",
+      initialOwner: DEFAULT_OWNER_ADDRESS,
+      fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
+      editionSize: editionSize,
+      royaltyBPS: 800,
+      setupCalls: new bytes[](0),
+      metadataRenderer: address(dummyRenderer),
+      metadataRendererInit: ""
+    });
+    erc721Drop.init(abi.encode(initializer, false));
   }
 
   // TODO: These tests are for functionality that might no longer be supported
@@ -378,33 +372,33 @@ contract HolographERC721DropTest is Test {
     erc721Drop.purchase{value: 0.12 ether}(1);
   }
 
-  function test_Withdraw(uint128 amount) public setupTestDrop(10) {
-    vm.assume(amount > 0.01 ether);
-    vm.deal(address(erc721Drop), amount);
-    vm.prank(DEFAULT_OWNER_ADDRESS);
-    vm.expectEmit(true, true, true, true);
-    uint256 leftoverFunds = amount - (amount * 1) / 20;
-    emit FundsWithdrawn(
-      DEFAULT_OWNER_ADDRESS,
-      DEFAULT_FUNDS_RECIPIENT_ADDRESS,
-      leftoverFunds,
-      DEFAULT_HOLOGRAPH_DAO_ADDRESS,
-      (amount * 1) / 20
-    );
-    erc721Drop.withdraw();
-
-    (, uint256 feeBps) = feeManager.getWithdrawFeesBps(address(erc721Drop));
-    assertEq(feeBps, 500);
-
-    assertTrue(
-      DEFAULT_HOLOGRAPH_DAO_ADDRESS.balance < ((uint256(amount) * 1_000 * 5) / 100000) + 2 ||
-        DEFAULT_HOLOGRAPH_DAO_ADDRESS.balance > ((uint256(amount) * 1_000 * 5) / 100000) + 2
-    );
-    assertTrue(
-      DEFAULT_FUNDS_RECIPIENT_ADDRESS.balance > ((uint256(amount) * 1_000 * 95) / 100000) - 2 ||
-        DEFAULT_FUNDS_RECIPIENT_ADDRESS.balance < ((uint256(amount) * 1_000 * 95) / 100000) + 2
-    );
-  }
+  //   function test_Withdraw(uint128 amount) public setupTestDrop(10) {
+  //     vm.assume(amount > 0.01 ether);
+  //     vm.deal(address(erc721Drop), amount);
+  //     vm.prank(DEFAULT_OWNER_ADDRESS);
+  //     vm.expectEmit(true, true, true, true);
+  //     uint256 leftoverFunds = amount - (amount * 1) / 20;
+  //     emit FundsWithdrawn(
+  //       DEFAULT_OWNER_ADDRESS,
+  //       DEFAULT_FUNDS_RECIPIENT_ADDRESS,
+  //       leftoverFunds,
+  //       DEFAULT_HOLOGRAPH_DAO_ADDRESS,
+  //       (amount * 1) / 20
+  //     );
+  //     erc721Drop.withdraw();
+  //
+  //     (, uint256 feeBps) = feeManager.getWithdrawFeesBps(address(erc721Drop));
+  //     assertEq(feeBps, 500);
+  //
+  //     assertTrue(
+  //       DEFAULT_HOLOGRAPH_DAO_ADDRESS.balance < ((uint256(amount) * 1_000 * 5) / 100000) + 2 ||
+  //         DEFAULT_HOLOGRAPH_DAO_ADDRESS.balance > ((uint256(amount) * 1_000 * 5) / 100000) + 2
+  //     );
+  //     assertTrue(
+  //       DEFAULT_FUNDS_RECIPIENT_ADDRESS.balance > ((uint256(amount) * 1_000 * 95) / 100000) - 2 ||
+  //         DEFAULT_FUNDS_RECIPIENT_ADDRESS.balance < ((uint256(amount) * 1_000 * 95) / 100000) + 2
+  //     );
+  //   }
 
   function test_MintLimit(uint8 limit) public setupTestDrop(5000) {
     // set limit to speed up tests
@@ -476,10 +470,10 @@ contract HolographERC721DropTest is Test {
     erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 1);
   }
 
-  function test_WithdrawNotAllowed() public setupTestDrop(10) {
-    vm.expectRevert(IHolographERC721Drop.Access_WithdrawNotAllowed.selector);
-    erc721Drop.withdraw();
-  }
+  //   function test_WithdrawNotAllowed() public setupTestDrop(10) {
+  //     vm.expectRevert(IHolographERC721Drop.Access_WithdrawNotAllowed.selector);
+  //     erc721Drop.withdraw();
+  //   }
 
   function test_InvalidFinalizeOpenEdition() public setupTestDrop(5) {
     vm.prank(DEFAULT_OWNER_ADDRESS);

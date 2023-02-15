@@ -9,7 +9,6 @@ import {Verification} from "../../contracts/struct/Verification.sol";
 
 import {IMetadataRenderer} from "../../contracts/drops/interfaces/IMetadataRenderer.sol";
 import "../../contracts/drops/HolographDropCreator.sol";
-import {HolographDropCreatorProxy} from "../../contracts/drops/HolographDropCreatorProxy.sol";
 import "../../contracts/drops/HolographFeeManager.sol";
 import {HolographERC721Drop} from "../../contracts/drops/HolographERC721Drop.sol";
 
@@ -78,17 +77,10 @@ contract HolographDropCreatorTest is Test {
   function test_CreateEdition() public {
     // Create implementations
     HolographERC721Drop erc721Drop = new HolographERC721Drop();
-    HolographDropCreator impl = new HolographDropCreator();
-    HolographDropCreatorProxy creatorProxy = new HolographDropCreatorProxy();
+    HolographDropCreator creator = new HolographDropCreator();
 
-    // Initialize proxy deployment with actual values
-    creatorProxy.init(
-      abi.encode(impl, abi.encode(address(erc721Drop), address(editionMetadataRenderer), address(dropMetadataRenderer)))
-    );
-    address payable creatorProxyAddress = payable(address(creatorProxy));
-
-    // Map proxy out to full contract interface
-    creator = HolographDropCreator(creatorProxyAddress);
+    // Initialize deployment with actual values
+    creator.init(abi.encode(address(erc721Drop), address(editionMetadataRenderer), address(dropMetadataRenderer)));
 
     address deployedEdition = creator.createEdition(
       name,
@@ -121,17 +113,10 @@ contract HolographDropCreatorTest is Test {
   function test_CreateDrop() public {
     // Create implementations
     HolographERC721Drop erc721Drop = new HolographERC721Drop();
-    HolographDropCreator impl = new HolographDropCreator();
-    HolographDropCreatorProxy creatorProxy = new HolographDropCreatorProxy();
+    HolographDropCreator creator = new HolographDropCreator();
 
-    // Initialize proxy deployment with actual values
-    creatorProxy.init(
-      abi.encode(impl, abi.encode(address(erc721Drop), address(editionMetadataRenderer), address(dropMetadataRenderer)))
-    );
-    address payable creatorProxyAddress = payable(address(creatorProxy));
-
-    // Map proxy out to full contract interface
-    creator = HolographDropCreator(creatorProxyAddress);
+    // Initialize deployment with actual values
+    creator.init(abi.encode(address(erc721Drop), address(editionMetadataRenderer), address(dropMetadataRenderer)));
 
     address deployedDrop = creator.createDrop(
       name,
@@ -160,17 +145,10 @@ contract HolographDropCreatorTest is Test {
   function test_CreateGenericDrop() public {
     // Create implementations
     HolographERC721Drop erc721Drop = new HolographERC721Drop();
-    HolographDropCreator impl = new HolographDropCreator();
-    HolographDropCreatorProxy creatorProxy = new HolographDropCreatorProxy();
+    HolographDropCreator creator = new HolographDropCreator();
 
-    // Initialize proxy deployment with actual values
-    creatorProxy.init(
-      abi.encode(impl, abi.encode(address(erc721Drop), address(editionMetadataRenderer), address(dropMetadataRenderer)))
-    );
-    address payable creatorProxyAddress = payable(address(creatorProxy));
-
-    // Map proxy out to full contract interface
-    creator = HolographDropCreator(creatorProxyAddress);
+    // Initialize deployment with actual values
+    creator.init(abi.encode(address(erc721Drop), address(editionMetadataRenderer), address(dropMetadataRenderer)));
 
     MockMetadataRenderer mockRenderer = new MockMetadataRenderer();
 
@@ -364,7 +342,7 @@ contract HolographDropCreatorTest is Test {
         chainType: 1338, // holograph.getChainId(),
         salt: 0x0000000000000000000000000000000000000000000000000000000000000001, // random salt from user
         byteCode: abi.encode(0x0), // for custom contract is not used
-        initCode: abi.encode(initializer) // init code is used to initialize the ERC721Drop enforcer
+        initCode: abi.encode(initializer, false) // init code is used to initialize the ERC721Drop enforcer
       });
   }
 }
