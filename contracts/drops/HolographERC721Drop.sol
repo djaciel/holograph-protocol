@@ -1523,9 +1523,7 @@ contract HolographERC721Drop is
    */
   function _royalties() internal view returns (address) {
     return
-      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(
-        0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573
-      );
+      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573);
   }
 
   event FundsReceived(address indexed source, uint256 amount);

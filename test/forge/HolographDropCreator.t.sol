@@ -20,13 +20,13 @@ import {IERC721AUpgradeable} from "../../contracts/drops/interfaces/IERC721AUpgr
 contract HolographDropCreatorTest is Test {
   address public constant DEFAULT_OWNER_ADDRESS = address(0x23499);
   address payable public constant DEFAULT_FUNDS_RECIPIENT_ADDRESS = payable(address(0x001));
-  address payable public constant DEFAULT_HOLOGRAPH_DAO_ADDRESS = payable(address(0x999));
+  address payable public constant HOLOGRAPH_TREASURY_ADDRESS = payable(address(0x999));
 
   HolographERC721Drop public erc721Drop;
   HolographDropCreator public impl;
   HolographDropCreator public creator;
 
-  HolographFeeManager public holographFeeManager;
+  HolographFeeManager public feeManager;
   EditionMetadataRenderer public editionMetadataRenderer;
   DropMetadataRenderer public dropMetadataRenderer;
 
@@ -47,17 +47,23 @@ contract HolographDropCreatorTest is Test {
   bytes private metadataInitializer;
 
   function setUp() public {
+    // Setup VM
+    // NOTE: These tests rely on the Holograph protocol being deployed to the local chain
+    //       At the moment, the deploy pipeline is still managed by Hardhat, so we need to
+    //       first run it via `yarn deploy:localhost` or `npx hardhat deploy --network localhost` before running the tests.
     uint256 forkId = vm.createFork("http://localhost:8545");
     vm.selectFork(forkId);
 
-    vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-    holographFeeManager = new HolographFeeManager();
-    holographFeeManager.init(abi.encode(500, DEFAULT_HOLOGRAPH_DAO_ADDRESS));
+    // Setup signer wallet
+    // NOTE: This is the address that will be used to sign transactions
+    //       A signature is required to deploy Holographable contracts via the HolographFactory
+    alice = vm.addr(1);
+
+    vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
+    feeManager = new HolographFeeManager();
+    feeManager.init(abi.encode(500, HOLOGRAPH_TREASURY_ADDRESS));
     editionMetadataRenderer = new EditionMetadataRenderer();
     dropMetadataRenderer = new DropMetadataRenderer();
-
-    // Setup signer wallet
-    alice = vm.addr(1);
 
     // Setup ERC721 Drop Properties
     name = "Holograph ERC721 Drop Collection";
@@ -76,8 +82,8 @@ contract HolographDropCreatorTest is Test {
 
   function test_CreateEdition() public {
     // Create implementations
-    HolographERC721Drop erc721Drop = new HolographERC721Drop();
-    HolographDropCreator creator = new HolographDropCreator();
+    erc721Drop = new HolographERC721Drop();
+    creator = new HolographDropCreator();
 
     // Initialize deployment with actual values
     creator.init(abi.encode(address(erc721Drop), address(editionMetadataRenderer), address(dropMetadataRenderer)));
@@ -112,8 +118,8 @@ contract HolographDropCreatorTest is Test {
 
   function test_CreateDrop() public {
     // Create implementations
-    HolographERC721Drop erc721Drop = new HolographERC721Drop();
-    HolographDropCreator creator = new HolographDropCreator();
+    erc721Drop = new HolographERC721Drop();
+    creator = new HolographDropCreator();
 
     // Initialize deployment with actual values
     creator.init(abi.encode(address(erc721Drop), address(editionMetadataRenderer), address(dropMetadataRenderer)));
@@ -144,8 +150,8 @@ contract HolographDropCreatorTest is Test {
 
   function test_CreateGenericDrop() public {
     // Create implementations
-    HolographERC721Drop erc721Drop = new HolographERC721Drop();
-    HolographDropCreator creator = new HolographDropCreator();
+    erc721Drop = new HolographERC721Drop();
+    creator = new HolographDropCreator();
 
     // Initialize deployment with actual values
     creator.init(abi.encode(address(erc721Drop), address(editionMetadataRenderer), address(dropMetadataRenderer)));
@@ -183,15 +189,15 @@ contract HolographDropCreatorTest is Test {
   }
 
   function test_CreateHolographEdition() public {
-    // Setup sale config
+    // Setup sale config for edition
     IHolographERC721Drop.SalesConfiguration memory saleConfig = IHolographERC721Drop.SalesConfiguration({
-      publicSaleStart: 0,
-      publicSaleEnd: type(uint64).max,
-      presaleStart: 0,
-      presaleEnd: 0,
-      publicSalePrice: 0.1 ether,
-      maxSalePurchasePerAddress: 0,
-      presaleMerkleRoot: bytes32(0)
+      publicSaleStart: 0, // starts now
+      publicSaleEnd: type(uint64).max, // never ends
+      presaleStart: 0, // never starts
+      presaleEnd: 0, // never ends
+      publicSalePrice: 0.1 ether, // 0.1 ETH
+      maxSalePurchasePerAddress: 0, // no limit
+      presaleMerkleRoot: bytes32(0) // no presale
     });
     bytes[] memory setupData = new bytes[](1);
     setupData[0] = abi.encodeWithSelector(
@@ -206,9 +212,9 @@ contract HolographDropCreatorTest is Test {
     );
     // Create initializer
     DropInitializer memory initializer = DropInitializer(
-      address(holographFeeManager), // HolographFeeManager,
+      address(feeManager), // HolographFeeManager,
       address(0), // HolographERC721TransferHelper
-      DEFAULT_HOLOGRAPH_DAO_ADDRESS,
+      address(0), // marketFilterAddress
       name,
       symbol,
       defaultAdmin,
@@ -237,20 +243,22 @@ contract HolographDropCreatorTest is Test {
     Verification memory signature = Verification(r, s, v);
     address signer = ecrecover(hash, v, r, s);
 
-    // Pass the payload hash, with the signature, and signer's address
+    // NOTE: This is the address of the HolographFactory that depends on a couple .env variables being set
+    //       Those variable are HOLOGRAPH_ENVIRONMENT="develop" and DEVELOP_DEPLOYMENT_SALT=1000
     HolographFactory factory = HolographFactory(payable(0x5Db4dB97fDfFB29cD85eA5484C3722095c413fc7));
     console.log("Factory address: ", address(factory));
     console.log("Holograph address: ", address(factory.getHolograph()));
     console.log("Registry address: ", address(factory.getRegistry()));
     console.log("Signer address: ", signer);
 
+    // Deploy the drop / edition
     vm.recordLogs();
-    factory.deployHolographableContract(config, signature, alice);
+    factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
     Vm.Log[] memory entries = vm.getRecordedLogs();
     address newDropAddress = address(uint160(uint256(entries[5].topics[1])));
     console.log("New drop address: ", newDropAddress);
 
-    // Test checks start here - Reenable when ready
+    // Test checks start here
     HolographERC721Drop drop = HolographERC721Drop(payable(newDropAddress));
     vm.startPrank(DEFAULT_FUNDS_RECIPIENT_ADDRESS);
     vm.deal(DEFAULT_FUNDS_RECIPIENT_ADDRESS, 10 ether);
@@ -259,15 +267,15 @@ contract HolographDropCreatorTest is Test {
   }
 
   function test_CreateHolographDrop() public {
-    // Setup sale config for open edition
+    // Setup sale config for drop
     IHolographERC721Drop.SalesConfiguration memory saleConfig = IHolographERC721Drop.SalesConfiguration({
-      publicSaleStart: 0,
-      publicSaleEnd: type(uint64).max,
-      presaleStart: 0,
-      presaleEnd: 0,
-      publicSalePrice: 0,
-      maxSalePurchasePerAddress: 0,
-      presaleMerkleRoot: bytes32(0)
+      publicSaleStart: 0, // starts now
+      publicSaleEnd: type(uint64).max, // never ends
+      presaleStart: 0, // never starts
+      presaleEnd: 0, // never ends
+      publicSalePrice: 0, // free
+      maxSalePurchasePerAddress: 0, // no limit
+      presaleMerkleRoot: bytes32(0) // no presale
     });
     bytes[] memory setupData = new bytes[](1);
     setupData[0] = abi.encodeWithSelector(
@@ -282,18 +290,18 @@ contract HolographDropCreatorTest is Test {
     );
     // Create initializer
     DropInitializer memory initializer = DropInitializer(
-      address(holographFeeManager), // HolographFeeManager,
+      address(feeManager), // HolographFeeManager,
       address(0), // HolographERC721TransferHelper
-      DEFAULT_HOLOGRAPH_DAO_ADDRESS,
-      name,
-      symbol,
-      defaultAdmin,
-      fundsRecipient,
-      editionSize,
-      royaltyBPS,
+      address(0), // marketFilterAddress
+      "Holograph ERC721 Drop Collection",
+      "hDROP",
+      payable(DEFAULT_OWNER_ADDRESS),
+      payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
+      100,
+      1000,
       setupData,
       address(dropMetadataRenderer),
-      metadataInitializer
+      abi.encode("description", "imageURI", "animationURI")
     );
 
     // Get deployment config, hash it, and then sign it
@@ -313,20 +321,22 @@ contract HolographDropCreatorTest is Test {
     Verification memory signature = Verification(r, s, v);
     address signer = ecrecover(hash, v, r, s);
 
-    // Pass the payload hash, with the signature, and signer's address
+    // NOTE: This is the address of the HolographFactory that depends on a couple .env variables being set
+    //       Those variable are HOLOGRAPH_ENVIRONMENT="develop" and DEVELOP_DEPLOYMENT_SALT=1000
     HolographFactory factory = HolographFactory(payable(0x5Db4dB97fDfFB29cD85eA5484C3722095c413fc7));
     console.log("Factory address: ", address(factory));
     console.log("Holograph address: ", address(factory.getHolograph()));
     console.log("Registry address: ", address(factory.getRegistry()));
     console.log("Signer address: ", signer);
 
+    // Deploy the drop / edition
     vm.recordLogs();
-    factory.deployHolographableContract(config, signature, alice);
+    factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
     Vm.Log[] memory entries = vm.getRecordedLogs();
     address newDropAddress = address(uint160(uint256(entries[5].topics[1])));
     console.log("New drop address: ", newDropAddress);
 
-    // Test checks start here - Reenable when ready
+    // Test checks start here
     HolographERC721Drop drop = HolographERC721Drop(payable(newDropAddress));
     vm.startPrank(DEFAULT_FUNDS_RECIPIENT_ADDRESS);
     vm.deal(DEFAULT_FUNDS_RECIPIENT_ADDRESS, 10 ether);
@@ -334,8 +344,8 @@ contract HolographDropCreatorTest is Test {
     assertEq(drop.totalSupply(), 10);
   }
 
-  // HELPERS
-  function getDeploymentConfig(DropInitializer memory initializer) public returns (DeploymentConfig memory) {
+  // TEST HELPERS
+  function getDeploymentConfig(DropInitializer memory initializer) public pure returns (DeploymentConfig memory) {
     return
       DeploymentConfig({
         contractType: 0x00000000000000000000000000486F6C6F677261706845524337323144726F70, // HolographERC721Drop
