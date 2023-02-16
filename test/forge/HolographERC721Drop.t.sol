@@ -43,13 +43,12 @@ contract HolographERC721DropTest is Test {
   );
 
   address public alice;
-
-  HolographERC721Drop public erc721Drop;
   MockUser public mockUser;
-  DummyMetadataRenderer public dummyRenderer = new DummyMetadataRenderer();
-  MockMetadataRenderer public mockRenderer = new MockMetadataRenderer();
   HolographFeeManager public feeManager;
 
+  HolographERC721Drop public erc721Drop;
+
+  DummyMetadataRenderer public dummyRenderer = new DummyMetadataRenderer();
   EditionMetadataRenderer public editionMetadataRenderer;
   DropMetadataRenderer public dropMetadataRenderer;
 
@@ -70,8 +69,8 @@ contract HolographERC721DropTest is Test {
   modifier setupTestDrop(uint64 editionSize) {
     // TODO: Remove this old initializer and figure out how to support both drops and edition metadata initialization
     // NOTE: It might be possible to use the same enforcer for both drops and editions,
-    // but we would have to encode the metadataRendererInit differently depending on the type of drop or it can use the MockMetadataRenderer
-    mockRenderer = new MockMetadataRenderer();
+    // but we would have to encode the metadataRendererInit differently depending on the type of drop or it can use the DummyMetadataRenderer
+    dummyRenderer = new DummyMetadataRenderer();
     DropInitializer memory initializer = DropInitializer({
       holographFeeManager: address(feeManager),
       holographERC721TransferHelper: address(0x1234),
@@ -83,7 +82,7 @@ contract HolographERC721DropTest is Test {
       editionSize: editionSize,
       royaltyBPS: 800,
       setupCalls: new bytes[](0),
-      metadataRenderer: address(mockRenderer),
+      metadataRenderer: address(dummyRenderer),
       metadataRendererInit: ""
     });
 
@@ -141,7 +140,6 @@ contract HolographERC721DropTest is Test {
     factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
     Vm.Log[] memory entries = vm.getRecordedLogs();
     address newDropAddress = address(uint160(uint256(entries[2].topics[1])));
-    // console.log("New drop address: ", newDropAddress);
 
     // Connect the drop implementation to the drop proxy address
     erc721Drop = HolographERC721Drop(payable(newDropAddress));
@@ -181,7 +179,7 @@ contract HolographERC721DropTest is Test {
     // Setup VM
     // NOTE: These tests rely on the Holograph protocol being deployed to the local chain
     //       At the moment, the deploy pipeline is still managed by Hardhat, so we need to
-    //       first run it via `yarn deploy:localhost` or `npx hardhat deploy --network localhost` before running the tests.
+    //       first run it via `npx hardhat deploy --network localhost` or `yarn deploy:localhost` if you need two local chains before running the tests.
     uint256 forkId = vm.createFork("http://localhost:8545");
     vm.selectFork(forkId);
 
@@ -256,28 +254,25 @@ contract HolographERC721DropTest is Test {
     (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hash);
     Verification memory signature = Verification(r, s, v);
     address signer = ecrecover(hash, v, r, s);
+    require(signer == alice, "Invalid signature");
 
     // NOTE: This is the address of the HolographFactory that depends on a couple .env variables being set
     //       Those variable are HOLOGRAPH_ENVIRONMENT="develop" and DEVELOP_DEPLOYMENT_SALT=1000
     HolographFactory factory = HolographFactory(payable(0x5Db4dB97fDfFB29cD85eA5484C3722095c413fc7));
-    console.log("Factory address: ", address(factory));
-    console.log("Holograph address: ", address(factory.getHolograph()));
-    console.log("Registry address: ", address(factory.getRegistry()));
-    console.log("Signer address: ", signer);
 
     // Deploy the drop / edition
     vm.recordLogs();
     factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
     Vm.Log[] memory entries = vm.getRecordedLogs();
     address newDropAddress = address(uint160(uint256(entries[5].topics[1])));
-    console.log("New drop address: ", newDropAddress);
+    HolographERC721Drop drop = HolographERC721Drop(payable(newDropAddress));
   }
 
   function test_Init() public setupTestDrop(10) {
     require(erc721Drop.owner() == DEFAULT_OWNER_ADDRESS, "Default owner set wrong");
     (IMetadataRenderer renderer, uint64 editionSize, uint16 royaltyBPS, address payable fundsRecipient) = erc721Drop
       .config();
-    require(address(renderer) == address(mockRenderer), "Renderer is wrong");
+    require(address(renderer) == address(dummyRenderer), "Renderer is wrong");
     require(editionSize == 10, "EditionSize is wrong");
 
     // TODO: Figure out why these two checks are failing
@@ -299,7 +294,7 @@ contract HolographERC721DropTest is Test {
       editionSize: editionSize,
       royaltyBPS: 800,
       setupCalls: new bytes[](0),
-      metadataRenderer: address(mockRenderer),
+      metadataRenderer: address(dummyRenderer),
       metadataRendererInit: ""
     });
     erc721Drop.init(abi.encode(initializer, false));
