@@ -87,6 +87,9 @@ contract HolographERC721DropTest is Test {
     // TODO: We might have to deploy two different drops enforcers (one for drops and one for editions) because the metadataRendererInit is different
     //       For drops it uses "metadata_uri", "metadata_contract_uri"
     //       For editions it uses imageURI, animationURI, description
+    //       The data is either encoded as  bytes memory metadataInitializer = abi.encode(metadataURIBase, metadataContractURI) or
+    //       bytes memory metadataInitializer = abi.encode("description", "imageURI", "animationURI")
+    //       depending on if it's a drop or edition
     DropInitializer memory initializer = DropInitializer({
       holographFeeManager: address(feeManager),
       holographERC721TransferHelper: address(0x1234),
