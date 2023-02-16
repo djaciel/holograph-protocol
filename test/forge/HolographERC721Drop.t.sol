@@ -201,77 +201,77 @@ contract HolographERC721DropTest is Test {
     dropMetadataRenderer = new DropMetadataRenderer();
   }
 
-  // function test_DeployHolographDrop() public {
-  //   // Setup sale config for edition
-  //   IHolographERC721Drop.SalesConfiguration memory saleConfig = IHolographERC721Drop.SalesConfiguration({
-  //     publicSaleStart: 0, // starts now
-  //     publicSaleEnd: type(uint64).max, // never ends
-  //     presaleStart: 0, // never starts
-  //     presaleEnd: 0, // never ends
-  //     publicSalePrice: 0.1 ether, // 0.1 ETH
-  //     maxSalePurchasePerAddress: 0, // no limit
-  //     presaleMerkleRoot: bytes32(0) // no presale
-  //   });
-  //   bytes[] memory setupData = new bytes[](1);
-  //   setupData[0] = abi.encodeWithSelector(
-  //     HolographERC721Drop.setSaleConfiguration.selector,
-  //     saleConfig.publicSalePrice,
-  //     saleConfig.maxSalePurchasePerAddress,
-  //     saleConfig.publicSaleStart,
-  //     saleConfig.publicSaleEnd,
-  //     saleConfig.presaleStart,
-  //     saleConfig.presaleEnd,
-  //     saleConfig.presaleMerkleRoot
-  //   );
+  function test_DeployHolographDrop() public {
+    // Setup sale config for edition
+    IHolographERC721Drop.SalesConfiguration memory saleConfig = IHolographERC721Drop.SalesConfiguration({
+      publicSaleStart: 0, // starts now
+      publicSaleEnd: type(uint64).max, // never ends
+      presaleStart: 0, // never starts
+      presaleEnd: 0, // never ends
+      publicSalePrice: 0.1 ether, // 0.1 ETH
+      maxSalePurchasePerAddress: 0, // no limit
+      presaleMerkleRoot: bytes32(0) // no presale
+    });
+    bytes[] memory setupData = new bytes[](1);
+    setupData[0] = abi.encodeWithSelector(
+      HolographERC721Drop.setSaleConfiguration.selector,
+      saleConfig.publicSalePrice,
+      saleConfig.maxSalePurchasePerAddress,
+      saleConfig.publicSaleStart,
+      saleConfig.publicSaleEnd,
+      saleConfig.presaleStart,
+      saleConfig.presaleEnd,
+      saleConfig.presaleMerkleRoot
+    );
 
-  //   // Create initializer
-  //   DropInitializer memory initializer = DropInitializer(
-  //     address(feeManager), // HolographFeeManager,
-  //     address(0), // HolographERC721TransferHelper
-  //     address(0), // marketFilterAddress
-  //     "Holograph ERC721 Drop Collection",
-  //     "hDROP",
-  //     payable(DEFAULT_OWNER_ADDRESS),
-  //     payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
-  //     100,
-  //     1000,
-  //     setupData,
-  //     address(dropMetadataRenderer),
-  //     abi.encode("description", "imageURI", "animationURI")
-  //   );
+    // Create initializer
+    DropInitializer memory initializer = DropInitializer(
+      address(feeManager), // HolographFeeManager,
+      address(0), // HolographERC721TransferHelper
+      address(0), // marketFilterAddress
+      "Holograph ERC721 Drop Collection",
+      "hDROP",
+      payable(DEFAULT_OWNER_ADDRESS),
+      payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
+      100,
+      1000,
+      setupData,
+      address(dropMetadataRenderer),
+      abi.encode("description", "imageURI", "animationURI")
+    );
 
-  //   // Get deployment config, hash it, and then sign it
-  //   DeploymentConfig memory config = getDeploymentConfig(initializer);
-  //   bytes32 hash = keccak256(
-  //     abi.encodePacked(
-  //       config.contractType,
-  //       config.chainType,
-  //       config.salt,
-  //       keccak256(config.byteCode),
-  //       keccak256(config.initCode),
-  //       alice
-  //     )
-  //   );
+    // Get deployment config, hash it, and then sign it
+    DeploymentConfig memory config = getDeploymentConfig(initializer);
+    bytes32 hash = keccak256(
+      abi.encodePacked(
+        config.contractType,
+        config.chainType,
+        config.salt,
+        keccak256(config.byteCode),
+        keccak256(config.initCode),
+        alice
+      )
+    );
 
-  //   (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hash);
-  //   Verification memory signature = Verification(r, s, v);
-  //   address signer = ecrecover(hash, v, r, s);
+    (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hash);
+    Verification memory signature = Verification(r, s, v);
+    address signer = ecrecover(hash, v, r, s);
 
-  //   // NOTE: This is the address of the HolographFactory that depends on a couple .env variables being set
-  //   //       Those variable are HOLOGRAPH_ENVIRONMENT="develop" and DEVELOP_DEPLOYMENT_SALT=1000
-  //   HolographFactory factory = HolographFactory(payable(0x5Db4dB97fDfFB29cD85eA5484C3722095c413fc7));
-  //   console.log("Factory address: ", address(factory));
-  //   console.log("Holograph address: ", address(factory.getHolograph()));
-  //   console.log("Registry address: ", address(factory.getRegistry()));
-  //   console.log("Signer address: ", signer);
+    // NOTE: This is the address of the HolographFactory that depends on a couple .env variables being set
+    //       Those variable are HOLOGRAPH_ENVIRONMENT="develop" and DEVELOP_DEPLOYMENT_SALT=1000
+    HolographFactory factory = HolographFactory(payable(0x5Db4dB97fDfFB29cD85eA5484C3722095c413fc7));
+    console.log("Factory address: ", address(factory));
+    console.log("Holograph address: ", address(factory.getHolograph()));
+    console.log("Registry address: ", address(factory.getRegistry()));
+    console.log("Signer address: ", signer);
 
-  //   // Deploy the drop / edition
-  //   vm.recordLogs();
-  //   factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
-  //   Vm.Log[] memory entries = vm.getRecordedLogs();
-  //   address newDropAddress = address(uint160(uint256(entries[5].topics[1])));
-  //   console.log("New drop address: ", newDropAddress);
-  // }
+    // Deploy the drop / edition
+    vm.recordLogs();
+    factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
+    Vm.Log[] memory entries = vm.getRecordedLogs();
+    address newDropAddress = address(uint160(uint256(entries[5].topics[1])));
+    console.log("New drop address: ", newDropAddress);
+  }
 
   function test_Init() public setupTestDrop(10) {
     require(erc721Drop.owner() == DEFAULT_OWNER_ADDRESS, "Default owner set wrong");
