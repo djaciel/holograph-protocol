@@ -1152,7 +1152,10 @@ contract HolographERC721Drop is
     uint256 startTokenId,
     uint256 quantity
   ) internal virtual override {
-    if (from != msg.sender && address(operatorFilterRegistry).code.length > 0) {
+    if (
+      from != address(0) && // skip on mints
+      from != msg.sender // skip on transfers from sender
+    ) {
       if (!operatorFilterRegistry.isOperatorAllowed(address(this), msg.sender)) {
         revert OperatorNotAllowed(msg.sender);
       }
@@ -1523,9 +1526,7 @@ contract HolographERC721Drop is
    */
   function _royalties() internal view returns (address) {
     return
-      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(
-        0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573
-      );
+      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573);
   }
 
   event FundsReceived(address indexed source, uint256 amount);

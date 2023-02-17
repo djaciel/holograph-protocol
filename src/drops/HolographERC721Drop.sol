@@ -1152,7 +1152,10 @@ contract HolographERC721Drop is
     uint256 startTokenId,
     uint256 quantity
   ) internal virtual override {
-    if (from != msg.sender && address(operatorFilterRegistry).code.length > 0) {
+    if (
+      from != address(0) && // skip on mints
+      from != msg.sender // skip on transfers from sender
+    ) {
       if (!operatorFilterRegistry.isOperatorAllowed(address(this), msg.sender)) {
         revert OperatorNotAllowed(msg.sender);
       }
