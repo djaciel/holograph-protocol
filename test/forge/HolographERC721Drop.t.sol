@@ -16,7 +16,10 @@ import {HolographERC721Drop} from "../../contracts/drops/HolographERC721Drop.sol
 import {HolographFeeManager} from "../../contracts/drops/HolographFeeManager.sol";
 import {MockMetadataRenderer} from "./metadata/MockMetadataRenderer.sol";
 
+import {Constants} from "./utils/Constants.sol";
+
 import {DummyMetadataRenderer} from "./utils/DummyMetadataRenderer.sol";
+import {DummyCustomContract} from "../../contracts/drops/utils/DummyCustomContract.sol";
 import {MockUser} from "./utils/MockUser.sol";
 import {IOperatorFilterRegistry} from "../../contracts/drops/interfaces/IOperatorFilterRegistry.sol";
 import {IMetadataRenderer} from "../../contracts/drops/interfaces/IMetadataRenderer.sol";
@@ -83,36 +86,10 @@ contract HolographERC721DropTest is Test {
       royaltyBPS: 800,
       setupCalls: new bytes[](0),
       metadataRenderer: address(dummyRenderer),
+      //       metadataRenderer: address(dropMetadataRenderer),
       metadataRendererInit: ""
+      //       metadataRendererInit: abi.encode("description", "imageURI", "animationURI")
     });
-
-    // NOTE: Drops that get deployed via the factory will have to send abi encoded metadataRendererInit that matches the enforcers
-    //       At the moment this can be found inside the erc721drop deploy script under the deploy directory
-    //       Look for generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
-    // TODO: We might have to deploy two different drops enforcers (one for drops and one for editions) because the metadataRendererInit is different
-    //       For drops it uses "metadata_uri", "metadata_contract_uri"
-    //       For editions it uses imageURI, animationURI, description
-    //       The data is either encoded as  bytes memory metadataInitializer = abi.encode(metadataURIBase, metadataContractURI) or
-    //       bytes memory metadataInitializer = abi.encode("description", "imageURI", "animationURI")
-    //       depending on if it's a drop or edition
-    // DropInitializer memory initializer = DropInitializer({
-    //   holographFeeManager: address(feeManager),
-    //   holographERC721TransferHelper: address(0x1234),
-    //   marketFilterAddress: address(0x0),
-    //   contractName: "Test NFT",
-    //   contractSymbol: "TNFT",
-    //   initialOwner: DEFAULT_OWNER_ADDRESS,
-    //   fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
-    //   editionSize: editionSize,
-    //   royaltyBPS: 800,
-    //   setupCalls: new bytes[](0),
-    //   metadataRenderer: address(dropMetadataRenderer),
-    //   metadataRendererInit: abi.encode("description", "imageURI", "animationURI")
-    // });
-
-    // TODO: Instead of initializing the drop directly, we should use the factory to deploy it as holographable
-    // erc721Drop = new HolographERC721Drop();
-    // erc721Drop.init(abi.encode(initializer, true));
 
     // Get deployment config, hash it, and then sign it
     DeploymentConfig memory config = getDeploymentConfig(initializer);
@@ -131,9 +108,7 @@ contract HolographERC721DropTest is Test {
     Verification memory signature = Verification(r, s, v);
     address signer = ecrecover(hash, v, r, s);
 
-    // NOTE: This is the address of the HolographFactory that depends on a couple .env variables being set
-    //       Those variable are HOLOGRAPH_ENVIRONMENT="develop" and DEVELOP_DEPLOYMENT_SALT=1000
-    HolographFactory factory = HolographFactory(payable(0x5Db4dB97fDfFB29cD85eA5484C3722095c413fc7));
+    HolographFactory factory = HolographFactory(payable(Constants.getHolographFactory()));
 
     // Deploy the drop / edition
     vm.recordLogs();
@@ -191,7 +166,7 @@ contract HolographERC721DropTest is Test {
     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
     feeManager = new HolographFeeManager();
     feeManager.init(abi.encode(500, HOLOGRAPH_TREASURY_ADDRESS));
-    vm.etch(address(0x000000000000AAeB6D7670E522A718067333cd4E), address(new OperatorFilterRegistry()).code);
+    vm.etch(address(Constants.getOpenseaRoyaltiesRegistry()), address(new OperatorFilterRegistry()).code);
     ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x666)));
     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
     feeManager.setFeeOverride(address(erc721Drop), 500);
@@ -256,9 +231,7 @@ contract HolographERC721DropTest is Test {
     address signer = ecrecover(hash, v, r, s);
     require(signer == alice, "Invalid signature");
 
-    // NOTE: This is the address of the HolographFactory that depends on a couple .env variables being set
-    //       Those variable are HOLOGRAPH_ENVIRONMENT="develop" and DEVELOP_DEPLOYMENT_SALT=1000
-    HolographFactory factory = HolographFactory(payable(0x5Db4dB97fDfFB29cD85eA5484C3722095c413fc7));
+    HolographFactory factory = HolographFactory(payable(Constants.getHolographFactory()));
 
     // Deploy the drop / edition
     vm.recordLogs();
@@ -275,9 +248,8 @@ contract HolographERC721DropTest is Test {
     require(address(renderer) == address(dummyRenderer), "Renderer is wrong");
     require(editionSize == 10, "EditionSize is wrong");
 
-    // TODO: Figure out why these two checks are failing
-    // require(royaltyBPS == 800, "RoyaltyBPS is wrong");
-    // require(fundsRecipient == payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS), "FundsRecipient is wrong");
+    require(royaltyBPS == 800, "RoyaltyBPS is wrong");
+    require(fundsRecipient == payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS), "FundsRecipient is wrong");
     string memory name = erc721Drop.name();
     string memory symbol = erc721Drop.symbol();
     require(keccak256(bytes(name)) == keccak256(bytes("Test NFT")));
@@ -785,22 +757,23 @@ contract HolographERC721DropTest is Test {
 
   // // TODO: Add test burn failure state for users that don't own the token
 
-  // function test_EIP165() public setupTestDrop(10) {
-  //   require(erc721Drop.supportsInterface(0x01ffc9a7), "supports 165");
-  //   require(erc721Drop.supportsInterface(0x80ac58cd), "supports 721");
-  //   require(erc721Drop.supportsInterface(0x5b5e139f), "supports 721-metdata");
-  //   require(erc721Drop.supportsInterface(0x2a55205a), "supports 2981");
-  //   require(!erc721Drop.supportsInterface(0x0000000), "doesnt allow non-interface");
-  // }
+  function test_EIP165() public setupTestDrop(10) {
+    require(erc721Drop.supportsInterface(0x01ffc9a7), "supports 165");
+    require(erc721Drop.supportsInterface(0x80ac58cd), "supports 721");
+    require(erc721Drop.supportsInterface(0x5b5e139f), "supports 721-metdata");
+    require(erc721Drop.supportsInterface(0x2a55205a), "supports 2981");
+    require(!erc721Drop.supportsInterface(0x0000000), "doesnt allow non-interface");
+  }
 
   // TEST HELPERS
-  function getDeploymentConfig(DropInitializer memory initializer) public pure returns (DeploymentConfig memory) {
+  function getDeploymentConfig(DropInitializer memory initializer) public returns (DeploymentConfig memory) {
+    bytes memory bytecode = abi.encodePacked(vm.getCode("DummyCustomContract.sol:DummyCustomContract"));
     return
       DeploymentConfig({
         contractType: 0x00000000000000000000000000486F6C6F677261706845524337323144726F70, // HolographERC721Drop
         chainType: 1338, // holograph.getChainId(),
         salt: 0x0000000000000000000000000000000000000000000000000000000000000001, // random salt from user
-        byteCode: abi.encode(0x0), // for custom contract is not used
+        byteCode: bytecode, // for custom contract is not used
         initCode: abi.encode(initializer, false) // init code is used to initialize the ERC721Drop enforcer
       });
   }

@@ -4,6 +4,8 @@ pragma solidity 0.8.13;
 import {Test, Vm} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
+import {Constants} from "./utils/Constants.sol";
+
 import {DeploymentConfig} from "../../contracts/struct/DeploymentConfig.sol";
 import {Verification} from "../../contracts/struct/Verification.sol";
 
@@ -16,6 +18,8 @@ import {HolographFactory} from "../../contracts/HolographFactory.sol";
 
 import {MockMetadataRenderer} from "./metadata/MockMetadataRenderer.sol";
 import {IERC721AUpgradeable} from "../../contracts/drops/interfaces/IERC721AUpgradeable.sol";
+
+import {DummyCustomContract} from "../../contracts/drops/utils/DummyCustomContract.sol";
 
 contract HolographDropCreatorTest is Test {
   address public constant DEFAULT_OWNER_ADDRESS = address(0x23499);
@@ -244,9 +248,7 @@ contract HolographDropCreatorTest is Test {
     address signer = ecrecover(hash, v, r, s);
     require(signer == alice, "Invalid signature");
 
-    // NOTE: This is the address of the HolographFactory that depends on a couple .env variables being set
-    //       Those variable are HOLOGRAPH_ENVIRONMENT="develop" and DEVELOP_DEPLOYMENT_SALT=1000
-    HolographFactory factory = HolographFactory(payable(0x5Db4dB97fDfFB29cD85eA5484C3722095c413fc7));
+    HolographFactory factory = HolographFactory(payable(Constants.getHolographFactory()));
     console.log("Factory address: ", address(factory));
     console.log("Holograph address: ", address(factory.getHolograph()));
     console.log("Registry address: ", address(factory.getRegistry()));
@@ -322,9 +324,7 @@ contract HolographDropCreatorTest is Test {
     Verification memory signature = Verification(r, s, v);
     address signer = ecrecover(hash, v, r, s);
 
-    // NOTE: This is the address of the HolographFactory that depends on a couple .env variables being set
-    //       Those variable are HOLOGRAPH_ENVIRONMENT="develop" and DEVELOP_DEPLOYMENT_SALT=1000
-    HolographFactory factory = HolographFactory(payable(0x5Db4dB97fDfFB29cD85eA5484C3722095c413fc7));
+    HolographFactory factory = HolographFactory(payable(Constants.getHolographFactory()));
     console.log("Factory address: ", address(factory));
     console.log("Holograph address: ", address(factory.getHolograph()));
     console.log("Registry address: ", address(factory.getRegistry()));
@@ -346,13 +346,13 @@ contract HolographDropCreatorTest is Test {
   }
 
   // TEST HELPERS
-  function getDeploymentConfig(DropInitializer memory initializer) public pure returns (DeploymentConfig memory) {
+  function getDeploymentConfig(DropInitializer memory initializer) public returns (DeploymentConfig memory) {
     return
       DeploymentConfig({
         contractType: 0x00000000000000000000000000486F6C6F677261706845524337323144726F70, // HolographERC721Drop
         chainType: 1338, // holograph.getChainId(),
         salt: 0x0000000000000000000000000000000000000000000000000000000000000001, // random salt from user
-        byteCode: abi.encode(0x0), // for custom contract is not used
+        byteCode: abi.encodePacked(vm.getCode("DummyCustomContract.sol:DummyCustomContract")), // for custom contract is not used
         initCode: abi.encode(initializer, false) // init code is used to initialize the ERC721Drop enforcer
       });
   }
