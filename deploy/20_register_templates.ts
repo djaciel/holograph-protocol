@@ -126,6 +126,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // Get the contracts rquired for the ERC721Drop
   const EditionMetadataRenderer = await hre.deployments.get('EditionMetadataRenderer');
+  const HolographFeeManager = await hre.deployments.get('HolographFeeManager');
 
   // Register ERC721Drop
   const futureErc721DropAddress = await genesisDeriveFutureAddress(
@@ -133,12 +134,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     salt,
     'HolographERC721Drop',
     generateInitCode(
-      ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)'],
+      ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)', 'bool'],
       [
         [
-          '0x0000000000000000000000000000000000000000', // holographFeeManager
+          HolographFeeManager.address, // holographFeeManager
           '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
-          '0x0000000000000000000000000000000000000000', // marketFilterDAOAddress
+          '0x000000000000AAeB6D7670E522A718067333cd4E', // marketFilterAddress (opensea)
           'Holograph ERC721 Drop Collection', // contractName
           'hDROP', // contractSymbol
           deployer.address, // initialOwner
@@ -149,6 +150,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           EditionMetadataRenderer.address, // metadataRenderer
           generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
         ],
+        true, // skipInit
       ]
     ) // initCode
   );

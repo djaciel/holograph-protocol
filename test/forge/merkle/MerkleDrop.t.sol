@@ -17,7 +17,7 @@
 //   MerkleData public merkleData;
 //   address public constant DEFAULT_OWNER_ADDRESS = address(0x23499);
 //   address payable public constant DEFAULT_FUNDS_RECIPIENT_ADDRESS = payable(address(0x21303));
-//   address payable public constant DEFAULT_HOLOGRAPH_DAO_ADDRESS = payable(address(0x999));
+//   address payable public constant HOLOGRAPH_TREASURY_ADDRESS = payable(address(0x999));
 //   address public constant mediaContract = address(0x123456);
 
 //   // Drop properties
@@ -52,9 +52,9 @@
 //   }
 
 //   function setUp() public {
-//     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-//     holographFeeManager = new HolographFeeManager(250, DEFAULT_HOLOGRAPH_DAO_ADDRESS);
-//     vm.prank(DEFAULT_HOLOGRAPH_DAO_ADDRESS);
+//     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
+//     holographFeeManager = new HolographFeeManager(250, HOLOGRAPH_TREASURY_ADDRESS);
+//     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
 
 //     address impl = address(new ERC721Drop(feeManager, address(1234), FactoryUpgradeGate(address(0)), address(0)));
 //     address payable newDrop = payable(address(new HolographERC721DropProxy(impl, "")));

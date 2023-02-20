@@ -12,7 +12,8 @@ contract HolographFeeManagerTest is Test {
   address public constant mediaContract = address(123456);
 
   function setUp() public {
-    feeManager = new HolographFeeManager(1234, DEFAULT_ADMIN_ADDRESS);
+    feeManager = new HolographFeeManager();
+    feeManager.init(abi.encode(1234, DEFAULT_ADMIN_ADDRESS));
     mockUser = new MockUser();
   }
 
