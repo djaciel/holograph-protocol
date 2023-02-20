@@ -85,7 +85,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     salt,
     'HolographERC721Drop',
     generateInitCode(
-      ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)'],
+      ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)', 'bool'],
       [
         [
           futureFeeManagerAddress, // holographFeeManager
@@ -101,6 +101,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           futureEditionMetadataRendererAddress, // metadataRenderer
           generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
         ],
+        true, // skipInit
       ]
     ) // initCode
   );
@@ -114,7 +115,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       salt,
       'HolographERC721Drop',
       generateInitCode(
-        ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)'],
+        ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)', 'bool'],
         [
           [
             futureFeeManagerAddress, // holographFeeManager
@@ -130,6 +131,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             futureEditionMetadataRendererAddress, // metadataRenderer
             generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
           ],
+          true, // skipInit
         ]
       ), // initCode
       futureErc721DropAddress

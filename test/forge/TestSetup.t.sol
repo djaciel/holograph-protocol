@@ -36,9 +36,6 @@ import {Faucet} from "../../contracts/faucet/Faucet.sol";
 
 abstract contract TestSetup {
   bytes32 public salt = bytes32(0);
-
-  //   const chainId: BytesLike = '0x' + network.holographId.toString(16).padStart(8, '0');
-  //   const chainId2: BytesLike = '0x' + network2.holographId.toString(16).padStart(8, '0');
   bytes public chainId = hex"fffffffe";
   bytes public chainId2 = hex"fffffffd";
 

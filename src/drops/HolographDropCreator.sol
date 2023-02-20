@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.13;
+
+/*SOLIDITY_COMPILER_VERSION*/
 
 import "../abstract/Admin.sol";
 import "../abstract/Initializable.sol";
@@ -55,10 +56,6 @@ contract HolographDropCreator is Initializable {
     editionMetadataRenderer = EditionMetadataRenderer(editionMetadataRendererAddress);
     dropMetadataRenderer = DropMetadataRenderer(dropMetadataRendererAddress);
 
-    // assembly {
-    //   sstore(_holographSlot, holograph)
-    // }
-
     _setInitialized();
     return InitializableInterface.init.selector;
   }
@@ -80,7 +77,7 @@ contract HolographDropCreator is Initializable {
     HolographERC721Drop impl = HolographERC721Drop(payable(implementation));
     HolographERC721DropProxy erc721DropProxy = new HolographERC721DropProxy();
     DropInitializer memory initialzer = DropInitializer(
-      impl.holographFeeManager.address,
+      address(0),
       impl.holographERC721TransferHelper.address,
       impl.marketFilterAddress.address,
       name,
@@ -95,7 +92,7 @@ contract HolographDropCreator is Initializable {
     );
 
     // Run init to connect proxy to initial implementation, and to configure the drop
-    erc721DropProxy.init(abi.encode(implementation, abi.encode(initialzer)));
+    erc721DropProxy.init(abi.encode(implementation, abi.encode(initialzer, true)));
     newDropAddress = payable(address(erc721DropProxy));
   }
 

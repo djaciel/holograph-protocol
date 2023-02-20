@@ -1,27 +1,31 @@
 // SPDX-License-Identifier: MIT
+
 pragma solidity 0.8.13;
 
-import "../abstract/Initializable.sol";
+import {NonReentrant} from "../abstract/NonReentrant.sol";
+import {ERC721AUpgradeable} from "./abstract/ERC721AUpgradeable.sol";
+import {Owner} from "./abstract/Owner.sol";
 
-import {ERC721AUpgradeable} from "./lib/erc721a-upgradeable/ERC721AUpgradeable.sol";
-import {IERC721AUpgradeable} from "./lib/erc721a-upgradeable/IERC721AUpgradeable.sol";
-import {IERC2981Upgradeable, IERC165Upgradeable} from "./lib/openzeppelin-contracts-upgradeable/interfaces/IERC2981Upgradeable.sol";
-import {AccessControlUpgradeable} from "./lib/openzeppelin-contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import {ReentrancyGuardUpgradeable} from "./lib/openzeppelin-contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol";
-import {MerkleProofUpgradeable} from "./lib/openzeppelin-contracts-upgradeable/utils/cryptography/MerkleProofUpgradeable.sol";
+import {Initializable} from "./abstract/Initializable.sol";
+import {ERC165} from "./abstract/ERC165.sol";
+import {AccessControl} from "./abstract/AccessControl.sol";
 
-import {DropInitializer} from "../struct/DropInitializer.sol";
-
-import {IHolographFeeManager} from "./interfaces/IHolographFeeManager.sol";
+import "../interface/HolographInterface.sol";
+import "../interface/HolographInterfacesInterface.sol";
+import "../interface/HolographRegistryInterface.sol";
+import "../interface/HolographRoyaltiesInterface.sol";
 import {IMetadataRenderer} from "./interfaces/IMetadataRenderer.sol";
 import {IOperatorFilterRegistry} from "./interfaces/IOperatorFilterRegistry.sol";
 import {IHolographERC721Drop} from "./interfaces/IHolographERC721Drop.sol";
 import {IOwnable} from "./interfaces/IOwnable.sol";
+import {IAccessControl} from "./interfaces/IAccessControl.sol";
+import {IERC165Upgradeable} from "./interfaces/IERC165Upgradeable.sol";
+import {IERC721AUpgradeable} from "./interfaces/IERC721AUpgradeable.sol";
 
-import {OwnableSkeleton} from "./utils/OwnableSkeleton.sol";
-import {FundsReceiver} from "./utils/FundsReceiver.sol";
-import {PublicMulticall} from "./utils/PublicMulticall.sol";
-import {ERC721DropStorageV1} from "./storage/ERC721DropStorageV1.sol";
+import {DropInitializer} from "../struct/DropInitializer.sol";
+
+import {MerkleProof} from "./library/MerkleProof.sol";
+import {Address} from "./library/Address.sol";
 
 /**
  * @notice HOLOGRAPH NFT contract for Drops and Editions
@@ -31,25 +35,31 @@ import {ERC721DropStorageV1} from "./storage/ERC721DropStorageV1.sol";
  */
 contract HolographERC721Drop is
   Initializable,
+  Owner,
   ERC721AUpgradeable,
-  IERC2981Upgradeable,
-  ReentrancyGuardUpgradeable,
-  AccessControlUpgradeable,
-  IHolographERC721Drop,
-  PublicMulticall,
-  OwnableSkeleton,
-  FundsReceiver,
-  ERC721DropStorageV1
+  NonReentrant,
+  AccessControl,
+  IHolographERC721Drop
 {
-  /// @dev keep track of initialization state (Initializable)
-  bool private _initialized;
-  bool private _initializing;
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.sourceContract')) - 1)
+   */
+  bytes32 constant _sourceContractSlot = 0x27d542086d1e831d40b749e7f5509a626c3047a36d160781c40d5acc83e5b074;
 
   /// @dev This is the max mint batch size for the optimized ERC721A mint contract
   uint256 constant MAX_MINT_BATCH_SIZE = 8;
 
   /// @dev Gas limit to send funds
   uint256 constant FUNDS_SEND_GAS_LIMIT = 210_000;
+
+  /// @notice Configuration for NFT minting contract storage
+  IHolographERC721Drop.Configuration public config;
+
+  /// @notice Sales configuration
+  IHolographERC721Drop.SalesConfiguration public salesConfig;
+
+  /// @dev Mapping for presale mint counts by address to allow public mint limit
+  mapping(address => uint256) public presaleMintsByAddress;
 
   /// @notice Access control roles
   bytes32 public constant MINTER_ROLE = keccak256("MINTER");
@@ -58,12 +68,6 @@ contract HolographERC721Drop is
   /// @dev HOLOGRAPH transfer helper address for auto-approval
   address public holographERC721TransferHelper;
 
-  /// @dev Holograph Fee Manager address
-  IHolographFeeManager public holographFeeManager;
-
-  /// @notice Max royalty BPS
-  uint16 constant MAX_ROYALTY_BPS = 50_00;
-
   address public marketFilterAddress;
 
   IOperatorFilterRegistry public operatorFilterRegistry =
@@ -71,7 +75,7 @@ contract HolographERC721Drop is
 
   /// @notice Only allow for users with admin access
   modifier onlyAdmin() {
-    if (!hasRole(DEFAULT_ADMIN_ROLE, _msgSender())) {
+    if (!hasRole(DEFAULT_ADMIN_ROLE, msg.sender)) {
       revert Access_OnlyAdmin();
     }
 
@@ -81,7 +85,7 @@ contract HolographERC721Drop is
   /// @notice Only a given role has access or admin
   /// @param role role to check for alongside the admin role
   modifier onlyRoleOrAdmin(bytes32 role) {
-    if (!hasRole(DEFAULT_ADMIN_ROLE, _msgSender()) && !hasRole(role, _msgSender())) {
+    if (!hasRole(DEFAULT_ADMIN_ROLE, msg.sender) && !hasRole(role, msg.sender)) {
       revert Access_MissingRoleOrAdmin(role);
     }
 
@@ -125,34 +129,37 @@ contract HolographERC721Drop is
 
   constructor() {}
 
+  /**
+   * @dev Receives and executes a batch of function calls on this contract.
+   */
+  function multicall(bytes[] memory data) public returns (bytes[] memory results) {
+    results = new bytes[](data.length);
+    for (uint256 i = 0; i < data.length; i++) {
+      results[i] = Address.functionDelegateCall(address(this), data[i]);
+    }
+  }
+
   /// @dev Initialize a new drop contract
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
 
-    // TODO: OZ Initializable pattern (review)
-    _initialized = false;
-    _initializing = true;
-
-    DropInitializer memory initializer = abi.decode(initPayload, (DropInitializer));
-    holographFeeManager = IHolographFeeManager(initializer.holographFeeManager);
+    (DropInitializer memory initializer, bool skipInit) = abi.decode(initPayload, (DropInitializer, bool));
     holographERC721TransferHelper = initializer.holographERC721TransferHelper;
     marketFilterAddress = initializer.marketFilterAddress;
 
-    // Setup ERC721A
-    // Call to ERC721AUpgradeable init has been replaced with the following
-    // __ERC721A_init(initializer.contractName, initializer.contractSymbol);
     _name = initializer.contractName;
     _symbol = initializer.contractSymbol;
     _currentIndex = _startTokenId();
 
-    // Setup AccessControl
-    // TODO: OZ Initializable pattern. AccessControl does not set anything in _init_ (review)
-    // Setup access control
-    // __AccessControl_init();
     // Setup the owner role
     _setupRole(DEFAULT_ADMIN_ROLE, initializer.initialOwner);
     // Set ownership to original sender of contract call
-    _setOwner(initializer.initialOwner);
+    address newOwner = initializer.initialOwner;
+    Initializable sourceContract;
+    assembly {
+      sstore(_ownerSlot, newOwner)
+      sourceContract := sload(_sourceContractSlot)
+    }
 
     if (initializer.setupCalls.length > 0) {
       // Setup temporary role
@@ -163,30 +170,31 @@ contract HolographERC721Drop is
       _revokeRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    // TODO: OZ Initializable pattern. Need to initialize to _NOT_ENTERED (review)
-    // Setup re-entracy guard
-    // __ReentrancyGuard_init();
+    setStatus(1);
 
-    if (config.royaltyBPS > MAX_ROYALTY_BPS) {
-      revert Setup_RoyaltyPercentageTooHigh(MAX_ROYALTY_BPS);
+    // Setup Holograph Royalties
+    if (!skipInit) {
+      require(sourceContract.init(bytes("")) == Initializable.init.selector, "DROPS: could not init source");
+      _royalties().delegatecall(
+        abi.encodeWithSelector(
+          HolographRoyaltiesInterface.initHolographRoyalties.selector,
+          abi.encode(uint256(initializer.royaltyBPS), uint256(0))
+        )
+      );
     }
 
     // Setup config variables
-    config.editionSize = initializer.editionSize;
-    config.metadataRenderer = IMetadataRenderer(initializer.metadataRenderer);
     config.royaltyBPS = initializer.royaltyBPS;
     config.fundsRecipient = initializer.fundsRecipient;
+    config.editionSize = initializer.editionSize;
+    config.metadataRenderer = IMetadataRenderer(initializer.metadataRenderer);
 
     // TODO: Need to make sure to initialize the metadata renderer
     IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
 
-    // TODO: OZ Initializable pattern (review)
-    _initializing = false;
-    _initialized = true;
-
     // Holograph initialization
     _setInitialized();
-    return InitializableInterface.init.selector;
+    return Initializable.init.selector;
   }
 
   /// @notice Getter for last minted token ID (gets next token id and subtracts 1)
@@ -229,20 +237,6 @@ contract HolographERC721Drop is
     _burn(tokenId, true);
   }
 
-  /// @dev Get royalty information for token
-  /// @param _salePrice Sale price for the token
-  function royaltyInfo(uint256, uint256 _salePrice)
-    external
-    view
-    override
-    returns (address receiver, uint256 royaltyAmount)
-  {
-    if (config.fundsRecipient == address(0)) {
-      return (config.fundsRecipient, 0);
-    }
-    return (config.fundsRecipient, (_salePrice * config.royaltyBPS) / 10_000);
-  }
-
   /// @notice Sale details
   /// @return IHolographERC721Drop.SaleDetails sale information details
   function saleDetails() external view returns (IHolographERC721Drop.SaleDetails memory) {
@@ -278,6 +272,10 @@ contract HolographERC721Drop is
       });
   }
 
+  function owner() external view override(Owner, IHolographERC721Drop) returns (address) {
+    return getOwner();
+  }
+
   /// @dev Setup auto-approval for marketplace access to sell NFT
   ///      Still requires approval for module
   /// @param nftOwner owner of the nft
@@ -292,13 +290,6 @@ contract HolographERC721Drop is
       return true;
     }
     return super.isApprovedForAll(nftOwner, operator);
-  }
-
-  /// @dev Gets the holograph fee for amount of withdraw
-  /// @param amount amount of funds to get fee for
-  function holographFeeForAmount(uint256 amount) public returns (address payable, uint256) {
-    (address payable recipient, uint256 bps) = holographFeeManager.getWithdrawFeesBps(address(this));
-    return (recipient, (amount * bps) / 10_000);
   }
 
   /**
@@ -383,17 +374,16 @@ contract HolographERC721Drop is
     // Any other number, the per address mint limit is that.
     if (
       salesConfig.maxSalePurchasePerAddress != 0 &&
-      _numberMinted(_msgSender()) + quantity - presaleMintsByAddress[_msgSender()] >
-      salesConfig.maxSalePurchasePerAddress
+      _numberMinted(msg.sender) + quantity - presaleMintsByAddress[msg.sender] > salesConfig.maxSalePurchasePerAddress
     ) {
       revert Purchase_TooManyForAddress();
     }
 
-    _mintNFTs(_msgSender(), quantity);
+    _mintNFTs(msg.sender, quantity);
     uint256 firstMintedTokenId = _lastMintedTokenId() - quantity;
 
     emit IHolographERC721Drop.Sale({
-      to: _msgSender(),
+      to: msg.sender,
       quantity: quantity,
       pricePerToken: salePrice,
       firstPurchasedTokenId: firstMintedTokenId
@@ -487,12 +477,12 @@ contract HolographERC721Drop is
     bytes32[] calldata merkleProof
   ) external payable nonReentrant canMintTokens(quantity) onlyPresaleActive returns (uint256) {
     if (
-      !MerkleProofUpgradeable.verify(
+      !MerkleProof.verify(
         merkleProof,
         salesConfig.presaleMerkleRoot,
         keccak256(
           // address, uint256, uint256
-          abi.encode(_msgSender(), maxQuantity, pricePerToken)
+          abi.encode(msg.sender, maxQuantity, pricePerToken)
         )
       )
     ) {
@@ -503,16 +493,16 @@ contract HolographERC721Drop is
       revert Purchase_WrongPrice(pricePerToken * quantity);
     }
 
-    presaleMintsByAddress[_msgSender()] += quantity;
-    if (presaleMintsByAddress[_msgSender()] > maxQuantity) {
+    presaleMintsByAddress[msg.sender] += quantity;
+    if (presaleMintsByAddress[msg.sender] > maxQuantity) {
       revert Presale_TooManyForAddress();
     }
 
-    _mintNFTs(_msgSender(), quantity);
+    _mintNFTs(msg.sender, quantity);
     uint256 firstMintedTokenId = _lastMintedTokenId() - quantity;
 
     emit IHolographERC721Drop.Sale({
-      to: _msgSender(),
+      to: msg.sender,
       quantity: quantity,
       pricePerToken: pricePerToken,
       firstPurchasedTokenId: firstMintedTokenId
@@ -554,25 +544,6 @@ contract HolographERC721Drop is
     } else {
       operatorFilterRegistry.unsubscribe(self, false);
       operatorFilterRegistry.unregister(self);
-    }
-  }
-
-  /// @notice Hook to filter operators (no-op if no filters are registered)
-  /// @dev Part of ERC721A token hooks
-  /// @param from Transfer from user
-  /// @param to Transfer to user
-  /// @param startTokenId Token ID to start with
-  /// @param quantity Quantity of token being transferred
-  function _beforeTokenTransfers(
-    address from,
-    address to,
-    uint256 startTokenId,
-    uint256 quantity
-  ) internal virtual override {
-    if (from != msg.sender && address(operatorFilterRegistry).code.length > 0) {
-      if (!operatorFilterRegistry.isOperatorAllowed(address(this), msg.sender)) {
-        revert OperatorNotAllowed(msg.sender);
-      }
     }
   }
 
@@ -738,8 +709,10 @@ contract HolographERC721Drop is
   //                       / \
   /// @dev Set new owner for royalties / opensea
   /// @param newOwner new owner to set
-  function setOwner(address newOwner) public onlyAdmin {
-    _setOwner(newOwner);
+  function setOwner(address newOwner) public override onlyAdmin {
+    assembly {
+      sstore(_ownerSlot, newOwner)
+    }
   }
 
   /// @notice Set a new metadata renderer
@@ -752,7 +725,7 @@ contract HolographERC721Drop is
       newRenderer.initializeWithData(setupRenderer);
     }
 
-    emit UpdatedMetadataRenderer({sender: _msgSender(), renderer: newRenderer});
+    emit UpdatedMetadataRenderer({sender: msg.sender, renderer: newRenderer});
   }
 
   //                       ,-.
@@ -811,135 +784,7 @@ contract HolographERC721Drop is
     salesConfig.presaleEnd = presaleEnd;
     salesConfig.presaleMerkleRoot = presaleMerkleRoot;
 
-    emit SalesConfigChanged(_msgSender());
-  }
-
-  //                       ,-.
-  //                       `-'
-  //                       /|\
-  //                        |                    ,----------.
-  //                       / \                   |ERC721Drop|
-  //                     Caller                  `----+-----'
-  //                       |        setOwner()        |
-  //                       | ------------------------->
-  //                       |                          |
-  //                       |                          |
-  //          ________________________________________________________
-  //          ! ALT  /  caller is not admin or SALES_MANAGER_ROLE?    !
-  //          !_____/      |                          |               !
-  //          !            | revert Access_OnlyAdmin()|               !
-  //          !            | <-------------------------               !
-  //          !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-  //          !~[noop]~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-  //                       |                          |
-  //                       |                          |----.
-  //                       |                          |    | set sales configuration
-  //                       |                          |<---'
-  //                       |                          |
-  //                       |                          |----.
-  //                       |                          |    | emit SalesConfigChanged()
-  //                       |                          |<---'
-  //                     Caller                  ,----+-----.
-  //                       ,-.                   |ERC721Drop|
-  //                       `-'                   `----------'
-  //                       /|\
-  //                        |
-  //                       / \
-  /// @notice Set a different funds recipient
-  /// @param newRecipientAddress new funds recipient address
-  function setFundsRecipient(address payable newRecipientAddress) external onlyRoleOrAdmin(SALES_MANAGER_ROLE) {
-    if (newRecipientAddress == address(0)) {
-      revert Admin_InvalidFundRecipientAddress(newRecipientAddress);
-    }
-
-    config.fundsRecipient = newRecipientAddress;
-    emit FundsRecipientChanged(newRecipientAddress, _msgSender());
-  }
-
-  //                       ,-.                  ,-.                      ,-.
-  //                       `-'                  `-'                      `-'
-  //                       /|\                  /|\                      /|\
-  //                        |                    |                        |                      ,----------.
-  //                       / \                  / \                      / \                     |ERC721Drop|
-  //                     Caller            FeeRecipient            FundsRecipient                `----+-----'
-  //                       |                    |           withdraw()   |                            |
-  //                       | ------------------------------------------------------------------------->
-  //                       |                    |                        |                            |
-  //                       |                    |                        |                            |
-  //          ________________________________________________________________________________________________________
-  //          ! ALT  /  caller is not admin or manager?                  |                            |               !
-  //          !_____/      |                    |                        |                            |               !
-  //          !            |                    revert Access_WithdrawNotAllowed()                    |               !
-  //          !            | <-------------------------------------------------------------------------               !
-  //          !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-  //          !~[noop]~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-  //                       |                    |                        |                            |
-  //                       |                    |                   send fee amount                   |
-  //                       |                    | <----------------------------------------------------
-  //                       |                    |                        |                            |
-  //                       |                    |                        |                            |
-  //                       |                    |                        |             ____________________________________________________________
-  //                       |                    |                        |             ! ALT  /  send unsuccesful?                                 !
-  //                       |                    |                        |             !_____/        |                                            !
-  //                       |                    |                        |             !              |----.                                       !
-  //                       |                    |                        |             !              |    | revert Withdraw_FundsSendFailure()    !
-  //                       |                    |                        |             !              |<---'                                       !
-  //                       |                    |                        |             !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-  //                       |                    |                        |             !~[noop]~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-  //                       |                    |                        |                            |
-  //                       |                    |                        | send remaining funds amount|
-  //                       |                    |                        | <---------------------------
-  //                       |                    |                        |                            |
-  //                       |                    |                        |                            |
-  //                       |                    |                        |             ____________________________________________________________
-  //                       |                    |                        |             ! ALT  /  send unsuccesful?                                 !
-  //                       |                    |                        |             !_____/        |                                            !
-  //                       |                    |                        |             !              |----.                                       !
-  //                       |                    |                        |             !              |    | revert Withdraw_FundsSendFailure()    !
-  //                       |                    |                        |             !              |<---'                                       !
-  //                       |                    |                        |             !~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-  //                       |                    |                        |             !~[noop]~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~!
-  //                     Caller            FeeRecipient            FundsRecipient                ,----+-----.
-  //                       ,-.                  ,-.                      ,-.                     |ERC721Drop|
-  //                       `-'                  `-'                      `-'                     `----------'
-  //                       /|\                  /|\                      /|\
-  //                        |                    |                        |
-  //                       / \                  / \                      / \
-  /// @notice This withdraws ETH from the contract to the contract owner.
-  function withdraw() external nonReentrant {
-    address sender = _msgSender();
-
-    // Get fee amount
-    uint256 funds = address(this).balance;
-    (address payable feeRecipient, uint256 holographFee) = holographFeeForAmount(funds);
-
-    // Check if withdraw is allowed for sender
-    if (
-      !hasRole(DEFAULT_ADMIN_ROLE, sender) &&
-      !hasRole(SALES_MANAGER_ROLE, sender) &&
-      sender != feeRecipient &&
-      sender != config.fundsRecipient
-    ) {
-      revert Access_WithdrawNotAllowed();
-    }
-
-    // Payout HOLOGRAPH fee
-    if (holographFee > 0) {
-      (bool successFee, ) = feeRecipient.call{value: holographFee, gas: FUNDS_SEND_GAS_LIMIT}("");
-      if (!successFee) {
-        revert Withdraw_FundsSendFailure();
-      }
-      funds -= holographFee;
-    }
-
-    // Payout recipient
-    (bool successFunds, ) = config.fundsRecipient.call{value: funds, gas: FUNDS_SEND_GAS_LIMIT}("");
-    if (!successFunds) {
-      revert Withdraw_FundsSendFailure();
-    }
-
-    // Emit event for indexing
-    emit FundsWithdrawn(_msgSender(), config.fundsRecipient, funds, feeRecipient, holographFee);
+    emit SalesConfigChanged(msg.sender);
   }
 
   //                       ,-.
@@ -990,7 +835,7 @@ contract HolographERC721Drop is
     }
 
     config.editionSize = uint64(_totalMinted());
-    emit OpenMintFinalized(_msgSender(), config.editionSize);
+    emit OpenMintFinalized(msg.sender, config.editionSize);
   }
 
   /**
@@ -1000,12 +845,6 @@ contract HolographERC721Drop is
    ***                                    ***
    *** ---------------------------------- ***
    ***/
-
-  /// @notice Simple override for owner interface.
-  /// @return user owner address
-  function owner() public view override(OwnableSkeleton, IHolographERC721Drop) returns (address) {
-    return super.owner();
-  }
 
   /// @notice Contract URI Getter, proxies to metadataRenderer
   /// @return Contract URI
@@ -1029,69 +868,128 @@ contract HolographERC721Drop is
     return config.metadataRenderer.tokenURI(tokenId);
   }
 
-  /// @notice ERC165 supports interface
-  /// @param interfaceId interface id to check if supported
+  /**
+   * @notice Shows the interfaces the contracts support
+   * @dev Must add new 4 byte interface Ids here to acknowledge support
+   * @param interfaceId ERC165 style 4 byte interfaceId.
+   * @return bool True if supported.
+   */
   function supportsInterface(bytes4 interfaceId)
     public
     view
-    override(IERC165Upgradeable, ERC721AUpgradeable, AccessControlUpgradeable)
+    override(ERC165, IERC165Upgradeable, AccessControl)
     returns (bool)
   {
-    return
-      super.supportsInterface(interfaceId) ||
-      type(IOwnable).interfaceId == interfaceId ||
-      type(IERC2981Upgradeable).interfaceId == interfaceId ||
-      type(IHolographERC721Drop).interfaceId == interfaceId;
+    HolographInterfacesInterface interfaces = HolographInterfacesInterface(_interfaces());
+    ERC165 erc165Contract;
+    assembly {
+      erc165Contract := sload(0x27d542086d1e831d40b749e7f5509a626c3047a36d160781c40d5acc83e5b074)
+    }
+    if (
+      interfaces.supportsInterface(InterfaceType.ERC721, interfaceId) || // check global interfaces
+      interfaces.supportsInterface(InterfaceType.ROYALTIES, interfaceId) || // check if royalties supports interface
+      erc165Contract.supportsInterface(interfaceId) // check if source supports interface
+    ) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
-  // /**
-  //  *** ---------------------------------- ***
-  //  ***                                    ***
-  //  ***        FALLBACK FUNCTIONS          ***
-  //  ***                                    ***
-  //  *** ---------------------------------- ***
-  //  ***/
+  /**
+   *** ---------------------------------- ***
+   ***                                    ***
+   ***        INTERFACE FUNCTIONS         ***
+   ***                                    ***
+   *** ---------------------------------- ***
+   ***/
 
-  // /**
-  //  * @dev Purposefully left empty, to prevent running out of gas errors when receiving native token payments.
-  //  */
-  // receive() external payable {}
+  function _holograph() internal view returns (HolographInterface holograph) {
+    assembly {
+      /**
+       * @dev bytes32(uint256(keccak256('eip1967.Holograph.holograph')) - 1)
+       */
+      holograph := sload(0xb4107f746e9496e8452accc7de63d1c5e14c19f510932daa04077cd49e8bd77a)
+    }
+  }
 
-  // /**
-  //  * @notice Fallback to the source contract.
-  //  * @dev Any function call that is not covered here, will automatically be sent over to the source contract.
-  //  */
-  // fallback() external payable {
-  //   // Check if royalties support the function, send there, otherwise revert to source
-  //   address _target;
-  //   if (HolographInterfacesInterface(_interfaces()).supportsInterface(InterfaceType.ROYALTIES, msg.sig)) {
-  //     _target = _royalties();
-  //     assembly {
-  //       calldatacopy(0, 0, calldatasize())
-  //       let result := delegatecall(gas(), _target, 0, calldatasize(), 0, 0)
-  //       returndatacopy(0, 0, returndatasize())
-  //       switch result
-  //       case 0 {
-  //         revert(0, returndatasize())
-  //       }
-  //       default {
-  //         return(0, returndatasize())
-  //       }
-  //     }
-  //   } else {
-  //     assembly {
-  //       calldatacopy(0, 0, calldatasize())
-  //       mstore(calldatasize(), caller())
-  //       let result := call(gas(), sload(_sourceContractSlot), callvalue(), 0, add(calldatasize(), 0x20), 0, 0)
-  //       returndatacopy(0, 0, returndatasize())
-  //       switch result
-  //       case 0 {
-  //         revert(0, returndatasize())
-  //       }
-  //       default {
-  //         return(0, returndatasize())
-  //       }
-  //     }
-  //   }
-  // }
+  /**
+   * @dev Get the interfaces contract address.
+   */
+  function _interfaces() internal view returns (address) {
+    return _holograph().getInterfaces();
+  }
+
+  /**
+   * @dev Get the bridge contract address.
+   */
+  function _royalties() internal view returns (address) {
+    return
+      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(
+        0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573
+      );
+  }
+
+  event FundsReceived(address indexed source, uint256 amount);
+
+  receive() external payable {
+    emit FundsReceived(msg.sender, msg.value);
+  }
+
+  /**
+   *** ---------------------------------- ***
+   ***                                    ***
+   ***        FALLBACK FUNCTIONS          ***
+   ***                                    ***
+   *** ---------------------------------- ***
+   ***/
+
+  /**
+   * @notice Fallback to the source contract.
+   * @dev Any function call that is not covered here, will automatically be sent over to the source contract.
+   */
+  fallback() external payable {
+    // Check if royalties support the function, send there, otherwise revert to source
+    address _target;
+    if (HolographInterfacesInterface(_interfaces()).supportsInterface(InterfaceType.ROYALTIES, msg.sig)) {
+      _target = _royalties();
+      assembly {
+        calldatacopy(0, 0, calldatasize())
+        let result := delegatecall(gas(), _target, 0, calldatasize(), 0, 0)
+        returndatacopy(0, 0, returndatasize())
+        switch result
+        case 0 {
+          revert(0, returndatasize())
+        }
+        default {
+          return(0, returndatasize())
+        }
+      }
+    } else {
+      assembly {
+        calldatacopy(0, 0, calldatasize())
+        mstore(calldatasize(), caller())
+        /**
+         * @dev bytes32(uint256(keccak256('eip1967.Holograph.sourceContract')) - 1)
+         */
+        let result := call(
+          gas(),
+          sload(0x27d542086d1e831d40b749e7f5509a626c3047a36d160781c40d5acc83e5b074),
+          callvalue(),
+          0,
+          add(calldatasize(), 0x20),
+          0,
+          0
+        )
+        returndatacopy(0, 0, returndatasize())
+        switch result
+        case 0 {
+          revert(0, returndatasize())
+        }
+        default {
+          return(0, returndatasize())
+        }
+      }
+    }
+  }
 }

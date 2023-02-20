@@ -2,7 +2,7 @@
 pragma solidity 0.8.13;
 
 import {Test} from "forge-std/Test.sol";
-import {IERC721AUpgradeable} from "../../contracts/drops/lib/erc721a-upgradeable/IERC721AUpgradeable.sol";
+import {IERC721AUpgradeable} from "../../contracts/drops/interfaces/IERC721AUpgradeable.sol";
 
 import {IHolographERC721Drop} from "../../contracts/drops/interfaces/IHolographERC721Drop.sol";
 import {HolographERC721Drop} from "../../contracts/drops/HolographERC721Drop.sol";
@@ -19,7 +19,7 @@ contract HolographERC721DropTest is Test {
   HolographFeeManager public feeManager;
   address public constant DEFAULT_OWNER_ADDRESS = address(0x23499);
   address payable public constant DEFAULT_FUNDS_RECIPIENT_ADDRESS = payable(address(0x21303));
-  address payable public constant DEFAULT_HOLOGRAPH_DAO_ADDRESS = payable(address(0x999));
+  address payable public constant HOLOGRAPH_TREASURY_ADDRESS = payable(address(0x999));
   address public constant mediaContract = address(0x123456);
 
   function setUp() public {}

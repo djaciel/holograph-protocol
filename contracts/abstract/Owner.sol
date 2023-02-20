@@ -129,7 +129,7 @@ abstract contract Owner {
     }
   }
 
-  function setOwner(address ownerAddress) public onlyOwner {
+  function setOwner(address ownerAddress) public virtual onlyOwner {
     address previousOwner = getOwner();
     assembly {
       sstore(_ownerSlot, ownerAddress)

@@ -1,4 +1,8 @@
+@ensdomains/=node_modules/@ensdomains/
+@holographxyz/=node_modules/@holographxyz/
+@openzeppelin/=node_modules/@openzeppelin/
 ds-test/=lib/forge-std/lib/ds-test/src/
+erc721a-upgradeable/=erc721a-upgradeable/
+eth-gas-reporter/=node_modules/eth-gas-reporter/
 forge-std/=lib/forge-std/src/
-base64/=lib/base64/
-@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/
+hardhat/=node_modules/hardhat/
