@@ -86,9 +86,9 @@ contract HolographERC721DropTest is Test {
       royaltyBPS: 800,
       setupCalls: new bytes[](0),
       metadataRenderer: address(dummyRenderer),
-      //       metadataRenderer: address(dropMetadataRenderer),
       metadataRendererInit: ""
-      //       metadataRendererInit: abi.encode("description", "imageURI", "animationURI")
+      // metadataRenderer: address(dropMetadataRenderer),
+      // metadataRendererInit: abi.encode("description", "imageURI", "animationURI")
     });
 
     // Get deployment config, hash it, and then sign it
