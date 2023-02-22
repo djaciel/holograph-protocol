@@ -1,0 +1,92 @@
+[
+  {
+    "inputs": [],
+    "name": "config",
+    "outputs": [
+      {
+        "internalType": "contract IMetadataRenderer",
+        "name": "metadataRenderer",
+        "type": "address"
+      },
+      {
+        "internalType": "uint64",
+        "name": "editionSize",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint16",
+        "name": "royaltyBPS",
+        "type": "uint16"
+      },
+      {
+        "internalType": "address payable",
+        "name": "fundsRecipient",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "presaleMintsByAddress",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "salesConfig",
+    "outputs": [
+      {
+        "internalType": "uint104",
+        "name": "publicSalePrice",
+        "type": "uint104"
+      },
+      {
+        "internalType": "uint32",
+        "name": "maxSalePurchasePerAddress",
+        "type": "uint32"
+      },
+      {
+        "internalType": "uint64",
+        "name": "publicSaleStart",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "publicSaleEnd",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "presaleStart",
+        "type": "uint64"
+      },
+      {
+        "internalType": "uint64",
+        "name": "presaleEnd",
+        "type": "uint64"
+      },
+      {
+        "internalType": "bytes32",
+        "name": "presaleMerkleRoot",
+        "type": "bytes32"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]
