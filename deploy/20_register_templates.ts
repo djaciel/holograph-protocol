@@ -157,6 +157,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   hre.deployments.log('the future "HolographERC721Drop" address is', futureErc721DropAddress);
 
   const erc721DropHash = '0x' + web3.utils.asciiToHex('HolographERC721Drop').substring(2).padStart(64, '0');
+
+  console.log('erc721DropHash', erc721DropHash);
+  console.log(holographRegistry.address);
+
   if ((await holographRegistry.getContractTypeAddress(erc721DropHash)) != futureErc721DropAddress) {
     const erc721DropTx = await holographRegistry
       .setContractTypeAddress(erc721DropHash, futureErc721DropAddress, {
