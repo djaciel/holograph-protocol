@@ -46,6 +46,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.local) {
     if (environment != Environment.mainnet && environment != Environment.testnet) {
+      const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
+
       const futureFaucetAddress = await genesisDeriveFutureAddress(
         hre,
         salt,
@@ -65,7 +67,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           generateInitCode(['address', 'address'], [deployer.address, hlgTokenAddress]),
           futureFaucetAddress
         );
-        const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
+
         const transferTx = await hlgContract.transfer(
           futureFaucetAddress,
           BigNumber.from('1' + '000' + '000' + '000000000000000000'),
@@ -101,6 +103,28 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         });
         await tx.wait();
         hre.deployments.log('Updated HLG reference');
+        hre.deployments.log('Transferring 1M HLG to faucet');
+        const transferTx = await hlgContract.transfer(
+          futureFaucetAddress,
+          BigNumber.from('1' + '000' + '000' + '000000000000000000'),
+          {
+            ...(await txParams({
+              hre,
+              from: deployer,
+              to: hlgContract,
+              gasLimit: (
+                await hre.ethers.provider.estimateGas(
+                  hlgContract.populateTransaction.transfer(
+                    futureFaucetAddress,
+                    BigNumber.from('1' + '000' + '000' + '000000000000000000')
+                  )
+                )
+              ).mul(BigNumber.from('2')),
+            })),
+          }
+        );
+        const receipt = await transferTx.wait();
+        hre.deployments.log(`Transfer tx hash: ${receipt.transactionHash}`);
       }
     }
   }
