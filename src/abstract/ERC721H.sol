@@ -118,7 +118,7 @@ abstract contract ERC721H is Initializable {
    * @dev This function is unreachable unless custom contract address is called directly.
    *      Please use custom payable functions for accepting native value.
    */
-  receive() external payable {
+  receive() external payable virtual {
     revert("ERC721: unreachable code");
   }
 

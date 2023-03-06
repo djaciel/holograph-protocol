@@ -568,50 +568,48 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
   /**
    * @dev Allows for source smart contract to mint a batch of tokens.
    */
-  //   function sourceMintBatch(address to, uint224[] calldata tokenIds) external onlySource {
-  //     require(tokenIds.length < 1000, "ERC721: max batch size is 1000");
-  //     uint32 chain = _chain();
-  //     uint256 token;
-  //     for (uint256 i = 0; i < tokenIds.length; i++) {
-  //       require(!_burnedTokens[token], "ERC721: can't mint burned token");
-  //       token = uint256(bytes32(abi.encodePacked(chain, tokenIds[i])));
-  //       require(!_burnedTokens[token], "ERC721: can't mint burned token");
-  //       _mint(to, token);
-  //     }
-  //   }
+  function sourceMintBatch(address to, uint224[] calldata tokenIds) external onlySource {
+    require(tokenIds.length < 1000, "ERC721: max batch size is 1000");
+    uint32 chain = _chain();
+    uint256 token;
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      require(!_burnedTokens[token], "ERC721: can't mint burned token");
+      token = uint256(bytes32(abi.encodePacked(chain, tokenIds[i])));
+      require(!_burnedTokens[token], "ERC721: can't mint burned token");
+      _mint(to, token);
+    }
+  }
 
   /**
    * @dev Allows for source smart contract to mint a batch of tokens.
    */
-  //   function sourceMintBatch(address[] calldata wallets, uint224[] calldata tokenIds) external onlySource {
-  //     require(wallets.length == tokenIds.length, "ERC721: array length missmatch");
-  //     require(tokenIds.length < 1000, "ERC721: max batch size is 1000");
-  //     uint32 chain = _chain();
-  //     uint256 token;
-  //     for (uint256 i = 0; i < tokenIds.length; i++) {
-  //       token = uint256(bytes32(abi.encodePacked(chain, tokenIds[i])));
-  //       require(!_burnedTokens[token], "ERC721: can't mint burned token");
-  //       _mint(wallets[i], token);
-  //     }
-  //   }
+  function sourceMintBatch(address[] calldata wallets, uint224[] calldata tokenIds) external onlySource {
+    require(wallets.length == tokenIds.length, "ERC721: array length missmatch");
+    require(tokenIds.length < 1000, "ERC721: max batch size is 1000");
+    uint32 chain = _chain();
+    uint256 token;
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      token = uint256(bytes32(abi.encodePacked(chain, tokenIds[i])));
+      require(!_burnedTokens[token], "ERC721: can't mint burned token");
+      _mint(wallets[i], token);
+    }
+  }
 
   /**
    * @dev Allows for source smart contract to mint a batch of tokens.
    */
-  //   function sourceMintBatchIncremental(
-  //     address to,
-  //     uint224 startingTokenId,
-  //     uint256 length
-  //   ) external onlySource {
-  //     uint32 chain = _chain();
-  //     uint256 token;
-  //     for (uint256 i = 0; i < length; i++) {
-  //       token = uint256(bytes32(abi.encodePacked(chain, startingTokenId)));
-  //       require(!_burnedTokens[token], "ERC721: can't mint burned token");
-  //       _mint(to, token);
-  //       startingTokenId++;
-  //     }
-  //   }
+  function sourceMintBatchIncremental(
+    address to,
+    uint224 startingTokenId,
+    uint256 length
+  ) external onlySource {
+    uint256 token = uint256(bytes32(abi.encodePacked(_chain(), startingTokenId)));
+    for (uint256 i = 0; i < length; i++) {
+      require(!_burnedTokens[token], "ERC721: can't mint burned token");
+      _mint(to, token);
+      token++;
+    }
+  }
 
   /**
    * @dev Allows for source smart contract to transfer a token.
@@ -720,7 +718,7 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    * @return bool True if approved.
    */
   function isApprovedForAll(address wallet, address operator) external view returns (bool) {
-    return _operatorApprovals[wallet][operator];
+    return (_operatorApprovals[wallet][operator] || _sourceApproved(wallet, operator));
   }
 
   /**
@@ -962,6 +960,18 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
     return tokenOwner != address(0);
   }
 
+  function _sourceApproved(address _tokenWallet, address _tokenSpender) internal view returns (bool approved) {
+    if (_isEventRegistered(HolographERC721Event.onIsApprovedForAll)) {
+      HolographedERC721 sourceContract;
+      assembly {
+        sourceContract := sload(_sourceContractSlot)
+      }
+      if (sourceContract.onIsApprovedForAll(_tokenWallet, _tokenSpender)) {
+        approved = true;
+      }
+    }
+  }
+
   /**
    * @notice Checks if the address is an approved one.
    * @dev Uses inlined checks for different usecases of approval.
@@ -972,13 +982,16 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
   function _isApproved(address spender, uint256 tokenId) private view returns (bool) {
     require(_exists(tokenId), "ERC721: token does not exist");
     address tokenOwner = _tokenOwner[tokenId];
-    return (spender == tokenOwner || _tokenApprovals[tokenId] == spender || _operatorApprovals[tokenOwner][spender]);
+    return (spender == tokenOwner ||
+      _tokenApprovals[tokenId] == spender ||
+      _operatorApprovals[tokenOwner][spender] ||
+      _sourceApproved(tokenOwner, spender));
   }
 
   function _isApprovedStrict(address spender, uint256 tokenId) private view returns (bool) {
     require(_exists(tokenId), "ERC721: token does not exist");
     address tokenOwner = _tokenOwner[tokenId];
-    return (spender == tokenOwner || _operatorApprovals[tokenOwner][spender]);
+    return (spender == tokenOwner || _operatorApprovals[tokenOwner][spender] || _sourceApproved(tokenOwner, spender));
   }
 
   function _isContract(address contractAddress) private view returns (bool) {
@@ -1015,13 +1028,19 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    */
   function _royalties() private view returns (address) {
     return
-      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573);
+      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(
+        0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573
+      );
   }
 
   /**
    * @dev Purposefully left empty, to prevent running out of gas errors when receiving native token payments.
    */
-  receive() external payable {}
+  event FundsReceived(address indexed source, uint256 amount);
+
+  receive() external payable {
+    emit FundsReceived(msg.sender, msg.value);
+  }
 
   /**
    * @notice Fallback to the source contract.

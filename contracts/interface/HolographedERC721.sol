@@ -211,4 +211,7 @@ interface HolographedERC721 {
     uint256 _tokenId,
     bytes calldata _data
   ) external returns (bool success);
+
+  // event id = 17
+  function onIsApprovedForAll(address _wallet, address _operator) external view returns (bool approved);
 }

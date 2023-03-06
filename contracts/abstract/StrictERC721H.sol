@@ -261,4 +261,12 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
     _success = true;
     return _success;
   }
+
+  function onIsApprovedForAll(
+    address, /* _wallet*/
+    address /* _operator*/
+  ) external view virtual onlyHolographer returns (bool approved) {
+    approved = _success;
+    return false;
+  }
 }
