@@ -63,7 +63,7 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
    * @notice Allows user to mint tokens at a quantity
    */
   modifier canMintTokens(uint256 quantity) {
-    if (quantity + _currentTokenId > config.editionSize) {
+    if (config.editionSize != 0 && quantity + _currentTokenId > config.editionSize) {
       revert Mint_SoldOut();
     }
 
