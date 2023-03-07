@@ -5,7 +5,7 @@ pragma solidity 0.8.13;
 import "../abstract/Admin.sol";
 import "../abstract/Initializable.sol";
 
-import {DropInitializer} from "../drops/struct/DropInitializer.sol";
+import {DropInitializer} from "./struct/DropInitializer.sol";
 
 import {HolographERC721DropProxy} from "./HolographERC721DropProxy.sol";
 import {EditionMetadataRenderer} from "../drops/metadata/EditionMetadataRenderer.sol";

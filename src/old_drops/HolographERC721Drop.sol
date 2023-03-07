@@ -22,7 +22,7 @@ import {IAccessControl} from "./interfaces/IAccessControl.sol";
 import {IERC165Upgradeable} from "./interfaces/IERC165Upgradeable.sol";
 import {IERC721AUpgradeable} from "./interfaces/IERC721AUpgradeable.sol";
 
-import {DropInitializer} from "../drops/struct/DropInitializer.sol";
+import {DropInitializer} from "./struct/DropInitializer.sol";
 
 import {MerkleProof} from "./library/MerkleProof.sol";
 import {Address} from "./library/Address.sol";

@@ -8,7 +8,7 @@ import {NonReentrant} from "../abstract/NonReentrant.sol";
 import {HolographERC721Interface} from "../interface/HolographERC721Interface.sol";
 import {HolographInterface} from "../interface/HolographInterface.sol";
 
-import {DropInitializer} from "../drops/struct/DropInitializer.sol";
+import {DropsInitializer} from "../drops/struct/DropsInitializer.sol";
 
 import {Address} from "../drops/library/Address.sol";
 import {MerkleProof} from "../drops/library/MerkleProof.sol";
@@ -52,7 +52,7 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
   /**
    * @dev HOLOGRAPH transfer helper address for auto-approval
    */
-  address public holographERC721TransferHelper;
+  address public erc721TransferHelper;
 
   address public marketFilterAddress;
 
@@ -128,17 +128,12 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
 
-    DropInitializer memory initializer = abi.decode(initPayload, (DropInitializer));
-    holographERC721TransferHelper = initializer.holographERC721TransferHelper;
+    DropsInitializer memory initializer = abi.decode(initPayload, (DropsInitializer));
+    erc721TransferHelper = initializer.erc721TransferHelper;
     marketFilterAddress = initializer.marketFilterAddress;
 
     // Setup the owner role
     _setOwner(initializer.initialOwner);
-
-    if (initializer.setupCalls.length > 0) {
-      // Execute setupCalls
-      multicall(initializer.setupCalls);
-    }
 
     // Setup config variables
     config = Configuration({
@@ -147,6 +142,8 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
       royaltyBPS: initializer.royaltyBPS,
       fundsRecipient: initializer.fundsRecipient
     });
+
+    salesConfig = initializer.salesConfiguration;
 
     // TODO: Need to make sure to initialize the metadata renderer
     IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
@@ -162,7 +159,7 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     address, /* _wallet*/
     address _operator
   ) external view returns (bool approved) {
-    approved = (holographERC721TransferHelper != address(0) && _operator == holographERC721TransferHelper);
+    approved = (erc721TransferHelper != address(0) && _operator == erc721TransferHelper);
   }
 
   function _mintNFTs(address recipient, uint256 quantity) internal {
