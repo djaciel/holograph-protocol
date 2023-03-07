@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.13;
 
-import {IHolographERC721Drop} from "../interfaces/IHolographERC721Drop.sol";
+import {IHolographERC721Drop} from "../interface/IHolographERC721Drop.sol";
 
 contract MetadataRenderAdminCheck {
   error Access_OnlyAdmin();

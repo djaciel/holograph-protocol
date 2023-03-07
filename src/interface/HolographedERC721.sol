@@ -115,4 +115,7 @@ interface HolographedERC721 {
 
   // event id = 17
   function onIsApprovedForAll(address _wallet, address _operator) external view returns (bool approved);
+
+  // event id = 18
+  function contractURI() external view returns (string memory contractJSON);
 }

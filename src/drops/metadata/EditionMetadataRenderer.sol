@@ -4,10 +4,9 @@
 
 import "../../abstract/Initializable.sol";
 
-import {IMetadataRenderer} from "../interfaces/IMetadataRenderer.sol";
-import {IHolographERC721Drop} from "../interfaces/IHolographERC721Drop.sol";
-import {IERC721MetadataUpgradeable} from "../interfaces/IERC721MetadataUpgradeable.sol";
-import {IERC2981Upgradeable} from "../interfaces/IERC2981Upgradeable.sol";
+import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
+import {IHolographERC721Drop} from "../interface/IHolographERC721Drop.sol";
+import {IERC721Metadata} from "../interface/IERC721Metadata.sol";
 import {NFTMetadataRenderer} from "../utils/NFTMetadataRenderer.sol";
 import {MetadataRenderAdminCheck} from "./MetadataRenderAdminCheck.sol";
 
@@ -104,7 +103,7 @@ contract EditionMetadataRenderer is Initializable, IMetadataRenderer, MetadataRe
 
     return
       NFTMetadataRenderer.encodeContractURIJSON({
-        name: IERC721MetadataUpgradeable(target).name(),
+        name: IERC721Metadata(target).name(),
         description: editionInfo.description,
         imageURI: editionInfo.imageURI,
         animationURI: editionInfo.animationURI,
@@ -132,7 +131,7 @@ contract EditionMetadataRenderer is Initializable, IMetadataRenderer, MetadataRe
 
     return
       NFTMetadataRenderer.createMetadataEdition({
-        name: IERC721MetadataUpgradeable(target).name(),
+        name: IERC721Metadata(target).name(),
         description: info.description,
         imageURI: info.imageURI,
         animationURI: info.animationURI,

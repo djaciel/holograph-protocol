@@ -2,15 +2,15 @@
 pragma solidity 0.8.13;
 
 import {Test} from "forge-std/Test.sol";
-import {IERC721AUpgradeable} from "../../contracts/drops/interfaces/IERC721AUpgradeable.sol";
+import {IERC721AUpgradeable} from "../../contracts/old_drops/interfaces/IERC721AUpgradeable.sol";
 
-import {IHolographERC721Drop} from "../../contracts/drops/interfaces/IHolographERC721Drop.sol";
-import {HolographERC721Drop} from "../../contracts/drops/HolographERC721Drop.sol";
-import {HolographFeeManager} from "../../contracts/drops/HolographFeeManager.sol";
+import {IHolographERC721Drop} from "../../contracts/old_drops/interfaces/IHolographERC721Drop.sol";
+import {HolographERC721Drop} from "../../contracts/old_drops/HolographERC721Drop.sol";
+import {HolographFeeManager} from "../../contracts/old_drops/HolographFeeManager.sol";
 import {DummyMetadataRenderer} from "./utils/DummyMetadataRenderer.sol";
 import {MockUser} from "./utils/MockUser.sol";
-import {IMetadataRenderer} from "../../contracts/drops/interfaces/IMetadataRenderer.sol";
-import {HolographERC721DropProxy} from "../../contracts/drops/HolographERC721DropProxy.sol";
+import {IMetadataRenderer} from "../../contracts/drops/interface/IMetadataRenderer.sol";
+import {HolographERC721DropProxy} from "../../contracts/old_drops/HolographERC721DropProxy.sol";
 
 contract HolographERC721DropTest is Test {
   HolographERC721Drop holographNFTBase;

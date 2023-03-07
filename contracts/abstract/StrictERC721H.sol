@@ -269,4 +269,8 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
     approved = _success;
     return false;
   }
+
+  function contractURI() external view virtual onlyHolographer returns (string memory contractJSON) {
+    contractJSON = _success ? "" : "";
+  }
 }

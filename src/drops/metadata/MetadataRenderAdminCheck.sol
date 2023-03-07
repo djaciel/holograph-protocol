@@ -2,7 +2,7 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-import {IHolographERC721Drop} from "../interfaces/IHolographERC721Drop.sol";
+import {IHolographERC721Drop} from "../interface/IHolographERC721Drop.sol";
 
 contract MetadataRenderAdminCheck {
   error Access_OnlyAdmin();

@@ -275,6 +275,13 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    * @return string The URI.
    */
   function contractURI() external view returns (string memory) {
+    if (_isEventRegistered(HolographERC721Event.customContractURI)) {
+      HolographedERC721 sourceContract;
+      assembly {
+        sourceContract := sload(_sourceContractSlot)
+      }
+      return sourceContract.contractURI();
+    }
     return HolographInterfacesInterface(_interfaces()).contractURI(_name, "", "", _bps, address(this));
   }
 

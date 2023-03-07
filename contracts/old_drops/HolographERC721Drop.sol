@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-/*SOLIDITY_COMPILER_VERSION*/
+pragma solidity 0.8.13;
 
 import {NonReentrant} from "../abstract/NonReentrant.sol";
 import {ERC721AUpgradeable} from "./abstract/ERC721AUpgradeable.sol";
@@ -14,7 +14,7 @@ import "../interface/HolographInterface.sol";
 import "../interface/HolographInterfacesInterface.sol";
 import "../interface/HolographRegistryInterface.sol";
 import "../interface/HolographRoyaltiesInterface.sol";
-import {IMetadataRenderer} from "./interfaces/IMetadataRenderer.sol";
+import {IMetadataRenderer} from "../drops/interface/IMetadataRenderer.sol";
 import {IOperatorFilterRegistry} from "./interfaces/IOperatorFilterRegistry.sol";
 import {IHolographERC721Drop} from "./interfaces/IHolographERC721Drop.sol";
 import {IOwnable} from "./interfaces/IOwnable.sol";
@@ -22,7 +22,7 @@ import {IAccessControl} from "./interfaces/IAccessControl.sol";
 import {IERC165Upgradeable} from "./interfaces/IERC165Upgradeable.sol";
 import {IERC721AUpgradeable} from "./interfaces/IERC721AUpgradeable.sol";
 
-import {DropInitializer} from "../struct/DropInitializer.sol";
+import {DropInitializer} from "../drops/struct/DropInitializer.sol";
 
 import {MerkleProof} from "./library/MerkleProof.sol";
 import {Address} from "./library/Address.sol";
@@ -44,7 +44,7 @@ contract HolographERC721Drop is
   /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.sourceContract')) - 1)
    */
-  bytes32 constant _sourceContractSlot = precomputeslot("eip1967.Holograph.sourceContract");
+  bytes32 constant _sourceContractSlot = 0x27d542086d1e831d40b749e7f5509a626c3047a36d160781c40d5acc83e5b074;
 
   /// @dev This is the max mint batch size for the optimized ERC721A mint contract
   uint256 constant MAX_MINT_BATCH_SIZE = 8;
@@ -883,7 +883,7 @@ contract HolographERC721Drop is
     HolographInterfacesInterface interfaces = HolographInterfacesInterface(_interfaces());
     ERC165 erc165Contract;
     assembly {
-      erc165Contract := sload(precomputeslot("eip1967.Holograph.sourceContract"))
+      erc165Contract := sload(0x27d542086d1e831d40b749e7f5509a626c3047a36d160781c40d5acc83e5b074)
     }
     if (
       interfaces.supportsInterface(InterfaceType.ERC721, interfaceId) || // check global interfaces
@@ -909,7 +909,7 @@ contract HolographERC721Drop is
       /**
        * @dev bytes32(uint256(keccak256('eip1967.Holograph.holograph')) - 1)
        */
-      holograph := sload(precomputeslot("eip1967.Holograph.holograph"))
+      holograph := sload(0xb4107f746e9496e8452accc7de63d1c5e14c19f510932daa04077cd49e8bd77a)
     }
   }
 
@@ -925,7 +925,9 @@ contract HolographERC721Drop is
    */
   function _royalties() internal view returns (address) {
     return
-      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(asciihex("HolographRoyalties"));
+      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(
+        0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573
+      );
   }
 
   event FundsReceived(address indexed source, uint256 amount);
@@ -972,7 +974,7 @@ contract HolographERC721Drop is
          */
         let result := call(
           gas(),
-          sload(precomputeslot("eip1967.Holograph.sourceContract")),
+          sload(0x27d542086d1e831d40b749e7f5509a626c3047a36d160781c40d5acc83e5b074),
           callvalue(),
           0,
           add(calldatasize(), 0x20),

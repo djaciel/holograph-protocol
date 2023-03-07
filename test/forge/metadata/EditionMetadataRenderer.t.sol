@@ -3,9 +3,9 @@ pragma solidity 0.8.13;
 
 import {EditionMetadataRenderer} from "../../../contracts/drops/metadata/EditionMetadataRenderer.sol";
 import {MetadataRenderAdminCheck} from "../../../contracts/drops/metadata/MetadataRenderAdminCheck.sol";
-import {IMetadataRenderer} from "../../../contracts/drops/interfaces/IMetadataRenderer.sol";
+import {IMetadataRenderer} from "../../../contracts/drops/interface/IMetadataRenderer.sol";
 import {DropMockBase} from "./DropMockBase.sol";
-import {IHolographERC721Drop} from "../../../contracts/drops/interfaces/IHolographERC721Drop.sol";
+import {IHolographERC721Drop} from "../../../contracts/old_drops/interfaces/IHolographERC721Drop.sol";
 import {Test} from "forge-std/Test.sol";
 
 contract IERC721OnChainDataMock {

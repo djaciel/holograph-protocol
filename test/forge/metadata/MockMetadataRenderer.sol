@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
 
-import {IMetadataRenderer} from "../../../contracts/drops/interfaces/IMetadataRenderer.sol";
+import {IMetadataRenderer} from "../../../contracts/drops/interface/IMetadataRenderer.sol";
 
 contract MockMetadataRenderer is IMetadataRenderer {
   function tokenURI(uint256) external view returns (string memory) {

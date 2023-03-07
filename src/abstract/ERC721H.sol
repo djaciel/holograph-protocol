@@ -82,7 +82,7 @@ abstract contract ERC721H is Initializable {
   /**
    * @dev Address of initial creator/owner of the collection.
    */
-  function owner() external view returns (address) {
+  function owner() external view virtual returns (address) {
     return _getOwner();
   }
 

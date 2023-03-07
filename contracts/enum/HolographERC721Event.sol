@@ -119,5 +119,6 @@ enum HolographERC721Event {
   beforeTransfer, // 14
   beforeOnERC721Received, // 15
   afterOnERC721Received, // 16
-  onIsApprovedForAll // 17
+  onIsApprovedForAll, // 17
+  customContractURI // 18
 }

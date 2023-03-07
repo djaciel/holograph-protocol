@@ -9,17 +9,17 @@ import {Constants} from "./utils/Constants.sol";
 import {DeploymentConfig} from "../../contracts/struct/DeploymentConfig.sol";
 import {Verification} from "../../contracts/struct/Verification.sol";
 
-import {IMetadataRenderer} from "../../contracts/drops/interfaces/IMetadataRenderer.sol";
-import "../../contracts/drops/HolographDropCreator.sol";
-import "../../contracts/drops/HolographFeeManager.sol";
-import {HolographERC721Drop} from "../../contracts/drops/HolographERC721Drop.sol";
+import {IMetadataRenderer} from "../../contracts/drops/interface/IMetadataRenderer.sol";
+import "../../contracts/old_drops/HolographDropCreator.sol";
+import "../../contracts/old_drops/HolographFeeManager.sol";
+import {HolographERC721Drop} from "../../contracts/old_drops/HolographERC721Drop.sol";
 
 import {HolographFactory} from "../../contracts/HolographFactory.sol";
 
 import {MockMetadataRenderer} from "./metadata/MockMetadataRenderer.sol";
-import {IERC721AUpgradeable} from "../../contracts/drops/interfaces/IERC721AUpgradeable.sol";
+import {IERC721AUpgradeable} from "../../contracts/old_drops/interfaces/IERC721AUpgradeable.sol";
 
-import {DummyCustomContract} from "../../contracts/drops/utils/DummyCustomContract.sol";
+import {DummyCustomContract} from "../../contracts/old_drops/utils/DummyCustomContract.sol";
 
 contract HolographDropCreatorTest is Test {
   address public constant DEFAULT_OWNER_ADDRESS = address(0x23499);

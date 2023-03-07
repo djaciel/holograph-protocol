@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 
-/*SOLIDITY_COMPILER_VERSION*/
+pragma solidity 0.8.13;
 
 import "../abstract/Admin.sol";
 import "../abstract/Initializable.sol";
 
-import {DropInitializer} from "../struct/DropInitializer.sol";
+import {DropInitializer} from "../drops/struct/DropInitializer.sol";
 
 import {HolographERC721DropProxy} from "./HolographERC721DropProxy.sol";
-import {EditionMetadataRenderer} from "./metadata/EditionMetadataRenderer.sol";
+import {EditionMetadataRenderer} from "../drops/metadata/EditionMetadataRenderer.sol";
 import {IHolographERC721Drop} from "./interfaces/IHolographERC721Drop.sol";
-import {DropMetadataRenderer} from "./metadata/DropMetadataRenderer.sol";
-import {IMetadataRenderer} from "./interfaces/IMetadataRenderer.sol";
+import {DropMetadataRenderer} from "../drops/metadata/DropMetadataRenderer.sol";
+import {IMetadataRenderer} from "../drops/interface/IMetadataRenderer.sol";
 import {HolographERC721Drop} from "./HolographERC721Drop.sol";
 
 /// @notice Holograph NFT Creator V1

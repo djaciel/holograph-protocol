@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
 
-import {IMetadataRenderer} from "../interfaces/IMetadataRenderer.sol";
+import {IMetadataRenderer} from "../../drops/interface/IMetadataRenderer.sol";
 
 /// @notice Interface for HOLOGRAPH Drops contract
 interface IHolographERC721Drop {

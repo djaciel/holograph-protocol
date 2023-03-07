@@ -4,29 +4,29 @@ pragma solidity 0.8.13;
 import {Test, Vm} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
-import {IERC721AUpgradeable} from "../../contracts/drops/interfaces/IERC721AUpgradeable.sol";
+import {IERC721AUpgradeable} from "../../contracts/old_drops/interfaces/IERC721AUpgradeable.sol";
 
 import {DeploymentConfig} from "../../contracts/struct/DeploymentConfig.sol";
 import {Verification} from "../../contracts/struct/Verification.sol";
-import {DropInitializer} from "../../contracts/struct/DropInitializer.sol";
+import {DropInitializer} from "../../contracts/drops/struct/DropInitializer.sol";
 
 import {HolographFactory} from "../../contracts/HolographFactory.sol";
 
-import {HolographERC721Drop} from "../../contracts/drops/HolographERC721Drop.sol";
-import {HolographFeeManager} from "../../contracts/drops/HolographFeeManager.sol";
+import {HolographERC721Drop} from "../../contracts/old_drops/HolographERC721Drop.sol";
+import {HolographFeeManager} from "../../contracts/old_drops/HolographFeeManager.sol";
 import {MockMetadataRenderer} from "./metadata/MockMetadataRenderer.sol";
 
 import {Constants} from "./utils/Constants.sol";
 
 import {DummyMetadataRenderer} from "./utils/DummyMetadataRenderer.sol";
-import {DummyCustomContract} from "../../contracts/drops/utils/DummyCustomContract.sol";
+import {DummyCustomContract} from "../../contracts/old_drops/utils/DummyCustomContract.sol";
 import {MockUser} from "./utils/MockUser.sol";
-import {IOperatorFilterRegistry} from "../../contracts/drops/interfaces/IOperatorFilterRegistry.sol";
-import {IMetadataRenderer} from "../../contracts/drops/interfaces/IMetadataRenderer.sol";
-import {IHolographERC721Drop} from "../../contracts/drops/interfaces/IHolographERC721Drop.sol";
+import {IOperatorFilterRegistry} from "../../contracts/old_drops/interfaces/IOperatorFilterRegistry.sol";
+import {IMetadataRenderer} from "../../contracts/drops/interface/IMetadataRenderer.sol";
+import {IHolographERC721Drop} from "../../contracts/old_drops/interfaces/IHolographERC721Drop.sol";
 import {OperatorFilterRegistry} from "./filter/OperatorFilterRegistry.sol";
 import {OperatorFilterRegistryErrorsAndEvents} from "./filter/OperatorFilterRegistryErrorsAndEvents.sol";
-import {OwnedSubscriptionManager} from "../../contracts/drops/filter/OwnedSubscriptionManager.sol";
+import {OwnedSubscriptionManager} from "../../contracts/old_drops/filter/OwnedSubscriptionManager.sol";
 import {DropMetadataRenderer} from "../../contracts/drops/metadata/DropMetadataRenderer.sol";
 import {EditionMetadataRenderer} from "../../contracts/drops/metadata/EditionMetadataRenderer.sol";
 
