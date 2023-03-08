@@ -2,20 +2,20 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-import {ERC721H} from "../abstract/ERC721H.sol";
-import {NonReentrant} from "../abstract/NonReentrant.sol";
+import {ERC721H} from "../../abstract/ERC721H.sol";
+import {NonReentrant} from "../../abstract/NonReentrant.sol";
 
-import {HolographERC721Interface} from "../interface/HolographERC721Interface.sol";
-import {HolographInterface} from "../interface/HolographInterface.sol";
+import {HolographERC721Interface} from "../../interface/HolographERC721Interface.sol";
+import {HolographInterface} from "../../interface/HolographInterface.sol";
 
-import {DropsInitializer} from "../drops/struct/DropsInitializer.sol";
+import {DropsInitializer} from "../struct/DropsInitializer.sol";
 
-import {Address} from "../drops/library/Address.sol";
-import {MerkleProof} from "../drops/library/MerkleProof.sol";
+import {Address} from "../library/Address.sol";
+import {MerkleProof} from "../library/MerkleProof.sol";
 
-import {IMetadataRenderer} from "../drops/interface/IMetadataRenderer.sol";
-import {IOperatorFilterRegistry} from "../drops/interface/IOperatorFilterRegistry.sol";
-import {IHolographERC721Drop} from "../drops/interface/IHolographERC721Drop.sol";
+import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
+import {IOperatorFilterRegistry} from "../interface/IOperatorFilterRegistry.sol";
+import {IHolographERC721Drop} from "../interface/IHolographERC721Drop.sol";
 
 contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop {
   /**
@@ -146,13 +146,17 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     salesConfig = initializer.salesConfiguration;
 
     // TODO: Need to make sure to initialize the metadata renderer
-    IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
+    if (initializer.metadataRenderer != address(0)) {
+      IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
+    }
 
     setStatus(1);
 
-    // Holograph initialization
-    _setInitialized();
-    return _init("");
+    return _init(initPayload);
+  }
+
+  function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
+    return interfaceId == type(IHolographERC721Drop).interfaceId;
   }
 
   function onIsApprovedForAll(
@@ -211,6 +215,25 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
         publicMints: totalMintsByAddress[minter] - presaleMintsByAddress[minter],
         totalMints: totalMintsByAddress[minter]
       });
+  }
+
+  function bridgeIn(
+    uint32, /* _chainId*/
+    address, /* _from*/
+    address, /* _to*/
+    uint256, /* _tokenId*/
+    bytes calldata /* _data*/
+  ) external view onlyHolographer returns (bool) {
+    return true;
+  }
+
+  function bridgeOut(
+    uint32, /* _chainId*/
+    address, /* _from*/
+    address, /* _to*/
+    uint256 /* _tokenId*/
+  ) external view onlyHolographer returns (bytes memory _data) {
+    _data = "";
   }
 
   /**

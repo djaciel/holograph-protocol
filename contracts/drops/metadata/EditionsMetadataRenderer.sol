@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-/*SOLIDITY_COMPILER_VERSION*/
+pragma solidity 0.8.13;
 
 import "../../abstract/Initializable.sol";
 
@@ -14,8 +14,8 @@ interface DropConfigGetter {
   function config() external view returns (IHolographERC721Drop.Configuration memory config);
 }
 
-/// @notice EditionMetadataRenderer for editions support
-contract EditionMetadataRenderer is Initializable, IMetadataRenderer, MetadataRenderAdminCheck {
+/// @notice EditionsMetadataRenderer for editions support
+contract EditionsMetadataRenderer is Initializable, IMetadataRenderer, MetadataRenderAdminCheck {
   /// @notice Storage for token edition information
   struct TokenEditionInfo {
     string description;

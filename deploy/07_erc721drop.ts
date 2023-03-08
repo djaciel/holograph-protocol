@@ -30,55 +30,155 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // Salt is used for deterministic address generation
   const salt = hre.deploymentSalt;
 
-  // Fee manager
-  // Fee is 5%
-  const feeBPS = 500;
-  const futureFeeManagerAddress = await genesisDeriveFutureAddress(
+  // Deploy DropsMetadataRenderer source contract
+  const futureDropsMetadataRendererAddress = await genesisDeriveFutureAddress(
     hre,
     salt,
-    'HolographFeeManager',
-    generateInitCode(['uint256', 'address'], [feeBPS, deployer.address]) // initCode
+    'DropsMetadataRenderer',
+    generateInitCode([], [])
   );
-  hre.deployments.log('the future "HolographFeeManager" address is', futureFeeManagerAddress);
-  let feeManagerDeployedCode: string = await hre.provider.send('eth_getCode', [futureFeeManagerAddress, 'latest']);
-
-  if (feeManagerDeployedCode == '0x' || feeManagerDeployedCode == '') {
-    await genesisDeployHelper(
+  hre.deployments.log('the future "DropsMetadataRenderer" address is', futureDropsMetadataRendererAddress);
+  let dropsMetadataRendererDeployedCode: string = await hre.provider.send('eth_getCode', [
+    futureDropsMetadataRendererAddress,
+    'latest',
+  ]);
+  if (dropsMetadataRendererDeployedCode == '0x' || dropsMetadataRendererDeployedCode == '') {
+    hre.deployments.log('"DropsMetadataRenderer" bytecode not found, need to deploy"');
+    let dropsMetadataRenderer = await genesisDeployHelper(
       hre,
       salt,
-      'HolographFeeManager',
-      generateInitCode(['uint256', 'address'], [feeBPS, deployer.address]), // initCode
-      futureFeeManagerAddress
+      'DropsMetadataRenderer',
+      generateInitCode([], []),
+      futureDropsMetadataRendererAddress
     );
   } else {
-    hre.deployments.log('"EditionMetadataRenderer" is already deployed.');
+    hre.deployments.log('"DropsMetadataRenderer" is already deployed.');
   }
 
-  // Metadata renderer
-  const futureEditionMetadataRendererAddress = await genesisDeriveFutureAddress(
+  // Deploy DropsMetadataRendererProxy source contract
+  const futureDropsMetadataRendererProxyAddress = await genesisDeriveFutureAddress(
     hre,
     salt,
-    'EditionMetadataRenderer',
-    generateInitCode([], []) // initCode
+    'DropsMetadataRendererProxy',
+    generateInitCode(['address', 'bytes'], [futureDropsMetadataRendererAddress, generateInitCode([], [])])
   );
-  hre.deployments.log('the future "EditionMetadataRenderer" address is', futureEditionMetadataRendererAddress);
-  let editionMetadataRendererDeployedCode: string = await hre.provider.send('eth_getCode', [
-    futureEditionMetadataRendererAddress,
+  hre.deployments.log('the future "DropsMetadataRendererProxy" address is', futureDropsMetadataRendererProxyAddress);
+  let dropsMetadataRendererProxyDeployedCode: string = await hre.provider.send('eth_getCode', [
+    futureDropsMetadataRendererProxyAddress,
+    'latest',
+  ]);
+  if (dropsMetadataRendererProxyDeployedCode == '0x' || dropsMetadataRendererProxyDeployedCode == '') {
+    hre.deployments.log('"DropsMetadataRendererProxy" bytecode not found, need to deploy"');
+    let dropsMetadataRendererProxy = await genesisDeployHelper(
+      hre,
+      salt,
+      'DropsMetadataRendererProxy',
+      generateInitCode(['address', 'bytes'], [futureDropsMetadataRendererAddress, generateInitCode([], [])]),
+      futureDropsMetadataRendererProxyAddress
+    );
+  } else {
+    hre.deployments.log('"DropsMetadataRendererProxy" is already deployed.');
+  }
+
+  // Deploy EditionsMetadataRenderer source contract
+  const futureEditionsMetadataRendererAddress = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'EditionsMetadataRenderer',
+    generateInitCode([], [])
+  );
+  hre.deployments.log('the future "EditionsMetadataRenderer" address is', futureEditionsMetadataRendererAddress);
+  let editionsMetadataRendererDeployedCode: string = await hre.provider.send('eth_getCode', [
+    futureEditionsMetadataRendererAddress,
+    'latest',
+  ]);
+  if (editionsMetadataRendererDeployedCode == '0x' || editionsMetadataRendererDeployedCode == '') {
+    hre.deployments.log('"EditionsMetadataRenderer" bytecode not found, need to deploy"');
+    let editionsMetadataRenderer = await genesisDeployHelper(
+      hre,
+      salt,
+      'EditionsMetadataRenderer',
+      generateInitCode([], []),
+      futureEditionsMetadataRendererAddress
+    );
+  } else {
+    hre.deployments.log('"EditionsMetadataRenderer" is already deployed.');
+  }
+
+  // Deploy EditionsMetadataRendererProxy source contract
+  const futureEditionsMetadataRendererProxyAddress = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'EditionsMetadataRendererProxy',
+    generateInitCode(['address', 'bytes'], [futureEditionsMetadataRendererAddress, generateInitCode([], [])])
+  );
+  hre.deployments.log(
+    'the future "EditionsMetadataRendererProxy" address is',
+    futureEditionsMetadataRendererProxyAddress
+  );
+  let editionsMetadataRendererProxyDeployedCode: string = await hre.provider.send('eth_getCode', [
+    futureEditionsMetadataRendererProxyAddress,
+    'latest',
+  ]);
+  if (editionsMetadataRendererProxyDeployedCode == '0x' || editionsMetadataRendererProxyDeployedCode == '') {
+    hre.deployments.log('"EditionsMetadataRendererProxy" bytecode not found, need to deploy"');
+    let editionsMetadataRendererProxy = await genesisDeployHelper(
+      hre,
+      salt,
+      'EditionsMetadataRendererProxy',
+      generateInitCode(['address', 'bytes'], [futureEditionsMetadataRendererAddress, generateInitCode([], [])]),
+      futureEditionsMetadataRendererProxyAddress
+    );
+  } else {
+    hre.deployments.log('"EditionsMetadataRendererProxy" is already deployed.');
+  }
+
+  // Deploy the HolographDropsEditionsV1 custom contract source
+  const holographDropsEditionsV1InitCode = generateInitCode(
+    [
+      'tuple(address,address,address,address,uint64,uint16,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)',
+    ],
+    [
+      [
+        '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
+        '0x0000000000000000000000000000000000000000', // marketFilterAddress (opensea)
+        deployer.address, // initialOwner
+        deployer.address, // fundsRecipient
+        0, // 1000 editions
+        1000, // 10% royalty
+        [0, 0, 0, 0, 0, 0, '0x' + '00'.repeat(32)], // setupCalls
+        futureEditionsMetadataRendererProxyAddress, // metadataRenderer
+        generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
+      ],
+    ]
+  );
+  const futureHolographDropsEditionsV1Address = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'HolographDropsEditionsV1',
+    holographDropsEditionsV1InitCode
+  );
+  hre.deployments.log('the future "HolographDropsEditionsV1" address is', futureHolographDropsEditionsV1Address);
+
+  let holographDropsEditionsV1DeployedCode: string = await hre.provider.send('eth_getCode', [
+    futureHolographDropsEditionsV1Address,
     'latest',
   ]);
 
-  if (editionMetadataRendererDeployedCode == '0x' || editionMetadataRendererDeployedCode == '') {
-    await genesisDeployHelper(
+  if (holographDropsEditionsV1DeployedCode == '0x' || holographDropsEditionsV1DeployedCode == '') {
+    hre.deployments.log('"HolographDropsEditionsV1" bytecode not found, need to deploy"');
+    let holographDropsEditionsV1 = await genesisDeployHelper(
       hre,
       salt,
-      'EditionMetadataRenderer',
-      generateInitCode([], []), // initCode
-      futureEditionMetadataRendererAddress
+      'HolographDropsEditionsV1',
+      holographDropsEditionsV1InitCode,
+      futureHolographDropsEditionsV1Address
     );
   } else {
-    hre.deployments.log('"EditionMetadataRenderer" is already deployed.');
+    hre.deployments.log('"HolographDropsEditionsV1" is already deployed.');
   }
 
+  // TODO: remove everything below this line once we depreciate old drops
   // Deploy the ERC721 drop enforcer
   const futureErc721DropAddress = await genesisDeriveFutureAddress(
     hre,
@@ -88,7 +188,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)', 'bool'],
       [
         [
-          futureFeeManagerAddress, // holographFeeManager
+          '0x0000000000000000000000000000000000000000', // holographFeeManager
           '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
           '0x000000000000AAeB6D7670E522A718067333cd4E', // marketFilterAddress (opensea)
           'Holograph ERC721 Drop Collection', // contractName
@@ -98,7 +198,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           1000, // 1000 editions
           1000, // 10% royalty
           [], // setupCalls
-          futureEditionMetadataRendererAddress, // metadataRenderer
+          futureEditionsMetadataRendererAddress, // metadataRenderer
           generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
         ],
         true, // skipInit
@@ -118,7 +218,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)', 'bool'],
         [
           [
-            futureFeeManagerAddress, // holographFeeManager
+            '0x0000000000000000000000000000000000000000', // holographFeeManager
             '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
             '0x000000000000AAeB6D7670E522A718067333cd4E', // marketFilterAddress
             'Holograph ERC721 Drop Collection', // contractName
@@ -128,7 +228,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             1000, // 1000 editions
             1000, // 10% royalty
             [], // setupCalls
-            futureEditionMetadataRendererAddress, // metadataRenderer
+            futureEditionsMetadataRendererAddress, // metadataRenderer
             generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
           ],
           true, // skipInit
@@ -142,5 +242,5 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ['HolographERC721Drop', 'DeployERC721Drop'];
+func.tags = ['DropsMetadataRenderer', 'EditionsMetadataRenderer', 'HolographDropsEditionsV1', 'HolographERC721Drop'];
 func.dependencies = ['HolographGenesis', 'DeploySources'];

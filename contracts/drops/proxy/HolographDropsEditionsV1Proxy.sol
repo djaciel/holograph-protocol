@@ -101,138 +101,65 @@
 
 pragma solidity 0.8.13;
 
-import "../abstract/Initializable.sol";
+import "../../abstract/Admin.sol";
+import "../../abstract/Initializable.sol";
 
-abstract contract ERC721H is Initializable {
+import "../../interface/InitializableInterface.sol";
+import "../../interface/HolographRegistryInterface.sol";
+
+contract HolographDropsEditionsV1Proxy is Admin, Initializable {
   /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.holographer')) - 1)
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.contractType')) - 1)
    */
-  bytes32 constant _holographerSlot = 0xe9fcff60011c1a99f7b7244d1f2d9da93d79ea8ef3654ce590d775575255b2bd;
+  bytes32 constant _contractTypeSlot = 0x0b671eb65810897366dd82c4cbb7d9dff8beda8484194956e81e89b8a361d9c7;
   /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.owner')) - 1)
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.registry')) - 1)
    */
-  bytes32 constant _ownerSlot = 0xb56711ba6bd3ded7639fc335ee7524fe668a79d7558c85992e3f8494cf772777;
+  bytes32 constant _registrySlot = 0xce8e75d5c5227ce29a4ee170160bb296e5dea6934b80a9bd723f7ef1e7c850e7;
 
-  modifier onlyHolographer() {
-    require(msg.sender == holographer(), "ERC721: holographer only");
-    _;
-  }
-
-  modifier onlyOwner() {
-    if (msg.sender == holographer()) {
-      require(msgSender() == _getOwner(), "ERC721: owner only function");
-    } else {
-      require(msg.sender == _getOwner(), "ERC721: owner only function");
-    }
-    _;
-  }
-
-  /**
-   * @dev Constructor is left empty and init is used instead
-   */
   constructor() {}
 
-  /**
-   * @notice Used internally to initialize the contract instead of through a constructor
-   * @dev This function is called by the deployer/factory when creating a contract
-   * @param initPayload abi encoded payload to use for contract initilaization
-   */
-  function init(bytes memory initPayload) external virtual override returns (bytes4) {
-    return _init(initPayload);
-  }
-
-  function _init(
-    bytes memory /* initPayload*/
-  ) internal returns (bytes4) {
-    require(!_isInitialized(), "ERC721: already initialized");
-    address _holographer = msg.sender;
-    address currentOwner;
+  function init(bytes memory data) external override returns (bytes4) {
+    require(!_isInitialized(), "HOLOGRAPH: already initialized");
+    (bytes32 contractType, address registry, bytes memory initCode) = abi.decode(data, (bytes32, address, bytes));
     assembly {
-      sstore(_holographerSlot, _holographer)
-      currentOwner := sload(_ownerSlot)
+      sstore(_contractTypeSlot, contractType)
+      sstore(_registrySlot, registry)
     }
-    require(currentOwner != address(0), "HOLOGRAPH: owner not set");
+    (bool success, bytes memory returnData) = getHolographDropsEditionsV1Source().delegatecall(
+      abi.encodeWithSignature("init(bytes)", initCode)
+    );
+    bytes4 selector = abi.decode(returnData, (bytes4));
+    require(success && selector == InitializableInterface.init.selector, "initialization failed");
+
     _setInitialized();
     return InitializableInterface.init.selector;
   }
 
-  /**
-   * @dev The Holographer passes original msg.sender via calldata. This function extracts it.
-   */
-  function msgSender() internal pure returns (address sender) {
+  function getHolographDropsEditionsV1Source() public view returns (address) {
+    HolographRegistryInterface registry;
+    bytes32 contractType;
     assembly {
-      sender := calldataload(sub(calldatasize(), 0x20))
+      registry := sload(_registrySlot)
+      contractType := sload(_contractTypeSlot)
     }
+    return registry.getContractTypeAddress(contractType);
   }
 
-  /**
-   * @dev Address of Holograph ERC721 standards enforcer smart contract.
-   */
-  function holographer() internal view returns (address _holographer) {
-    assembly {
-      _holographer := sload(_holographerSlot)
-    }
-  }
+  receive() external payable {}
 
-  function supportsInterface(bytes4) external pure virtual returns (bool) {
-    return false;
-  }
-
-  /**
-   * @dev Address of initial creator/owner of the collection.
-   */
-  function owner() external view virtual returns (address) {
-    return _getOwner();
-  }
-
-  function isOwner() external view returns (bool) {
-    if (msg.sender == holographer()) {
-      return msgSender() == _getOwner();
-    } else {
-      return msg.sender == _getOwner();
-    }
-  }
-
-  function isOwner(address wallet) external view returns (bool) {
-    return wallet == _getOwner();
-  }
-
-  function _getOwner() internal view returns (address ownerAddress) {
-    assembly {
-      ownerAddress := sload(_ownerSlot)
-    }
-  }
-
-  function _setOwner(address ownerAddress) internal {
-    assembly {
-      sstore(_ownerSlot, ownerAddress)
-    }
-  }
-
-  function withdraw() external virtual onlyOwner {
-    payable(_getOwner()).transfer(address(this).balance);
-  }
-
-  /**
-   * @dev This function is unreachable unless custom contract address is called directly.
-   *      Please use custom payable functions for accepting native value.
-   */
-  receive() external payable virtual {
-    revert("ERC721: unreachable code");
-  }
-
-  /**
-   * @dev Return true for any un-implemented event hooks
-   */
   fallback() external payable {
+    address holographDropsEditionsV1Source = getHolographDropsEditionsV1Source();
     assembly {
-      switch eq(sload(_holographerSlot), caller())
-      case 1 {
-        mstore(0x80, 0x0000000000000000000000000000000000000000000000000000000000000001)
-        return(0x80, 0x20)
+      calldatacopy(0, 0, calldatasize())
+      let result := delegatecall(gas(), holographDropsEditionsV1Source, 0, calldatasize(), 0, 0)
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
+        revert(0, returndatasize())
       }
       default {
-        revert(0x00, 0x00)
+        return(0, returndatasize())
       }
     }
   }

@@ -8,7 +8,7 @@ import {IERC721AUpgradeable} from "../../contracts/old_drops/interfaces/IERC721A
 
 import {DeploymentConfig} from "../../contracts/struct/DeploymentConfig.sol";
 import {Verification} from "../../contracts/struct/Verification.sol";
-import {DropInitializer} from "../../contracts/drops/struct/DropInitializer.sol";
+import {DropInitializer} from "../../contracts/old_drops/struct/DropInitializer.sol";
 
 import {HolographFactory} from "../../contracts/HolographFactory.sol";
 
@@ -27,8 +27,8 @@ import {IHolographERC721Drop} from "../../contracts/old_drops/interfaces/IHologr
 import {OperatorFilterRegistry} from "./filter/OperatorFilterRegistry.sol";
 import {OperatorFilterRegistryErrorsAndEvents} from "./filter/OperatorFilterRegistryErrorsAndEvents.sol";
 import {OwnedSubscriptionManager} from "../../contracts/old_drops/filter/OwnedSubscriptionManager.sol";
-import {DropMetadataRenderer} from "../../contracts/drops/metadata/DropMetadataRenderer.sol";
-import {EditionMetadataRenderer} from "../../contracts/drops/metadata/EditionMetadataRenderer.sol";
+import {DropsMetadataRenderer} from "../../contracts/drops/metadata/DropsMetadataRenderer.sol";
+import {EditionsMetadataRenderer} from "../../contracts/drops/metadata/EditionsMetadataRenderer.sol";
 
 contract HolographERC721DropTest is Test {
   /// @notice Event emitted when the funds are withdrawn from the minting contract
@@ -52,8 +52,8 @@ contract HolographERC721DropTest is Test {
   HolographERC721Drop public erc721Drop;
 
   DummyMetadataRenderer public dummyRenderer = new DummyMetadataRenderer();
-  EditionMetadataRenderer public editionMetadataRenderer;
-  DropMetadataRenderer public dropMetadataRenderer;
+  EditionsMetadataRenderer public editionsMetadataRenderer;
+  DropsMetadataRenderer public dropsMetadataRenderer;
 
   address public constant DEFAULT_OWNER_ADDRESS = address(0x1);
   address payable public constant DEFAULT_FUNDS_RECIPIENT_ADDRESS = payable(address(0x2));
@@ -87,7 +87,7 @@ contract HolographERC721DropTest is Test {
       setupCalls: new bytes[](0),
       metadataRenderer: address(dummyRenderer),
       metadataRendererInit: ""
-      // metadataRenderer: address(dropMetadataRenderer),
+      // metadataRenderer: address(dropsMetadataRenderer),
       // metadataRendererInit: abi.encode("description", "imageURI", "animationURI")
     });
 
@@ -171,7 +171,7 @@ contract HolographERC721DropTest is Test {
     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
     feeManager.setFeeOverride(address(erc721Drop), 500);
 
-    dropMetadataRenderer = new DropMetadataRenderer();
+    dropsMetadataRenderer = new DropsMetadataRenderer();
   }
 
   function test_DeployHolographDrop() public {
@@ -209,7 +209,7 @@ contract HolographERC721DropTest is Test {
       100,
       1000,
       setupData,
-      address(dropMetadataRenderer),
+      address(dropsMetadataRenderer),
       abi.encode("description", "imageURI", "animationURI")
     );
 

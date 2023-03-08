@@ -784,7 +784,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
                 '0x' + web3.utils.asciiToHex('HolographGeneric').substring(2).padStart(64, '0'),
                 '0x' + web3.utils.asciiToHex('HolographERC20').substring(2).padStart(64, '0'),
                 '0x' + web3.utils.asciiToHex('HolographERC721').substring(2).padStart(64, '0'),
+                // TODO: remove this line once we depreciate old drops
                 '0x' + web3.utils.asciiToHex('HolographERC721Drop').substring(2).padStart(64, '0'),
+                '0x' + web3.utils.asciiToHex('HolographDropsEditionsV1').substring(2).padStart(64, '0'),
                 '0x' + web3.utils.asciiToHex('HolographERC1155').substring(2).padStart(64, '0'),
                 '0x' + web3.utils.asciiToHex('CxipERC721').substring(2).padStart(64, '0'),
                 '0x' + web3.utils.asciiToHex('CxipERC1155').substring(2).padStart(64, '0'),

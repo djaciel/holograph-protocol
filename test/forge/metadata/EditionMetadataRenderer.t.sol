@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
 
-import {EditionMetadataRenderer} from "../../../contracts/drops/metadata/EditionMetadataRenderer.sol";
+import {EditionsMetadataRenderer} from "../../../contracts/drops/metadata/EditionsMetadataRenderer.sol";
 import {MetadataRenderAdminCheck} from "../../../contracts/drops/metadata/MetadataRenderAdminCheck.sol";
 import {IMetadataRenderer} from "../../../contracts/drops/interface/IMetadataRenderer.sol";
 import {DropMockBase} from "./DropMockBase.sol";
@@ -48,9 +48,9 @@ contract IERC721OnChainDataMock {
   }
 }
 
-contract EditionMetadataRendererTest is Test {
+contract EditionsMetadataRendererTest is Test {
   address public constant mediaContract = address(123456);
-  EditionMetadataRenderer public editionRenderer = new EditionMetadataRenderer();
+  EditionsMetadataRenderer public editionRenderer = new EditionsMetadataRenderer();
 
   function test_EditionMetadataInits() public {
     vm.startPrank(address(0x123));

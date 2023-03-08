@@ -11,7 +11,7 @@ import {Strings} from "../library/Strings.sol";
 import {MetadataRenderAdminCheck} from "./MetadataRenderAdminCheck.sol";
 
 /// @notice Drops metadata system
-contract DropMetadataRenderer is Initializable, IMetadataRenderer, MetadataRenderAdminCheck {
+contract DropsMetadataRenderer is Initializable, IMetadataRenderer, MetadataRenderAdminCheck {
   error MetadataFrozen();
 
   /// Event to mark updated metadata information

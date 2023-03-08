@@ -31,8 +31,8 @@ contract HolographDropCreatorTest is Test {
   HolographDropCreator public creator;
 
   HolographFeeManager public feeManager;
-  EditionMetadataRenderer public editionMetadataRenderer;
-  DropMetadataRenderer public dropMetadataRenderer;
+  EditionsMetadataRenderer public editionsMetadataRenderer;
+  DropsMetadataRenderer public dropsMetadataRenderer;
 
   address public alice;
 
@@ -66,8 +66,8 @@ contract HolographDropCreatorTest is Test {
     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
     feeManager = new HolographFeeManager();
     feeManager.init(abi.encode(500, HOLOGRAPH_TREASURY_ADDRESS));
-    editionMetadataRenderer = new EditionMetadataRenderer();
-    dropMetadataRenderer = new DropMetadataRenderer();
+    editionsMetadataRenderer = new EditionsMetadataRenderer();
+    dropsMetadataRenderer = new DropsMetadataRenderer();
 
     // Setup ERC721 Drop Properties
     name = "Holograph ERC721 Drop Collection";
@@ -90,7 +90,7 @@ contract HolographDropCreatorTest is Test {
     creator = new HolographDropCreator();
 
     // Initialize deployment with actual values
-    creator.init(abi.encode(address(erc721Drop), address(editionMetadataRenderer), address(dropMetadataRenderer)));
+    creator.init(abi.encode(address(erc721Drop), address(editionsMetadataRenderer), address(dropsMetadataRenderer)));
 
     address deployedEdition = creator.createEdition(
       name,
@@ -126,7 +126,7 @@ contract HolographDropCreatorTest is Test {
     creator = new HolographDropCreator();
 
     // Initialize deployment with actual values
-    creator.init(abi.encode(address(erc721Drop), address(editionMetadataRenderer), address(dropMetadataRenderer)));
+    creator.init(abi.encode(address(erc721Drop), address(editionsMetadataRenderer), address(dropsMetadataRenderer)));
 
     address deployedDrop = creator.createDrop(
       name,
@@ -158,7 +158,7 @@ contract HolographDropCreatorTest is Test {
     creator = new HolographDropCreator();
 
     // Initialize deployment with actual values
-    creator.init(abi.encode(address(erc721Drop), address(editionMetadataRenderer), address(dropMetadataRenderer)));
+    creator.init(abi.encode(address(erc721Drop), address(editionsMetadataRenderer), address(dropsMetadataRenderer)));
 
     MockMetadataRenderer mockRenderer = new MockMetadataRenderer();
 
@@ -226,7 +226,7 @@ contract HolographDropCreatorTest is Test {
       editionSize,
       royaltyBPS,
       setupData,
-      address(editionMetadataRenderer),
+      address(editionsMetadataRenderer),
       metadataInitializer
     );
 
@@ -303,7 +303,7 @@ contract HolographDropCreatorTest is Test {
       100,
       1000,
       setupData,
-      address(dropMetadataRenderer),
+      address(dropsMetadataRenderer),
       abi.encode("description", "imageURI", "animationURI")
     );
 

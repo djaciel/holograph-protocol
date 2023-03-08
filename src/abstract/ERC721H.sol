@@ -75,7 +75,7 @@ abstract contract ERC721H is Initializable {
     }
   }
 
-  function supportsInterface(bytes4) external pure returns (bool) {
+  function supportsInterface(bytes4) external pure virtual returns (bool) {
     return false;
   }
 

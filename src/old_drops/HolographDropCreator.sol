@@ -8,9 +8,9 @@ import "../abstract/Initializable.sol";
 import {DropInitializer} from "./struct/DropInitializer.sol";
 
 import {HolographERC721DropProxy} from "./HolographERC721DropProxy.sol";
-import {EditionMetadataRenderer} from "../drops/metadata/EditionMetadataRenderer.sol";
+import {EditionsMetadataRenderer} from "../drops/metadata/EditionsMetadataRenderer.sol";
 import {IHolographERC721Drop} from "./interfaces/IHolographERC721Drop.sol";
-import {DropMetadataRenderer} from "../drops/metadata/DropMetadataRenderer.sol";
+import {DropsMetadataRenderer} from "../drops/metadata/DropsMetadataRenderer.sol";
 import {IMetadataRenderer} from "../drops/interface/IMetadataRenderer.sol";
 import {HolographERC721Drop} from "./HolographERC721Drop.sol";
 
@@ -30,10 +30,10 @@ contract HolographDropCreator is Initializable {
   address public implementation;
 
   /// @notice Edition metdata renderer
-  EditionMetadataRenderer public editionMetadataRenderer;
+  EditionsMetadataRenderer public editionsMetadataRenderer;
 
   /// @notice Drop metdata renderer
-  DropMetadataRenderer public dropMetadataRenderer;
+  DropsMetadataRenderer public dropsMetadataRenderer;
 
   /**
    * @notice Used internally to initialize the contract instead of through a constructor
@@ -44,17 +44,17 @@ contract HolographDropCreator is Initializable {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     (
       address implementationAddress,
-      address editionMetadataRendererAddress,
-      address dropMetadataRendererAddress
+      address editionsMetadataRendererAddress,
+      address dropsMetadataRendererAddress
     ) = abi.decode(initPayload, (address, address, address));
 
     require(implementationAddress != address(0), CANNOT_BE_ZERO);
-    require(address(editionMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
-    require(address(dropMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
+    require(address(editionsMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
+    require(address(dropsMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
 
     implementation = implementationAddress;
-    editionMetadataRenderer = EditionMetadataRenderer(editionMetadataRendererAddress);
-    dropMetadataRenderer = DropMetadataRenderer(dropMetadataRendererAddress);
+    editionsMetadataRenderer = EditionsMetadataRenderer(editionsMetadataRendererAddress);
+    dropsMetadataRenderer = DropsMetadataRenderer(dropsMetadataRendererAddress);
 
     _setInitialized();
     return InitializableInterface.init.selector;
@@ -70,7 +70,7 @@ contract HolographDropCreator is Initializable {
     uint16 royaltyBPS,
     address payable fundsRecipient,
     bytes[] memory setupCalls,
-    IMetadataRenderer metadataRenderer,
+    IMetadataRenderer sMetadataRenderer,
     bytes memory metadataInitializer
   ) public returns (address payable newDropAddress) {
     // Get initial implementation to get variables that used to be set as immutable
@@ -87,7 +87,7 @@ contract HolographDropCreator is Initializable {
       editionSize,
       royaltyBPS,
       setupCalls,
-      address(metadataRenderer),
+      address(sMetadataRenderer),
       metadataInitializer
     );
 
@@ -144,7 +144,7 @@ contract HolographDropCreator is Initializable {
     address defaultAdmin,
     address payable fundsRecipient,
     IHolographERC721Drop.SalesConfiguration memory saleConfig,
-    IMetadataRenderer metadataRenderer,
+    IMetadataRenderer sMetadataRenderer,
     bytes memory metadataInitializer
   ) public returns (address) {
     bytes[] memory setupData = new bytes[](1);
@@ -166,7 +166,7 @@ contract HolographDropCreator is Initializable {
       editionSize: editionSize,
       royaltyBPS: royaltyBPS,
       setupCalls: setupData,
-      metadataRenderer: metadataRenderer,
+      sMetadataRenderer: sMetadataRenderer,
       metadataInitializer: metadataInitializer
     });
 
@@ -237,7 +237,7 @@ contract HolographDropCreator is Initializable {
         editionSize: editionSize,
         fundsRecipient: fundsRecipient,
         saleConfig: saleConfig,
-        metadataRenderer: dropMetadataRenderer,
+        sMetadataRenderer: dropsMetadataRenderer,
         metadataInitializer: metadataInitializer
       });
   }
@@ -308,7 +308,7 @@ contract HolographDropCreator is Initializable {
         royaltyBPS: royaltyBPS,
         saleConfig: saleConfig,
         fundsRecipient: fundsRecipient,
-        metadataRenderer: editionMetadataRenderer,
+        sMetadataRenderer: editionsMetadataRenderer,
         metadataInitializer: metadataInitializer
       });
   }
