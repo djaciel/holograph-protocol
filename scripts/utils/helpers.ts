@@ -408,17 +408,19 @@ const getGasPrice = async function (): Promise<GasParams> {
     let gasPrice: BigNumber = gasPricing.gasPrice!.mul(global.__gasPriceMultiplier).div(BigNumber.from('10000'));
     let bribe: BigNumber = gasPricing.isEip1559 ? gasPrice.sub(gasPricing.nextBlockFee!) : BigNumber.from('0');
     // loop and wait until gas price stabilizes
-    while (gasPrice.gt(global.__maxGasPrice) || bribe.gt(global.__maxGasBribe)) {
-      await gasService.wait(1);
-      gasPrice = gasPricing.gasPrice!.mul(global.__gasPriceMultiplier).div(BigNumber.from('10000'));
-      bribe = gasPricing.isEip1559 ? gasPrice.sub(gasPricing.nextBlockFee!) : BigNumber.from('0');
-    }
+
+    // TODO: Disabled for now because it is causing the tx to never go through
+    // while (gasPrice.gt(global.__maxGasPrice) || bribe.gt(global.__maxGasBribe)) {
+    // await gasService.wait(1);
+    gasPrice = gasPricing.gasPrice!.mul(global.__gasPriceMultiplier).div(BigNumber.from('10000'));
+    bribe = gasPricing.isEip1559 ? gasPrice.sub(gasPricing.nextBlockFee!) : BigNumber.from('0');
+    // }
 
     if (gasPricing.isEip1559) {
       return {
         gasPrice: null,
         type: 2,
-        //maxPriorityFeePerGas: gasPrice.sub(gasPricing.nextBlockFee!),
+        // maxPriorityFeePerGas: gasPrice.sub(gasPricing.nextBlockFee!),
         maxPriorityFeePerGas: gasPrice,
         maxFeePerGas: gasPrice,
       };

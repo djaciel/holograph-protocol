@@ -157,6 +157,24 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   hre.deployments.log('the future "HolographERC721Drop" address is', futureErc721DropAddress);
 
   const erc721DropHash = '0x' + web3.utils.asciiToHex('HolographERC721Drop').substring(2).padStart(64, '0');
+
+  // TODO: Add this for all the other enforcers
+  if ((await holographRegistry.getReservedContractTypeAddress(erc721DropHash)) == zeroAddress) {
+    const reserveErc721DropTx = await holographRegistry
+      .setReservedContractTypeAddress(erc721DropHash, true, {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holographRegistry,
+          data: holographRegistry.populateTransaction.setReservedContractTypeAddress(erc721DropHash, true),
+        })),
+      })
+      .catch(error);
+    hre.deployments.log('Transaction hash:', reserveErc721DropTx.hash);
+    await reserveErc721DropTx.wait();
+    hre.deployments.log(`Reserved "HolographERC721Drop" namespace`);
+  }
+
   if ((await holographRegistry.getContractTypeAddress(erc721DropHash)) != futureErc721DropAddress) {
     const erc721DropTx = await holographRegistry
       .setContractTypeAddress(erc721DropHash, futureErc721DropAddress, {
