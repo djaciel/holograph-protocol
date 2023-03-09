@@ -5,8 +5,6 @@
 import "../../abstract/Admin.sol";
 import "../../abstract/Initializable.sol";
 
-import "../../interface/InitializableInterface.sol";
-
 contract EditionsMetadataRendererProxy is Admin, Initializable {
   /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.editionsMetadataRenderer')) - 1)
@@ -26,9 +24,9 @@ contract EditionsMetadataRendererProxy is Admin, Initializable {
       abi.encodeWithSignature("init(bytes)", initCode)
     );
     bytes4 selector = abi.decode(returnData, (bytes4));
-    require(success && selector == InitializableInterface.init.selector, "initialization failed");
+    require(success && selector == Initializable.init.selector, "initialization failed");
     _setInitialized();
-    return InitializableInterface.init.selector;
+    return Initializable.init.selector;
   }
 
   function getEditionsMetadataRenderer() external view returns (address editionsMetadataRenderer) {

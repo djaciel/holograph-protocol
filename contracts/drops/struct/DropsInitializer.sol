@@ -2,7 +2,7 @@
 
 pragma solidity 0.8.13;
 
-import {IHolographERC721Drop} from "../interface/IHolographERC721Drop.sol";
+import {SalesConfiguration} from "./SalesConfiguration.sol";
 
 /// @param erc721TransferHelper Transfer helper contract
 /// @param marketFilterAddress Market filter address - Manage subscription to the for marketplace filtering based off royalty payouts.
@@ -20,7 +20,7 @@ struct DropsInitializer {
   address payable fundsRecipient;
   uint64 editionSize;
   uint16 royaltyBPS;
-  IHolographERC721Drop.SalesConfiguration salesConfiguration;
+  SalesConfiguration salesConfiguration;
   address metadataRenderer;
   bytes metadataRendererInit;
 }

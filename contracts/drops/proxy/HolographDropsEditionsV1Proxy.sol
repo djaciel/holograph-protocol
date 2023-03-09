@@ -104,7 +104,6 @@ pragma solidity 0.8.13;
 import "../../abstract/Admin.sol";
 import "../../abstract/Initializable.sol";
 
-import "../../interface/InitializableInterface.sol";
 import "../../interface/HolographRegistryInterface.sol";
 
 contract HolographDropsEditionsV1Proxy is Admin, Initializable {
@@ -130,10 +129,10 @@ contract HolographDropsEditionsV1Proxy is Admin, Initializable {
       abi.encodeWithSignature("init(bytes)", initCode)
     );
     bytes4 selector = abi.decode(returnData, (bytes4));
-    require(success && selector == InitializableInterface.init.selector, "initialization failed");
+    require(success && selector == Initializable.init.selector, "initialization failed");
 
     _setInitialized();
-    return InitializableInterface.init.selector;
+    return Initializable.init.selector;
   }
 
   function getHolographDropsEditionsV1Source() public view returns (address) {

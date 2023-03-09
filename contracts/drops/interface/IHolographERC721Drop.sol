@@ -4,6 +4,9 @@ pragma solidity 0.8.13;
 
 import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
 
+import {AddressMintDetails} from "../struct/AddressMintDetails.sol";
+import {SaleDetails} from "../struct/SaleDetails.sol";
+
 /// @notice Interface for HOLOGRAPH Drops contract
 interface IHolographERC721Drop {
   // Access errors
@@ -127,74 +130,6 @@ interface IHolographERC721Drop {
     uint64 presaleEnd,
     bytes32 presaleMerkleRoot
   ) external;
-
-  /// @notice General configuration for NFT Minting and bookkeeping
-  struct Configuration {
-    /// @dev Metadata renderer (uint160)
-    IMetadataRenderer metadataRenderer;
-    /// @dev Total size of edition that can be minted (uint160+64 = 224)
-    uint64 editionSize;
-    /// @dev Royalty amount in bps (uint224+16 = 240)
-    uint16 royaltyBPS;
-    /// @dev Funds recipient for sale (new slot, uint160)
-    address payable fundsRecipient;
-  }
-
-  /// @notice Sales states and configuration
-  /// @dev Uses 3 storage slots
-  struct SalesConfiguration {
-    /// @dev Public sale price (max ether value > 1000 ether with this value)
-    uint104 publicSalePrice;
-    /// @notice Purchase mint limit per address (if set to 0 === unlimited mints)
-    /// @dev Max purchase number per txn (90+32 = 122)
-    uint32 maxSalePurchasePerAddress;
-    /// @dev uint64 type allows for dates into 292 billion years
-    /// @notice Public sale start timestamp (136+64 = 186)
-    uint64 publicSaleStart;
-    /// @notice Public sale end timestamp (186+64 = 250)
-    uint64 publicSaleEnd;
-    /// @notice Presale start timestamp
-    /// @dev new storage slot
-    uint64 presaleStart;
-    /// @notice Presale end timestamp
-    uint64 presaleEnd;
-    /// @notice Presale merkle root
-    bytes32 presaleMerkleRoot;
-  }
-
-  /// @notice Return value for sales details to use with front-ends
-  struct SaleDetails {
-    // Synthesized status variables for sale and presale
-    bool publicSaleActive;
-    bool presaleActive;
-    // Price for public sale
-    uint256 publicSalePrice;
-    // Timed sale actions for public sale
-    uint64 publicSaleStart;
-    uint64 publicSaleEnd;
-    // Timed sale actions for presale
-    uint64 presaleStart;
-    uint64 presaleEnd;
-    // Merkle root (includes address, quantity, and price data for each entry)
-    bytes32 presaleMerkleRoot;
-    // Limit public sale to a specific number of mints per wallet
-    uint256 maxSalePurchasePerAddress;
-    // Information about the rest of the supply
-    // Total that have been minted
-    uint256 totalMinted;
-    // The total supply available
-    uint256 maxSupply;
-  }
-
-  /// @notice Return type of specific mint counts and details per address
-  struct AddressMintDetails {
-    /// Number of total mints from the given address
-    uint256 totalMints;
-    /// Number of presale mints from the given address
-    uint256 presaleMints;
-    /// Number of public mints from the given address
-    uint256 publicMints;
-  }
 
   /// @notice External purchase function (payable in eth)
   /// @param quantity to purchase

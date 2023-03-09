@@ -8,7 +8,11 @@ import {NonReentrant} from "../../abstract/NonReentrant.sol";
 import {HolographERC721Interface} from "../../interface/HolographERC721Interface.sol";
 import {HolographInterface} from "../../interface/HolographInterface.sol";
 
+import {AddressMintDetails} from "../struct/AddressMintDetails.sol";
+import {Configuration} from "../struct/Configuration.sol";
 import {DropsInitializer} from "../struct/DropsInitializer.sol";
+import {SaleDetails} from "../struct/SaleDetails.sol";
+import {SalesConfiguration} from "../struct/SalesConfiguration.sol";
 
 import {Address} from "../library/Address.sol";
 import {MerkleProof} from "../library/MerkleProof.sol";
@@ -17,17 +21,32 @@ import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
 import {IOperatorFilterRegistry} from "../interface/IOperatorFilterRegistry.sol";
 import {IHolographERC721Drop} from "../interface/IHolographERC721Drop.sol";
 
+/**
+ * @dev This contract subscribes to the following HolographERC721 events:
+ *       - onIsApprovedForAll
+ *       - customContractURI
+ *      Do not enable or subscribe to any other events unless you modified your source code for them.
+ */
 contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop {
   /**
-   * @notice Thrown when there is no active market filter address supported for the current chain
-   * @dev Used for enabling and disabling filter for the given chain.
+   * CONTRACT VARIABLES
+   * all variables, without custom storage slots, are defined here
    */
-  error MarketFilterAddressNotSupportedForChain();
 
   /**
    * @dev Internal reference used for minting incremental token ids.
    */
   uint224 private _currentTokenId;
+
+  /**
+   * @dev HOLOGRAPH transfer helper address for auto-approval
+   */
+  address public erc721TransferHelper;
+
+  address public marketFilterAddress;
+
+  IOperatorFilterRegistry public operatorFilterRegistry =
+    IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
 
   /**
    * @notice Configuration for NFT minting contract storage
@@ -50,14 +69,18 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
   mapping(address => uint256) public totalMintsByAddress;
 
   /**
-   * @dev HOLOGRAPH transfer helper address for auto-approval
+   * CUSTOM ERRORS
    */
-  address public erc721TransferHelper;
 
-  address public marketFilterAddress;
+  /**
+   * @notice Thrown when there is no active market filter address supported for the current chain
+   * @dev Used for enabling and disabling filter for the given chain.
+   */
+  error MarketFilterAddressNotSupportedForChain();
 
-  IOperatorFilterRegistry public operatorFilterRegistry =
-    IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
+  /**
+   * MODIFIERS
+   */
 
   /**
    * @notice Allows user to mint tokens at a quantity
@@ -68,14 +91,6 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     }
 
     _;
-  }
-
-  function _presaleActive() internal view returns (bool) {
-    return salesConfig.presaleStart <= block.timestamp && salesConfig.presaleEnd > block.timestamp;
-  }
-
-  function _publicSaleActive() internal view returns (bool) {
-    return salesConfig.publicSaleStart <= block.timestamp && salesConfig.publicSaleEnd > block.timestamp;
   }
 
   /**
@@ -101,24 +116,14 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
   }
 
   /**
+   * CONTRACT INITIALIZERS
+   * init function is used instead of constructor
+   */
+
+  /**
    * @dev Constructor is left empty and init is used instead
    */
   constructor() {}
-
-  function owner() external view override(ERC721H, IHolographERC721Drop) returns (address) {
-    return _getOwner();
-  }
-
-  function isAdmin(address user) external view returns (bool) {
-    return (_getOwner() == user);
-  }
-
-  function multicall(bytes[] memory data) public returns (bytes[] memory results) {
-    results = new bytes[](data.length);
-    for (uint256 i = 0; i < data.length; i++) {
-      results[i] = Address.functionDelegateCall(address(this), data[i]);
-    }
-  }
 
   /**
    * @notice Used internally to initialize the contract instead of through a constructor
@@ -155,8 +160,26 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     return _init(initPayload);
   }
 
+  /**
+   * PUBLIC NON STATE CHANGING FUNCTIONS
+   * static
+   */
+
   function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
     return interfaceId == type(IHolographERC721Drop).interfaceId;
+  }
+
+  /**
+   * PUBLIC NON STATE CHANGING FUNCTIONS
+   * dynamic
+   */
+
+  function owner() external view override(ERC721H, IHolographERC721Drop) returns (address) {
+    return _getOwner();
+  }
+
+  function isAdmin(address user) external view returns (bool) {
+    return (_getOwner() == user);
   }
 
   function onIsApprovedForAll(
@@ -164,23 +187,6 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     address _operator
   ) external view returns (bool approved) {
     approved = (erc721TransferHelper != address(0) && _operator == erc721TransferHelper);
-  }
-
-  function _mintNFTs(address recipient, uint256 quantity) internal {
-    HolographERC721Interface H721 = HolographERC721Interface(holographer());
-    uint256 chainPrepend = H721.sourceGetChainPrepend();
-    uint224 tokenId = 0;
-    for (uint256 i = 0; i < quantity; i++) {
-      _currentTokenId += 1;
-      while (
-        H721.exists(chainPrepend + uint256(_currentTokenId)) || H721.burned(chainPrepend + uint256(_currentTokenId))
-      ) {
-        _currentTokenId += 1;
-      }
-      tokenId = _currentTokenId;
-      H721.sourceMint(recipient, tokenId);
-      //uint256 id = chainPrepend + uint256(tokenId);
-    }
   }
 
   /**
@@ -217,23 +223,43 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
       });
   }
 
-  function bridgeIn(
-    uint32, /* _chainId*/
-    address, /* _from*/
-    address, /* _to*/
-    uint256, /* _tokenId*/
-    bytes calldata /* _data*/
-  ) external view onlyHolographer returns (bool) {
-    return true;
+  /**
+   * @notice Contract URI Getter, proxies to metadataRenderer
+   * @return Contract URI
+   */
+  function contractURI() external view returns (string memory) {
+    return config.metadataRenderer.contractURI();
   }
 
-  function bridgeOut(
-    uint32, /* _chainId*/
-    address, /* _from*/
-    address, /* _to*/
-    uint256 /* _tokenId*/
-  ) external view onlyHolographer returns (bytes memory _data) {
-    _data = "";
+  /**
+   * @notice Getter for metadataRenderer contract
+   */
+  function metadataRenderer() external view returns (IMetadataRenderer) {
+    return IMetadataRenderer(config.metadataRenderer);
+  }
+
+  /**
+   * @notice Token URI Getter, proxies to metadataRenderer
+   * @param tokenId id of token to get URI for
+   * @return Token URI
+   */
+  function tokenURI(uint256 tokenId) external view returns (string memory) {
+    HolographERC721Interface H721 = HolographERC721Interface(holographer());
+    require(H721.exists(tokenId), "ERC721: token does not exist");
+
+    return config.metadataRenderer.tokenURI(tokenId);
+  }
+
+  /**
+   * PUBLIC STATE CHANGING FUNCTIONS
+   * available to all
+   */
+
+  function multicall(bytes[] memory data) public returns (bytes[] memory results) {
+    results = new bytes[](data.length);
+    for (uint256 i = 0; i < data.length; i++) {
+      results[i] = Address.functionDelegateCall(address(this), data[i]);
+    }
   }
 
   /**
@@ -328,6 +354,11 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
 
     return firstMintedTokenId;
   }
+
+  /**
+   * PUBLIC STATE CHANGING FUNCTIONS
+   * admin only
+   */
 
   /**
    * @notice Proxy to update market filter settings in the main registry contracts
@@ -436,15 +467,19 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     emit SalesConfigChanged(msgSender());
   }
 
-  /// @notice Set a different funds recipient
-  /// @param newRecipientAddress new funds recipient address
+  /**
+   * @notice Set a different funds recipient
+   * @param newRecipientAddress new funds recipient address
+   */
   function setFundsRecipient(address payable newRecipientAddress) external onlyOwner {
     // TODO(iain): funds recipient cannot be 0?
     config.fundsRecipient = newRecipientAddress;
     emit FundsRecipientChanged(newRecipientAddress, msgSender());
   }
 
-  /// @notice This withdraws ETH from the contract to the contract owner.
+  /**
+   * @notice This withdraws ETH from the contract to the contract owner.
+   */
   function withdraw() external override nonReentrant {
     if (config.fundsRecipient == address(0)) {
       revert("Funds Recipient address not set");
@@ -493,30 +528,38 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     emit OpenMintFinalized(msgSender(), config.editionSize);
   }
 
-  /// @notice Contract URI Getter, proxies to metadataRenderer
-  /// @return Contract URI
-  function contractURI() external view returns (string memory) {
-    return config.metadataRenderer.contractURI();
+  /**
+   * INTERNAL FUNCTIONS
+   * non state changing
+   */
+
+  function _presaleActive() internal view returns (bool) {
+    return salesConfig.presaleStart <= block.timestamp && salesConfig.presaleEnd > block.timestamp;
   }
 
-  /// @notice Getter for metadataRenderer contract
-  function metadataRenderer() external view returns (IMetadataRenderer) {
-    return IMetadataRenderer(config.metadataRenderer);
+  function _publicSaleActive() internal view returns (bool) {
+    return salesConfig.publicSaleStart <= block.timestamp && salesConfig.publicSaleEnd > block.timestamp;
   }
 
-  /// @notice Token URI Getter, proxies to metadataRenderer
-  /// @param tokenId id of token to get URI for
-  /// @return Token URI
-  function tokenURI(uint256 tokenId) public view returns (string memory) {
+  /**
+   * INTERNAL FUNCTIONS
+   * state changing
+   */
+
+  function _mintNFTs(address recipient, uint256 quantity) internal {
     HolographERC721Interface H721 = HolographERC721Interface(holographer());
-    require(H721.exists(tokenId), "ERC721: token does not exist");
-
-    return config.metadataRenderer.tokenURI(tokenId);
-  }
-
-  event FundsReceived(address indexed source, uint256 amount);
-
-  receive() external payable override {
-    emit FundsReceived(msgSender(), msg.value);
+    uint256 chainPrepend = H721.sourceGetChainPrepend();
+    uint224 tokenId = 0;
+    for (uint256 i = 0; i < quantity; i++) {
+      _currentTokenId += 1;
+      while (
+        H721.exists(chainPrepend + uint256(_currentTokenId)) || H721.burned(chainPrepend + uint256(_currentTokenId))
+      ) {
+        _currentTokenId += 1;
+      }
+      tokenId = _currentTokenId;
+      H721.sourceMint(recipient, tokenId);
+      //uint256 id = chainPrepend + uint256(tokenId);
+    }
   }
 }

@@ -6,12 +6,14 @@ import "../../abstract/Initializable.sol";
 
 import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
 import {IHolographERC721Drop} from "../interface/IHolographERC721Drop.sol";
-import {IERC721Metadata} from "../interface/IERC721Metadata.sol";
+import {ERC721Metadata} from "../../interface/ERC721Metadata.sol";
 import {NFTMetadataRenderer} from "../utils/NFTMetadataRenderer.sol";
 import {MetadataRenderAdminCheck} from "./MetadataRenderAdminCheck.sol";
 
+import {Configuration} from "../struct/Configuration.sol";
+
 interface DropConfigGetter {
-  function config() external view returns (IHolographERC721Drop.Configuration memory config);
+  function config() external view returns (Configuration memory config);
 }
 
 /// @notice EditionsMetadataRenderer for editions support
@@ -99,11 +101,11 @@ contract EditionsMetadataRenderer is Initializable, IMetadataRenderer, MetadataR
   function contractURI() external view override returns (string memory) {
     address target = msg.sender;
     TokenEditionInfo storage editionInfo = tokenInfos[target];
-    IHolographERC721Drop.Configuration memory config = DropConfigGetter(target).config();
+    Configuration memory config = DropConfigGetter(target).config();
 
     return
       NFTMetadataRenderer.encodeContractURIJSON({
-        name: IERC721Metadata(target).name(),
+        name: ERC721Metadata(target).name(),
         description: editionInfo.description,
         imageURI: editionInfo.imageURI,
         animationURI: editionInfo.animationURI,
@@ -131,7 +133,7 @@ contract EditionsMetadataRenderer is Initializable, IMetadataRenderer, MetadataR
 
     return
       NFTMetadataRenderer.createMetadataEdition({
-        name: IERC721Metadata(target).name(),
+        name: ERC721Metadata(target).name(),
         description: info.description,
         imageURI: info.imageURI,
         animationURI: info.animationURI,

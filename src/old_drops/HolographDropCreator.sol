@@ -19,7 +19,7 @@ contract HolographDropCreator is Initializable {
   /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.holograph')) - 1)
    */
-  bytes32 constant _holographSlot = 0xb4107f746e9496e8452accc7de63d1c5e14c19f510932daa04077cd49e8bd77a;
+  bytes32 constant _holographSlot = precomputeslot("eip1967.Holograph.holograph");
 
   string private constant CANNOT_BE_ZERO = "Cannot be 0 address";
 
@@ -49,8 +49,8 @@ contract HolographDropCreator is Initializable {
     ) = abi.decode(initPayload, (address, address, address));
 
     require(implementationAddress != address(0), CANNOT_BE_ZERO);
-    require(address(editionsMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
-    require(address(dropsMetadataRendererAddress) != address(0), CANNOT_BE_ZERO);
+    require(editionsMetadataRendererAddress != address(0), CANNOT_BE_ZERO);
+    require(dropsMetadataRendererAddress != address(0), CANNOT_BE_ZERO);
 
     implementation = implementationAddress;
     editionsMetadataRenderer = EditionsMetadataRenderer(editionsMetadataRendererAddress);

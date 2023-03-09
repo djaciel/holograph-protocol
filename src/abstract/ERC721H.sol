@@ -114,12 +114,14 @@ abstract contract ERC721H is Initializable {
     payable(_getOwner()).transfer(address(this).balance);
   }
 
+  event FundsReceived(address indexed source, uint256 amount);
+
   /**
-   * @dev This function is unreachable unless custom contract address is called directly.
+   * @dev This function emits an event to indicate native gas token receipt. Do not rely on this to work.
    *      Please use custom payable functions for accepting native value.
    */
   receive() external payable virtual {
-    revert("ERC721: unreachable code");
+    emit FundsReceived(msgSender(), msg.value);
   }
 
   /**
