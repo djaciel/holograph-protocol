@@ -658,7 +658,7 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
       }
       tokenId = _currentTokenId;
       H721.sourceMint(recipient, tokenId);
-      //uint256 id = chainPrepend + uint256(tokenId);
+      // uint256 id = chainPrepend + uint256(tokenId);
     }
   }
 }
