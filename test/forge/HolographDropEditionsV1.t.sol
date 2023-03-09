@@ -10,6 +10,8 @@ import {console} from "forge-std/console.sol";
 import {DeploymentConfig} from "../../contracts/struct/DeploymentConfig.sol";
 import {Verification} from "../../contracts/struct/Verification.sol";
 import {DropsInitializer} from "../../contracts/drops/struct/DropsInitializer.sol";
+import {SalesConfiguration} from "../../contracts/drops/struct/SalesConfiguration.sol";
+import {SaleDetails} from "../../contracts/drops/struct/SaleDetails.sol";
 
 import {HolographFactory} from "../../contracts/HolographFactory.sol";
 
@@ -77,7 +79,7 @@ contract HolographDropEditionsV1 is Test {
     // but we would have to encode the metadataRendererInit differently depending on the type of drop or it can use the DummyMetadataRenderer
 
     // Setup sale config for edition
-    IHolographERC721Drop.SalesConfiguration memory saleConfig = IHolographERC721Drop.SalesConfiguration({
+    SalesConfiguration memory saleConfig = SalesConfiguration({
       publicSaleStart: 0, // starts now
       publicSaleEnd: type(uint64).max, // never ends
       presaleStart: 0, // never starts
@@ -102,8 +104,21 @@ contract HolographDropEditionsV1 is Test {
       // metadataRendererInit: abi.encode("description", "imageURI", "animationURI")
     });
 
+    string memory contractName = "";
+    string memory contractSymbol = "";
+    uint16 contractBps = 1000;
+    uint256 eventConfig = type(uint256).max;
+    bool skipInit = false;
+
     // Get deployment config, hash it, and then sign it
-    DeploymentConfig memory config = getDeploymentConfig(initializer);
+    DeploymentConfig memory config = getDeploymentConfig(
+      contractName,
+      contractSymbol,
+      contractBps,
+      eventConfig,
+      skipInit,
+      initializer
+    );
     bytes32 hash = keccak256(
       abi.encodePacked(
         config.contractType,
@@ -183,7 +198,7 @@ contract HolographDropEditionsV1 is Test {
 
   function test_DeployHolographDrop() public {
     // Setup sale config for edition
-    IHolographERC721Drop.SalesConfiguration memory saleConfig = IHolographERC721Drop.SalesConfiguration({
+    SalesConfiguration memory saleConfig = SalesConfiguration({
       publicSaleStart: 0, // starts now
       publicSaleEnd: type(uint64).max, // never ends
       presaleStart: 0, // never starts
@@ -206,8 +221,21 @@ contract HolographDropEditionsV1 is Test {
       abi.encode("description", "imageURI", "animationURI")
     );
 
+    string memory contractName = "";
+    string memory contractSymbol = "";
+    uint16 contractBps = 1000;
+    uint256 eventConfig = type(uint256).max;
+    bool skipInit = false;
+
     // Get deployment config, hash it, and then sign it
-    DeploymentConfig memory config = getDeploymentConfig(initializer);
+    DeploymentConfig memory config = getDeploymentConfig(
+      contractName,
+      contractSymbol,
+      contractBps,
+      eventConfig,
+      skipInit,
+      initializer
+    );
     bytes32 hash = keccak256(
       abi.encodePacked(
         config.contractType,
@@ -245,7 +273,7 @@ contract HolographDropEditionsV1 is Test {
     require(fundsRecipient == payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS), "FundsRecipient is wrong");
 
     // Setup sale config
-    IHolographERC721Drop.SalesConfiguration memory salesConfig = IHolographERC721Drop.SalesConfiguration({
+    SalesConfiguration memory salesConfig = SalesConfiguration({
       publicSaleStart: 0, // starts now
       publicSaleEnd: type(uint64).max, // never ends
       presaleStart: 0, // never starts
@@ -465,7 +493,7 @@ contract HolographDropEditionsV1 is Test {
   //   calls[2] = abi.encodeWithSelector(IHolographERC721Drop.adminMint.selector, address(0x123), 3);
   //   bytes[] memory results = erc721Drop.multicall(calls);
 
-  //   IHolographERC721Drop.SaleDetails memory saleDetails = erc721Drop.saleDetails();
+  //   SaleDetails memory saleDetails = erc721Drop.saleDetails();
 
   //   assertTrue(saleDetails.publicSaleActive);
   //   assertTrue(!saleDetails.presaleActive);
@@ -771,9 +799,21 @@ contract HolographDropEditionsV1 is Test {
   }
 
   // TEST HELPERS
-  function getDeploymentConfig(DropsInitializer memory initializer) public returns (DeploymentConfig memory) {
+  function getDeploymentConfig(
+    string memory contractName,
+    string memory contractSymbol,
+    uint16 contractBps,
+    uint256 eventConfig,
+    bool skipInit,
+    DropsInitializer memory initializer
+  ) public returns (DeploymentConfig memory) {
     bytes memory bytecode = abi.encodePacked(
       vm.getCode("HolographDropsEditionsV1Proxy.sol:HolographDropsEditionsV1Proxy")
+    );
+    bytes memory initCode = abi.encode(
+      bytes32(0x0000000000000000486f6c6f677261706844726f707345646974696f6e735631), // Source contract type HolographDropsEditionsV1
+      address(Constants.getHolographRegistry()), // address of registry (to get source contract address from)
+      abi.encode(initializer) // actual init code for source contract (HolographDropsEditionsV1)
     );
     return
       DeploymentConfig({
@@ -781,7 +821,7 @@ contract HolographDropEditionsV1 is Test {
         chainType: 1338, // holograph.getChainId(),
         salt: 0x0000000000000000000000000000000000000000000000000000000000000001, // random salt from user
         byteCode: bytecode, // custom contract bytecode
-        initCode: abi.encode(initializer, false) // init code is used to initialize the HolographERC721 enforcer
+        initCode: abi.encode(contractName, contractSymbol, contractBps, eventConfig, skipInit, initCode) // init code is used to initialize the HolographERC721 enforcer
       });
   }
 }
