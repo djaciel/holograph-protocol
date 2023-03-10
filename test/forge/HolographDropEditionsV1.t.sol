@@ -4,9 +4,6 @@ pragma solidity 0.8.13;
 import {Test, Vm} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 
-// TODO: Fix test that relies on this
-// import {IERC721AUpgradeable} from "../../contracts/drops/interfaces/IERC721AUpgradeable.sol";
-
 import {DeploymentConfig} from "../../contracts/struct/DeploymentConfig.sol";
 import {Verification} from "../../contracts/struct/Verification.sol";
 import {DropsInitializer} from "../../contracts/drops/struct/DropsInitializer.sol";
@@ -81,10 +78,6 @@ contract HolographDropEditionsV1 is Test {
     // Wrap in brackets to remove from stack in functions that use this modifier
     // Avoids stack to deep errors
     {
-      // TODO: Remove this old initializer and figure out how to support both drops and edition metadata initialization
-      // NOTE: It might be possible to use the same enforcer for both drops and editions,
-      // but we would have to encode the metadataRendererInit differently depending on the type of drop or it can use the DummyMetadataRenderer
-
       // Setup sale config for edition
       SalesConfiguration memory saleConfig = SalesConfiguration({
         publicSaleStart: 0, // starts now
@@ -107,8 +100,6 @@ contract HolographDropEditionsV1 is Test {
         salesConfiguration: saleConfig,
         metadataRenderer: address(dummyRenderer),
         metadataRendererInit: ""
-        // metadataRenderer: address(dropsMetadataRenderer),
-        // metadataRendererInit: abi.encode("description", "imageURI", "animationURI")
       });
 
       // Get deployment config, hash it, and then sign it
@@ -151,32 +142,73 @@ contract HolographDropEditionsV1 is Test {
   }
 
   // TODO: Determine if this functionality is needed
-  // modifier factoryWithSubscriptionAddress(address subscriptionAddress) {
-  //   uint64 editionSize = 10;
-  //   vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
-  //   DropInitializer memory initializer = DropInitializer({
-  //     holographFeeManager: address(feeManager),
-  //     holographERC721TransferHelper: address(0x1234),
-  //     factoryUpgradeGate: address(factoryUpgradeGate),
-  //     marketFilterAddress: address(subscriptionAddress),
-  //     contractName: "Test NFT",
-  //     contractSymbol: "TNFT",
-  //     initialOwner: DEFAULT_OWNER_ADDRESS,
-  //     fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
-  //     editionSize: editionSize,
-  //     royaltyBPS: 800,
-  //     setupCalls: new bytes[](0),
-  //     metadataRenderer: address(dummyRenderer),
-  //     metadataRendererInit: ""
-  //   });
+  modifier factoryWithSubscriptionAddress(address subscriptionAddress) {
+    uint64 editionSize = 10;
+    // Wrap in brackets to remove from stack in functions that use this modifier
+    // Avoids stack to deep errors
+    {
+      // Setup sale config for edition
+      SalesConfiguration memory saleConfig = SalesConfiguration({
+        publicSaleStart: 0, // starts now
+        publicSaleEnd: type(uint64).max, // never ends
+        presaleStart: 0, // never starts
+        presaleEnd: 0, // never ends
+        publicSalePrice: 0.1 ether, // 0.1 ETH
+        maxSalePurchasePerAddress: 0, // no limit
+        presaleMerkleRoot: bytes32(0) // no presale
+      });
 
-  //   erc721DropProxy = new HolographERC721DropProxy();
-  //   erc721DropProxy.init(abi.encode(new ERC721Drop(), abi.encode(initializer)));
-  //   address payable newDrop = payable(address(erc721DropProxy));
-  //   erc721Drop = ERC721Drop(newDrop);
+      dummyRenderer = new DummyMetadataRenderer();
+      DropsInitializer memory initializer = DropsInitializer({
+        erc721TransferHelper: address(0x1234),
+        marketFilterAddress: address(subscriptionAddress),
+        initialOwner: DEFAULT_OWNER_ADDRESS,
+        fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
+        editionSize: editionSize,
+        royaltyBPS: 800,
+        salesConfiguration: saleConfig,
+        metadataRenderer: address(dummyRenderer),
+        metadataRendererInit: ""
+      });
 
-  //   _;
-  // }
+      // Get deployment config, hash it, and then sign it
+      DeploymentConfig memory config = getDeploymentConfig(
+        "Test NFT", // contractName
+        "TNFT", // contractSymbol
+        1000, // contractBps
+        type(uint256).max, // eventConfig
+        false, // skipInit
+        initializer
+      );
+      bytes32 hash = keccak256(
+        abi.encodePacked(
+          config.contractType,
+          config.chainType,
+          config.salt,
+          keccak256(config.byteCode),
+          keccak256(config.initCode),
+          alice
+        )
+      );
+
+      (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hash);
+      Verification memory signature = Verification(r, s, v);
+      address signer = ecrecover(hash, v, r, s);
+
+      HolographFactory factory = HolographFactory(payable(Constants.getHolographFactory()));
+
+      // Deploy the drop / edition
+      vm.recordLogs();
+      factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
+      Vm.Log[] memory entries = vm.getRecordedLogs();
+      address newDropAddress = address(uint160(uint256(entries[1].topics[1])));
+
+      // Connect the drop implementation to the drop proxy address
+      erc721Drop = HolographDropsEditionsV1(payable(newDropAddress));
+    }
+
+    _;
+  }
 
   function setUp() public {
     // Setup VM
@@ -318,74 +350,55 @@ contract HolographDropEditionsV1 is Test {
   }
 
   // TODO: These tests are for functionality that might no longer be supported
-  // function test_SubscriptionEnabled()
-  //   public
-  //   factoryWithSubscriptionAddress(ownedSubscriptionManager)
-  //   setupTestDrop(10)
-  // {
-  //   IOperatorFilterRegistry operatorFilterRegistry = IOperatorFilterRegistry(
-  //     0x000000000000AAeB6D7670E522A718067333cd4E
-  //   );
-  //   vm.startPrank(address(0x666));
-  //   operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafeea3), true);
-  //   vm.stopPrank();
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
+  function test_SubscriptionEnabled() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
+    IOperatorFilterRegistry operatorFilterRegistry = IOperatorFilterRegistry(
+      0x000000000000AAeB6D7670E522A718067333cd4E
+    );
+    vm.startPrank(address(0x666));
+    operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafeea3), true);
+    vm.stopPrank();
+    vm.startPrank(DEFAULT_OWNER_ADDRESS);
+    console.log("subscriptionAddress: %s", erc721Drop.marketFilterAddress());
 
-  //   console.log("subscriptionAddress: %s", erc721Drop.marketFilterAddress());
-  //   erc721Drop.manageMarketFilterSubscription(true);
-  //   erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 10);
-  //   erc721Drop.setApprovalForAll(address(0xcafeea3), true);
-  //   vm.stopPrank();
-  //   vm.prank(address(0xcafeea3));
-  //   vm.expectRevert(
-  //     abi.encodeWithSelector(OperatorFilterRegistryErrorsAndEvents.AddressFiltered.selector, address(0xcafeea3))
-  //   );
-  //   erc721Drop.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), 1);
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   erc721Drop.manageMarketFilterSubscription(false);
-  //   vm.prank(address(0xcafeea3));
-  //   erc721Drop.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), 1);
-  // }
+    // TODO: Need to figure out how to get this to work
+    // erc721Drop.manageMarketFilterSubscription(true);
 
-  // function test_OnlyAdminEnableSubscription()
-  //   public
-  //   factoryWithSubscriptionAddress(ownedSubscriptionManager)
-  //   setupTestDrop(10)
-  // {
-  //   vm.startPrank(address(0xcafecafe));
-  //   vm.expectRevert(IHolographERC721Drop.Access_OnlyAdmin.selector);
-  //   erc721Drop.manageMarketFilterSubscription(true);
-  //   vm.stopPrank();
-  // }
+    // erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 10);
+    // HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+    // erc721Enforcer.setApprovalForAll(address(0xcafeea3), true);
+    // vm.stopPrank();
+    // vm.prank(address(0xcafeea3));
+    // vm.expectRevert(
+    //   abi.encodeWithSelector(OperatorFilterRegistryErrorsAndEvents.AddressFiltered.selector, address(0xcafeea3))
+    // );
+    // erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), 1);
+    // vm.prank(DEFAULT_OWNER_ADDRESS);
+    // erc721Drop.manageMarketFilterSubscription(false);
+    // vm.prank(address(0xcafeea3));
+    // erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), 1);
+  }
 
-  // function test_ProxySubscriptionAccessOnlyAdmin()
-  //   public
-  //   factoryWithSubscriptionAddress(ownedSubscriptionManager)
-  //   setupTestDrop(10)
-  // {
-  //   bytes memory baseCall = abi.encodeWithSelector(
-  //     IOperatorFilterRegistry.register.selector,
-  //     address(erc721Drop)
-  //   );
-  //   vm.startPrank(address(0xcafecafe));
-  //   vm.expectRevert(IHolographERC721Drop.Access_OnlyAdmin.selector);
-  //   erc721Drop.updateMarketFilterSettings(baseCall);
-  //   vm.stopPrank();
-  // }
+  function test_OnlyAdminEnableSubscription() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
+    vm.startPrank(address(0xcafecafe));
+    vm.expectRevert("ERC721: owner only function");
+    erc721Drop.manageMarketFilterSubscription(true);
+    vm.stopPrank();
+  }
 
-  // function test_ProxySubscriptionAccess()
-  //   public
-  //   factoryWithSubscriptionAddress(ownedSubscriptionManager)
-  //   setupTestDrop(10)
-  // {
-  //   vm.startPrank(address(DEFAULT_OWNER_ADDRESS));
-  //   bytes memory baseCall = abi.encodeWithSelector(
-  //     IOperatorFilterRegistry.register.selector,
-  //     address(erc721Drop)
-  //   );
-  //   erc721Drop.updateMarketFilterSettings(baseCall);
-  //   vm.stopPrank();
-  // }
+  function test_ProxySubscriptionAccessOnlyAdmin() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
+    bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.register.selector, address(erc721Drop));
+    vm.startPrank(address(0xcafecafe));
+    vm.expectRevert("ERC721: owner only function");
+    erc721Drop.updateMarketFilterSettings(baseCall);
+    vm.stopPrank();
+  }
+
+  function test_ProxySubscriptionAccess() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
+    vm.startPrank(address(DEFAULT_OWNER_ADDRESS));
+    bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.register.selector, address(erc721Drop));
+    erc721Drop.updateMarketFilterSettings(baseCall);
+    vm.stopPrank();
+  }
 
   function test_Purchase(uint64 amount) public setupTestDrop(10) {
     // We assume that the amount is at least one and less than or equal to the edition size given in modifier
