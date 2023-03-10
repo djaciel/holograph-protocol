@@ -22,8 +22,7 @@ import {HolographERC721} from "../../contracts/enforcer/HolographERC721.sol";
 import {HolographDropsEditionsV1} from "../../contracts/drops/token/HolographDropsEditionsV1.sol";
 import {HolographDropsEditionsV1Proxy} from "../../contracts/drops/proxy/HolographDropsEditionsV1Proxy.sol";
 
-// TODO: Figure out what to do with this
-import {OwnedSubscriptionManager} from "../../contracts/old_drops/filter/OwnedSubscriptionManager.sol";
+import {OwnedSubscriptionManager} from "../../contracts/drops/filter/OwnedSubscriptionManager.sol";
 
 import {IMetadataRenderer} from "../../contracts/drops/interface/IMetadataRenderer.sol";
 import {MockMetadataRenderer} from "./metadata/MockMetadataRenderer.sol";
@@ -63,7 +62,7 @@ contract HolographDropEditionsV1 is Test {
   address payable constant TEST_ACCOUNT = payable(address(0x888));
   address public constant MEDIA_CONTRACT = address(0x666);
   uint256 public constant FIRST_TOKEN_ID =
-    115792089183396302089269705419353877679230723318366275194376439045705909141505;
+    115792089183396302089269705419353877679230723318366275194376439045705909141505; // large 256 bit number due to chain id prefix
 
   address public ownedSubscriptionManager;
 
