@@ -223,8 +223,11 @@ contract HolographDropEditionsV1 is Test {
     alice = vm.addr(1);
 
     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
+
     vm.etch(address(Constants.getOpenseaRoyaltiesRegistry()), address(new OperatorFilterRegistry()).code);
     ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x666)));
+
+    console.log("OwnedSubscriptionManager address: ", ownedSubscriptionManager);
     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
     dropsMetadataRenderer = new DropsMetadataRenderer();
   }
@@ -348,7 +351,6 @@ contract HolographDropEditionsV1 is Test {
     erc721Drop.init(abi.encode(contractName, contractSymbol, contractBps, eventConfig, skipInit, initCode));
   }
 
-  // TODO: These tests are for functionality that might no longer be supported
   function test_SubscriptionEnabled() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
     IOperatorFilterRegistry operatorFilterRegistry = IOperatorFilterRegistry(
       0x000000000000AAeB6D7670E522A718067333cd4E
@@ -357,24 +359,20 @@ contract HolographDropEditionsV1 is Test {
     operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafeea3), true);
     vm.stopPrank();
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
-    console.log("subscriptionAddress: %s", erc721Drop.marketFilterAddress());
-
-    // TODO: Need to figure out how to get this to work
-    // erc721Drop.manageMarketFilterSubscription(true);
-
-    // erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 10);
-    // HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
-    // erc721Enforcer.setApprovalForAll(address(0xcafeea3), true);
-    // vm.stopPrank();
-    // vm.prank(address(0xcafeea3));
+    erc721Drop.manageMarketFilterSubscription(true);
+    erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 10);
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+    erc721Enforcer.setApprovalForAll(address(0xcafeea3), true);
+    vm.stopPrank();
+    vm.prank(address(0xcafeea3));
     // vm.expectRevert(
     //   abi.encodeWithSelector(OperatorFilterRegistryErrorsAndEvents.AddressFiltered.selector, address(0xcafeea3))
     // );
-    // erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), 1);
+    // erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), FIRST_TOKEN_ID);
     // vm.prank(DEFAULT_OWNER_ADDRESS);
     // erc721Drop.manageMarketFilterSubscription(false);
     // vm.prank(address(0xcafeea3));
-    // erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), 1);
+    // erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), FIRST_TOKEN_ID);
   }
 
   function test_OnlyAdminEnableSubscription() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {

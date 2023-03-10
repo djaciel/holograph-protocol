@@ -126,7 +126,8 @@ import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
  * @dev This contract subscribes to the following HolographERC721 events:
  *       - onIsApprovedForAll
  *       - customContractURI
- *      Do not enable or subscribe to any other events unless you modified your source code for them.
+ *
+ *       Do not enable or subscribe to any other events unless you modified your source code for them.
  */
 contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop {
   /**
@@ -149,10 +150,15 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
    */
   address public erc721TransferHelper;
 
+  /**
+   * @dev Address of the market filter registry
+   */
   address public marketFilterAddress;
 
-  IOperatorFilterRegistry public operatorFilterRegistry =
-    IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
+  /**
+   * @dev Address of the operator filter registry
+   */
+  IOperatorFilterRegistry public operatorFilterRegistry;
 
   /**
    * @notice Configuration for NFT minting contract storage
@@ -260,6 +266,8 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     if (initializer.metadataRenderer != address(0)) {
       IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
     }
+
+    operatorFilterRegistry = IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
 
     setStatus(1);
 
