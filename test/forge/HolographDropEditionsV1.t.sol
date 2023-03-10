@@ -477,61 +477,63 @@ contract HolographDropEditionsV1 is Test {
     require(erc721Enforcer.ownerOf(FIRST_TOKEN_ID) == DEFAULT_OWNER_ADDRESS, "Owner is wrong for new minted token");
   }
 
-  // TODO: Fix broken multicall tests
-  // function test_MintMulticall() public setupTestDrop(10) {
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
-  //   bytes[] memory calls = new bytes[](3);
-  //   calls[0] = abi.encodeWithSelector(IHolographERC721Drop.adminMint.selector, DEFAULT_OWNER_ADDRESS, 5);
-  //   calls[1] = abi.encodeWithSelector(IHolographERC721Drop.adminMint.selector, address(0x123), 3);
-  //   calls[2] = abi.encodeWithSelector(IHolographERC721Drop.saleDetails.selector);
-  //   bytes[] memory results = erc721Drop.multicall(calls);
+  function test_MintMulticall() public setupTestDrop(10) {
+    vm.startPrank(DEFAULT_OWNER_ADDRESS);
+    bytes[] memory calls = new bytes[](3);
+    calls[0] = abi.encodeWithSelector(IHolographERC721Drop.adminMint.selector, DEFAULT_OWNER_ADDRESS, 5);
+    calls[1] = abi.encodeWithSelector(IHolographERC721Drop.adminMint.selector, address(0x123), 3);
+    calls[2] = abi.encodeWithSelector(IHolographERC721Drop.saleDetails.selector);
+    bytes[] memory results = erc721Drop.multicall(calls);
 
-  //   (bool saleActive, bool presaleActive, uint256 publicSalePrice, , , , , , , , ) = abi.decode(
-  //     results[2],
-  //     (bool, bool, uint256, uint64, uint64, uint64, uint64, bytes32, uint256, uint256, uint256)
-  //   );
-  //   assertTrue(!saleActive);
-  //   assertTrue(!presaleActive);
-  //   assertEq(publicSalePrice, 0);
-  //   uint256 firstMintedId = abi.decode(results[0], (uint256));
-  //   uint256 secondMintedId = abi.decode(results[1], (uint256));
-  //   assertEq(firstMintedId, 5);
-  //   assertEq(secondMintedId, 8);
-  // }
+    (bool saleActive, bool presaleActive, uint256 publicSalePrice, , , , , , , , ) = abi.decode(
+      results[2],
+      (bool, bool, uint256, uint64, uint64, uint64, uint64, bytes32, uint256, uint256, uint256)
+    );
+    assertTrue(saleActive);
+    assertTrue(!presaleActive);
+    assertEq(publicSalePrice, 0.1 ether);
+    uint256 firstMintedId = abi.decode(results[0], (uint256));
+    uint256 secondMintedId = abi.decode(results[1], (uint256));
 
-  // function test_UpdatePriceMulticall() public setupTestDrop(10) {
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
-  //   bytes[] memory calls = new bytes[](3);
-  //   calls[0] = abi.encodeWithSelector(
-  //     IHolographERC721Drop.setSaleConfiguration.selector,
-  //     0.1 ether,
-  //     2,
-  //     0,
-  //     type(uint64).max,
-  //     0,
-  //     0,
-  //     bytes32(0)
-  //   );
-  //   calls[1] = abi.encodeWithSelector(IHolographERC721Drop.adminMint.selector, address(0x999), 3);
-  //   calls[2] = abi.encodeWithSelector(IHolographERC721Drop.adminMint.selector, address(0x123), 3);
-  //   bytes[] memory results = erc721Drop.multicall(calls);
+    assertEq(firstMintedId, 5);
+    assertEq(secondMintedId, 8);
+  }
 
-  //   SaleDetails memory saleDetails = erc721Drop.saleDetails();
+  function test_UpdatePriceMulticall() public setupTestDrop(10) {
+    vm.startPrank(DEFAULT_OWNER_ADDRESS);
+    bytes[] memory calls = new bytes[](3);
+    calls[0] = abi.encodeWithSelector(
+      IHolographERC721Drop.setSaleConfiguration.selector,
+      0.1 ether,
+      2,
+      0,
+      type(uint64).max,
+      0,
+      0,
+      bytes32(0)
+    );
+    calls[1] = abi.encodeWithSelector(IHolographERC721Drop.adminMint.selector, address(0x999), 3);
+    calls[2] = abi.encodeWithSelector(IHolographERC721Drop.adminMint.selector, address(0x123), 3);
+    bytes[] memory results = erc721Drop.multicall(calls);
 
-  //   assertTrue(saleDetails.publicSaleActive);
-  //   assertTrue(!saleDetails.presaleActive);
-  //   assertEq(saleDetails.publicSalePrice, 0.1 ether);
-  //   uint256 firstMintedId = abi.decode(results[1], (uint256));
-  //   uint256 secondMintedId = abi.decode(results[2], (uint256));
-  //   assertEq(firstMintedId, 3);
-  //   assertEq(secondMintedId, 6);
-  //   vm.stopPrank();
-  //   vm.startPrank(address(0x111));
-  //   vm.deal(address(0x111), 0.3 ether);
-  //   erc721Drop.purchase{value: 0.2 ether}(2);
-  //   // assertEq(erc721Drop.balanceOf(address(0x111)), 2);
-  //   vm.stopPrank();
-  // }
+    SaleDetails memory saleDetails = erc721Drop.saleDetails();
+
+    assertTrue(saleDetails.publicSaleActive);
+    assertTrue(!saleDetails.presaleActive);
+    assertEq(saleDetails.publicSalePrice, 0.1 ether);
+    uint256 firstMintedId = abi.decode(results[1], (uint256));
+    uint256 secondMintedId = abi.decode(results[2], (uint256));
+    assertEq(firstMintedId, 3);
+    assertEq(secondMintedId, 6);
+    vm.stopPrank();
+    vm.startPrank(address(0x111));
+    vm.deal(address(0x111), 0.3 ether);
+    erc721Drop.purchase{value: 0.2 ether}(2);
+
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+    assertEq(erc721Enforcer.balanceOf(address(0x111)), 2);
+    vm.stopPrank();
+  }
 
   function test_MintWrongValue() public setupTestDrop(10) {
     vm.deal(address(TEST_ACCOUNT), 1 ether);
