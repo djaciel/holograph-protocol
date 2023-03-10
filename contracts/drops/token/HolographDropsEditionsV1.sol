@@ -120,6 +120,8 @@ import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
 import {IOperatorFilterRegistry} from "../interface/IOperatorFilterRegistry.sol";
 import {IHolographERC721Drop} from "../interface/IHolographERC721Drop.sol";
 
+import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
+
 /**
  * @dev This contract subscribes to the following HolographERC721 events:
  *       - onIsApprovedForAll
@@ -131,6 +133,11 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
    * CONTRACT VARIABLES
    * all variables, without custom storage slots, are defined here
    */
+
+  /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.dropsPriceOracle')) - 1)
+   */
+  bytes32 constant _dropsPriceOracleSlot = 0x26600f0171e5a2b86874be26285c66444b2a6fa5f62114757214d5e732aded36;
 
   /**
    * @dev Internal reference used for minting incremental token ids.
@@ -372,9 +379,9 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     onlyPublicSaleActive
     returns (uint256)
   {
-    uint256 salePrice = salesConfig.publicSalePrice;
+    uint256 salePrice = _usdToWei(salesConfig.publicSalePrice);
 
-    if (msg.value != salePrice * quantity) {
+    if (msg.value < salePrice * quantity) {
       revert Purchase_WrongPrice(salePrice * quantity);
     }
 
@@ -429,8 +436,9 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
       revert Presale_MerkleNotApproved();
     }
 
-    if (msg.value != pricePerToken * quantity) {
-      revert Purchase_WrongPrice(pricePerToken * quantity);
+    uint256 weiPrice = _usdToWei(pricePerToken);
+    if (msg.value < weiPrice * quantity) {
+      revert Purchase_WrongPrice(weiPrice * quantity);
     }
 
     presaleMintsByAddress[msgSender()] += quantity;
@@ -447,7 +455,7 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     emit Sale({
       to: msgSender(),
       quantity: quantity,
-      pricePerToken: pricePerToken,
+      pricePerToken: weiPrice,
       firstPurchasedTokenId: firstMintedTokenId
     });
 
@@ -638,6 +646,21 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
 
   function _publicSaleActive() internal view returns (bool) {
     return salesConfig.publicSaleStart <= block.timestamp && salesConfig.publicSaleEnd > block.timestamp;
+  }
+
+  function _usdToWei(uint256 amount) internal view returns (uint256 weiAmount) {
+    IDropsPriceOracle dropsPriceOracle;
+    assembly {
+      dropsPriceOracle := sload(_dropsPriceOracleSlot)
+    }
+    //require(address(dropsPriceOracle) != address(0), "price oracle not set");
+    //weiAmount = dropsPriceOracle.convertUsdToWei(amount);
+    //// TODO: remove this later when oracle is actually implemented
+    if (address(dropsPriceOracle) != address(0)) {
+      weiAmount = dropsPriceOracle.convertUsdToWei(amount);
+    } else {
+      weiAmount = amount;
+    }
   }
 
   /**
