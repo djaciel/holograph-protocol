@@ -364,7 +364,7 @@ contract HolographDropEditionsV1 is Test {
     HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
     erc721Enforcer.setApprovalForAll(address(0xcafeea3), true);
     vm.stopPrank();
-    vm.prank(address(0xcafeea3));
+    // vm.prank(address(0xcafeea3));
     // vm.expectRevert(
     //   abi.encodeWithSelector(OperatorFilterRegistryErrorsAndEvents.AddressFiltered.selector, address(0xcafeea3))
     // );

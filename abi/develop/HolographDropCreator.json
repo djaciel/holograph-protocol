@@ -68,7 +68,7 @@
       },
       {
         "internalType": "contract IMetadataRenderer",
-        "name": "metadataRenderer",
+        "name": "sMetadataRenderer",
         "type": "address"
       },
       {
@@ -287,10 +287,10 @@
   },
   {
     "inputs": [],
-    "name": "dropMetadataRenderer",
+    "name": "dropsMetadataRenderer",
     "outputs": [
       {
-        "internalType": "contract DropMetadataRenderer",
+        "internalType": "contract DropsMetadataRenderer",
         "name": "",
         "type": "address"
       }
@@ -300,10 +300,10 @@
   },
   {
     "inputs": [],
-    "name": "editionMetadataRenderer",
+    "name": "editionsMetadataRenderer",
     "outputs": [
       {
-        "internalType": "contract EditionMetadataRenderer",
+        "internalType": "contract EditionsMetadataRenderer",
         "name": "",
         "type": "address"
       }
@@ -419,7 +419,7 @@
       },
       {
         "internalType": "contract IMetadataRenderer",
-        "name": "metadataRenderer",
+        "name": "sMetadataRenderer",
         "type": "address"
       },
       {
