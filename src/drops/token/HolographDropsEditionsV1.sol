@@ -150,8 +150,9 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
 
     DropsInitializer memory initializer = abi.decode(initPayload, (DropsInitializer));
     erc721TransferHelper = initializer.erc721TransferHelper;
-    // commented out for now so we can do this later in code
-    //marketFilterAddress = initializer.marketFilterAddress;
+    if (initializer.marketFilterAddress != address(0)) {
+      marketFilterAddress = initializer.marketFilterAddress;
+    }
 
     // Setup the owner role
     _setOwner(initializer.initialOwner);
@@ -172,10 +173,15 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     }
 
     operatorFilterRegistry = IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
-    // setting as static for now to use default OS filter
-    marketFilterAddress = 0x3cc6CddA760b79bAfa08dF41ECFA224f810dCeB6;
-    // set the filter up and register royalties with OS
-    operatorFilterRegistry.registerAndSubscribe(address(this), marketFilterAddress);
+    if (marketFilterAddress == address(0)) {
+      // this is a default filter that can be used for OS royalty filtering
+      // marketFilterAddress = 0x3cc6CddA760b79bAfa08dF41ECFA224f810dCeB6;
+      // we just register to OS royalties and let OS handle it for us with their default filter contract
+      operatorFilterRegistry.register(address(this));
+    } else {
+      // allow user to specify custom filtering contract address
+      operatorFilterRegistry.registerAndSubscribe(address(this), marketFilterAddress);
+    }
 
     setStatus(1);
 
