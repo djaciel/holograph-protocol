@@ -148,7 +148,8 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
 
     DropsInitializer memory initializer = abi.decode(initPayload, (DropsInitializer));
     erc721TransferHelper = initializer.erc721TransferHelper;
-    marketFilterAddress = initializer.marketFilterAddress;
+    // commented out for now so we can do this later in code
+    //marketFilterAddress = initializer.marketFilterAddress;
 
     // Setup the owner role
     _setOwner(initializer.initialOwner);
@@ -169,6 +170,10 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     }
 
     operatorFilterRegistry = IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
+    // setting as static for now to use default OS filter
+    marketFilterAddress = 0x3cc6CddA760b79bAfa08dF41ECFA224f810dCeB6;
+    // set the filter up and register royalties with OS
+    operatorFilterRegistry.registerAndSubscribe(address(this), marketFilterAddress);
 
     setStatus(1);
 
@@ -195,6 +200,32 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
 
   function isAdmin(address user) external view returns (bool) {
     return (_getOwner() == user);
+  }
+
+  function beforeSafeTransfer(
+    address, /* _from*/
+    address, /* _to*/
+    uint256, /* _tokenId*/
+    bytes calldata /* _data*/
+  ) external view returns (bool success) {
+    if (!operatorFilterRegistry.isOperatorAllowed(address(this), msgSender())) {
+      success = false;
+      revert OperatorNotAllowed(msgSender());
+    }
+    success = true;
+  }
+
+  function beforeTransfer(
+    address, /* _from*/
+    address, /* _to*/
+    uint256, /* _tokenId*/
+    bytes calldata /* _data*/
+  ) external view returns (bool success) {
+    if (!operatorFilterRegistry.isOperatorAllowed(address(this), msgSender())) {
+      success = false;
+      revert OperatorNotAllowed(msgSender());
+    }
+    success = true;
   }
 
   function onIsApprovedForAll(
