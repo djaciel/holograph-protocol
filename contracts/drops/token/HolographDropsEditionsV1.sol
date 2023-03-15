@@ -272,14 +272,17 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     }
 
     operatorFilterRegistry = IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
-    if (marketFilterAddress == address(0)) {
-      // this is a default filter that can be used for OS royalty filtering
-      // marketFilterAddress = 0x3cc6CddA760b79bAfa08dF41ECFA224f810dCeB6;
-      // we just register to OS royalties and let OS handle it for us with their default filter contract
-      operatorFilterRegistry.register(address(this));
-    } else {
-      // allow user to specify custom filtering contract address
-      operatorFilterRegistry.registerAndSubscribe(address(this), marketFilterAddress);
+
+    if (Address.isContract(address(operatorFilterRegistry))) {
+      if (marketFilterAddress == address(0)) {
+        // this is a default filter that can be used for OS royalty filtering
+        // marketFilterAddress = 0x3cc6CddA760b79bAfa08dF41ECFA224f810dCeB6;
+        // we just register to OS royalties and let OS handle it for us with their default filter contract
+        operatorFilterRegistry.register(address(this));
+      } else {
+        // allow user to specify custom filtering contract address
+        operatorFilterRegistry.registerAndSubscribe(address(this), marketFilterAddress);
+      }
     }
 
     setStatus(1);
@@ -554,6 +557,10 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
       operatorFilterRegistry.unsubscribe(self, false);
       operatorFilterRegistry.unregister(self);
     }
+  }
+
+  function modifyMarketFilterAddress(address newMarketFilterAddress) external onlyOwner {
+    marketFilterAddress = newMarketFilterAddress;
   }
 
   /**
