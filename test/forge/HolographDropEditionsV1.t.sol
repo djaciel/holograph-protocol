@@ -131,7 +131,7 @@ contract HolographDropEditionsV1 is Test {
       vm.recordLogs();
       factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
       Vm.Log[] memory entries = vm.getRecordedLogs();
-      address newDropAddress = address(uint160(uint256(entries[1].topics[1])));
+      address newDropAddress = address(uint160(uint256(entries[2].topics[1])));
 
       // Connect the drop implementation to the drop proxy address
       erc721Drop = HolographDropsEditionsV1(payable(newDropAddress));
@@ -200,7 +200,7 @@ contract HolographDropEditionsV1 is Test {
       vm.recordLogs();
       factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
       Vm.Log[] memory entries = vm.getRecordedLogs();
-      address newDropAddress = address(uint160(uint256(entries[1].topics[1])));
+      address newDropAddress = address(uint160(uint256(entries[3].topics[1])));
 
       // Connect the drop implementation to the drop proxy address
       erc721Drop = HolographDropsEditionsV1(payable(newDropAddress));
@@ -289,7 +289,7 @@ contract HolographDropEditionsV1 is Test {
     factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
     Vm.Log[] memory entries = vm.getRecordedLogs();
 
-    address newDropAddress = address(uint160(uint256(entries[2].topics[1])));
+    address newDropAddress = address(uint160(uint256(entries[3].topics[1])));
     console.log("New drop address: ", newDropAddress);
 
     HolographDropsEditionsV1 drop = HolographDropsEditionsV1(payable(newDropAddress));

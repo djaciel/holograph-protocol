@@ -320,7 +320,8 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
   ) external view returns (bool success) {
     if (
       _from != address(0) && // skip on mints
-      _from != msgSender() // skip on transfers from sender
+      _from != msgSender() && // skip on transfers from sender
+      Address.isContract(address(operatorFilterRegistry))
     ) {
       if (!operatorFilterRegistry.isOperatorAllowed(address(this), msgSender())) {
         success = false;
@@ -338,7 +339,8 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
   ) external view returns (bool success) {
     if (
       _from != address(0) && // skip on mints
-      _from != msgSender() // skip on transfers from sender
+      _from != msgSender() && // skip on transfers from sender
+      Address.isContract(address(operatorFilterRegistry))
     ) {
       if (!operatorFilterRegistry.isOperatorAllowed(address(this), msgSender())) {
         success = false;
