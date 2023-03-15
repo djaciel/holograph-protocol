@@ -25,6 +25,8 @@ import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
 
 /**
  * @dev This contract subscribes to the following HolographERC721 events:
+ *       - beforeSafeTransfer
+ *       - beforeTransfer
  *       - onIsApprovedForAll
  *       - customContractURI
  *
@@ -203,27 +205,37 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
   }
 
   function beforeSafeTransfer(
-    address, /* _from*/
+    address _from,
     address, /* _to*/
     uint256, /* _tokenId*/
     bytes calldata /* _data*/
   ) external view returns (bool success) {
-    if (!operatorFilterRegistry.isOperatorAllowed(address(this), msgSender())) {
-      success = false;
-      revert OperatorNotAllowed(msgSender());
+    if (
+      _from != address(0) && // skip on mints
+      _from != msgSender() // skip on transfers from sender
+    ) {
+      if (!operatorFilterRegistry.isOperatorAllowed(address(this), msgSender())) {
+        success = false;
+        revert OperatorNotAllowed(msgSender());
+      }
     }
     success = true;
   }
 
   function beforeTransfer(
-    address, /* _from*/
+    address _from,
     address, /* _to*/
     uint256, /* _tokenId*/
     bytes calldata /* _data*/
   ) external view returns (bool success) {
-    if (!operatorFilterRegistry.isOperatorAllowed(address(this), msgSender())) {
-      success = false;
-      revert OperatorNotAllowed(msgSender());
+    if (
+      _from != address(0) && // skip on mints
+      _from != msgSender() // skip on transfers from sender
+    ) {
+      if (!operatorFilterRegistry.isOperatorAllowed(address(this), msgSender())) {
+        success = false;
+        revert OperatorNotAllowed(msgSender());
+      }
     }
     success = true;
   }
