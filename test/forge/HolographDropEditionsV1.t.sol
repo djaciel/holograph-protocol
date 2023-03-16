@@ -401,7 +401,6 @@ contract HolographDropEditionsV1 is Test {
 
   function test_ProxySubscriptionAccess() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
     vm.startPrank(address(DEFAULT_OWNER_ADDRESS));
-<<<<<<< HEAD
     HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
     HolographDropsEditionsV1 customSource = HolographDropsEditionsV1(payable(holographerInterface.getSourceContract()));
     bytes memory preBaseCall = abi.encodeWithSelector(
@@ -411,18 +410,6 @@ contract HolographDropEditionsV1 is Test {
     customSource.updateMarketFilterSettings(preBaseCall);
     bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.register.selector, address(customSource));
     customSource.updateMarketFilterSettings(baseCall);
-=======
-    // bytes memory preBaseCall = abi.encodeWithSelector(
-    //   IOperatorFilterRegistry.unregister.selector,
-    //   address(erc721Drop)
-    // );
-    // erc721Drop.updateMarketFilterSettings(preBaseCall);
-
-    console.log("Address of drop", address(erc721Drop));
-    bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.register.selector, address(erc721Drop));
-
-    erc721Drop.updateMarketFilterSettings(baseCall);
->>>>>>> a278e44f4c9c5e65d34a251b83f18d3e4c053e60
     vm.stopPrank();
   }
 
