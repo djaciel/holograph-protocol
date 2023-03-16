@@ -282,23 +282,23 @@
 //   //     0x000000000000AAeB6D7670E522A718067333cd4E
 //   //   );
 //   //   vm.startPrank(address(0x666));
-//   //   operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafeea3), true);
+//   //   operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafe), true);
 //   //   vm.stopPrank();
 //   //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
 
 //   //   console.log("subscriptionAddress: %s", erc721Drop.marketFilterAddress());
 //   //   erc721Drop.manageMarketFilterSubscription(true);
 //   //   erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 10);
-//   //   erc721Drop.setApprovalForAll(address(0xcafeea3), true);
+//   //   erc721Drop.setApprovalForAll(address(0xcafe), true);
 //   //   vm.stopPrank();
-//   //   vm.prank(address(0xcafeea3));
+//   //   vm.prank(address(0xcafe));
 //   //   vm.expectRevert(
-//   //     abi.encodeWithSelector(OperatorFilterRegistryErrorsAndEvents.AddressFiltered.selector, address(0xcafeea3))
+//   //     abi.encodeWithSelector(OperatorFilterRegistryErrorsAndEvents.AddressFiltered.selector, address(0xcafe))
 //   //   );
 //   //   erc721Drop.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), 1);
 //   //   vm.prank(DEFAULT_OWNER_ADDRESS);
 //   //   erc721Drop.manageMarketFilterSubscription(false);
-//   //   vm.prank(address(0xcafeea3));
+//   //   vm.prank(address(0xcafe));
 //   //   erc721Drop.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), 1);
 //   // }
 

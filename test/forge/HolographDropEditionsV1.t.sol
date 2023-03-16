@@ -359,7 +359,7 @@ contract HolographDropEditionsV1 is Test {
       0x000000000000AAeB6D7670E522A718067333cd4E
     );
     vm.startPrank(address(0x666));
-    operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafeea3), true);
+    operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafe), true);
     vm.stopPrank();
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
 
@@ -369,7 +369,7 @@ contract HolographDropEditionsV1 is Test {
     customSource.manageMarketFilterSubscription(true);
     erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 10);
     HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
-    erc721Enforcer.setApprovalForAll(address(0xcafeea3), true);
+    erc721Enforcer.setApprovalForAll(address(0xcafe), true);
     vm.stopPrank();
     vm.prank(address(0xcafeea3));
     vm.expectRevert(abi.encodeWithSelector(IHolographERC721Drop.OperatorNotAllowed.selector, address(0xcafeea3)));
@@ -401,6 +401,7 @@ contract HolographDropEditionsV1 is Test {
 
   function test_ProxySubscriptionAccess() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
     vm.startPrank(address(DEFAULT_OWNER_ADDRESS));
+<<<<<<< HEAD
     HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
     HolographDropsEditionsV1 customSource = HolographDropsEditionsV1(payable(holographerInterface.getSourceContract()));
     bytes memory preBaseCall = abi.encodeWithSelector(
@@ -410,6 +411,18 @@ contract HolographDropEditionsV1 is Test {
     customSource.updateMarketFilterSettings(preBaseCall);
     bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.register.selector, address(customSource));
     customSource.updateMarketFilterSettings(baseCall);
+=======
+    // bytes memory preBaseCall = abi.encodeWithSelector(
+    //   IOperatorFilterRegistry.unregister.selector,
+    //   address(erc721Drop)
+    // );
+    // erc721Drop.updateMarketFilterSettings(preBaseCall);
+
+    console.log("Address of drop", address(erc721Drop));
+    bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.register.selector, address(erc721Drop));
+
+    erc721Drop.updateMarketFilterSettings(baseCall);
+>>>>>>> a278e44f4c9c5e65d34a251b83f18d3e4c053e60
     vm.stopPrank();
   }
 
