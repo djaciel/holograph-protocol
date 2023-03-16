@@ -6,6 +6,8 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {EnumerableSet} from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import {OperatorFilterRegistryErrorsAndEvents} from "./OperatorFilterRegistryErrorsAndEvents.sol";
 
+import {console} from "forge-std/console.sol";
+
 /**
  * @title  OperatorFilterRegistry
  * @notice Borrows heavily from the QQL BlacklistOperatorFilter contract:
@@ -33,6 +35,9 @@ contract OperatorFilterRegistry is IOperatorFilterRegistry, OperatorFilterRegist
     if (msg.sender != addr) {
       try Ownable(addr).owner() returns (address owner) {
         if (msg.sender != owner) {
+          console.log("+++++++++++++");
+          console.logAddress(msg.sender);
+          console.logAddress(owner);
           revert OnlyAddressOrOwner();
         }
       } catch (bytes memory reason) {
