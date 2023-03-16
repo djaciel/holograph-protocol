@@ -352,6 +352,9 @@ contract HolographDropEditionsV1 is Test {
   }
 
   function test_SubscriptionEnabled() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
+    HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
+    HolographDropsEditionsV1 customSource = HolographDropsEditionsV1(payable(holographerInterface.getSourceContract()));
+
     IOperatorFilterRegistry operatorFilterRegistry = IOperatorFilterRegistry(
       0x000000000000AAeB6D7670E522A718067333cd4E
     );
@@ -359,50 +362,54 @@ contract HolographDropEditionsV1 is Test {
     operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafeea3), true);
     vm.stopPrank();
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
+
     // It should already be registered so turn it off first
-    erc721Drop.manageMarketFilterSubscription(false);
+    customSource.manageMarketFilterSubscription(false);
     // Then turn it on
-    erc721Drop.manageMarketFilterSubscription(true);
+    customSource.manageMarketFilterSubscription(true);
     erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 10);
     HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
     erc721Enforcer.setApprovalForAll(address(0xcafeea3), true);
     vm.stopPrank();
-    // vm.prank(address(0xcafeea3));
-    // vm.expectRevert(
-    //   abi.encodeWithSelector(OperatorFilterRegistryErrorsAndEvents.AddressFiltered.selector, address(0xcafeea3))
-    // );
-    // erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), FIRST_TOKEN_ID);
-    // vm.prank(DEFAULT_OWNER_ADDRESS);
-    // erc721Drop.manageMarketFilterSubscription(false);
-    // vm.prank(address(0xcafeea3));
-    // erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), FIRST_TOKEN_ID);
+    vm.prank(address(0xcafeea3));
+    vm.expectRevert(abi.encodeWithSelector(IHolographERC721Drop.OperatorNotAllowed.selector, address(0xcafeea3)));
+    erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), FIRST_TOKEN_ID);
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    customSource.manageMarketFilterSubscription(false);
+    vm.prank(address(0xcafeea3));
+    erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), FIRST_TOKEN_ID);
   }
 
-  // function test_OnlyAdminEnableSubscription() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
-  //   vm.startPrank(address(0xcafecafe));
-  //   vm.expectRevert("ERC721: owner only function");
-  //   erc721Drop.manageMarketFilterSubscription(true);
-  //   vm.stopPrank();
-  // }
+  function test_OnlyAdminEnableSubscription() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
+    HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
+    HolographDropsEditionsV1 customSource = HolographDropsEditionsV1(payable(holographerInterface.getSourceContract()));
+    vm.startPrank(address(0xcafecafe));
+    vm.expectRevert("ERC721: owner only function");
+    customSource.manageMarketFilterSubscription(true);
+    vm.stopPrank();
+  }
 
-  // function test_ProxySubscriptionAccessOnlyAdmin() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
-  //   bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.unregister.selector, address(erc721Drop));
-  //   vm.startPrank(address(0xcafecafe));
-  //   vm.expectRevert("ERC721: owner only function");
-  //   erc721Drop.updateMarketFilterSettings(baseCall);
-  //   vm.stopPrank();
-  // }
+  function test_ProxySubscriptionAccessOnlyAdmin() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
+    HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
+    HolographDropsEditionsV1 customSource = HolographDropsEditionsV1(payable(holographerInterface.getSourceContract()));
+    bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.unregister.selector, address(customSource));
+    vm.startPrank(address(0xcafecafe));
+    vm.expectRevert("ERC721: owner only function");
+    customSource.updateMarketFilterSettings(baseCall);
+    vm.stopPrank();
+  }
 
   function test_ProxySubscriptionAccess() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
     vm.startPrank(address(DEFAULT_OWNER_ADDRESS));
-    // console.log("OperatorFilterRegistry is a contract");
-    // bytes memory preBaseCall = abi.encodeWithSelector(
-    //   IOperatorFilterRegistry.unregister.selector,
-    //   address(erc721Drop)
-    // );
-    // erc721Drop.updateMarketFilterSettings(preBaseCall);
-    bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.register.selector, address(erc721Drop));
-    erc721Drop.updateMarketFilterSettings(baseCall);
+    HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
+    HolographDropsEditionsV1 customSource = HolographDropsEditionsV1(payable(holographerInterface.getSourceContract()));
+    bytes memory preBaseCall = abi.encodeWithSelector(
+      IOperatorFilterRegistry.unregister.selector,
+      address(customSource)
+    );
+    customSource.updateMarketFilterSettings(preBaseCall);
+    bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.register.selector, address(customSource));
+    customSource.updateMarketFilterSettings(baseCall);
     vm.stopPrank();
   }
 

@@ -323,12 +323,15 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
       _from != msgSender() && // skip on transfers from sender
       Address.isContract(address(operatorFilterRegistry))
     ) {
-      if (!operatorFilterRegistry.isOperatorAllowed(address(this), msgSender())) {
+      try operatorFilterRegistry.isOperatorAllowed(address(this), msgSender()) returns (bool allowed) {
+        success = allowed;
+      } catch {
         success = false;
         revert OperatorNotAllowed(msgSender());
       }
+    } else {
+      success = true;
     }
-    success = true;
   }
 
   function beforeTransfer(
@@ -342,12 +345,15 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
       _from != msgSender() && // skip on transfers from sender
       Address.isContract(address(operatorFilterRegistry))
     ) {
-      if (!operatorFilterRegistry.isOperatorAllowed(address(this), msgSender())) {
+      try operatorFilterRegistry.isOperatorAllowed(address(this), msgSender()) returns (bool allowed) {
+        success = allowed;
+      } catch {
         success = false;
         revert OperatorNotAllowed(msgSender());
       }
+    } else {
+      success = true;
     }
-    success = true;
   }
 
   function onIsApprovedForAll(
