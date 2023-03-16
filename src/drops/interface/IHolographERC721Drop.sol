@@ -2,7 +2,7 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
+import {IMetadataRenderer} from "./IMetadataRenderer.sol";
 
 import {AddressMintDetails} from "../struct/AddressMintDetails.sol";
 import {SaleDetails} from "../struct/SaleDetails.sol";

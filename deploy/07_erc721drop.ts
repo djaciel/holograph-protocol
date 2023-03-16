@@ -136,7 +136,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // Deploy the HolographDropsEditionsV1 custom contract source
   const holographDropsEditionsV1InitCode = generateInitCode(
     [
-      'tuple(address,address,address,address,uint64,uint16,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)',
+      'tuple(address,address,address,address,uint64,uint16,bool,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)',
     ],
     [
       [
@@ -146,7 +146,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         deployer.address, // fundsRecipient
         0, // 1000 editions
         1000, // 10% royalty
-        [0, 0, 0, 0, 0, 0, '0x' + '00'.repeat(32)], // setupCalls
+        true, // enableOpenSeaRoyaltyRegistry
+        [0, 0, 0, 0, 0, 0, '0x' + '00'.repeat(32)], // salesConfig
         futureEditionsMetadataRendererProxyAddress, // metadataRenderer
         generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
       ],
@@ -177,70 +178,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   } else {
     hre.deployments.log('"HolographDropsEditionsV1" is already deployed.');
   }
-
-  // TODO: remove everything below this line once we depreciate old drops
-  // Deploy the ERC721 drop enforcer
-  const futureErc721DropAddress = await genesisDeriveFutureAddress(
-    hre,
-    salt,
-    'HolographERC721Drop',
-    generateInitCode(
-      ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)', 'bool'],
-      [
-        [
-          '0x0000000000000000000000000000000000000000', // holographFeeManager
-          '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
-          '0x000000000000AAeB6D7670E522A718067333cd4E', // marketFilterAddress (opensea)
-          'Holograph ERC721 Drop Collection', // contractName
-          'hDROP', // contractSymbol
-          deployer.address, // initialOwner
-          deployer.address, // fundsRecipient
-          1000, // 1000 editions
-          1000, // 10% royalty
-          [], // setupCalls
-          futureEditionsMetadataRendererAddress, // metadataRenderer
-          generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
-        ],
-        true, // skipInit
-      ]
-    ) // initCode
-  );
-  hre.deployments.log('the future "HolographERC721Drop" address is', futureErc721DropAddress);
-  let erc721DeployedCode: string = await hre.provider.send('eth_getCode', [futureErc721DropAddress, 'latest']);
-
-  if (erc721DeployedCode == '0x' || erc721DeployedCode == '') {
-    hre.deployments.log('"HolographERC721Drop" bytecode not found, need to deploy"');
-    let holographErc721Drop = await genesisDeployHelper(
-      hre,
-      salt,
-      'HolographERC721Drop',
-      generateInitCode(
-        ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)', 'bool'],
-        [
-          [
-            '0x0000000000000000000000000000000000000000', // holographFeeManager
-            '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
-            '0x000000000000AAeB6D7670E522A718067333cd4E', // marketFilterAddress
-            'Holograph ERC721 Drop Collection', // contractName
-            'hDROP', // contractSymbol
-            deployer.address, // initialOwner
-            deployer.address, // fundsRecipient
-            1000, // 1000 editions
-            1000, // 10% royalty
-            [], // setupCalls
-            futureEditionsMetadataRendererAddress, // metadataRenderer
-            generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
-          ],
-          true, // skipInit
-        ]
-      ), // initCode
-      futureErc721DropAddress
-    );
-  } else {
-    hre.deployments.log('"HolographERC721Drop" is already deployed.');
-  }
 };
 
 export default func;
-func.tags = ['DropsMetadataRenderer', 'EditionsMetadataRenderer', 'HolographDropsEditionsV1', 'HolographERC721Drop'];
+func.tags = ['DropsMetadataRenderer', 'EditionsMetadataRenderer', 'HolographDropsEditionsV1'];
 func.dependencies = ['HolographGenesis', 'DeploySources'];

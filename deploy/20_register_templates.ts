@@ -139,7 +139,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   );
   const holographDropsEditionsV1InitCode = generateInitCode(
     [
-      'tuple(address,address,address,address,uint64,uint16,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)',
+      'tuple(address,address,address,address,uint64,uint16,bool,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)',
     ],
     [
       [
@@ -149,7 +149,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         deployer.address, // fundsRecipient
         0, // 1000 editions
         1000, // 10% royalty
-        [0, 0, 0, 0, 0, 0, '0x' + '00'.repeat(32)], // setupCalls
+        true, // enableOpenSeaRoyaltyRegistry
+        [0, 0, 0, 0, 0, 0, '0x' + '00'.repeat(32)], // salesConfig
         futureEditionsMetadataRendererProxyAddress, // metadataRenderer
         generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
       ],
@@ -290,56 +291,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
   } else {
     hre.deployments.log('"HolographRoyalties" is already registered');
-  }
-
-  // TODO: remove everything below this line once we depreciate old drops
-  // Register ERC721Drop
-  const futureErc721DropAddress = await genesisDeriveFutureAddress(
-    hre,
-    salt,
-    'HolographERC721Drop',
-    generateInitCode(
-      ['tuple(address,address,address,string,string,address,address,uint64,uint16,bytes[],address,bytes)', 'bool'],
-      [
-        [
-          '0x0000000000000000000000000000000000000000', // holographFeeManager
-          '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
-          '0x000000000000AAeB6D7670E522A718067333cd4E', // marketFilterAddress (opensea)
-          'Holograph ERC721 Drop Collection', // contractName
-          'hDROP', // contractSymbol
-          deployer.address, // initialOwner
-          deployer.address, // fundsRecipient
-          1000, // 1000 editions
-          1000, // 10% royalty
-          [], // setupCalls
-          futureEditionsMetadataRendererAddress, // metadataRenderer
-          generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
-        ],
-        true, // skipInit
-      ]
-    ) // initCode
-  );
-  hre.deployments.log('the future "HolographERC721Drop" address is', futureErc721DropAddress);
-
-  const erc721DropHash = '0x' + web3.utils.asciiToHex('HolographERC721Drop').substring(2).padStart(64, '0');
-  if ((await holographRegistry.getContractTypeAddress(erc721DropHash)) != futureErc721DropAddress) {
-    const erc721DropTx = await holographRegistry
-      .setContractTypeAddress(erc721DropHash, futureErc721DropAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographRegistry,
-          data: holographRegistry.populateTransaction.setContractTypeAddress(erc721DropHash, futureErc721DropAddress),
-        })),
-      })
-      .catch(error);
-    hre.deployments.log('Transaction hash:', erc721DropTx.hash);
-    await erc721DropTx.wait();
-    hre.deployments.log(
-      `Registered "HolographERC721Drop" to: ${await holographRegistry.getContractTypeAddress(erc721DropHash)}`
-    );
-  } else {
-    hre.deployments.log('"HolographERC721Drop" is already registered');
   }
 };
 

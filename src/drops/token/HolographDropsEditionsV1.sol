@@ -44,6 +44,11 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
   bytes32 constant _dropsPriceOracleSlot = precomputeslot("eip1967.Holograph.dropsPriceOracle");
 
   /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.osRegistryEnabled')) - 1)
+   */
+  bytes32 constant _osRegistryEnabledSlot = precomputeslot("eip1967.Holograph.osRegistryEnabled");
+
+  /**
    * @dev Internal reference used for minting incremental token ids.
    */
   uint224 private _currentTokenId;
@@ -149,6 +154,7 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
 
     DropsInitializer memory initializer = abi.decode(initPayload, (DropsInitializer));
+
     erc721TransferHelper = initializer.erc721TransferHelper;
     if (initializer.marketFilterAddress != address(0)) {
       marketFilterAddress = initializer.marketFilterAddress;
@@ -173,8 +179,7 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     }
 
     operatorFilterRegistry = IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
-
-    if (Address.isContract(address(operatorFilterRegistry))) {
+    if (initializer.enableOpenSeaRoyaltyRegistry && Address.isContract(address(operatorFilterRegistry))) {
       if (marketFilterAddress == address(0)) {
         // this is a default filter that can be used for OS royalty filtering
         // marketFilterAddress = 0x3cc6CddA760b79bAfa08dF41ECFA224f810dCeB6;
@@ -183,6 +188,9 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
       } else {
         // allow user to specify custom filtering contract address
         operatorFilterRegistry.registerAndSubscribe(address(this), marketFilterAddress);
+      }
+      assembly {
+        sstore(_osRegistryEnabledSlot, true)
       }
     }
 
@@ -218,21 +226,24 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     address, /* _to*/
     uint256, /* _tokenId*/
     bytes calldata /* _data*/
-  ) external view returns (bool success) {
+  ) external view returns (bool) {
     if (
       _from != address(0) && // skip on mints
-      _from != msgSender() && // skip on transfers from sender
-      Address.isContract(address(operatorFilterRegistry))
+      _from != msgSender() // skip on transfers from sender
     ) {
-      try operatorFilterRegistry.isOperatorAllowed(address(this), msgSender()) returns (bool allowed) {
-        success = allowed;
-      } catch {
-        success = false;
-        revert OperatorNotAllowed(msgSender());
+      bool osRegistryEnabled;
+      assembly {
+        osRegistryEnabled := sload(_osRegistryEnabledSlot)
       }
-    } else {
-      success = true;
+      if (osRegistryEnabled) {
+        try operatorFilterRegistry.isOperatorAllowed(address(this), msgSender()) returns (bool allowed) {
+          return allowed;
+        } catch {
+          revert OperatorNotAllowed(msgSender());
+        }
+      }
     }
+    return true;
   }
 
   function beforeTransfer(
@@ -240,21 +251,24 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     address, /* _to*/
     uint256, /* _tokenId*/
     bytes calldata /* _data*/
-  ) external view returns (bool success) {
+  ) external view returns (bool) {
     if (
       _from != address(0) && // skip on mints
-      _from != msgSender() && // skip on transfers from sender
-      Address.isContract(address(operatorFilterRegistry))
+      _from != msgSender() // skip on transfers from sender
     ) {
-      try operatorFilterRegistry.isOperatorAllowed(address(this), msgSender()) returns (bool allowed) {
-        success = allowed;
-      } catch {
-        success = false;
-        revert OperatorNotAllowed(msgSender());
+      bool osRegistryEnabled;
+      assembly {
+        osRegistryEnabled := sload(_osRegistryEnabledSlot)
       }
-    } else {
-      success = true;
+      if (osRegistryEnabled) {
+        try operatorFilterRegistry.isOperatorAllowed(address(this), msgSender()) returns (bool allowed) {
+          return allowed;
+        } catch {
+          revert OperatorNotAllowed(msgSender());
+        }
+      }
     }
+    return true;
   }
 
   function onIsApprovedForAll(
@@ -446,6 +460,10 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     if (!success) {
       revert RemoteOperatorFilterRegistryCallFailed();
     }
+    bool osRegistryEnabled = operatorFilterRegistry.isRegistered(address(this));
+    assembly {
+      sstore(_osRegistryEnabledSlot, osRegistryEnabled)
+    }
     return ret;
   }
 
@@ -465,6 +483,10 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
     } else {
       operatorFilterRegistry.unsubscribe(self, false);
       operatorFilterRegistry.unregister(self);
+    }
+    bool osRegistryEnabled = operatorFilterRegistry.isRegistered(address(this));
+    assembly {
+      sstore(_osRegistryEnabledSlot, osRegistryEnabled)
     }
   }
 

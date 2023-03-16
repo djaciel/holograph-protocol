@@ -22,7 +22,7 @@ import {HolographERC721} from "../../contracts/enforcer/HolographERC721.sol";
 import {HolographDropsEditionsV1} from "../../contracts/drops/token/HolographDropsEditionsV1.sol";
 import {HolographDropsEditionsV1Proxy} from "../../contracts/drops/proxy/HolographDropsEditionsV1Proxy.sol";
 
-import {OwnedSubscriptionManager} from "../../contracts/drops/filter/OwnedSubscriptionManager.sol";
+import {OwnedSubscriptionManager} from "./filter/OwnedSubscriptionManager.sol";
 
 import {IMetadataRenderer} from "../../contracts/drops/interface/IMetadataRenderer.sol";
 import {MockMetadataRenderer} from "./metadata/MockMetadataRenderer.sol";
@@ -96,6 +96,7 @@ contract HolographDropEditionsV1 is Test {
         fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
         editionSize: editionSize,
         royaltyBPS: 800,
+        enableOpenSeaRoyaltyRegistry: true,
         salesConfiguration: saleConfig,
         metadataRenderer: address(dummyRenderer),
         metadataRendererInit: ""
@@ -165,6 +166,7 @@ contract HolographDropEditionsV1 is Test {
         fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
         editionSize: editionSize,
         royaltyBPS: 800,
+        enableOpenSeaRoyaltyRegistry: true,
         salesConfiguration: saleConfig,
         metadataRenderer: address(dummyRenderer),
         metadataRendererInit: ""
@@ -245,17 +247,18 @@ contract HolographDropEditionsV1 is Test {
     });
 
     // Create initializer
-    DropsInitializer memory initializer = DropsInitializer(
-      address(0), // HolographERC721TransferHelper
-      address(0), // marketFilterAddress
-      payable(DEFAULT_OWNER_ADDRESS),
-      payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
-      100,
-      1000,
-      saleConfig,
-      address(dropsMetadataRenderer),
-      abi.encode("description", "imageURI", "animationURI")
-    );
+    DropsInitializer memory initializer = DropsInitializer({
+      erc721TransferHelper: address(0),
+      marketFilterAddress: address(0),
+      initialOwner: payable(DEFAULT_OWNER_ADDRESS),
+      fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
+      editionSize: 100,
+      royaltyBPS: 1000,
+      enableOpenSeaRoyaltyRegistry: true,
+      salesConfiguration: saleConfig,
+      metadataRenderer: address(dropsMetadataRenderer),
+      metadataRendererInit: abi.encode("description", "imageURI", "animationURI")
+    });
 
     // Get deployment config, hash it, and then sign it
     DeploymentConfig memory config = getDeploymentConfig(
@@ -337,6 +340,7 @@ contract HolographDropEditionsV1 is Test {
       fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
       editionSize: editionSize,
       royaltyBPS: 800,
+      enableOpenSeaRoyaltyRegistry: true,
       salesConfiguration: salesConfig,
       metadataRenderer: address(dummyRenderer),
       metadataRendererInit: ""
