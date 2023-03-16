@@ -359,7 +359,7 @@ contract HolographDropEditionsV1 is Test {
       0x000000000000AAeB6D7670E522A718067333cd4E
     );
     vm.startPrank(address(0x666));
-    operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafe), true);
+    operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafeea3), true);
     vm.stopPrank();
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
 
@@ -369,7 +369,7 @@ contract HolographDropEditionsV1 is Test {
     customSource.manageMarketFilterSubscription(true);
     erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 10);
     HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
-    erc721Enforcer.setApprovalForAll(address(0xcafe), true);
+    erc721Enforcer.setApprovalForAll(address(0xcafeea3), true);
     vm.stopPrank();
     vm.prank(address(0xcafeea3));
     vm.expectRevert(abi.encodeWithSelector(IHolographERC721Drop.OperatorNotAllowed.selector, address(0xcafeea3)));
