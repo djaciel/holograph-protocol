@@ -47,7 +47,7 @@
     "lint": "eslint . --ext .ts --config .eslintrc",
     "lint:fix": "eslint . --ext .ts --config .eslintrc --fix",
     "prettier:check": "prettier --ignore-unknown --check \"deploy/**/*.ts\" \"test/**/*.ts\" \"scripts/**/*.ts\"",
-    "prettier:fix": "prettier --loglevel error --ignore-path .gitignore --ignore-path **/lib --write .",
+    "prettier:fix": "prettier --loglevel error --ignore-path .gitignore --ignore-path **/lib --write . && git submodule deinit -f . && git submodule update --init",
     "prettier:deployments": "hardhat deploymentsPrettier"
   },
   "dependencies": {

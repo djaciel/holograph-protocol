@@ -683,14 +683,14 @@ contract HolographDropEditionsV1 is Test {
     assertEq(presaleStartLookup2, 100);
   }
 
-  // TODO: Possibly set assume to a more reasonable number to speed up tests
-  // function test_GlobalLimit(uint16 limit) public setupTestDrop(uint64(limit)) {
-  //   vm.assume(limit > 0);
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
-  //   erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, limit);
-  //   vm.expectRevert(IHolographERC721Drop.Mint_SoldOut.selector);
-  //   erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 1);
-  // }
+  function test_GlobalLimit(uint16 limit) public setupTestDrop(uint64(limit)) {
+    // Set assume to a more reasonable number to speed up tests
+    vm.assume(limit > 0 && limit < 10);
+    vm.startPrank(DEFAULT_OWNER_ADDRESS);
+    erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, limit);
+    vm.expectRevert(IHolographERC721Drop.Mint_SoldOut.selector);
+    erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 1);
+  }
 
   function test_WithdrawNotAllowed() public setupTestDrop(10) {
     vm.expectRevert(IHolographERC721Drop.Access_WithdrawNotAllowed.selector);
