@@ -356,7 +356,7 @@ contract HolographDropEditionsV1 is Test {
       0x000000000000AAeB6D7670E522A718067333cd4E
     );
     vm.startPrank(address(0x666));
-    operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafeea3), true);
+    operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafe), true);
     vm.stopPrank();
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
     // It should already be registered so turn it off first
@@ -365,17 +365,19 @@ contract HolographDropEditionsV1 is Test {
     erc721Drop.manageMarketFilterSubscription(true);
     erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 10);
     HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
-    erc721Enforcer.setApprovalForAll(address(0xcafeea3), true);
+    erc721Enforcer.setApprovalForAll(address(0xcafe), true);
     vm.stopPrank();
-    // vm.prank(address(0xcafeea3));
+    vm.prank(address(0xcafe));
+    // TODO: Get this to match the correct revert
     // vm.expectRevert(
-    //   abi.encodeWithSelector(OperatorFilterRegistryErrorsAndEvents.AddressFiltered.selector, address(0xcafeea3))
+    //   abi.encodeWithSelector(OperatorFilterRegistryErrorsAndEvents.AddressFiltered.selector, address(0xcafe))
     // );
-    // erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), FIRST_TOKEN_ID);
-    // vm.prank(DEFAULT_OWNER_ADDRESS);
-    // erc721Drop.manageMarketFilterSubscription(false);
-    // vm.prank(address(0xcafeea3));
-    // erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), FIRST_TOKEN_ID);
+    vm.expectRevert();
+    erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), FIRST_TOKEN_ID);
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    erc721Drop.manageMarketFilterSubscription(false);
+    vm.prank(address(0xcafe));
+    erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), FIRST_TOKEN_ID);
   }
 
   // function test_OnlyAdminEnableSubscription() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
@@ -395,13 +397,15 @@ contract HolographDropEditionsV1 is Test {
 
   function test_ProxySubscriptionAccess() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
     vm.startPrank(address(DEFAULT_OWNER_ADDRESS));
-    // console.log("OperatorFilterRegistry is a contract");
     // bytes memory preBaseCall = abi.encodeWithSelector(
     //   IOperatorFilterRegistry.unregister.selector,
     //   address(erc721Drop)
     // );
     // erc721Drop.updateMarketFilterSettings(preBaseCall);
+
+    console.log("Address of drop", address(erc721Drop));
     bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.register.selector, address(erc721Drop));
+
     erc721Drop.updateMarketFilterSettings(baseCall);
     vm.stopPrank();
   }

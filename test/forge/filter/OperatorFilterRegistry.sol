@@ -32,11 +32,13 @@ contract OperatorFilterRegistry is IOperatorFilterRegistry, OperatorFilterRegist
    * @notice restricts method caller to the address or EIP-173 "owner()"
    */
   modifier onlyAddressOrOwner(address addr) {
+    console.log("==========");
+    console.log("addr %s", addr);
     if (msg.sender != addr) {
       try Ownable(addr).owner() returns (address owner) {
         if (msg.sender != owner) {
           console.log("+++++++++++++");
-          console.logAddress(msg.sender);
+          console.log("msg.sender %s", msg.sender);
           console.logAddress(owner);
           revert OnlyAddressOrOwner();
         }
