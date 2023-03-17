@@ -1,6 +1,6 @@
 // SPDX-License-Identifier: MIT
 
-/*SOLIDITY_COMPILER_VERSION*/
+pragma solidity 0.8.13;
 
 import {IMetadataRenderer} from "./IMetadataRenderer.sol";
 
@@ -8,7 +8,7 @@ import {AddressMintDetails} from "../struct/AddressMintDetails.sol";
 import {SaleDetails} from "../struct/SaleDetails.sol";
 
 /// @notice Interface for HOLOGRAPH Drops contract
-interface IHolographERC721Drop {
+interface IHolographDropERC721 {
   // Access errors
 
   /// @notice Only admin can access this function

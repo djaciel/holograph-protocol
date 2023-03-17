@@ -19,7 +19,7 @@ import {MerkleProof} from "../library/MerkleProof.sol";
 
 import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
 import {IOperatorFilterRegistry} from "../interface/IOperatorFilterRegistry.sol";
-import {IHolographERC721Drop} from "../interface/IHolographERC721Drop.sol";
+import {IHolographDropERC721} from "../interface/IHolographDropERC721.sol";
 
 import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
 
@@ -32,7 +32,7 @@ import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
  *
  *       Do not enable or subscribe to any other events unless you modified your source code for them.
  */
-contract HolographDropERC721 is NonReentrant, ERC721H, IHolographERC721Drop {
+contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   /**
    * CONTRACT VARIABLES
    * all variables, without custom storage slots, are defined here
@@ -214,7 +214,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographERC721Drop {
   }
 
   function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
-    return interfaceId == type(IHolographERC721Drop).interfaceId;
+    return interfaceId == type(IHolographDropERC721).interfaceId;
   }
 
   /**
@@ -222,7 +222,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographERC721Drop {
    * dynamic
    */
 
-  function owner() external view override(ERC721H, IHolographERC721Drop) returns (address) {
+  function owner() external view override(ERC721H, IHolographDropERC721) returns (address) {
     return _getOwner();
   }
 

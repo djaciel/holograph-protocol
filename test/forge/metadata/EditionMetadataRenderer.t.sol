@@ -5,15 +5,15 @@
 // import {MetadataRenderAdminCheck} from "../../../contracts/drops/metadata/MetadataRenderAdminCheck.sol";
 // import {IMetadataRenderer} from "../../../contracts/drops/interface/IMetadataRenderer.sol";
 // import {DropMockBase} from "./DropMockBase.sol";
-// import {IHolographERC721Drop} from "../../../contracts/old_drops/interfaces/IHolographERC721Drop.sol";
+// import {IHolographDropERC721} from "../../../contracts/old_drops/interfaces/IHolographDropERC721.sol";
 // import {Test} from "forge-std/Test.sol";
 //
 // contract IERC721OnChainDataMock {
-//   IHolographERC721Drop.SaleDetails private saleDetailsInternal;
-//   IHolographERC721Drop.Configuration private configInternal;
+//   IHolographDropERC721.SaleDetails private saleDetailsInternal;
+//   IHolographDropERC721.Configuration private configInternal;
 //
 //   constructor(uint256 totalMinted, uint256 maxSupply) {
-//     saleDetailsInternal = IHolographERC721Drop.SaleDetails({
+//     saleDetailsInternal = IHolographDropERC721.SaleDetails({
 //       publicSaleActive: false,
 //       presaleActive: false,
 //       publicSalePrice: 0,
@@ -27,7 +27,7 @@
 //       maxSupply: maxSupply
 //     });
 //
-//     configInternal = IHolographERC721Drop.Configuration({
+//     configInternal = IHolographDropERC721.Configuration({
 //       metadataRenderer: IMetadataRenderer(address(0x0)),
 //       editionSize: 12,
 //       royaltyBPS: 1000,
@@ -39,11 +39,11 @@
 //     return "MOCK NAME";
 //   }
 //
-//   function saleDetails() external returns (IHolographERC721Drop.SaleDetails memory) {
+//   function saleDetails() external returns (IHolographDropERC721.SaleDetails memory) {
 //     return saleDetailsInternal;
 //   }
 //
-//   function config() external returns (IHolographERC721Drop.Configuration memory) {
+//   function config() external returns (IHolographDropERC721.Configuration memory) {
 //     return configInternal;
 //   }
 // }

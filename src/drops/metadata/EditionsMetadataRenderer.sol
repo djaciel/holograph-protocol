@@ -5,7 +5,7 @@
 import "../../abstract/Initializable.sol";
 
 import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
-import {IHolographERC721Drop} from "../interface/IHolographERC721Drop.sol";
+import {IHolographDropERC721} from "../interface/IHolographDropERC721.sol";
 import {ERC721Metadata} from "../../interface/ERC721Metadata.sol";
 import {NFTMetadataRenderer} from "../utils/NFTMetadataRenderer.sol";
 import {MetadataRenderAdminCheck} from "./MetadataRenderAdminCheck.sol";
@@ -121,7 +121,7 @@ contract EditionsMetadataRenderer is Initializable, IMetadataRenderer, MetadataR
     address target = msg.sender;
 
     TokenEditionInfo memory info = tokenInfos[target];
-    IHolographERC721Drop media = IHolographERC721Drop(target);
+    IHolographDropERC721 media = IHolographDropERC721(target);
 
     uint256 maxSupply = media.saleDetails().maxSupply;
 
