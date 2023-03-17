@@ -24,17 +24,6 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "newRecipientAddress",
-        "type": "address"
-      }
-    ],
-    "name": "Admin_InvalidFundRecipientAddress",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
         "name": "proposedAddress",
         "type": "address"
       }
@@ -49,7 +38,17 @@
   },
   {
     "inputs": [],
-    "name": "MarketFilterAddressNotSupportedForChain",
+    "name": "ExternalMetadataRenderer_CallFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MarketFilterDAOAddressNotSupportedForChain",
+    "type": "error"
+  },
+  {
+    "inputs": [],
+    "name": "MintFee_FundsSendFailure",
     "type": "error"
   },
   {
@@ -179,6 +178,31 @@
       }
     ],
     "name": "FundsWithdrawn",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "mintFeeAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "address",
+        "name": "mintFeeRecipient",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "bool",
+        "name": "success",
+        "type": "bool"
+      }
+    ],
+    "name": "MintFeePayout",
     "type": "event"
   },
   {
@@ -353,7 +377,7 @@
             "type": "uint256"
           }
         ],
-        "internalType": "struct IHolographERC721Drop.AddressMintDetails",
+        "internalType": "struct AddressMintDetails",
         "name": "",
         "type": "tuple"
       }
@@ -489,7 +513,7 @@
             "type": "uint256"
           }
         ],
-        "internalType": "struct IHolographERC721Drop.SaleDetails",
+        "internalType": "struct SaleDetails",
         "name": "",
         "type": "tuple"
       }

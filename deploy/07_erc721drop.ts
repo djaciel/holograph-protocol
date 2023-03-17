@@ -133,8 +133,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"EditionsMetadataRendererProxy" is already deployed.');
   }
 
-  // Deploy the HolographDropsEditionsV1 custom contract source
-  const holographDropsEditionsV1InitCode = generateInitCode(
+  // Deploy the HolographDropERC721 custom contract source
+  const HolographDropERC721InitCode = generateInitCode(
     [
       'tuple(address,address,address,address,uint64,uint16,bool,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)',
     ],
@@ -153,33 +153,33 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ],
     ]
   );
-  const futureHolographDropsEditionsV1Address = await genesisDeriveFutureAddress(
+  const futureHolographDropERC721Address = await genesisDeriveFutureAddress(
     hre,
     salt,
-    'HolographDropsEditionsV1',
-    holographDropsEditionsV1InitCode
+    'HolographDropERC721',
+    HolographDropERC721InitCode
   );
-  hre.deployments.log('the future "HolographDropsEditionsV1" address is', futureHolographDropsEditionsV1Address);
+  hre.deployments.log('the future "HolographDropERC721" address is', futureHolographDropERC721Address);
 
-  let holographDropsEditionsV1DeployedCode: string = await hre.provider.send('eth_getCode', [
-    futureHolographDropsEditionsV1Address,
+  let HolographDropERC721DeployedCode: string = await hre.provider.send('eth_getCode', [
+    futureHolographDropERC721Address,
     'latest',
   ]);
 
-  if (holographDropsEditionsV1DeployedCode == '0x' || holographDropsEditionsV1DeployedCode == '') {
-    hre.deployments.log('"HolographDropsEditionsV1" bytecode not found, need to deploy"');
-    let holographDropsEditionsV1 = await genesisDeployHelper(
+  if (HolographDropERC721DeployedCode == '0x' || HolographDropERC721DeployedCode == '') {
+    hre.deployments.log('"HolographDropERC721" bytecode not found, need to deploy"');
+    let HolographDropERC721 = await genesisDeployHelper(
       hre,
       salt,
-      'HolographDropsEditionsV1',
-      holographDropsEditionsV1InitCode,
-      futureHolographDropsEditionsV1Address
+      'HolographDropERC721',
+      HolographDropERC721InitCode,
+      futureHolographDropERC721Address
     );
   } else {
-    hre.deployments.log('"HolographDropsEditionsV1" is already deployed.');
+    hre.deployments.log('"HolographDropERC721" is already deployed.');
   }
 };
 
 export default func;
-func.tags = ['DropsMetadataRenderer', 'EditionsMetadataRenderer', 'HolographDropsEditionsV1'];
+func.tags = ['DropsMetadataRenderer', 'EditionsMetadataRenderer', 'HolographDropERC721'];
 func.dependencies = ['HolographGenesis', 'DeploySources'];
