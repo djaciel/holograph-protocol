@@ -138,6 +138,11 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
    */
 
   /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.version')) - 1)
+   */
+  bytes32 constant _versionSlot = 0x42bbd71e5f30ddb2b228b88e93b5660489dba5e8d35f090370d28eb85a99530f;
+
+  /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.dropsPriceOracle')) - 1)
    */
   bytes32 constant _dropsPriceOracleSlot = 0x26600f0171e5a2b86874be26285c66444b2a6fa5f62114757214d5e732aded36;
@@ -293,6 +298,11 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
       }
     }
 
+    // Set the version
+    assembly {
+      sstore(_versionSlot, 1)
+    }
+
     setStatus(1);
 
     return _init(initPayload);
@@ -302,6 +312,19 @@ contract HolographDropsEditionsV1 is NonReentrant, ERC721H, IHolographERC721Drop
    * PUBLIC NON STATE CHANGING FUNCTIONS
    * static
    */
+
+  /**
+  * @notice Returns the version of the contract
+  * @dev Used for contract versioning and validation
+  * @return version bytes32 representing the version of the contract
+  */
+  function version() external view returns (bytes32) {
+    bytes32 _version;
+    assembly {
+      _version := sload(_versionSlot)
+    }
+    return _version;
+  }
 
   function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
     return interfaceId == type(IHolographERC721Drop).interfaceId;
