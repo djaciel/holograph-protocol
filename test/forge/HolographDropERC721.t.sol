@@ -296,6 +296,7 @@ contract HolographDropERC721Test is Test {
     console.log("New drop address: ", newDropAddress);
 
     HolographDropERC721 drop = HolographDropERC721(payable(newDropAddress));
+    assertEq(drop.version(), "1.0.0");
   }
 
   function test_Init() public setupTestDrop(10) {
