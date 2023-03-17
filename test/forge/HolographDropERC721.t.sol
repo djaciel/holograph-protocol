@@ -19,8 +19,8 @@ import {IHolographERC721Drop} from "../../contracts/drops/interface/IHolographER
 import {IOperatorFilterRegistry} from "../../contracts/drops/interface/IOperatorFilterRegistry.sol";
 
 import {HolographERC721} from "../../contracts/enforcer/HolographERC721.sol";
-import {HolographDropsEditionsV1} from "../../contracts/drops/token/HolographDropsEditionsV1.sol";
-import {HolographDropsEditionsV1Proxy} from "../../contracts/drops/proxy/HolographDropsEditionsV1Proxy.sol";
+import {HolographDropERC721} from "../../contracts/drops/token/HolographDropERC721.sol";
+import {HolographDropERC721Proxy} from "../../contracts/drops/proxy/HolographDropERC721Proxy.sol";
 
 import {OwnedSubscriptionManager} from "./filter/OwnedSubscriptionManager.sol";
 
@@ -32,7 +32,7 @@ import {OperatorFilterRegistryErrorsAndEvents} from "./filter/OperatorFilterRegi
 import {DropsMetadataRenderer} from "../../contracts/drops/metadata/DropsMetadataRenderer.sol";
 import {EditionsMetadataRenderer} from "../../contracts/drops/metadata/EditionsMetadataRenderer.sol";
 
-contract HolographDropEditionsV1 is Test {
+contract HolographDropERC721Test is Test {
   /// @notice Event emitted when the funds are withdrawn from the minting contract
   /// @param withdrawnBy address that issued the withdraw
   /// @param withdrawnTo address that the funds were withdrawn to
@@ -50,7 +50,7 @@ contract HolographDropEditionsV1 is Test {
   address public alice;
   MockUser public mockUser;
 
-  HolographDropsEditionsV1 public erc721Drop;
+  HolographDropERC721 public erc721Drop;
 
   DummyMetadataRenderer public dummyRenderer = new DummyMetadataRenderer();
   EditionsMetadataRenderer public editionsMetadataRenderer;
@@ -135,7 +135,7 @@ contract HolographDropEditionsV1 is Test {
       address newDropAddress = address(uint160(uint256(entries[2].topics[1])));
 
       // Connect the drop implementation to the drop proxy address
-      erc721Drop = HolographDropsEditionsV1(payable(newDropAddress));
+      erc721Drop = HolographDropERC721(payable(newDropAddress));
     }
 
     _;
@@ -205,7 +205,7 @@ contract HolographDropEditionsV1 is Test {
       address newDropAddress = address(uint160(uint256(entries[3].topics[1])));
 
       // Connect the drop implementation to the drop proxy address
-      erc721Drop = HolographDropsEditionsV1(payable(newDropAddress));
+      erc721Drop = HolographDropERC721(payable(newDropAddress));
     }
 
     _;
@@ -295,7 +295,7 @@ contract HolographDropEditionsV1 is Test {
     address newDropAddress = address(uint160(uint256(entries[3].topics[1])));
     console.log("New drop address: ", newDropAddress);
 
-    HolographDropsEditionsV1 drop = HolographDropsEditionsV1(payable(newDropAddress));
+    HolographDropERC721 drop = HolographDropERC721(payable(newDropAddress));
   }
 
   function test_Init() public setupTestDrop(10) {
@@ -347,9 +347,9 @@ contract HolographDropEditionsV1 is Test {
     });
 
     bytes memory initCode = abi.encode(
-      bytes32(0x0000000000000000486f6c6f677261706844726f707345646974696f6e735631), // Source contract type HolographDropsEditionsV1
+      bytes32(0x00000000000000000000000000486F6C6F677261706844726F70455243373231), // Source contract type HolographDropERC721
       address(Constants.getHolographRegistry()), // address of registry (to get source contract address from)
-      abi.encode(initializer) // actual init code for source contract (HolographDropsEditionsV1)
+      abi.encode(initializer) // actual init code for source contract (HolographDropERC721)
     );
 
     erc721Drop.init(abi.encode(contractName, contractSymbol, contractBps, eventConfig, skipInit, initCode));
@@ -357,7 +357,7 @@ contract HolographDropEditionsV1 is Test {
 
   function test_SubscriptionEnabled() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
     HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
-    HolographDropsEditionsV1 customSource = HolographDropsEditionsV1(payable(holographerInterface.getSourceContract()));
+    HolographDropERC721 customSource = HolographDropERC721(payable(holographerInterface.getSourceContract()));
 
     IOperatorFilterRegistry operatorFilterRegistry = IOperatorFilterRegistry(
       0x000000000000AAeB6D7670E522A718067333cd4E
@@ -386,7 +386,7 @@ contract HolographDropEditionsV1 is Test {
 
   function test_OnlyAdminEnableSubscription() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
     HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
-    HolographDropsEditionsV1 customSource = HolographDropsEditionsV1(payable(holographerInterface.getSourceContract()));
+    HolographDropERC721 customSource = HolographDropERC721(payable(holographerInterface.getSourceContract()));
     vm.startPrank(address(0xcafecafe));
     vm.expectRevert("ERC721: owner only function");
     customSource.manageMarketFilterSubscription(true);
@@ -395,7 +395,7 @@ contract HolographDropEditionsV1 is Test {
 
   function test_ProxySubscriptionAccessOnlyAdmin() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
     HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
-    HolographDropsEditionsV1 customSource = HolographDropsEditionsV1(payable(holographerInterface.getSourceContract()));
+    HolographDropERC721 customSource = HolographDropERC721(payable(holographerInterface.getSourceContract()));
     bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.unregister.selector, address(customSource));
     vm.startPrank(address(0xcafecafe));
     vm.expectRevert("ERC721: owner only function");
@@ -406,7 +406,7 @@ contract HolographDropEditionsV1 is Test {
   function test_ProxySubscriptionAccess() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
     vm.startPrank(address(DEFAULT_OWNER_ADDRESS));
     HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
-    HolographDropsEditionsV1 customSource = HolographDropsEditionsV1(payable(holographerInterface.getSourceContract()));
+    HolographDropERC721 customSource = HolographDropERC721(payable(holographerInterface.getSourceContract()));
     bytes memory preBaseCall = abi.encodeWithSelector(
       IOperatorFilterRegistry.unregister.selector,
       address(customSource)
@@ -884,13 +884,11 @@ contract HolographDropEditionsV1 is Test {
     bool skipInit,
     DropsInitializer memory initializer
   ) public returns (DeploymentConfig memory) {
-    bytes memory bytecode = abi.encodePacked(
-      vm.getCode("HolographDropsEditionsV1Proxy.sol:HolographDropsEditionsV1Proxy")
-    );
+    bytes memory bytecode = abi.encodePacked(vm.getCode("HolographDropERC721Proxy.sol:HolographDropERC721Proxy"));
     bytes memory initCode = abi.encode(
-      bytes32(0x0000000000000000486f6c6f677261706844726f707345646974696f6e735631), // Source contract type HolographDropsEditionsV1
+      bytes32(0x00000000000000000000000000486F6C6F677261706844726F70455243373231), // Source contract type HolographDropERC721
       address(Constants.getHolographRegistry()), // address of registry (to get source contract address from)
-      abi.encode(initializer) // actual init code for source contract (HolographDropsEditionsV1)
+      abi.encode(initializer) // actual init code for source contract (HolographDropERC721)
     );
     return
       DeploymentConfig({

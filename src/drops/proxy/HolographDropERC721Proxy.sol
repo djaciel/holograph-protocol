@@ -7,7 +7,7 @@ import "../../abstract/Initializable.sol";
 
 import "../../interface/HolographRegistryInterface.sol";
 
-contract HolographDropsEditionsV1Proxy is Admin, Initializable {
+contract HolographDropERC721Proxy is Admin, Initializable {
   /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.contractType')) - 1)
    */
@@ -26,7 +26,7 @@ contract HolographDropsEditionsV1Proxy is Admin, Initializable {
       sstore(_contractTypeSlot, contractType)
       sstore(_registrySlot, registry)
     }
-    (bool success, bytes memory returnData) = getHolographDropsEditionsV1Source().delegatecall(
+    (bool success, bytes memory returnData) = getHolographDropERC721Source().delegatecall(
       abi.encodeWithSignature("init(bytes)", initCode)
     );
     bytes4 selector = abi.decode(returnData, (bytes4));
@@ -36,7 +36,7 @@ contract HolographDropsEditionsV1Proxy is Admin, Initializable {
     return Initializable.init.selector;
   }
 
-  function getHolographDropsEditionsV1Source() public view returns (address) {
+  function getHolographDropERC721Source() public view returns (address) {
     HolographRegistryInterface registry;
     bytes32 contractType;
     assembly {
@@ -49,10 +49,10 @@ contract HolographDropsEditionsV1Proxy is Admin, Initializable {
   receive() external payable {}
 
   fallback() external payable {
-    address holographDropsEditionsV1Source = getHolographDropsEditionsV1Source();
+    address HolographDropERC721Source = getHolographDropERC721Source();
     assembly {
       calldatacopy(0, 0, calldatasize())
-      let result := delegatecall(gas(), holographDropsEditionsV1Source, 0, calldatasize(), 0, 0)
+      let result := delegatecall(gas(), HolographDropERC721Source, 0, calldatasize(), 0, 0)
       returndatacopy(0, 0, returndatasize())
       switch result
       case 0 {
