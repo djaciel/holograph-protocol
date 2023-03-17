@@ -347,7 +347,7 @@ contract HolographDropERC721Test is Test {
     });
 
     bytes memory initCode = abi.encode(
-      bytes32(0x0000000000000000486f6c6f677261706844726f707345646974696f6e735631), // Source contract type HolographDropERC721
+      bytes32(0x00000000000000000000000000486F6C6F677261706844726F70455243373231), // Source contract type HolographDropERC721
       address(Constants.getHolographRegistry()), // address of registry (to get source contract address from)
       abi.encode(initializer) // actual init code for source contract (HolographDropERC721)
     );
@@ -886,7 +886,7 @@ contract HolographDropERC721Test is Test {
   ) public returns (DeploymentConfig memory) {
     bytes memory bytecode = abi.encodePacked(vm.getCode("HolographDropERC721Proxy.sol:HolographDropERC721Proxy"));
     bytes memory initCode = abi.encode(
-      bytes32(0x0000000000000000486f6c6f677261706844726f707345646974696f6e735631), // Source contract type HolographDropERC721
+      bytes32(0x00000000000000000000000000486F6C6F677261706844726F70455243373231), // Source contract type HolographDropERC721
       address(Constants.getHolographRegistry()), // address of registry (to get source contract address from)
       abi.encode(initializer) // actual init code for source contract (HolographDropERC721)
     );
