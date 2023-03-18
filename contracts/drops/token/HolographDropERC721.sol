@@ -165,7 +165,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   /**
    * @dev Address of the operator filter registry
    */
-  IOperatorFilterRegistry public operatorFilterRegistry;
+  IOperatorFilterRegistry public constant openseaOperatorFilterRegistry = IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
 
   /**
    * @notice Configuration for NFT minting contract storage
@@ -277,16 +277,15 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
     }
 
-    operatorFilterRegistry = IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
-    if (initializer.enableOpenSeaRoyaltyRegistry && Address.isContract(address(operatorFilterRegistry))) {
+    if (initializer.enableOpenSeaRoyaltyRegistry && Address.isContract(address(openseaOperatorFilterRegistry))) {
       if (marketFilterAddress == address(0)) {
         // this is a default filter that can be used for OS royalty filtering
         // marketFilterAddress = 0x3cc6CddA760b79bAfa08dF41ECFA224f810dCeB6;
         // we just register to OS royalties and let OS handle it for us with their default filter contract
-        operatorFilterRegistry.register(address(this));
+        openseaOperatorFilterRegistry.register(address(this));
       } else {
         // allow user to specify custom filtering contract address
-        operatorFilterRegistry.registerAndSubscribe(address(this), marketFilterAddress);
+        openseaOperatorFilterRegistry.registerAndSubscribe(address(this), marketFilterAddress);
       }
       assembly {
         sstore(_osRegistryEnabledSlot, true)
@@ -344,7 +343,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
         osRegistryEnabled := sload(_osRegistryEnabledSlot)
       }
       if (osRegistryEnabled) {
-        try operatorFilterRegistry.isOperatorAllowed(address(this), msgSender()) returns (bool allowed) {
+        try openseaOperatorFilterRegistry.isOperatorAllowed(address(this), msgSender()) returns (bool allowed) {
           return allowed;
         } catch {
           revert OperatorNotAllowed(msgSender());
@@ -369,7 +368,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
         osRegistryEnabled := sload(_osRegistryEnabledSlot)
       }
       if (osRegistryEnabled) {
-        try operatorFilterRegistry.isOperatorAllowed(address(this), msgSender()) returns (bool allowed) {
+        try openseaOperatorFilterRegistry.isOperatorAllowed(address(this), msgSender()) returns (bool allowed) {
           return allowed;
         } catch {
           revert OperatorNotAllowed(msgSender());
@@ -564,11 +563,11 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * @param args Calldata args to pass to the registry
    */
   function updateMarketFilterSettings(bytes calldata args) external onlyOwner returns (bytes memory) {
-    (bool success, bytes memory ret) = address(operatorFilterRegistry).call(args);
+    (bool success, bytes memory ret) = address(openseaOperatorFilterRegistry).call(args);
     if (!success) {
       revert RemoteOperatorFilterRegistryCallFailed();
     }
-    bool osRegistryEnabled = operatorFilterRegistry.isRegistered(address(this));
+    bool osRegistryEnabled = openseaOperatorFilterRegistry.isRegistered(address(this));
     assembly {
       sstore(_osRegistryEnabledSlot, osRegistryEnabled)
     }
@@ -584,15 +583,15 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     if (marketFilterAddress == address(0)) {
       revert MarketFilterAddressNotSupportedForChain();
     }
-    if (!operatorFilterRegistry.isRegistered(self) && enable) {
-      operatorFilterRegistry.registerAndSubscribe(self, marketFilterAddress);
+    if (!openseaOperatorFilterRegistry.isRegistered(self) && enable) {
+      openseaOperatorFilterRegistry.registerAndSubscribe(self, marketFilterAddress);
     } else if (enable) {
-      operatorFilterRegistry.subscribe(self, marketFilterAddress);
+      openseaOperatorFilterRegistry.subscribe(self, marketFilterAddress);
     } else {
-      operatorFilterRegistry.unsubscribe(self, false);
-      operatorFilterRegistry.unregister(self);
+      openseaOperatorFilterRegistry.unsubscribe(self, false);
+      openseaOperatorFilterRegistry.unregister(self);
     }
-    bool osRegistryEnabled = operatorFilterRegistry.isRegistered(address(this));
+    bool osRegistryEnabled = openseaOperatorFilterRegistry.isRegistered(address(this));
     assembly {
       sstore(_osRegistryEnabledSlot, osRegistryEnabled)
     }

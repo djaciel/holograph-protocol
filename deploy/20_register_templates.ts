@@ -13,6 +13,7 @@ import {
   zeroAddress,
   txParams,
 } from '../scripts/utils/helpers';
+import { reservedNamespaces, reservedNamespaceHashes } from '../scripts/utils/reserved-namespaces';
 import { ConfigureEvents } from '../scripts/utils/events';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
@@ -46,6 +47,61 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const holographRegistry = ((await hre.ethers.getContract('HolographRegistry', deployer)) as Contract).attach(
     holographRegistryProxy.address
   );
+
+  // Logic for checking if all reserved namespaces are actually reserved
+  // if some are missing, they will automatically be marked for reservation
+  const _reservedMappingSlot = web3.eth.abi.encodeParameters(['uint256'], [3]);
+  const _getReservedStorageSlot = function (mappingKey: string): string {
+    return web3.utils.keccak256(
+      web3.eth.abi.encodeParameters(['bytes32', 'bytes32'], [mappingKey, _reservedMappingSlot])
+    );
+  };
+  hre.deployments.log('Checking the HolographRegistry reserved namespaces');
+  let toReserve: number[] = [];
+  for (let i: number = 0, l: number = reservedNamespaces.length; i < l; i++) {
+    let name: string = reservedNamespaces[i];
+    let hash: string = reservedNamespaceHashes[i];
+    let reserved: string = await hre.ethers.provider.send('eth_getStorageAt', [
+      holographRegistry.address,
+      _getReservedStorageSlot(hash),
+      'latest',
+    ]);
+    if (reserved === '0x' + '00'.repeat(32) || reserved === '0x0') {
+      toReserve.push(i);
+    }
+  }
+  if (toReserve.length == 0) {
+    hre.deployments.log('All HolographRegistry reserved namespaces are in order');
+  } else {
+    hre.deployments.log(
+      'Missing the following namespaces:',
+      (
+        toReserve.map((index: number) => {
+          return reservedNamespaces[index];
+        }) as string[]
+      ).join(', ')
+    );
+    let hashArray: string[] = toReserve.map((index: number) => {
+      return reservedNamespaceHashes[index];
+    }) as string[];
+    let reserveArray: bool[] = toReserve.map((index: number) => {
+      return true;
+    }) as bool[];
+    const setReservedContractTypeAddressesTx = await holographRegistry
+      .setReservedContractTypeAddresses(hashArray, reserveArray, {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holographRegistry,
+          data: holographRegistry.populateTransaction.setReservedContractTypeAddresses(hashArray, reserveArray),
+        })),
+      })
+      .catch(error);
+    hre.deployments.log('Transaction hash:', setReservedContractTypeAddressesTx.hash);
+    await setReservedContractTypeAddressesTx.wait();
+    hre.deployments.log('Missing namespaces have been reserved for HolographRegistry');
+  }
+  // at this point all reserved namespaces should be registered in protocol
 
   // Register Generic
   const futureGenericAddress = await genesisDeriveFutureAddress(
