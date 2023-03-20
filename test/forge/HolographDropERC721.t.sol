@@ -14,6 +14,7 @@ import {HolographFactory} from "../../contracts/HolographFactory.sol";
 
 import {MockUser} from "./utils/MockUser.sol";
 import {Constants} from "./utils/Constants.sol";
+import {Utils} from "./utils/Utils.sol";
 import {HolographerInterface} from "../../contracts/interface/HolographerInterface.sol";
 import {IHolographDropERC721} from "../../contracts/drops/interface/IHolographDropERC721.sol";
 import {IOperatorFilterRegistry} from "../../contracts/drops/interface/IOperatorFilterRegistry.sol";
@@ -228,8 +229,6 @@ contract HolographDropERC721Test is Test {
 
     vm.etch(address(Constants.getOpenseaRoyaltiesRegistry()), address(new OperatorFilterRegistry()).code);
     ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x666)));
-
-    console.log("OwnedSubscriptionManager address: ", ownedSubscriptionManager);
     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
     dropsMetadataRenderer = new DropsMetadataRenderer();
   }
@@ -291,10 +290,7 @@ contract HolographDropERC721Test is Test {
     vm.recordLogs();
     factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
     Vm.Log[] memory entries = vm.getRecordedLogs();
-
     address newDropAddress = address(uint160(uint256(entries[3].topics[1])));
-    console.log("New drop address: ", newDropAddress);
-
     HolographDropERC721 drop = HolographDropERC721(payable(newDropAddress));
     assertEq(drop.version(), "1.0.0");
   }
@@ -891,9 +887,10 @@ contract HolographDropERC721Test is Test {
       address(Constants.getHolographRegistry()), // address of registry (to get source contract address from)
       abi.encode(initializer) // actual init code for source contract (HolographDropERC721)
     );
+
     return
       DeploymentConfig({
-        contractType: 0x0000000000000000000000000000000000486f6c6f6772617068455243373231, // HolographERC721
+        contractType: Utils.stringToBytes32("HolographERC721"), // HolographERC721
         chainType: 1338, // holograph.getChainId(),
         salt: 0x0000000000000000000000000000000000000000000000000000000000000001, // random salt from user
         byteCode: bytecode, // custom contract bytecode
