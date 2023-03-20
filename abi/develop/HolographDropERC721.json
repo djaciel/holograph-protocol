@@ -695,7 +695,7 @@
   },
   {
     "inputs": [],
-    "name": "operatorFilterRegistry",
+    "name": "openseaOperatorFilterRegistry",
     "outputs": [
       {
         "internalType": "contract IOperatorFilterRegistry",
