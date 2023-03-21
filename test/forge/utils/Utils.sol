@@ -1,19 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.13;
 
+import {console} from "forge-std/console.sol";
+
 library Utils {
   function stringToBytes32(string memory input) public pure returns (bytes32) {
-    bytes memory stringBytes = bytes(input);
-    require(stringBytes.length <= 32, "Input string must be less than or equal to 32 bytes");
-    bytes memory result = new bytes(32);
-    assembly {
-      mstore(add(result, 32), mload(add(stringBytes, 32)))
-    }
+    require(bytes(input).length <= 32, "Input string must be less than or equal to 32 bytes");
 
-    bytes32 finalResult;
+    bytes32 result;
     assembly {
-      finalResult := mload(add(result, 32))
+      result := mload(add(input, 32))
     }
-    return finalResult >> (8 * (32 - stringBytes.length));
+    return result >> (8 * (32 - bytes(input).length));
   }
 }
