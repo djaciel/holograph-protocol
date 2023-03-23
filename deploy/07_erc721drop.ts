@@ -134,18 +134,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"EditionsMetadataRendererProxy" is already deployed.');
   }
 
-  const futureDropsPriceOracleProxyAddress = await genesisDeriveFutureAddress(
-    hre,
-    salt,
-    'DropsPriceOracleProxy',
-    generateInitCode([], [])
-  );
-
   // Deploy the HolographDropERC721 custom contract source
   const HolographDropERC721InitCode = generateInitCode(
     [
       'tuple(address,address,address,address,uint64,uint16,bool,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)',
-      'address',
     ],
     [
       [
@@ -160,7 +152,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         futureEditionsMetadataRendererProxyAddress, // metadataRenderer
         generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
       ],
-      zeroAddress, // futureDropsPriceOracleProxyAddress,
     ]
   );
   const futureHolographDropERC721Address = await genesisDeriveFutureAddress(

@@ -144,6 +144,8 @@ contract HolographDropERC721Test is Test {
 
       // Connect the drop implementation to the drop proxy address
       erc721Drop = HolographDropERC721(payable(newDropAddress));
+      vm.prank(DEFAULT_OWNER_ADDRESS);
+      erc721Drop.setDropsPriceOracle(address(dummyPriceOracle));
     }
 
     _;
@@ -214,6 +216,8 @@ contract HolographDropERC721Test is Test {
 
       // Connect the drop implementation to the drop proxy address
       erc721Drop = HolographDropERC721(payable(newDropAddress));
+      vm.prank(DEFAULT_OWNER_ADDRESS);
+      erc721Drop.setDropsPriceOracle(address(dummyPriceOracle));
     }
 
     _;
@@ -298,8 +302,13 @@ contract HolographDropERC721Test is Test {
     factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
     Vm.Log[] memory entries = vm.getRecordedLogs();
     address newDropAddress = address(uint160(uint256(entries[3].topics[1])));
-    HolographDropERC721 drop = HolographDropERC721(payable(newDropAddress));
-    assertEq(drop.version(), "1.0.0");
+
+    // Connect the drop implementation to the drop proxy address
+    erc721Drop = HolographDropERC721(payable(newDropAddress));
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    erc721Drop.setDropsPriceOracle(address(dummyPriceOracle));
+
+    assertEq(erc721Drop.version(), "1.0.0");
   }
 
   function test_Init() public setupTestDrop(10) {
@@ -429,7 +438,6 @@ contract HolographDropERC721Test is Test {
     HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
     address sourceContractAddress = holographerInterface.getSourceContract();
     HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
-
 
     uint104 price = usd100;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
@@ -916,7 +924,7 @@ contract HolographDropERC721Test is Test {
     bytes memory initCode = abi.encode(
       bytes32(0x00000000000000000000000000486F6C6F677261706844726F70455243373231), // Source contract type HolographDropERC721
       address(Constants.getHolographRegistry()), // address of registry (to get source contract address from)
-      abi.encode(initializer, address(dummyPriceOracle)) // actual init code for source contract (HolographDropERC721)
+      abi.encode(initializer) // actual init code for source contract (HolographDropERC721)
     );
 
     return

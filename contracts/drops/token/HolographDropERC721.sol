@@ -252,11 +252,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
 
-    (DropsInitializer memory initializer, address dropsPriceOracle) = abi.decode(initPayload, (DropsInitializer, address));
-
-    assembly {
-      sstore(_dropsPriceOracleSlot, dropsPriceOracle)
-    }
+    DropsInitializer memory initializer = abi.decode(initPayload, (DropsInitializer));
 
     erc721TransferHelper = initializer.erc721TransferHelper;
     if (initializer.marketFilterAddress != address(0)) {
@@ -665,7 +661,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       newRenderer.initializeWithData(setupRenderer);
     }
 
-    emit UpdatedMetadataRenderer({sender: msg.sender, renderer: newRenderer});
+    emit UpdatedMetadataRenderer({sender: msgSender(), renderer: newRenderer});
   }
 
   /**
