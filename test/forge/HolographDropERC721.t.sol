@@ -426,9 +426,17 @@ contract HolographDropERC721Test is Test {
     vm.assume(amount > 0 && amount <= 10);
     vm.prank(DEFAULT_OWNER_ADDRESS);
 
+    HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
+    address sourceContractAddress = holographerInterface.getSourceContract();
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+
+
     uint104 price = usd100;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    erc721Drop.setSaleConfiguration({
+
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+
+    HolographDropERC721(payable(sourceContractAddress)).setSaleConfiguration({
       publicSaleStart: 0,
       publicSaleEnd: type(uint64).max,
       presaleStart: 0,
@@ -444,10 +452,6 @@ contract HolographDropERC721Test is Test {
 
     assertEq(erc721Drop.saleDetails().maxSupply, 10);
     assertEq(erc721Drop.saleDetails().totalMinted, amount);
-
-    HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
-    address sourceContractAddress = holographerInterface.getSourceContract();
-    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
 
     // First token ID is this long number due to the chain id prefix
     require(erc721Enforcer.ownerOf(FIRST_TOKEN_ID) == address(TEST_ACCOUNT), "owner is wrong for new minted token");
