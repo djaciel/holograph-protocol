@@ -252,7 +252,11 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
 
-    DropsInitializer memory initializer = abi.decode(initPayload, (DropsInitializer));
+    (DropsInitializer memory initializer, address dropsPriceOracle) = abi.decode(initPayload, (DropsInitializer, address));
+
+    assembly {
+      sstore(_dropsPriceOracleSlot, dropsPriceOracle)
+    }
 
     erc721TransferHelper = initializer.erc721TransferHelper;
     if (initializer.marketFilterAddress != address(0)) {
@@ -435,6 +439,13 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   }
 
   /**
+   * @notice Convert USD price to current price in native Ether
+   */
+  function getNativePrice() external view returns (uint256) {
+    return _usdToWei(salesConfig.publicSalePrice);
+  }
+
+  /**
    * @notice Token URI Getter, proxies to metadataRenderer
    * @param tokenId id of token to get URI for
    * @return Token URI
@@ -472,8 +483,9 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     uint256 salePrice = _usdToWei(salesConfig.publicSalePrice);
 
     if (msg.value < salePrice * quantity) {
-      revert Purchase_WrongPrice(salePrice * quantity);
+      revert Purchase_WrongPrice(salesConfig.publicSalePrice * quantity);
     }
+    uint256 remainder = msg.value - (salePrice * quantity);
 
     // If max purchase per address == 0 there is no limit.
     // Any other number, the per address mint limit is that.
@@ -497,6 +509,11 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       pricePerToken: salePrice,
       firstPurchasedTokenId: firstMintedTokenId
     });
+
+    if (remainder > 0) {
+      msgSender().call{value: remainder, gas: gasleft() > 210_000 ? 210_000 : gasleft()}("");
+    }
+
     return firstMintedTokenId;
   }
 
@@ -526,10 +543,11 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       revert Presale_MerkleNotApproved();
     }
 
-    uint256 weiPrice = _usdToWei(pricePerToken);
-    if (msg.value < weiPrice * quantity) {
-      revert Purchase_WrongPrice(weiPrice * quantity);
+    uint256 weiPricePerToken = _usdToWei(pricePerToken);
+    if (msg.value < weiPricePerToken * quantity) {
+      revert Purchase_WrongPrice(pricePerToken * quantity);
     }
+    uint256 remainder = msg.value - (weiPricePerToken * quantity);
 
     presaleMintsByAddress[msgSender()] += quantity;
     if (presaleMintsByAddress[msgSender()] > maxQuantity) {
@@ -545,9 +563,13 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     emit Sale({
       to: msgSender(),
       quantity: quantity,
-      pricePerToken: weiPrice,
+      pricePerToken: weiPricePerToken,
       firstPurchasedTokenId: firstMintedTokenId
     });
+
+    if (remainder > 0) {
+      msgSender().call{value: remainder, gas: gasleft() > 210_000 ? 210_000 : gasleft()}("");
+    }
 
     return firstMintedTokenId;
   }
@@ -737,6 +759,12 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     emit OpenMintFinalized(msgSender(), config.editionSize);
   }
 
+  function setDropsPriceOracle(address newDropsPriceOracle) external onlyOwner {
+    assembly {
+      sstore(_dropsPriceOracleSlot, newDropsPriceOracle)
+    }
+  }
+
   /**
    * INTERNAL FUNCTIONS
    * non state changing
@@ -755,14 +783,8 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     assembly {
       dropsPriceOracle := sload(_dropsPriceOracleSlot)
     }
-    //require(address(dropsPriceOracle) != address(0), "price oracle not set");
-    //weiAmount = dropsPriceOracle.convertUsdToWei(amount);
-    //// TODO: remove this later when oracle is actually implemented
-    if (address(dropsPriceOracle) != address(0)) {
-      weiAmount = dropsPriceOracle.convertUsdToWei(amount);
-    } else {
-      weiAmount = amount;
-    }
+    require(address(dropsPriceOracle) != address(0), "Price oracle not set");
+    weiAmount = dropsPriceOracle.convertUsdToWei(amount);
   }
 
   /**

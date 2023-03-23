@@ -907,6 +907,19 @@
   {
     "inputs": [
       {
+        "internalType": "address",
+        "name": "newDropsPriceOracle",
+        "type": "address"
+      }
+    ],
+    "name": "setDropsPriceOracle",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
         "internalType": "address payable",
         "name": "newRecipientAddress",
         "type": "address"
