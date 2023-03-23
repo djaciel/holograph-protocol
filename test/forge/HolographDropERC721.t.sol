@@ -144,7 +144,9 @@ contract HolographDropERC721Test is Test {
 
       // Connect the drop implementation to the drop proxy address
       erc721Drop = HolographDropERC721(payable(newDropAddress));
+      // TODO: remove this after DropsPriceOracle will be set as constant in Drops contract
       vm.prank(DEFAULT_OWNER_ADDRESS);
+      // TODO: remove this after DropsPriceOracle will be set as constant in Drops contract
       erc721Drop.setDropsPriceOracle(address(dummyPriceOracle));
     }
 
@@ -216,7 +218,9 @@ contract HolographDropERC721Test is Test {
 
       // Connect the drop implementation to the drop proxy address
       erc721Drop = HolographDropERC721(payable(newDropAddress));
+      // TODO: remove this after DropsPriceOracle will be set as constant in Drops contract
       vm.prank(DEFAULT_OWNER_ADDRESS);
+      // TODO: remove this after DropsPriceOracle will be set as constant in Drops contract
       erc721Drop.setDropsPriceOracle(address(dummyPriceOracle));
     }
 
@@ -305,7 +309,9 @@ contract HolographDropERC721Test is Test {
 
     // Connect the drop implementation to the drop proxy address
     erc721Drop = HolographDropERC721(payable(newDropAddress));
+    // TODO: remove this after DropsPriceOracle will be set as constant in Drops contract
     vm.prank(DEFAULT_OWNER_ADDRESS);
+    // TODO: remove this after DropsPriceOracle will be set as constant in Drops contract
     erc721Drop.setDropsPriceOracle(address(dummyPriceOracle));
 
     assertEq(erc721Drop.version(), "1.0.0");
