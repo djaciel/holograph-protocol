@@ -51,7 +51,7 @@ contract DropsPriceOracleEthereumTestnetGoerli is Admin, Initializable, IDropsPr
   function _getSushiUSDC(uint256 usdAmount) internal pure returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
     ////usdAmount = usdAmount * (10**(18 - 6));
-    //(uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdcPool.getReserves();
+    // (uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdcPool.getReserves();
     uint112 _reserve0 = 14248413024234;
     uint112 _reserve1 = 8237558200010903232972;
     // x is always native token / WETH
@@ -68,7 +68,7 @@ contract DropsPriceOracleEthereumTestnetGoerli is Admin, Initializable, IDropsPr
   function _getSushiUSDT(uint256 usdAmount) internal pure returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
     ////usdAmount = usdAmount * (10**(18 - 6));
-    ///(uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdtPool.getReserves();
+    // (uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdtPool.getReserves();
     uint112 _reserve0 = 7190540826553156156218;
     uint112 _reserve1 = 12394808861997;
     // x is always native token / WETH
@@ -85,7 +85,7 @@ contract DropsPriceOracleEthereumTestnetGoerli is Admin, Initializable, IDropsPr
   function _getUniUSDC(uint256 usdAmount) internal pure returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
     ////usdAmount = usdAmount * (10**(18 - 6));
-    //(uint112 _reserve0, uint112 _reserve1,) = UniV2UsdcPool.getReserves();
+    // (uint112 _reserve0, uint112 _reserve1,) = UniV2UsdcPool.getReserves();
     uint112 _reserve0 = 27969935741431;
     uint112 _reserve1 = 16175569695347837629371;
     // x is always native token / WETH
@@ -102,7 +102,7 @@ contract DropsPriceOracleEthereumTestnetGoerli is Admin, Initializable, IDropsPr
   function _getUniUSDT(uint256 usdAmount) internal pure returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
     ////usdAmount = usdAmount * (10**(18 - 6));
-    //(uint112 _reserve0, uint112 _reserve1,) = UniV2UsdtPool.getReserves();
+    // (uint112 _reserve0, uint112 _reserve1,) = UniV2UsdtPool.getReserves();
     uint112 _reserve0 = 16492332449237327237450;
     uint112 _reserve1 = 28443279643692;
     // x is always native token / WETH
