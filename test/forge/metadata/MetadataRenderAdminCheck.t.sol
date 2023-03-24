@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity 0.8.13;
 
-import {EditionMetadataRenderer} from "../../../contracts/drops/metadata/EditionMetadataRenderer.sol";
+import {EditionsMetadataRenderer} from "../../../contracts/drops/metadata/EditionsMetadataRenderer.sol";
 import {MetadataRenderAdminCheck} from "../../../contracts/drops/metadata/MetadataRenderAdminCheck.sol";
 import {DropMockBase} from "./DropMockBase.sol";
 import {Test} from "forge-std/Test.sol";
@@ -14,7 +14,7 @@ contract TestAdmin is MetadataRenderAdminCheck {
   }
 }
 
-contract EditionMetadataRendererTest is Test {
+contract EditionsMetadataRendererTest is Test {
   DropMockBase public mockBase;
   TestAdmin public testAdmin;
 

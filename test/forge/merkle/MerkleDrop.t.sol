@@ -2,7 +2,7 @@
 // pragma solidity 0.8.13;
 
 // import {Test} from "forge-std/Test.sol";
-// import {IHolographERC721Drop} from "../../../contracts/drops/interfaces/IHolographERC721Drop.sol";
+// import {IHolographDropERC721} from "../../../contracts/drops/interfaces/IHolographDropERC721.sol";
 // import {HolographERC721Drop} from "../../../contracts/drops/HolographERC721Drop.sol";
 // import {HolographFeeManager} from "../../../contracts/drops/HolographFeeManager.sol";
 // import {DummyMetadataRenderer} from "../utils/DummyMetadataRenderer.sol";
@@ -116,7 +116,7 @@
 //     vm.deal(address(item.user), 1 ether);
 //     vm.startPrank(address(item.user));
 
-//     vm.expectRevert(IHolographERC721Drop.Presale_TooManyForAddress.selector);
+//     vm.expectRevert(IHolographDropERC721.Presale_TooManyForAddress.selector);
 //     holographNFTBase.purchasePresale{value: item.mintPrice * 3}(3, item.maxMint, item.mintPrice, item.proof);
 
 //     holographNFTBase.purchasePresale{value: item.mintPrice * 1}(1, item.maxMint, item.mintPrice, item.proof);
@@ -124,12 +124,12 @@
 //     assertEq(holographNFTBase.saleDetails().totalMinted, 2);
 //     require(holographNFTBase.ownerOf(1) == address(item.user), "owner is wrong for new minted token");
 
-//     vm.expectRevert(IHolographERC721Drop.Presale_TooManyForAddress.selector);
+//     vm.expectRevert(IHolographDropERC721.Presale_TooManyForAddress.selector);
 //     holographNFTBase.purchasePresale{value: item.mintPrice * 1}(1, item.maxMint, item.mintPrice, item.proof);
 
 //     holographNFTBase.purchase{value: 0.1 ether}(1);
 //     require(holographNFTBase.ownerOf(3) == address(item.user), "owner is wrong for new minted token");
-//     vm.expectRevert(IHolographERC721Drop.Purchase_TooManyForAddress.selector);
+//     vm.expectRevert(IHolographDropERC721.Purchase_TooManyForAddress.selector);
 //     holographNFTBase.purchase{value: 0.1 ether}(1);
 //     vm.stopPrank();
 //   }
@@ -166,7 +166,7 @@
 //     vm.deal(address(item.user), 1 ether);
 //     vm.startPrank(address(item.user));
 
-//     vm.expectRevert(IHolographERC721Drop.Mint_SoldOut.selector);
+//     vm.expectRevert(IHolographDropERC721.Mint_SoldOut.selector);
 //     holographNFTBase.purchasePresale{value: item.mintPrice}(1, item.maxMint, item.mintPrice, item.proof);
 //     vm.stopPrank();
 //   }
@@ -189,7 +189,7 @@
 
 //     vm.startPrank(address(0x10));
 //     MerkleData.MerkleEntry memory item = merkleData.getTestSetByName("test-3-addresses").entries[0];
-//     vm.expectRevert(IHolographERC721Drop.Presale_Inactive.selector);
+//     vm.expectRevert(IHolographDropERC721.Presale_Inactive.selector);
 //     holographNFTBase.purchasePresale{value: item.mintPrice}(1, item.maxMint, item.mintPrice, item.proof);
 //   }
 // }

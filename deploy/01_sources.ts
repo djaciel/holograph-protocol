@@ -47,6 +47,7 @@ import {
   StrictECDSA,
   txParams,
 } from '../scripts/utils/helpers';
+import { reservedNamespaceHashes } from '../scripts/utils/reserved-namespaces';
 import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
@@ -776,22 +777,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         ['address', 'bytes'],
         [
           futureRegistryAddress,
-          generateInitCode(
-            ['address', 'bytes32[]'],
-            [
-              futureHolographAddress,
-              [
-                '0x' + web3.utils.asciiToHex('HolographGeneric').substring(2).padStart(64, '0'),
-                '0x' + web3.utils.asciiToHex('HolographERC20').substring(2).padStart(64, '0'),
-                '0x' + web3.utils.asciiToHex('HolographERC721').substring(2).padStart(64, '0'),
-                '0x' + web3.utils.asciiToHex('HolographERC721Drop').substring(2).padStart(64, '0'),
-                '0x' + web3.utils.asciiToHex('HolographERC1155').substring(2).padStart(64, '0'),
-                '0x' + web3.utils.asciiToHex('CxipERC721').substring(2).padStart(64, '0'),
-                '0x' + web3.utils.asciiToHex('CxipERC1155').substring(2).padStart(64, '0'),
-                '0x' + web3.utils.asciiToHex('HolographRoyalties').substring(2).padStart(64, '0'),
-              ],
-            ]
-          ),
+          generateInitCode(['address', 'bytes32[]'], [futureHolographAddress, reservedNamespaceHashes]),
         ]
       ),
       futureRegistryProxyAddress

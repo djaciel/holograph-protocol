@@ -4,14 +4,14 @@ pragma solidity 0.8.13;
 import {Test} from "forge-std/Test.sol";
 
 import {DropMockBase} from "./DropMockBase.sol";
-import {DropMetadataRenderer} from "../../../contracts/drops/metadata/DropMetadataRenderer.sol";
+import {DropsMetadataRenderer} from "../../../contracts/drops/metadata/DropsMetadataRenderer.sol";
 
-contract DropMetadataRendererTest is Test {
+contract DropsMetadataRendererTest is Test {
   address public constant mediaContract = address(123456);
-  DropMetadataRenderer public renderer;
+  DropsMetadataRenderer public renderer;
 
   function setUp() public {
-    renderer = new DropMetadataRenderer();
+    renderer = new DropsMetadataRenderer();
   }
 
   function test_SetupInitializes() public {
