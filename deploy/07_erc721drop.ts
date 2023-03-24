@@ -8,6 +8,7 @@ import {
   genesisDeployHelper,
   generateInitCode,
   genesisDeriveFutureAddress,
+  zeroAddress,
 } from '../scripts/utils/helpers';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
@@ -140,8 +141,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     ],
     [
       [
-        '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
-        '0x0000000000000000000000000000000000000000', // marketFilterAddress (opensea)
+        zeroAddress, // holographERC721TransferHelper
+        zeroAddress, // marketFilterAddress (opensea)
         deployer.address, // initialOwner
         deployer.address, // fundsRecipient
         0, // 1000 editions
