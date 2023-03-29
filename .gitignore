@@ -10,6 +10,8 @@ ignore.*
 
 dist
 cache
+cache_foundry
+cache_hardhat
 ganache
 artifacts
 typechain-types
