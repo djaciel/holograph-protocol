@@ -141,9 +141,7 @@ abstract contract ERC721H is Initializable {
     return _init(initPayload);
   }
 
-  function _init(
-    bytes memory /* initPayload*/
-  ) internal returns (bytes4) {
+  function _init(bytes memory /* initPayload*/) internal returns (bytes4) {
     require(!_isInitialized(), "ERC721: already initialized");
     address _holographer = msg.sender;
     address currentOwner;

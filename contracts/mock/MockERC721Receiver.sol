@@ -125,9 +125,9 @@ contract MockERC721Receiver is ERC165, ERC721TokenReceiver {
   }
 
   function onERC721Received(
-    address, /*operator*/
-    address, /*from*/
-    uint256, /*tokenId*/
+    address /*operator*/,
+    address /*from*/,
+    uint256 /*tokenId*/,
     bytes calldata /*data*/
   ) external view returns (bytes4) {
     if (_works) {
@@ -137,11 +137,7 @@ contract MockERC721Receiver is ERC165, ERC721TokenReceiver {
     }
   }
 
-  function transferNFT(
-    address payable token,
-    uint256 tokenId,
-    address to
-  ) external {
+  function transferNFT(address payable token, uint256 tokenId, address to) external {
     ERC721(token).safeTransferFrom(address(this), to, tokenId);
   }
 }

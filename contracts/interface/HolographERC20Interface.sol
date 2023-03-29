@@ -128,9 +128,5 @@ interface HolographERC20Interface is
 
   function sourceMintBatch(address[] calldata wallets, uint256[] calldata amounts) external;
 
-  function sourceTransfer(
-    address from,
-    address to,
-    uint256 amount
-  ) external;
+  function sourceTransfer(address from, address to, uint256 amount) external;
 }

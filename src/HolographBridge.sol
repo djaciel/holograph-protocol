@@ -89,7 +89,7 @@ contract HolographBridge is Admin, Initializable, HolographBridgeInterface {
    * @param bridgeInPayload actual abi encoded bytes of the data that the holographable contract bridgeIn function will receive
    */
   function bridgeInRequest(
-    uint256, /* nonce*/
+    uint256 /* nonce*/,
     uint32 fromChain,
     address holographableContract,
     address hToken,
@@ -325,20 +325,7 @@ contract HolographBridge is Admin, Initializable, HolographBridgeInterface {
    * @return msgFee the amount (in wei) of native gas token that will cost for sending message to destiantion chain
    * @return dstGasPrice the amount (in wei) that destination message maximum gas price will be
    */
-  function getMessageFee(
-    uint32,
-    uint256,
-    uint256,
-    bytes calldata
-  )
-    external
-    view
-    returns (
-      uint256,
-      uint256,
-      uint256
-    )
-  {
+  function getMessageFee(uint32, uint256, uint256, bytes calldata) external view returns (uint256, uint256, uint256) {
     assembly {
       calldatacopy(0, 0, calldatasize())
       let result := staticcall(gas(), sload(_operatorSlot), 0, calldatasize(), 0, 0)

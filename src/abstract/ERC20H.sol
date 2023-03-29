@@ -42,9 +42,7 @@ abstract contract ERC20H is Initializable {
     return _init(initPayload);
   }
 
-  function _init(
-    bytes memory /* initPayload*/
-  ) internal returns (bytes4) {
+  function _init(bytes memory /* initPayload*/) internal returns (bytes4) {
     require(!_isInitialized(), "ERC20: already initialized");
     address _holographer = msg.sender;
     address currentOwner;

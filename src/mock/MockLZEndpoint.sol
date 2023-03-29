@@ -20,8 +20,8 @@ contract MockLZEndpoint is Admin {
     uint16 _dstChainId,
     bytes calldata _destination,
     bytes calldata _payload,
-    address payable, /* _refundAddress*/
-    address, /* _zroPaymentAddress*/
+    address payable /* _refundAddress*/,
+    address /* _zroPaymentAddress*/,
     bytes calldata /* _adapterParams*/
   ) external payable {
     // we really don't care about anything and just emit an event that we can leverage for multichain replication
@@ -35,8 +35,8 @@ contract MockLZEndpoint is Admin {
     bool,
     bytes calldata
   ) external pure returns (uint256 nativeFee, uint256 zroFee) {
-    nativeFee = 10**15;
-    zroFee = 10**7;
+    nativeFee = 10 ** 15;
+    zroFee = 10 ** 7;
   }
 
   function defaultSendLibrary() external view returns (address) {
@@ -48,29 +48,20 @@ contract MockLZEndpoint is Admin {
   }
 
   function dstPriceLookup(uint16) external pure returns (uint128 dstPriceRatio, uint128 dstGasPriceInWei) {
-    dstPriceRatio = 10**10;
+    dstPriceRatio = 10 ** 10;
     dstGasPriceInWei = 1000000000;
   }
 
-  function dstConfigLookup(uint16, uint16)
-    external
-    pure
-    returns (
-      uint128 dstNativeAmtCap,
-      uint64 baseGas,
-      uint64 gasPerByte
-    )
-  {
-    dstNativeAmtCap = 10**18;
+  function dstConfigLookup(
+    uint16,
+    uint16
+  ) external pure returns (uint128 dstNativeAmtCap, uint64 baseGas, uint64 gasPerByte) {
+    dstNativeAmtCap = 10 ** 18;
     baseGas = 50000;
     gasPerByte = 25;
   }
 
-  function crossChainMessage(
-    address target,
-    uint256 gasLimit,
-    bytes calldata payload
-  ) external {
+  function crossChainMessage(address target, uint256 gasLimit, bytes calldata payload) external {
     HolographOperatorInterface(target).crossChainMessage{gas: gasLimit}(payload);
   }
 }
