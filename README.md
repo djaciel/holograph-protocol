@@ -82,9 +82,9 @@ Holographer exists at the core of all _Holographed_ smart contracts, which is ap
 
 Enforcer enables and ensures complete standards, compliance, and operability for a given standard type. HolographERC20 and HolographERC721 are perfect examples of such Enforcers. Enforcers store and manage all data within themselves to ensure security, compliance, integrity, and enforcement of all protocols. Communication is established with custom contracts via specific event hooks. The storage/data layer is isolated privately and not directly accessible by custom contracts.
 
-#### PA1D.sol
+#### HolographRoyalties.sol
 
-PA1D is an on-chain royalties contract for non-fungible token types. It supports a universal module that understands and speaks all of the different royalty standards on the blockchain. PA1D is built to be extendable and can have new royalty standards implemented as they are created and agreed upon.
+HolographRoyalties is an on-chain royalties contract for non-fungible token types. It supports a universal module that understands and speaks all of the different royalty standards on the blockchain. HolographRoyalties is built to be extendable and can have new royalty standards implemented as they are created and agreed upon.
 
 #### Interfaces.sol
 

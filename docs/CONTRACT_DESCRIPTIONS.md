@@ -62,9 +62,9 @@ This enforcer interacts with our bridge flow to allow ERC20 tokens to be moved b
 
 This enforcer interacts with our bridge flow to allow ERC721 tokens to be moved between blockchains. It supports the `HolographERC721Interface`.
 
-### enforcer/PA1D.sol
+### enforcer/HolographRoyalties.sol
 
-PA1D is an on-chain royalties contract for non-fungible token types. It supports a universal module that understands and speaks all of the different royalty standards on the blockchain. PA1D is built to be extendable and can have new royalty standards implemented as they are created and agreed upon.
+HolographRoyalties is an on-chain royalties contract for non-fungible token types. It supports a universal module that understands and speaks all of the different royalty standards on the blockchain. HolographRoyalties is built to be extendable and can have new royalty standards implemented as they are created and agreed upon.
 
 ## Abstract Contracts
 
