@@ -108,11 +108,6 @@ const ETHEREUM_TESTNET_RINKEBY_PRIVATE_KEY = process.env.ETHEREUM_TESTNET_RINKEB
 const POLYGON_PRIVATE_KEY = process.env.POLYGON_PRIVATE_KEY || DEPLOYER;
 const POLYGON_TESTNET_PRIVATE_KEY = process.env.POLYGON_TESTNET_PRIVATE_KEY || DEPLOYER;
 
-const ETHERSCAN_API_KEY: string = process.env.ETHERSCAN_API_KEY || '';
-const POLYGONSCAN_API_KEY: string = process.env.POLYGONSCAN_API_KEY || '';
-const AVALANCHE_API_KEY: string = process.env.AVALANCHE_API_KEY || '';
-const BINANCE_SMART_CHAIN_API_KEY: string = process.env.BINANCE_SMART_CHAIN_API_KEY || '';
-
 const selectDeploymentSalt = (): number => {
   let salt;
   switch (currentEnvironment) {
@@ -357,18 +352,20 @@ const config: HardhatUserConfig = {
     currency: 'USD',
     coinmarketcap: process.env.COINMARKETCAP_API_KEY || '',
     token: 'ETH',
-    gasPriceApi: 'https://api.binanceSmartChainscan.com/api?module=proxy&action=ethereumTestnet_gasPrice',
+    gasPriceApi: process.env.PRIVACY_MODE
+      ? ''
+      : 'https://api.binanceSmartChainscan.com/api?module=proxy&action=ethereumTestnet_gasPrice',
   },
   etherscan: {
     apiKey: {
-      mainnet: ETHERSCAN_API_KEY,
-      rinkeby: ETHERSCAN_API_KEY,
-      goerli: ETHERSCAN_API_KEY,
-      polygon: POLYGONSCAN_API_KEY,
-      polygonMumbai: POLYGONSCAN_API_KEY,
-      avalanche: AVALANCHE_API_KEY,
-      avalancheFujiTestnet: AVALANCHE_API_KEY,
-      bscTestnet: BINANCE_SMART_CHAIN_API_KEY,
+      mainnet: process.env.ETHERSCAN_API_KEY || '',
+      goerli: process.env.ETHERSCAN_API_KEY || '',
+      avalanche: process.env.SNOWTRACE_API_KEY || '',
+      avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY || '',
+      polygon: process.env.POLYGONSCAN_API_KEY || '',
+      polygonMumbai: process.env.POLYGONSCAN_API_KEY || '',
+      bsc: process.env.BSCSCAN_API_KEY || '',
+      bscTestnet: process.env.BSCSCAN_API_KEY || '',
     },
   },
   hardhatHolographContractBuilder: {

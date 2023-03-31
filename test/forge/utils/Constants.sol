@@ -50,4 +50,8 @@ library Constants {
   function getOpenseaRoyaltiesRegistry() internal pure returns (address) {
     return address(0x000000000000AAeB6D7670E522A718067333cd4E);
   }
+
+  function getDropsPriceOracleProxy() internal pure returns (address) {
+    return address(0xA3Db09EEC42BAfF7A50fb8F9aF90A0e035Ef3302);
+  }
 }

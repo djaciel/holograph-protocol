@@ -23,33 +23,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const currentNetworkType: NetworkType = networks[hre.network.name].type;
 
   if (currentNetworkType != NetworkType.local) {
-    let contracts: string[] = [
-      'HolographUtilityToken',
-      'hToken',
-      'Holograph',
-      'HolographBridge',
-      'HolographBridgeProxy',
-      'Holographer',
-      'HolographERC20',
-      'HolographERC721',
-      'HolographDropERC721',
-      'HolographFactory',
-      'HolographFactoryProxy',
-      'HolographGeneric',
-      'HolographGenesis',
-      'HolographOperator',
-      'HolographOperatorProxy',
-      'HolographRegistry',
-      'HolographRegistryProxy',
-      'HolographTreasury',
-      'HolographTreasuryProxy',
-      'HolographInterfaces',
-      'HolographRoyalties',
-      'CxipERC721',
-      'CxipERC721Proxy',
-      'Faucet',
-      'LayerZeroModule',
-    ];
+    let contracts: string[] = ['DropsPriceOracleProxy', 'EditionsMetadataRendererProxy', 'DropsMetadataRendererProxy'];
     for (let i: number = 0, l: number = contracts.length; i < l; i++) {
       let contract: string = contracts[i];
       try {

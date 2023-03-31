@@ -64,8 +64,8 @@ contract DropsPriceOracleAvalancheTestnet is Admin, Initializable, IDropsPriceOr
     // add decimal places for amount IF decimals are above 6!
     ////usdAmount = usdAmount * (10**(18 - 6));
     // (uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdtPool.getReserves();
-    uint112 _reserve0 = 1436985;
-    uint112 _reserve1 = 85795706618378837;
+    uint112 _reserve0 = 2205199060;
+    uint112 _reserve1 = 133224784402692878349;
     // x is always native token / WAVAX
     uint256 x = _reserve1;
     // y is always USD token / USDT

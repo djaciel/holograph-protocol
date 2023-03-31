@@ -39,14 +39,19 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    */
 
   /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.dropsPriceOracle')) - 1)
-   */
-  bytes32 constant _dropsPriceOracleSlot = precomputeslot("eip1967.Holograph.dropsPriceOracle");
-
-  /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.osRegistryEnabled')) - 1)
    */
   bytes32 constant _osRegistryEnabledSlot = precomputeslot("eip1967.Holograph.osRegistryEnabled");
+
+  /**
+   * @dev Address of the operator filter registry
+   */
+  IOperatorFilterRegistry public constant openseaOperatorFilterRegistry = IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
+
+  /**
+   * @dev Address of the price oracle proxy
+   */
+  IDropsPriceOracle public constant dropsPriceOracle = IDropsPriceOracle(0xA3Db09EEC42BAfF7A50fb8F9aF90A0e035Ef3302);
 
   /**
    * @dev Internal reference used for minting incremental token ids.
@@ -62,11 +67,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * @dev Address of the market filter registry
    */
   address public marketFilterAddress;
-
-  /**
-   * @dev Address of the operator filter registry
-   */
-  IOperatorFilterRegistry public constant openseaOperatorFilterRegistry = IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
 
   /**
    * @notice Configuration for NFT minting contract storage
@@ -656,12 +656,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     emit OpenMintFinalized(msgSender(), config.editionSize);
   }
 
-  function setDropsPriceOracle(address newDropsPriceOracle) external onlyOwner {
-    assembly {
-      sstore(_dropsPriceOracleSlot, newDropsPriceOracle)
-    }
-  }
-
   /**
    * INTERNAL FUNCTIONS
    * non state changing
@@ -676,11 +670,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   }
 
   function _usdToWei(uint256 amount) internal view returns (uint256 weiAmount) {
-    IDropsPriceOracle dropsPriceOracle;
-    assembly {
-      dropsPriceOracle := sload(_dropsPriceOracleSlot)
-    }
-    require(address(dropsPriceOracle) != address(0), "Price oracle not set");
     weiAmount = dropsPriceOracle.convertUsdToWei(amount);
   }
 

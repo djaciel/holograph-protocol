@@ -33,6 +33,7 @@ import {OperatorFilterRegistryErrorsAndEvents} from "./filter/OperatorFilterRegi
 import {DropsMetadataRenderer} from "../../contracts/drops/metadata/DropsMetadataRenderer.sol";
 import {EditionsMetadataRenderer} from "../../contracts/drops/metadata/EditionsMetadataRenderer.sol";
 
+import {DropsPriceOracleProxy} from "../../contracts/drops/proxy/DropsPriceOracleProxy.sol";
 import {DummyDropsPriceOracle} from "../../contracts/drops/oracle/DummyDropsPriceOracle.sol";
 
 contract HolographDropERC721Test is Test {
@@ -58,7 +59,7 @@ contract HolographDropERC721Test is Test {
   DummyMetadataRenderer public dummyRenderer = new DummyMetadataRenderer();
   EditionsMetadataRenderer public editionsMetadataRenderer;
   DropsMetadataRenderer public dropsMetadataRenderer;
-  DummyDropsPriceOracle public dummyPriceOracle = new DummyDropsPriceOracle();
+  DummyDropsPriceOracle public dummyPriceOracle;
 
   uint104 constant usd10 = 10 * (10**6); // 10 USD (6 decimal places)
   uint104 constant usd100 = 100 * (10**6); // 100 USD (6 decimal places)
@@ -144,10 +145,6 @@ contract HolographDropERC721Test is Test {
 
       // Connect the drop implementation to the drop proxy address
       erc721Drop = HolographDropERC721(payable(newDropAddress));
-      // TODO: remove this after DropsPriceOracle will be set as constant in Drops contract
-      vm.prank(DEFAULT_OWNER_ADDRESS);
-      // TODO: remove this after DropsPriceOracle will be set as constant in Drops contract
-      erc721Drop.setDropsPriceOracle(address(dummyPriceOracle));
     }
 
     _;
@@ -218,10 +215,6 @@ contract HolographDropERC721Test is Test {
 
       // Connect the drop implementation to the drop proxy address
       erc721Drop = HolographDropERC721(payable(newDropAddress));
-      // TODO: remove this after DropsPriceOracle will be set as constant in Drops contract
-      vm.prank(DEFAULT_OWNER_ADDRESS);
-      // TODO: remove this after DropsPriceOracle will be set as constant in Drops contract
-      erc721Drop.setDropsPriceOracle(address(dummyPriceOracle));
     }
 
     _;
@@ -243,8 +236,18 @@ contract HolographDropERC721Test is Test {
     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
 
     vm.etch(address(Constants.getOpenseaRoyaltiesRegistry()), address(new OperatorFilterRegistry()).code);
+
+    dummyPriceOracle = new DummyDropsPriceOracle();
+    // we deploy DropsPriceOracleProxy at specific address
+    vm.etch(address(Constants.getDropsPriceOracleProxy()), address(new DropsPriceOracleProxy()).code);
+    // we set storage slot to point to actual drop implementation
+    vm.store(
+      address(Constants.getDropsPriceOracleProxy()),
+      bytes32(uint256(keccak256("eip1967.Holograph.dropsPriceOracle")) - 1),
+      bytes32(abi.encode(address(dummyPriceOracle)))
+    );
+
     ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x666)));
-    vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
     dropsMetadataRenderer = new DropsMetadataRenderer();
   }
 
@@ -309,10 +312,6 @@ contract HolographDropERC721Test is Test {
 
     // Connect the drop implementation to the drop proxy address
     erc721Drop = HolographDropERC721(payable(newDropAddress));
-    // TODO: remove this after DropsPriceOracle will be set as constant in Drops contract
-    vm.prank(DEFAULT_OWNER_ADDRESS);
-    // TODO: remove this after DropsPriceOracle will be set as constant in Drops contract
-    erc721Drop.setDropsPriceOracle(address(dummyPriceOracle));
 
     assertEq(erc721Drop.version(), "1.0.0");
   }
@@ -925,7 +924,6 @@ contract HolographDropERC721Test is Test {
     bool skipInit,
     DropsInitializer memory initializer
   ) public returns (DeploymentConfig memory) {
-    dummyPriceOracle = new DummyDropsPriceOracle();
     bytes memory bytecode = abi.encodePacked(vm.getCode("HolographDropERC721Proxy.sol:HolographDropERC721Proxy"));
     bytes memory initCode = abi.encode(
       bytes32(0x00000000000000000000000000486F6C6F677261706844726F70455243373231), // Source contract type HolographDropERC721

@@ -474,6 +474,19 @@
   },
   {
     "inputs": [],
+    "name": "dropsPriceOracle",
+    "outputs": [
+      {
+        "internalType": "contract IDropsPriceOracle",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
     "name": "erc721TransferHelper",
     "outputs": [
       {
@@ -915,19 +928,6 @@
       }
     ],
     "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "newDropsPriceOracle",
-        "type": "address"
-      }
-    ],
-    "name": "setDropsPriceOracle",
-    "outputs": [],
-    "stateMutability": "nonpayable",
     "type": "function"
   },
   {
