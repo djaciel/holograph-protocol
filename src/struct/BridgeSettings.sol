@@ -2,7 +2,7 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-struct BeamSettings {
+struct BridgeSettings {
   uint256 value;
   uint256 gasLimit;
   uint256 gasPrice;

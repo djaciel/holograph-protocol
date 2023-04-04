@@ -14,7 +14,7 @@ import "./interface/HolographInterface.sol";
 import "./interface/HolographRegistryInterface.sol";
 import "./interface/InitializableInterface.sol";
 
-import "./struct/BeamSettings.sol";
+import "./struct/BridgeSettings.sol";
 import "./struct/DeploymentConfig.sol";
 import "./struct/Verification.sol";
 
@@ -91,7 +91,7 @@ contract HolographFactory is Admin, Initializable, Holographable, HolographFacto
     Verification memory signature,
     address signer,
     bool deployOnCurrentChain,
-    BeamSettings[] memory beamSettings
+    BridgeSettings[] memory bridgeSettings
   ) external payable {
     if (deployOnCurrentChain) {
       deployHolographableContract(config, signature, signer);
@@ -102,13 +102,13 @@ contract HolographFactory is Admin, Initializable, Holographable, HolographFacto
       holograph := sload(_holographSlot)
     }
     HolographBridgeInterface bridge = HolographBridgeInterface(holograph.getBridge());
-    uint256 l = beamSettings.length;
+    uint256 l = bridgeSettings.length;
     for (uint256 i = 0; i < l; i++) {
-      bridge.bridgeOutRequest{value: beamSettings[i].value}(
-        beamSettings[i].toChain,
+      bridge.bridgeOutRequest{value: bridgeSettings[i].value}(
+        bridgeSettings[i].toChain,
         address(this),
-        beamSettings[i].gasLimit,
-        beamSettings[i].gasPrice,
+        bridgeSettings[i].gasLimit,
+        bridgeSettings[i].gasPrice,
         payload
       );
     }

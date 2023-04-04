@@ -101,7 +101,7 @@
 
 pragma solidity 0.8.13;
 
-struct BeamSettings {
+struct BridgeSettings {
   uint256 value;
   uint256 gasLimit;
   uint256 gasPrice;
