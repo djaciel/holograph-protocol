@@ -105,6 +105,7 @@ import {ERC721H} from "../../abstract/ERC721H.sol";
 import {NonReentrant} from "../../abstract/NonReentrant.sol";
 
 import {HolographERC721Interface} from "../../interface/HolographERC721Interface.sol";
+import {HolographerInterface} from "../../interface/HolographerInterface.sol";
 import {HolographInterface} from "../../interface/HolographInterface.sol";
 
 import {AddressMintDetails} from "../struct/AddressMintDetails.sol";
@@ -715,7 +716,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
     // Get fee amount
     uint256 funds = address(this).balance;
-    address payable feeRecipient = payable(HolographInterface(holographer()).getTreasury());
+    address payable feeRecipient = payable(HolographInterface(HolographerInterface(holographer()).getHolograph()).getTreasury());
     // for now set it to 0 since there is no fee
     uint256 holographFee = 0;
 
