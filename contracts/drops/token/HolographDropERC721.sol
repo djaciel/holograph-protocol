@@ -793,4 +793,10 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       //uint256 id = chainPrepend + uint256(tokenId);
     }
   }
+
+  fallback() external override payable {
+    assembly{
+      revert(0x00, 0x00)
+    }
+  }
 }
