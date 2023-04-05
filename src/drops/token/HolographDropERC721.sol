@@ -344,6 +344,13 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   }
 
   /**
+   * @notice Returns the name of the token through the holographer entrypoint
+   */
+  function name() external view returns (string memory) {
+    return HolographERC721Interface(holographer()).name();
+  }
+
+  /**
    * @notice Token URI Getter, proxies to metadataRenderer
    * @param tokenId id of token to get URI for
    * @return Token URI
