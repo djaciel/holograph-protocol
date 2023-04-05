@@ -113,7 +113,7 @@ import "../interface/HolographRoyaltiesInterface.sol";
 import "../struct/ZoraBidShares.sol";
 
 /**
- * @title HolographRoyalties (previously PA1D)
+ * @title HolographRoyalties
  * @author Holograph Foundation
  * @notice A smart contract for providing royalty info, collecting royalties, and distributing it to configured payout wallets.
  * @dev This smart contract is not intended to be used directly. Apply it to any of your ERC721 or ERC1155 smart contracts through a delegatecall fallback.

@@ -241,7 +241,6 @@ contract HolographDropERC721Test is Test {
     alice = vm.addr(1);
 
     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
-
     vm.etch(address(Constants.getOpenseaRoyaltiesRegistry()), address(new OperatorFilterRegistry()).code);
     ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x666)));
     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
