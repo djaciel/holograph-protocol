@@ -919,19 +919,7 @@ contract HolographDropERC721Test is Test {
     (bool success, bytes memory result) = address(erc721Drop).call(abi.encodeWithSelector(functionSignature));
 
     require(!success, "Function call should fail");
-
-    if (result.length >= 20) {
-      // The length of the error message is 20 bytes
-      // Extract the error message directly from the result bytes
-      bytes memory errorMessageBytes = new bytes(20);
-      for (uint256 i = 0; i < 20; i++) {
-        errorMessageBytes[i] = result[i];
-      }
-
-      // Convert the error message bytes to a string
-      string memory errorMessage = string(errorMessageBytes);
-      console.log(errorMessage);
-    }
+    console.log(string(result));
   }
 
   // TEST HELPERS
