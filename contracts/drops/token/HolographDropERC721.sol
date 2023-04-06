@@ -809,8 +809,8 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       // Allocate memory for the error message
       let errorMsg := mload(0x40)
 
-      // Error message: "Function not found"
-      mstore(errorMsg, 0x46756e6374696f6e206e6f7420666f756e6400)
+      // Error message: "Function not found", properly padded with zeroes
+      mstore(errorMsg, 0x46756e6374696f6e206e6f7420666f756e640000000000000000000000000000)
 
       // Revert with the error message
       revert(errorMsg, 20) // 20 is the length of the error message in bytes

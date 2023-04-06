@@ -915,9 +915,23 @@ contract HolographDropERC721Test is Test {
   }
 
   function test_Fallback() public setupTestDrop(10) {
-    bytes4 functionSignature = bytes4(keccak256("cxipMint()"));
+    bytes4 functionSignature = bytes4(keccak256("nonExistentFunction()"));
     (bool success, bytes memory result) = address(erc721Drop).call(abi.encodeWithSelector(functionSignature));
-    require(!success, "Fallback should fail"); // TODO: Use expectRevert with revert message?
+
+    require(!success, "Function call should fail");
+
+    if (result.length >= 20) {
+      // The length of the error message is 20 bytes
+      // Extract the error message directly from the result bytes
+      bytes memory errorMessageBytes = new bytes(20);
+      for (uint256 i = 0; i < 20; i++) {
+        errorMessageBytes[i] = result[i];
+      }
+
+      // Convert the error message bytes to a string
+      string memory errorMessage = string(errorMessageBytes);
+      console.log(errorMessage);
+    }
   }
 
   // TEST HELPERS
