@@ -915,6 +915,12 @@ contract HolographDropERC721Test is Test {
     require(!erc721Drop.supportsInterface(0x0000000), "doesnt allow non-interface");
   }
 
+  function test_Fallback() public setupTestDrop(10) {
+    bytes4 functionSignature = bytes4(keccak256("cxipMint()"));
+    (bool success, bytes memory result) = address(erc721Drop).call(abi.encodeWithSelector(functionSignature));
+    require(!success, "Fallback should fail"); // TODO: Use expectRevert with revert message?
+  }
+
   // TEST HELPERS
   function getDeploymentConfig(
     string memory contractName,
