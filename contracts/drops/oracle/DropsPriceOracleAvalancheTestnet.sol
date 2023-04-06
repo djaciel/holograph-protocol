@@ -45,7 +45,7 @@ contract DropsPriceOracleAvalancheTestnet is Admin, Initializable, IDropsPriceOr
 
   function _getSushiUSDC(uint256 usdAmount) internal pure returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    ////usdAmount = usdAmount * (10**(18 - 6));
+    // usdAmount = usdAmount * (10**(18 - 6));
     // (uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdcPool.getReserves();
     uint112 _reserve0 = 133224784402692878349;
     uint112 _reserve1 = 2205199060;
@@ -62,7 +62,7 @@ contract DropsPriceOracleAvalancheTestnet is Admin, Initializable, IDropsPriceOr
 
   function _getSushiUSDT(uint256 usdAmount) internal pure returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    ////usdAmount = usdAmount * (10**(18 - 6));
+    // usdAmount = usdAmount * (10**(18 - 6));
     // (uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdtPool.getReserves();
     uint112 _reserve0 = 2205199060;
     uint112 _reserve1 = 133224784402692878349;

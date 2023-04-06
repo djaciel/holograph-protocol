@@ -707,7 +707,9 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * @param newRecipientAddress new funds recipient address
    */
   function setFundsRecipient(address payable newRecipientAddress) external onlyOwner {
-    // TODO(iain): funds recipient cannot be 0?
+    if (newRecipientAddress == address(0)) {
+      revert("Funds Recipient cannot be 0 address");
+    }
     config.fundsRecipient = newRecipientAddress;
     emit FundsRecipientChanged(newRecipientAddress, msgSender());
   }
@@ -798,13 +800,20 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       }
       tokenId = _currentTokenId;
       H721.sourceMint(recipient, tokenId);
-      //uint256 id = chainPrepend + uint256(tokenId);
+      // uint256 id = chainPrepend + uint256(tokenId);
     }
   }
 
   fallback() external override payable {
-    assembly{
-      revert(0x00, 0x00)
+    assembly {
+      // Allocate memory for the error message
+      let errorMsg := mload(0x40)
+
+      // Error message: "Function not found"
+      mstore(errorMsg, 0x46756e6374696f6e206e6f7420666f756e6400)
+
+      // Revert with the error message
+      revert(errorMsg, 20) // 20 is the length of the error message in bytes
     }
   }
 }

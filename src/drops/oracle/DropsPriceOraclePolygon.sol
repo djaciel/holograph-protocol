@@ -45,7 +45,7 @@ contract DropsPriceOraclePolygon is Admin, Initializable, IDropsPriceOracle {
 
   function _getUSDC(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    ////usdAmount = usdAmount * (10**(18 - 6));
+    // usdAmount = usdAmount * (10**(18 - 6));
     (uint112 _reserve0, uint112 _reserve1, ) = SushiV2UsdcPool.getReserves();
     // x is always native token / WMATIC
     uint256 x = _reserve0;
@@ -60,7 +60,7 @@ contract DropsPriceOraclePolygon is Admin, Initializable, IDropsPriceOracle {
 
   function _getUSDT(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    ////usdAmount = usdAmount * (10**(18 - 6));
+    // usdAmount = usdAmount * (10**(18 - 6));
     (uint112 _reserve0, uint112 _reserve1, ) = SushiV2UsdtPool.getReserves();
     // x is always native token / WMATIC
     uint256 x = _reserve0;

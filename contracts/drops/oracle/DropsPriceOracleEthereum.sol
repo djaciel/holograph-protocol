@@ -50,7 +50,7 @@ contract DropsPriceOracleEthereum is Admin, Initializable, IDropsPriceOracle {
 
   function _getSushiUSDC(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    ////usdAmount = usdAmount * (10**(18 - 6));
+    // usdAmount = usdAmount * (10**(18 - 6));
     (uint112 _reserve0, uint112 _reserve1, ) = SushiV2UsdcPool.getReserves();
     // x is always native token / WETH
     uint256 x = _reserve1;
@@ -65,7 +65,7 @@ contract DropsPriceOracleEthereum is Admin, Initializable, IDropsPriceOracle {
 
   function _getSushiUSDT(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    ////usdAmount = usdAmount * (10**(18 - 6));
+    // usdAmount = usdAmount * (10**(18 - 6));
     (uint112 _reserve0, uint112 _reserve1, ) = SushiV2UsdtPool.getReserves();
     // x is always native token / WETH
     uint256 x = _reserve0;
@@ -80,7 +80,7 @@ contract DropsPriceOracleEthereum is Admin, Initializable, IDropsPriceOracle {
 
   function _getUniUSDC(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    ////usdAmount = usdAmount * (10**(18 - 6));
+    // usdAmount = usdAmount * (10**(18 - 6));
     (uint112 _reserve0, uint112 _reserve1, ) = UniV2UsdcPool.getReserves();
     // x is always native token / WETH
     uint256 x = _reserve1;
@@ -95,7 +95,7 @@ contract DropsPriceOracleEthereum is Admin, Initializable, IDropsPriceOracle {
 
   function _getUniUSDT(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    ////usdAmount = usdAmount * (10**(18 - 6));
+    // usdAmount = usdAmount * (10**(18 - 6));
     (uint112 _reserve0, uint112 _reserve1, ) = UniV2UsdtPool.getReserves();
     // x is always native token / WETH
     uint256 x = _reserve0;

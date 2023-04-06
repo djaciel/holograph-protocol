@@ -45,7 +45,7 @@ contract DropsPriceOraclePolygonTestnet is Admin, Initializable, IDropsPriceOrac
 
   function _getUSDC(uint256 usdAmount) internal pure returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    ////usdAmount = usdAmount * (10**(18 - 6));
+    // usdAmount = usdAmount * (10**(18 - 6));
     // (uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdcPool.getReserves();
     uint112 _reserve0 = 185186616552407552407159;
     uint112 _reserve1 = 207981749778;
@@ -62,7 +62,7 @@ contract DropsPriceOraclePolygonTestnet is Admin, Initializable, IDropsPriceOrac
 
   function _getUSDT(uint256 usdAmount) internal pure returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    ////usdAmount = usdAmount * (10**(18 - 6));
+    // usdAmount = usdAmount * (10**(18 - 6));
     // (uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdtPool.getReserves();
     uint112 _reserve0 = 13799757434002573084812;
     uint112 _reserve1 = 15484391886;
