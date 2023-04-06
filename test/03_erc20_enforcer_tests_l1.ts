@@ -1,43 +1,18 @@
-declare var global: any;
-import { expect, assert } from 'chai';
+import { expect } from 'chai';
 import { PreTest } from './utils';
 import setup from './utils';
-import { BigNumberish, BytesLike, BigNumber } from 'ethers';
+import { BytesLike } from 'ethers';
 import {
   Signature,
   zeroAddress,
   functionHash,
   XOR,
   buildDomainSeperator,
-  randomHex,
   StrictECDSA,
   generateInitCode,
 } from '../scripts/utils/helpers';
-import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
 
-import {
-  Admin,
-  CxipERC721,
-  ERC20Mock,
-  Holograph,
-  HolographBridge,
-  HolographBridgeProxy,
-  Holographer,
-  HolographERC20,
-  HolographERC721,
-  HolographFactory,
-  HolographFactoryProxy,
-  HolographGenesis,
-  HolographRegistry,
-  HolographRegistryProxy,
-  HToken,
-  HolographInterfaces,
-  MockERC721Receiver,
-  Owner,
-  HolographRoyalties,
-  SampleERC20,
-  SampleERC721,
-} from '../typechain-types';
+import { Admin, HolographERC20, SampleERC20 } from '../typechain-types';
 
 describe('Testing the Holograph ERC20 Enforcer (CHAIN1)', async function () {
   let chain1: PreTest;

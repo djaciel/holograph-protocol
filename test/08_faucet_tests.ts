@@ -1,6 +1,5 @@
-declare var global: any;
-import { expect, assert, util } from 'chai';
-import { BigNumberish, BytesLike, BigNumber } from 'ethers';
+import { expect } from 'chai';
+import { BigNumber } from 'ethers';
 import { PreTest } from './utils';
 import setup from './utils';
 import { Faucet, HolographERC20 } from '../typechain-types';

@@ -118,7 +118,7 @@ import "../library/ECDSA.sol";
 
 /**
  * @title Mock ERC20 Token
- * @author CXIP-Labs
+ * @author Holograph Foundation
  * @notice Used for imitating the likes of WETH and WMATIC tokens.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */

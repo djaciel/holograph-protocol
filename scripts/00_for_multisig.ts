@@ -271,19 +271,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   );
   hre.deployments.log('the future "HolographRoyalties" address is', futureRoyaltiesAddress);
 
-  const pa1dHash = '0x' + web3.utils.asciiToHex('HolographRoyalties').substring(2).padStart(64, '0');
-  if ((await holographRegistry.getContractTypeAddress(pa1dHash)) != futureRoyaltiesAddress) {
+  const royaltiesHash = '0x' + web3.utils.asciiToHex('HolographRoyalties').substring(2).padStart(64, '0');
+  if ((await holographRegistry.getContractTypeAddress(royaltiesHash)) != futureRoyaltiesAddress) {
     hre.deployments.log(
       `Need to register "HolographRoyalties" with HolographRegistry: ${
-        (await holographRegistry.populateTransaction.setContractTypeAddress(pa1dHash, futureRoyaltiesAddress)).data
+        (await holographRegistry.populateTransaction.setContractTypeAddress(royaltiesHash, futureRoyaltiesAddress)).data
       }`
     );
-    hre.deployments.log(`"HolographRoyalties" hash is: ${pa1dHash}`);
-    const pa1dTx = await holograph
+    hre.deployments.log(`"HolographRoyalties" hash is: ${royaltiesHash}`);
+    const royaltiesTx = await holograph
       .adminCall(
-        pa1dHash,
+        royaltiesHash,
         (
-          await holographRegistry.populateTransaction.setContractTypeAddress(pa1dHash, futureRoyaltiesAddress)
+          await holographRegistry.populateTransaction.setContractTypeAddress(royaltiesHash, futureRoyaltiesAddress)
         ).data,
         {
           ...(await txParams({
@@ -291,19 +291,22 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             from: deployer,
             to: holograph,
             data: holograph.populateTransaction.adminCall(
-              pa1dHash,
+              royaltiesHash,
               (
-                await holographRegistry.populateTransaction.setContractTypeAddress(pa1dHash, futureRoyaltiesAddress)
+                await holographRegistry.populateTransaction.setContractTypeAddress(
+                  royaltiesHash,
+                  futureRoyaltiesAddress
+                )
               ).data
             ),
           })),
         }
       )
       .catch(error);
-    hre.deployments.log('Transaction hash:', pa1dTx.hash);
-    await pa1dTx.wait();
+    hre.deployments.log('Transaction hash:', royaltiesTx.hash);
+    await royaltiesTx.wait();
     hre.deployments.log(
-      `Registered "HolographRoyalties" to: ${await holographRegistry.getContractTypeAddress(pa1dHash)}`
+      `Registered "HolographRoyalties" to: ${await holographRegistry.getContractTypeAddress(royaltiesHash)}`
     );
   } else {
     hre.deployments.log('"HolographRoyalties" is already registered');

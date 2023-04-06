@@ -30,7 +30,7 @@ import "../interface/Ownable.sol";
 
 /**
  * @title Holograph Bridgeable ERC-20 Token
- * @author CXIP-Labs
+ * @author Holograph Foundation
  * @notice A smart contract for minting and managing Holograph Bridgeable ERC20 Tokens.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
@@ -174,8 +174,6 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
    */
   function _sourceCall(bytes memory payload) private returns (bool output) {
     assembly {
-      let pos := mload(0x40)
-      mstore(0x40, add(pos, 0x20))
       mstore(add(payload, add(mload(payload), 0x20)), caller())
       // offset memory position by 32 bytes to skip the 32 bytes where bytes length is stored
       // add 32 bytes to bytes length to include the appended msg.sender to calldata
@@ -188,10 +186,13 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
         0,
         0
       )
+      let pos := mload(0x40)
+      // reserve memory space for return data
+      mstore(0x40, add(pos, returndatasize()))
       returndatacopy(pos, 0, returndatasize())
       switch result
       case 0 {
-        revert(0, returndatasize())
+        revert(pos, returndatasize())
       }
       output := mload(pos)
     }

@@ -1,5 +1,4 @@
-declare var global: any;
-import { expect, assert } from 'chai';
+import { expect } from 'chai';
 import { PreTest } from './utils';
 import setup from './utils';
 

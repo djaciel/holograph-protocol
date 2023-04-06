@@ -11,7 +11,7 @@ import "../interface/HolographerInterface.sol";
 
 /**
  * @title Holograph token (aka hToken), used to wrap and bridge native tokens across blockchains.
- * @author CXIP-Labs
+ * @author Holograph Foundation
  * @notice A smart contract for minting and managing Holograph's Bridgeable ERC20 Tokens.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */

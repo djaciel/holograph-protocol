@@ -1,5 +1,6 @@
 declare var global: any;
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import {
   hreSplit,

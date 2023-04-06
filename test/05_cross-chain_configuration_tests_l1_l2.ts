@@ -1,16 +1,11 @@
-declare var global: any;
 import { expect, assert } from 'chai';
 import { PreTest } from './utils';
 import setup from './utils';
-import { BigNumberish, BytesLike, BigNumber, ContractFactory } from 'ethers';
+import { BigNumber } from 'ethers';
 import {
   Signature,
   StrictECDSA,
   zeroAddress,
-  functionHash,
-  XOR,
-  buildDomainSeperator,
-  randomHex,
   generateInitCode,
   generateErc20Config,
   generateErc721Config,
