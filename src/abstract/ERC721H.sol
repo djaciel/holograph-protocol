@@ -127,7 +127,7 @@ abstract contract ERC721H is Initializable {
   /**
    * @dev Return true for any un-implemented event hooks
    */
-  fallback() external payable {
+  fallback() external payable virtual {
     assembly {
       switch eq(sload(_holographerSlot), caller())
       case 1 {

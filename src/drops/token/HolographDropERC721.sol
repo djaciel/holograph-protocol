@@ -6,6 +6,7 @@ import {ERC721H} from "../../abstract/ERC721H.sol";
 import {NonReentrant} from "../../abstract/NonReentrant.sol";
 
 import {HolographERC721Interface} from "../../interface/HolographERC721Interface.sol";
+import {HolographerInterface} from "../../interface/HolographerInterface.sol";
 import {HolographInterface} from "../../interface/HolographInterface.sol";
 
 import {AddressMintDetails} from "../struct/AddressMintDetails.sol";
@@ -39,14 +40,19 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    */
 
   /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.dropsPriceOracle')) - 1)
-   */
-  bytes32 constant _dropsPriceOracleSlot = precomputeslot("eip1967.Holograph.dropsPriceOracle");
-
-  /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.osRegistryEnabled')) - 1)
    */
   bytes32 constant _osRegistryEnabledSlot = precomputeslot("eip1967.Holograph.osRegistryEnabled");
+
+  /**
+   * @dev Address of the operator filter registry
+   */
+  IOperatorFilterRegistry public constant openseaOperatorFilterRegistry = IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
+
+  /**
+   * @dev Address of the price oracle proxy
+   */
+  IDropsPriceOracle public constant dropsPriceOracle = IDropsPriceOracle(0xA3Db09EEC42BAfF7A50fb8F9aF90A0e035Ef3302);
 
   /**
    * @dev Internal reference used for minting incremental token ids.
@@ -62,11 +68,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * @dev Address of the market filter registry
    */
   address public marketFilterAddress;
-
-  /**
-   * @dev Address of the operator filter registry
-   */
-  IOperatorFilterRegistry public constant openseaOperatorFilterRegistry = IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
 
   /**
    * @notice Configuration for NFT minting contract storage
@@ -343,6 +344,13 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   }
 
   /**
+   * @notice Returns the name of the token through the holographer entrypoint
+   */
+  function name() external view returns (string memory) {
+    return HolographERC721Interface(holographer()).name();
+  }
+
+  /**
    * @notice Token URI Getter, proxies to metadataRenderer
    * @param tokenId id of token to get URI for
    * @return Token URI
@@ -600,7 +608,9 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * @param newRecipientAddress new funds recipient address
    */
   function setFundsRecipient(address payable newRecipientAddress) external onlyOwner {
-    // TODO(iain): funds recipient cannot be 0?
+    if (newRecipientAddress == address(0)) {
+      revert("Funds Recipient cannot be 0 address");
+    }
     config.fundsRecipient = newRecipientAddress;
     emit FundsRecipientChanged(newRecipientAddress, msgSender());
   }
@@ -616,7 +626,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
     // Get fee amount
     uint256 funds = address(this).balance;
-    address payable feeRecipient = payable(HolographInterface(holographer()).getTreasury());
+    address payable feeRecipient = payable(HolographInterface(HolographerInterface(holographer()).getHolograph()).getTreasury());
     // for now set it to 0 since there is no fee
     uint256 holographFee = 0;
 
@@ -656,12 +666,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     emit OpenMintFinalized(msgSender(), config.editionSize);
   }
 
-  function setDropsPriceOracle(address newDropsPriceOracle) external onlyOwner {
-    assembly {
-      sstore(_dropsPriceOracleSlot, newDropsPriceOracle)
-    }
-  }
-
   /**
    * INTERNAL FUNCTIONS
    * non state changing
@@ -676,11 +680,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   }
 
   function _usdToWei(uint256 amount) internal view returns (uint256 weiAmount) {
-    IDropsPriceOracle dropsPriceOracle;
-    assembly {
-      dropsPriceOracle := sload(_dropsPriceOracleSlot)
-    }
-    require(address(dropsPriceOracle) != address(0), "Price oracle not set");
     weiAmount = dropsPriceOracle.convertUsdToWei(amount);
   }
 
@@ -702,7 +701,20 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       }
       tokenId = _currentTokenId;
       H721.sourceMint(recipient, tokenId);
-      //uint256 id = chainPrepend + uint256(tokenId);
+      // uint256 id = chainPrepend + uint256(tokenId);
+    }
+  }
+
+  fallback() external override payable {
+    assembly {
+      // Allocate memory for the error message
+      let errorMsg := mload(0x40)
+
+      // Error message: "Function not found"
+      mstore(errorMsg, 0x46756e6374696f6e206e6f7420666f756e6400)
+
+      // Revert with the error message
+      revert(errorMsg, 20) // 20 is the length of the error message in bytes
     }
   }
 }

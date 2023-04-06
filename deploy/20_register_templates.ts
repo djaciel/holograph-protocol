@@ -103,6 +103,137 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   }
   // at this point all reserved namespaces should be registered in protocol
 
+  // Register DropsPriceOracleProxy
+  const futureDropsPriceOracleProxyAddress = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'DropsPriceOracleProxy',
+    generateInitCode([], [])
+  );
+  hre.deployments.log('the future "DropsPriceOracleProxy" address is', futureDropsPriceOracleProxyAddress);
+
+  const dropsPriceOracleProxyHash =
+    '0x' + web3.utils.asciiToHex('DropsPriceOracleProxy').substring(2).padStart(64, '0');
+  if (
+    (await holographRegistry.getContractTypeAddress(dropsPriceOracleProxyHash)) != futureDropsPriceOracleProxyAddress
+  ) {
+    const dropsPriceOracleProxyTx = await holographRegistry
+      .setContractTypeAddress(dropsPriceOracleProxyHash, futureDropsPriceOracleProxyAddress, {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holographRegistry,
+          data: holographRegistry.populateTransaction.setContractTypeAddress(
+            dropsPriceOracleProxyHash,
+            futureDropsPriceOracleProxyAddress
+          ),
+        })),
+      })
+      .catch(error);
+    hre.deployments.log('Transaction hash:', dropsPriceOracleProxyTx.hash);
+    await dropsPriceOracleProxyTx.wait();
+    hre.deployments.log(
+      `Registered "DropsPriceOracleProxy" to: ${await holographRegistry.getContractTypeAddress(
+        dropsPriceOracleProxyHash
+      )}`
+    );
+  } else {
+    hre.deployments.log('"DropsPriceOracleProxy" is already registered');
+  }
+
+  // Register DropsMetadataRendererProxy
+  const futureDropsMetadataRendererAddress = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'DropsMetadataRenderer',
+    generateInitCode([], [])
+  );
+  const futureDropsMetadataRendererProxyAddress = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'DropsMetadataRendererProxy',
+    generateInitCode(['address', 'bytes'], [futureDropsMetadataRendererAddress, generateInitCode([], [])])
+  );
+  hre.deployments.log('the future "DropsMetadataRendererProxy" address is', futureDropsMetadataRendererProxyAddress);
+
+  const dropsMetadataRendererProxyHash =
+    '0x' + web3.utils.asciiToHex('DropsMetadataRendererProxy').substring(2).padStart(64, '0');
+  if (
+    (await holographRegistry.getContractTypeAddress(dropsMetadataRendererProxyHash)) !=
+    futureDropsMetadataRendererProxyAddress
+  ) {
+    const dropsMetadataRendererProxyTx = await holographRegistry
+      .setContractTypeAddress(dropsMetadataRendererProxyHash, futureDropsMetadataRendererProxyAddress, {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holographRegistry,
+          data: holographRegistry.populateTransaction.setContractTypeAddress(
+            dropsMetadataRendererProxyHash,
+            futureDropsMetadataRendererProxyAddress
+          ),
+        })),
+      })
+      .catch(error);
+    hre.deployments.log('Transaction hash:', dropsMetadataRendererProxyTx.hash);
+    await dropsMetadataRendererProxyTx.wait();
+    hre.deployments.log(
+      `Registered "DropsMetadataRendererProxy" to: ${await holographRegistry.getContractTypeAddress(
+        dropsMetadataRendererProxyHash
+      )}`
+    );
+  } else {
+    hre.deployments.log('"DropsMetadataRendererProxy" is already registered');
+  }
+
+  // Register EditionsMetadataRendererProxy
+  const futureEditionsMetadataRendererAddress = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'EditionsMetadataRenderer',
+    generateInitCode([], [])
+  );
+  const futureEditionsMetadataRendererProxyAddress = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'EditionsMetadataRendererProxy',
+    generateInitCode(['address', 'bytes'], [futureEditionsMetadataRendererAddress, generateInitCode([], [])])
+  );
+  hre.deployments.log(
+    'the future "EditionsMetadataRendererProxy" address is',
+    futureEditionsMetadataRendererProxyAddress
+  );
+
+  const editionsMetadataRendererProxyHash =
+    '0x' + web3.utils.asciiToHex('EditionsMetadataRendererProxy').substring(2).padStart(64, '0');
+  if (
+    (await holographRegistry.getContractTypeAddress(editionsMetadataRendererProxyHash)) !=
+    futureEditionsMetadataRendererProxyAddress
+  ) {
+    const editionsMetadataRendererProxyTx = await holographRegistry
+      .setContractTypeAddress(editionsMetadataRendererProxyHash, futureEditionsMetadataRendererProxyAddress, {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holographRegistry,
+          data: holographRegistry.populateTransaction.setContractTypeAddress(
+            editionsMetadataRendererProxyHash,
+            futureEditionsMetadataRendererProxyAddress
+          ),
+        })),
+      })
+      .catch(error);
+    hre.deployments.log('Transaction hash:', editionsMetadataRendererProxyTx.hash);
+    await editionsMetadataRendererProxyTx.wait();
+    hre.deployments.log(
+      `Registered "EditionsMetadataRendererProxy" to: ${await holographRegistry.getContractTypeAddress(
+        editionsMetadataRendererProxyHash
+      )}`
+    );
+  } else {
+    hre.deployments.log('"EditionsMetadataRendererProxy" is already registered');
+  }
+
   // Register Generic
   const futureGenericAddress = await genesisDeriveFutureAddress(
     hre,

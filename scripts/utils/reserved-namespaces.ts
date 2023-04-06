@@ -10,6 +10,9 @@ const reservedNamespaces: string[] = [
   'CxipERC721',
   'CxipERC1155',
   'HolographRoyalties',
+  'DropsPriceOracleProxy',
+  'EditionsMetadataRendererProxy',
+  'DropsMetadataRendererProxy',
 ];
 
 const reservedNamespaceHashes: string[] = reservedNamespaces.map((nameSpace: string) => {

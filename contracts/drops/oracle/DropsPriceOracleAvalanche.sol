@@ -45,7 +45,7 @@ contract DropsPriceOracleAvalanche is Admin, Initializable, IDropsPriceOracle {
 
   function _getSushiUSDC(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    ////usdAmount = usdAmount * (10**(18 - 6));
+    // usdAmount = usdAmount * (10**(18 - 6));
     (uint112 _reserve0, uint112 _reserve1, ) = SushiV2UsdcPool.getReserves();
     // x is always native token / WAVAX
     uint256 x = _reserve0;
@@ -60,7 +60,7 @@ contract DropsPriceOracleAvalanche is Admin, Initializable, IDropsPriceOracle {
 
   function _getSushiUSDT(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    ////usdAmount = usdAmount * (10**(18 - 6));
+    // usdAmount = usdAmount * (10**(18 - 6));
     (uint112 _reserve0, uint112 _reserve1, ) = SushiV2UsdtPool.getReserves();
     // x is always native token / WAVAX
     uint256 x = _reserve1;
