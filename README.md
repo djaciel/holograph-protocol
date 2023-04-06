@@ -287,6 +287,34 @@ Our primary development branch is [`develop`](https://github.com/holographxyz/ho
 Our primary experimentation branch is [`experimental`](https://github.com/holographxyz/holograph-protocol/tree/experimental).
 `experimental` contains the software that is not stable and is trying out new code.
 
+## Deployment Process
+
+1. Validate env variables are correct
+   1. Check Salts
+   2. Check RPCS
+   3. Check `HOLOGRAPH_ENVIRONMENT`
+2. Check Git commit reference
+3. Clean Repo
+   1. Remove temp folders: [node_modules, artifacts, cache, cache_hardhat, dist, typechain-types, ganache]
+4. Run Tests
+   1. run `yarn clean-compile`
+   2. run `yarn ganache-x2` - terminal 1
+   3. run `yarn deploy` - terminal 2
+5. Run Deployments per environment, check gas chane per network again, and save output
+   1. avalanche
+      1. Check price envs
+      2. Save output to deploymentHistory. NOTE remove directory info.
+   2. mumbai
+      1. Check price envs
+      2. Save output to deploymentHistory. NOTE remove directory info.
+   3. goerli
+      1. Check price envs
+      2. Save output to deploymentHistory. NOTE remove directory info.
+   4. binance
+      1. Check price envs
+      2. Save output to deploymentHistory. NOTE remove directory info.
+6. Validate Contracts on each network
+
 ## Contributing
 
 Read through [CONTRIBUTING.md](./CONTRIBUTING.md) for a general overview of our contribution process.
