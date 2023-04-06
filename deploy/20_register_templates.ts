@@ -15,6 +15,7 @@ import {
 } from '../scripts/utils/helpers';
 import { reservedNamespaces, reservedNamespaceHashes } from '../scripts/utils/reserved-namespaces';
 import { ConfigureEvents } from '../scripts/utils/events';
+import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
@@ -87,7 +88,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let reserveArray: bool[] = toReserve.map((index: number) => {
       return true;
     }) as bool[];
-    const setReservedContractTypeAddressesTx = await holographRegistry
+    const setReservedContractTypeAddressesTx = holographRegistry
       .setReservedContractTypeAddresses(hashArray, reserveArray, {
         ...(await txParams({
           hre,
@@ -117,19 +118,24 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if (
     (await holographRegistry.getContractTypeAddress(dropsPriceOracleProxyHash)) != futureDropsPriceOracleProxyAddress
   ) {
-    const dropsPriceOracleProxyTx = await holographRegistry
-      .setContractTypeAddress(dropsPriceOracleProxyHash, futureDropsPriceOracleProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographRegistry,
-          data: holographRegistry.populateTransaction.setContractTypeAddress(
-            dropsPriceOracleProxyHash,
-            futureDropsPriceOracleProxyAddress
-          ),
-        })),
-      })
-      .catch(error);
+    const dropsPriceOracleProxyTx = await MultisigAwareTx(
+      hre,
+      deployer,
+      await holographRegistry
+        .populateTransaction
+        .setContractTypeAddress(dropsPriceOracleProxyHash, futureDropsPriceOracleProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographRegistry,
+            data: await holographRegistry.populateTransaction.setContractTypeAddress(
+              dropsPriceOracleProxyHash,
+              futureDropsPriceOracleProxyAddress
+            ),
+          })),
+        })
+      )
+//      .catch(error);
     hre.deployments.log('Transaction hash:', dropsPriceOracleProxyTx.hash);
     await dropsPriceOracleProxyTx.wait();
     hre.deployments.log(
@@ -479,10 +485,10 @@ export default func;
 func.tags = ['RegisterTemplates'];
 func.dependencies = [
   'HolographGenesis',
-  'DeploySources',
-  'DeployGeneric',
-  'DeployERC20',
-  'DeployERC721',
-  'HolographDropERC721',
-  'DeployERC1155',
+//  'DeploySources',
+//  'DeployGeneric',
+//  'DeployERC20',
+//  'DeployERC721',
+//  'HolographDropERC721',
+//  'DeployERC1155',
 ];
