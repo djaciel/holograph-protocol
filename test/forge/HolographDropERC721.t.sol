@@ -116,7 +116,7 @@ contract HolographDropERC721Test is Test {
         "Test NFT", // contractName
         "TNFT", // contractSymbol
         1000, // contractBps
-        type(uint256).max, // eventConfig
+        Constants.getDropsEventConfig(), // eventConfig
         false, // skipInit
         initializer
       );
@@ -186,7 +186,7 @@ contract HolographDropERC721Test is Test {
         "Test NFT", // contractName
         "TNFT", // contractSymbol
         1000, // contractBps
-        type(uint256).max, // eventConfig
+        Constants.getDropsEventConfig(), // eventConfig
         false, // skipInit
         initializer
       );
@@ -347,7 +347,7 @@ contract HolographDropERC721Test is Test {
     string memory contractName = "";
     string memory contractSymbol = "";
     uint16 contractBps = 1000;
-    uint256 eventConfig = type(uint256).max;
+    uint256 eventConfig = Constants.getDropsEventConfig();
     bool skipInit = false;
 
     vm.expectRevert("HOLOGRAPHER: already initialized");

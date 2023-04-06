@@ -54,4 +54,8 @@ library Constants {
   function getDropsPriceOracleProxy() internal pure returns (address) {
     return address(0xA3Db09EEC42BAfF7A50fb8F9aF90A0e035Ef3302);
   }
+
+  function getDropsEventConfig() internal pure returns (uint256) {
+    return 0x0000000000000000000000000000000000000000000000000000000000065000;
+  }
 }
