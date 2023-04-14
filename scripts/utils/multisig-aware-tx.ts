@@ -54,6 +54,7 @@ const MultisigAwareTx = async (
       const holographAdmin: string = (await holograph.admin()).toLowerCase();
       // check if deployer is admin of holograph
       if (holographAdmin === deployer.address.toLowerCase()) {
+        global.__txNonce[hre.networkName] -= 1;
         return (await holograph.adminCall(futureTx.to, futureTx.data, {
           ...(await txParams({
             hre,
@@ -97,6 +98,13 @@ const MultisigAwareTx = async (
               '',
             ].join('\n');
             await pressAnyKeyToContinue(outputText);
+            global.__txNonce[hre.networkName] -= 1;
+            return {
+              hash: 'multisig transaction',
+              wait: async (): Promise<ContractReceipt> => {
+                return {} as ContractReceipt;
+              },
+            } as MultisigHandler;
           } else {
             throw new Error('Admin is Holograph, neither multisig nor deployer are admin of Holograph');
           }
@@ -136,6 +144,13 @@ const MultisigAwareTx = async (
             '',
           ].join('\n');
           await pressAnyKeyToContinue(outputText);
+          global.__txNonce[hre.networkName] -= 1;
+          return {
+            hash: 'multisig transaction',
+            wait: async (): Promise<ContractReceipt> => {
+              return {} as ContractReceipt;
+            },
+          } as MultisigHandler;
         } else {
           throw new Error('Neither deployer, multisig, nor Holograph are admin of this contract');
         }
