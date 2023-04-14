@@ -14,6 +14,7 @@ import {
   zeroAddress,
   txParams,
 } from '../scripts/utils/helpers';
+import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { ConfigureEvents } from '../scripts/utils/events';
 import {
   ERC20,
@@ -146,19 +147,29 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       toChainType.push(chainMap[2]);
       toChainId.push(chainMap[3]);
     }
-    let tx = await holographInterfaces.updateChainIdMaps(fromChainType, fromChainId, toChainType, toChainId, {
-      ...(await txParams({
-        hre,
-        from: deployer,
-        to: holographInterfaces,
-        data: holographInterfaces.populateTransaction.updateChainIdMaps(
-          fromChainType,
-          fromChainId,
-          toChainType,
-          toChainId
-        ),
-      })),
-    });
+    let tx = await MultisigAwareTx(
+      hre,
+      deployer,
+      await holographInterfaces.populateTransaction.updateChainIdMaps(
+        fromChainType,
+        fromChainId,
+        toChainType,
+        toChainId,
+        {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographInterfaces,
+            data: holographInterfaces.populateTransaction.updateChainIdMaps(
+              fromChainType,
+              fromChainId,
+              toChainType,
+              toChainId
+            ),
+          })),
+        }
+      )
+    );
     await tx.wait();
   }
 
@@ -184,14 +195,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       uriTypes.push(prepend.type);
       prepends.push(prepend.prepend);
     }
-    let tx = await holographInterfaces.updateUriPrepends(uriTypes, prepends, {
-      ...(await txParams({
-        hre,
-        from: deployer,
-        to: holographInterfaces,
-        data: holographInterfaces.populateTransaction.updateUriPrepends(uriTypes, prepends),
-      })),
-    });
+    let tx = await MultisigAwareTx(
+      hre,
+      deployer,
+      await holographInterfaces.populateTransaction.updateUriPrepends(uriTypes, prepends, {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holographInterfaces,
+          data: holographInterfaces.populateTransaction.updateUriPrepends(uriTypes, prepends),
+        })),
+      })
+    );
     await tx.wait();
   }
   const supportedInterfaces: { [key: string]: string[] } = {
@@ -342,14 +357,22 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if (global.__deployedHolographInterfaces) {
     hre.deployments.log('HolographInterfaces needs to have all supported interfaces configured');
     for (let key of Object.keys(supportedInterfaces)) {
-      let tx = await holographInterfaces.updateInterfaces(parseInt(key), supportedInterfaces[key], true, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographInterfaces,
-          data: holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), supportedInterfaces[key], true),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), supportedInterfaces[key], true, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographInterfaces,
+            data: holographInterfaces.populateTransaction.updateInterfaces(
+              parseInt(key),
+              supportedInterfaces[key],
+              true
+            ),
+          })),
+        })
+      );
       await tx.wait();
     }
   } else {
@@ -367,14 +390,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         hre.deployments.log('No missing interfaces in HolographInterfaces for InterfaceType[' + key + ']');
       } else {
         hre.deployments.log('Found missing interfaces in HolographInterfaces for InterfaceType[' + key + ']');
-        let tx = await holographInterfaces.updateInterfaces(parseInt(key), todo, true, {
-          ...(await txParams({
-            hre,
-            from: deployer,
-            to: holographInterfaces,
-            data: holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), todo, true),
-          })),
-        });
+        let tx = await MultisigAwareTx(
+          hre,
+          deployer,
+          await holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), todo, true, {
+            ...(await txParams({
+              hre,
+              from: deployer,
+              to: holographInterfaces,
+              data: holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), todo, true),
+            })),
+          })
+        );
         await tx.wait();
       }
     }

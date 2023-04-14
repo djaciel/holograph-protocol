@@ -13,6 +13,7 @@ import {
   LeanHardhatRuntimeEnvironment,
   hreSplit,
 } from '../scripts/utils/helpers';
+import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
@@ -125,8 +126,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   );
 
   if ((await holographOperator.getMessagingModule()).toLowerCase() != futureLayerZeroModuleAddress.toLowerCase()) {
-    const lzTx = await holographOperator
-      .setMessagingModule(futureLayerZeroModuleAddress, {
+    const lzTx = await MultisigAwareTx(
+      hre,
+      deployer,
+      await holographOperator.populateTransaction.setMessagingModule(futureLayerZeroModuleAddress, {
         ...(await txParams({
           hre,
           from: deployer,
@@ -134,7 +137,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           data: holographOperator.populateTransaction.setMessagingModule(futureLayerZeroModuleAddress),
         })),
       })
-      .catch(error);
+    );
     hre.deployments.log('Transaction hash:', lzTx.hash);
     await lzTx.wait();
     hre.deployments.log(`Registered MessagingModule to: ${await holographOperator.getMessagingModule()}`);
@@ -160,10 +163,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   }
   if (chainIds.length > 0) {
     hre.deployments.log('Found some gas parameter inconsistencies');
-    const lzTx = await lzModule['setGasParameters(uint32[],(uint256,uint256,uint256,uint256,uint256,uint256)[])'](
-      chainIds,
-      gasParameters,
-      {
+    const lzTx = await MultisigAwareTx(
+      hre,
+      deployer,
+      await lzModule.populateTransaction[
+        'setGasParameters(uint32[],(uint256,uint256,uint256,uint256,uint256,uint256)[])'
+      ](chainIds, gasParameters, {
         ...(await txParams({
           hre,
           from: deployer,
@@ -172,8 +177,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             'setGasParameters(uint32[],(uint256,uint256,uint256,uint256,uint256,uint256)[])'
           ](chainIds, gasParameters),
         })),
-      }
-    ).catch(error);
+      })
+    );
     hre.deployments.log('Transaction hash:', lzTx.hash);
     await lzTx.wait();
     hre.deployments.log('Updated LayerZero GasParameters');

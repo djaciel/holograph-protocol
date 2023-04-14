@@ -4,6 +4,7 @@ import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 import { hreSplit, txParams } from '../scripts/utils/helpers';
+import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
 import { Environment, getEnvironment } from '@holographxyz/environment';
 
@@ -54,28 +55,36 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
     const holograph = await hre.ethers.getContract('Holograph', deployer);
 
-    let setHolographAdminTx = await holograph.setAdmin(MULTI_SIG, {
-      ...(await txParams({
-        hre,
-        from: deployer,
-        to: holograph,
-        data: holograph.populateTransaction.setAdmin(MULTI_SIG),
-      })),
-    });
+    let setHolographAdminTx = await MultisigAwareTx(
+      hre,
+      deployer,
+      await holograph.populateTransaction.setAdmin(MULTI_SIG, {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holograph,
+          data: holograph.populateTransaction.setAdmin(MULTI_SIG),
+        })),
+      })
+    );
     hre.deployments.log(`Changing Holograph Admin tx ${setHolographAdminTx.hash}`);
     await setHolographAdminTx.wait();
     hre.deployments.log('Changed Holograph Admin');
 
     for (const contractName of switchToHolograph) {
       const contract = await hre.ethers.getContract(contractName, deployer);
-      let setHolographAsAdminTx = await contract.setAdmin(holograph.address, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: contract,
-          data: contract.populateTransaction.setAdmin(holograph.address),
-        })),
-      });
+      let setHolographAsAdminTx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await contract.populateTransaction.setAdmin(holograph.address, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: contract,
+            data: contract.populateTransaction.setAdmin(holograph.address),
+          })),
+        })
+      );
       hre.deployments.log(`Changing ${contractName} Admin to Holograph tx ${setHolographAsAdminTx.hash}`);
       await setHolographAsAdminTx.wait();
       hre.deployments.log(`Changed ${contractName} Admin to Holograph`);

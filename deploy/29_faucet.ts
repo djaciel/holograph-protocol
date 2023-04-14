@@ -11,6 +11,7 @@ import {
   generateInitCode,
   txParams,
 } from '../scripts/utils/helpers';
+import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
 import { NetworkType, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
@@ -66,24 +67,28 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           futureFaucetAddress
         );
         const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
-        const transferTx = await hlgContract.transfer(
-          futureFaucetAddress,
-          BigNumber.from('1' + '000' + '000' + '000000000000000000'),
-          {
-            ...(await txParams({
-              hre,
-              from: deployer,
-              to: hlgContract,
-              gasLimit: (
-                await hre.ethers.provider.estimateGas(
-                  hlgContract.populateTransaction.transfer(
-                    futureFaucetAddress,
-                    BigNumber.from('1' + '000' + '000' + '000000000000000000')
+        const transferTx = await MultisigAwareTx(
+          hre,
+          deployer,
+          await hlgContract.populateTransaction.transfer(
+            futureFaucetAddress,
+            BigNumber.from('1' + '000' + '000' + '000000000000000000'),
+            {
+              ...(await txParams({
+                hre,
+                from: deployer,
+                to: hlgContract,
+                gasLimit: (
+                  await hre.ethers.provider.estimateGas(
+                    hlgContract.populateTransaction.transfer(
+                      futureFaucetAddress,
+                      BigNumber.from('1' + '000' + '000' + '000000000000000000')
+                    )
                   )
-                )
-              ).mul(BigNumber.from('2')),
-            })),
-          }
+                ).mul(BigNumber.from('2')),
+              })),
+            }
+          )
         );
         await transferTx.wait();
       } else {
@@ -91,14 +96,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       }
       const faucetContract = await hre.ethers.getContract('Faucet', deployer);
       if ((await faucetContract.token()) != hlgTokenAddress) {
-        const tx = await faucetContract.setToken(hlgTokenAddress, {
-          ...(await txParams({
-            hre,
-            from: deployer,
-            to: faucetContract,
-            data: faucetContract.populateTransaction.setToken(hlgTokenAddress),
-          })),
-        });
+        const tx = await MultisigAwareTx(
+          hre,
+          deployer,
+          await faucetContract.populateTransaction.setToken(hlgTokenAddress, {
+            ...(await txParams({
+              hre,
+              from: deployer,
+              to: faucetContract,
+              data: faucetContract.populateTransaction.setToken(hlgTokenAddress),
+            })),
+          })
+        );
         await tx.wait();
         hre.deployments.log('Updated HLG reference');
       }
