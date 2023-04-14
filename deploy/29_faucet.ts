@@ -17,6 +17,8 @@ import { NetworkType, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 import { Environment, getEnvironment } from '@holographxyz/environment';
 
+const ONE_MILLION_TOKENS = '1000000000000000000000000'; // 1 million tokens denominated in wei
+
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
   const accounts = await hre.ethers.getSigners();
@@ -47,6 +49,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.local) {
     if (environment != Environment.mainnet && environment != Environment.testnet) {
+      const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
+
       const futureFaucetAddress = await genesisDeriveFutureAddress(
         hre,
         salt,
@@ -110,6 +114,21 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         );
         await tx.wait();
         hre.deployments.log('Updated HLG reference');
+        hre.deployments.log('Transferring 1M HLG to faucet');
+        const transferTx = await hlgContract.transfer(futureFaucetAddress, BigNumber.from(ONE_MILLION_TOKENS), {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: hlgContract,
+            gasLimit: (
+              await hre.ethers.provider.estimateGas(
+                await hlgContract.populateTransaction.transfer(futureFaucetAddress, BigNumber.from(ONE_MILLION_TOKENS))
+              )
+            ).mul(BigNumber.from('2')),
+          })),
+        });
+        const receipt = await transferTx.wait();
+        hre.deployments.log(`Transfer tx hash: ${receipt.transactionHash}`);
       }
     }
   }

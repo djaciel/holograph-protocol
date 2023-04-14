@@ -33,6 +33,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       'HolographERC20',
       'HolographERC721',
       'HolographDropERC721',
+      'HolographDropERC721Proxy',
       'HolographFactory',
       'HolographFactoryProxy',
       'HolographGeneric',
@@ -49,6 +50,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       'CxipERC721Proxy',
       'Faucet',
       'LayerZeroModule',
+      'EditionsMetadataRenderer',
+      'EditionsMetadataRendererProxy',
     ];
     for (let i: number = 0, l: number = contracts.length; i < l; i++) {
       let contract: string = contracts[i];

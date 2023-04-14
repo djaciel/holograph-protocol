@@ -116,7 +116,7 @@ contract HolographDropERC721Test is Test {
         "Test NFT", // contractName
         "TNFT", // contractSymbol
         1000, // contractBps
-        type(uint256).max, // eventConfig
+        Constants.getDropsEventConfig(), // eventConfig
         false, // skipInit
         initializer
       );
@@ -186,7 +186,7 @@ contract HolographDropERC721Test is Test {
         "Test NFT", // contractName
         "TNFT", // contractSymbol
         1000, // contractBps
-        type(uint256).max, // eventConfig
+        Constants.getDropsEventConfig(), // eventConfig
         false, // skipInit
         initializer
       );
@@ -234,7 +234,6 @@ contract HolographDropERC721Test is Test {
     alice = vm.addr(1);
 
     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
-
     vm.etch(address(Constants.getOpenseaRoyaltiesRegistry()), address(new OperatorFilterRegistry()).code);
 
     dummyPriceOracle = new DummyDropsPriceOracle();
@@ -347,7 +346,7 @@ contract HolographDropERC721Test is Test {
     string memory contractName = "";
     string memory contractSymbol = "";
     uint16 contractBps = 1000;
-    uint256 eventConfig = type(uint256).max;
+    uint256 eventConfig = Constants.getDropsEventConfig();
     bool skipInit = false;
 
     vm.expectRevert("HOLOGRAPHER: already initialized");
@@ -916,9 +915,11 @@ contract HolographDropERC721Test is Test {
   }
 
   function test_Fallback() public setupTestDrop(10) {
-    bytes4 functionSignature = bytes4(keccak256("cxipMint()"));
+    bytes4 functionSignature = bytes4(keccak256("nonExistentFunction()"));
     (bool success, bytes memory result) = address(erc721Drop).call(abi.encodeWithSelector(functionSignature));
-    require(!success, "Fallback should fail"); // TODO: Use expectRevert with revert message?
+
+    require(!success, "Function call should fail");
+    console.log(string(result));
   }
 
   // TEST HELPERS
