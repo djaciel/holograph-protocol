@@ -56,6 +56,25 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     GAS_LIMIT,
   ];
 
+  const networkSpecificParams: { [key: string]: BigNumber[] } = {
+    binanceSmartChainTestnet: [
+      MSG_BASE_GAS,
+      MSG_GAS_PER_BYTE,
+      BigNumber.from('180000'),
+      BigNumber.from('40'),
+      MIN_GAS_PRICE,
+      GAS_LIMIT,
+    ],
+    binanceSmartChain: [
+      MSG_BASE_GAS,
+      MSG_GAS_PER_BYTE,
+      BigNumber.from('180000'),
+      BigNumber.from('40'),
+      MIN_GAS_PRICE,
+      GAS_LIMIT,
+    ],
+  };
+
   const network: Network = networks[hre.networkName];
   const networkType: NetworkType = network.type;
   const networkKeys: string[] = Object.keys(networks);
@@ -73,10 +92,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       if (value.holographId > 0) {
         if (value.holographId == network.holographId) {
           chainIds.push(0);
-          gasParameters.push(defaultParams);
+          if (key in networkSpecificParams) {
+            gasParameters.push(networkSpecificParams[key]!);
+          } else {
+            gasParameters.push(defaultParams);
+          }
         }
         chainIds.push(value.holographId);
-        gasParameters.push(defaultParams);
+        if (key in networkSpecificParams) {
+          gasParameters.push(networkSpecificParams[key]!);
+        } else {
+          gasParameters.push(defaultParams);
+        }
       }
     }
   }
@@ -154,7 +181,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let currentNetwork: Network = supportedNetworks[i];
     let currentGasParameters: BigNumber[] = await lzModule.getGasParameters(currentNetwork.holographId);
     for (let i = 0; i < 6; i++) {
-      if (!defaultParams[i].eq(currentGasParameters[i])) {
+      if (
+        currentNetwork.key in networkSpecificParams &&
+        !networkSpecificParams[currentNetwork.key]![i].eq(currentGasParameters[i])
+      ) {
+        chainIds.push(currentNetwork.holographId);
+        gasParameters.push(networkSpecificParams[currentNetwork.key]!);
+        break;
+      } else if (!defaultParams[i].eq(currentGasParameters[i])) {
         chainIds.push(currentNetwork.holographId);
         gasParameters.push(defaultParams);
         break;
