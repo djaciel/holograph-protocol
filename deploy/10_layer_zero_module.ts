@@ -78,15 +78,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const network: Network = networks[hre.networkName];
   const networkType: NetworkType = network.type;
   const networkKeys: string[] = Object.keys(networks);
-  const networkValues: Network[] = Object.values(networks);
   let supportedNetworkNames: string[] = [];
   let supportedNetworks: Network[] = [];
   let chainIds: number[] = [];
   let gasParameters: BigNumber[][] = [];
   for (let i = 0, l = networkKeys.length; i < l; i++) {
     const key: string = networkKeys[i];
-    const value: Network = networkValues[i];
-    if (value.type == networkType) {
+    const value: Network = networks[key];
+    if (value.active && value.type == networkType) {
       supportedNetworkNames.push(key);
       supportedNetworks.push(value);
       if (value.holographId > 0) {
