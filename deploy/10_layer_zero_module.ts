@@ -176,20 +176,28 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   chainIds = [];
   gasParameters = [];
 
+  hre.deployments.log(`Checking existing gas parameters`);
   for (let i = 0, l = supportedNetworks.length; i < l; i++) {
     let currentNetwork: Network = supportedNetworks[i];
     let currentGasParameters: BigNumber[] = await lzModule.getGasParameters(currentNetwork.holographId);
     for (let i = 0; i < 6; i++) {
-      if (
-        currentNetwork.key in networkSpecificParams &&
-        !networkSpecificParams[currentNetwork.key]![i].eq(currentGasParameters[i])
-      ) {
-        chainIds.push(currentNetwork.holographId);
-        gasParameters.push(networkSpecificParams[currentNetwork.key]!);
-        break;
+      if (currentNetwork.key in networkSpecificParams) {
+        if (!networkSpecificParams[currentNetwork.key]![i].eq(currentGasParameters[i])) {
+          chainIds.push(currentNetwork.holographId);
+          gasParameters.push(networkSpecificParams[currentNetwork.key]!);
+          if (currentNetwork.holographId == network.holographId) {
+            chainIds.push(0);
+            gasParameters.push(networkSpecificParams[currentNetwork.key]!);
+          }
+          break;
+        }
       } else if (!defaultParams[i].eq(currentGasParameters[i])) {
         chainIds.push(currentNetwork.holographId);
         gasParameters.push(defaultParams);
+        if (currentNetwork.holographId == network.holographId) {
+          chainIds.push(0);
+          gasParameters.push(defaultParams);
+        }
         break;
       }
     }
