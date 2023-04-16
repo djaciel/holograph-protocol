@@ -10,6 +10,7 @@ import {
   genesisDeriveFutureAddress,
   zeroAddress,
 } from '../scripts/utils/helpers';
+import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { NetworkType, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 import { Environment, getEnvironment } from '@holographxyz/environment';
@@ -114,8 +115,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let priceOracleSource = await dropsPriceOracleProxy.getDropsPriceOracle();
     if (priceOracleSource != futureDropsPriceOracleAddress) {
       hre.deployments.log('"DropsPriceOracleProxy" references incorrect version of "' + targetDropsPriceOracle + '".');
-      const setDropsPriceOracleTx = await dropsPriceOracleProxy
-        .setDropsPriceOracle(futureDropsPriceOracleAddress, {
+      const setDropsPriceOracleTx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await dropsPriceOracleProxy.populateTransaction.setDropsPriceOracle(futureDropsPriceOracleAddress, {
           ...(await txParams({
             hre,
             from: deployer,
@@ -123,7 +126,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             data: dropsPriceOracleProxy.populateTransaction.setDropsPriceOracle(futureDropsPriceOracleAddress),
           })),
         })
-        .catch(error);
+      );
       hre.deployments.log('Transaction hash:', setDropsPriceOracleTx.hash);
       await setDropsPriceOracleTx.wait();
       hre.deployments.log('"DropsPriceOracleProxy" reference updated.');

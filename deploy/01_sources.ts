@@ -47,6 +47,7 @@ import {
   StrictECDSA,
   txParams,
 } from '../scripts/utils/helpers';
+import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { reservedNamespaceHashes } from '../scripts/utils/reserved-namespaces';
 import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
@@ -97,6 +98,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     )
   );
   hre.deployments.log('the future "Holograph" address is', futureHolographAddress);
+  global.__holographAddress = futureHolographAddress.toLowerCase();
 
   const futureBridgeAddress = await genesisDeriveFutureAddress(
     hre,
@@ -141,6 +143,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     )
   );
   hre.deployments.log('the future "HolographFactoryProxy" address is', futureFactoryProxyAddress);
+  global.__holographFactoryAddress = futureFactoryProxyAddress.toLowerCase();
 
   const futureOperatorAddress = await genesisDeriveFutureAddress(
     hre,
@@ -317,86 +320,114 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let holograph = (await hre.ethers.getContractAt('Holograph', futureHolographAddress, deployer)) as Holograph;
     if ((await holograph.getBridge()) != futureBridgeProxyAddress) {
       hre.deployments.log('Updating Bridge reference');
-      let tx = await holograph.setBridge(futureBridgeProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holograph,
-          data: holograph.populateTransaction.setBridge(futureBridgeProxyAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holograph.populateTransaction.setBridge(futureBridgeProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holograph,
+            data: holograph.populateTransaction.setBridge(futureBridgeProxyAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holograph.getFactory()) != futureFactoryProxyAddress) {
       hre.deployments.log('Updating Factory reference');
-      let tx = await holograph.setFactory(futureFactoryProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holograph,
-          data: holograph.setFactory(futureFactoryProxyAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holograph.populateTransaction.setFactory(futureFactoryProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holograph,
+            data: holograph.setFactory(futureFactoryProxyAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holograph.getInterfaces()) != futureHolographInterfacesAddress) {
       hre.deployments.log('Updating HolographInterfaces reference');
-      let tx = await holograph.setInterfaces(futureHolographInterfacesAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holograph,
-          data: holograph.populateTransaction.setInterfaces(futureHolographInterfacesAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holograph.populateTransaction.setInterfaces(futureHolographInterfacesAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holograph,
+            data: holograph.populateTransaction.setInterfaces(futureHolographInterfacesAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holograph.getOperator()) != futureOperatorProxyAddress) {
       hre.deployments.log('Updating Operator reference');
-      let tx = await holograph.setOperator(futureOperatorProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holograph,
-          data: holograph.populateTransaction.setOperator(futureOperatorProxyAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holograph.populateTransaction.setOperator(futureOperatorProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holograph,
+            data: holograph.populateTransaction.setOperator(futureOperatorProxyAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holograph.getRegistry()) != futureRegistryProxyAddress) {
       hre.deployments.log('Updating Registry reference');
-      let tx = await holograph.setRegistry(futureRegistryProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holograph,
-          data: holograph.populateTransaction.setRegistry(futureRegistryProxyAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holograph.populateTransaction.setRegistry(futureRegistryProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holograph,
+            data: holograph.populateTransaction.setRegistry(futureRegistryProxyAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holograph.getTreasury()) != futureTreasuryProxyAddress) {
       hre.deployments.log('Updating Treasury reference');
-      let tx = await holograph.setTreasury(futureTreasuryProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holograph,
-          data: holograph.populateTransaction.setTreasury(futureTreasuryProxyAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holograph.populateTransaction.setTreasury(futureTreasuryProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holograph,
+            data: holograph.populateTransaction.setTreasury(futureTreasuryProxyAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holograph.getUtilityToken()) != futureHlgAddress) {
       hre.deployments.log('Updating UtilityToken reference');
-      let tx = await holograph.setUtilityToken(futureHlgAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holograph,
-          data: holograph.populateTransaction.setUtilityToken(futureHlgAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holograph.populateTransaction.setUtilityToken(futureHlgAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holograph,
+            data: holograph.populateTransaction.setUtilityToken(futureHlgAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
   }
@@ -453,62 +484,82 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     )) as HolographBridge;
     if ((await holographBridgeProxy.getBridge()) != futureBridgeAddress) {
       hre.deployments.log('Updating Bridge reference');
-      let tx = await holographBridgeProxy.setBridge(futureBridgeAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographBridgeProxy,
-          data: holographBridgeProxy.populateTransaction.setBridge(futureBridgeAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographBridgeProxy.populateTransaction.setBridge(futureBridgeAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographBridgeProxy,
+            data: holographBridgeProxy.populateTransaction.setBridge(futureBridgeAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographBridge.getFactory()) != futureFactoryProxyAddress) {
       hre.deployments.log('Updating Factory reference');
-      let tx = await holographBridge.setFactory(futureFactoryProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographBridge,
-          data: holographBridge.populateTransaction.setFactory(futureFactoryProxyAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographBridge.populateTransaction.setFactory(futureFactoryProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographBridge,
+            data: holographBridge.populateTransaction.setFactory(futureFactoryProxyAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographBridge.getHolograph()) != futureHolographAddress) {
       hre.deployments.log('Updating Holograph reference');
-      let tx = await holographBridge.setHolograph(futureHolographAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographBridge,
-          data: holographBridge.populateTransaction.setHolograph(futureHolographAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographBridge.populateTransaction.setHolograph(futureHolographAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographBridge,
+            data: holographBridge.populateTransaction.setHolograph(futureHolographAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographBridge.getOperator()) != futureOperatorProxyAddress) {
       hre.deployments.log('Updating Operator reference');
-      let tx = await holographBridge.setOperator(futureOperatorProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographBridge,
-          data: holographBridge.populateTransaction.setOperator(futureOperatorProxyAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographBridge.populateTransaction.setOperator(futureOperatorProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographBridge,
+            data: holographBridge.populateTransaction.setOperator(futureOperatorProxyAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographBridge.getRegistry()) != futureRegistryProxyAddress) {
       hre.deployments.log('Updating Registry reference');
-      let tx = await holographBridge.setRegistry(futureRegistryProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographBridge,
-          data: holographBridge.populateTransaction.setRegistry(futureRegistryProxyAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographBridge.populateTransaction.setRegistry(futureRegistryProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographBridge,
+            data: holographBridge.populateTransaction.setRegistry(futureRegistryProxyAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
   }
@@ -565,38 +616,50 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     )) as HolographFactory;
     if ((await holographFactoryProxy.getFactory()) != futureFactoryAddress) {
       hre.deployments.log('Updating Factory reference');
-      let tx = await holographFactoryProxy.setFactory(futureFactoryAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographFactoryProxy,
-          data: holographFactoryProxy.populateTransaction.setFactory(futureFactoryAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographFactoryProxy.populateTransaction.setFactory(futureFactoryAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographFactoryProxy,
+            data: holographFactoryProxy.populateTransaction.setFactory(futureFactoryAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographFactory.getHolograph()) != futureHolographAddress) {
       hre.deployments.log('Updating Holograph reference');
-      let tx = await holographFactory.setHolograph(futureHolographAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographFactory,
-          data: holographFactory.populateTransaction.setHolograph(futureHolographAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographFactory.populateTransaction.setHolograph(futureHolographAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographFactory,
+            data: holographFactory.populateTransaction.setHolograph(futureHolographAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographFactory.getRegistry()) != futureRegistryProxyAddress) {
       hre.deployments.log('Updating Registry reference');
-      let tx = await holographFactory.setRegistry(futureRegistryProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographFactory,
-          data: holographFactory.populateTransaction.setRegistry(futureRegistryProxyAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographFactory.populateTransaction.setRegistry(futureRegistryProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographFactory,
+            data: holographFactory.populateTransaction.setRegistry(futureRegistryProxyAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
   }
@@ -663,86 +726,114 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     )) as HolographOperator;
     if ((await holographOperatorProxy.getOperator()) != futureOperatorAddress) {
       hre.deployments.log('Updating Operator reference');
-      let tx = await holographOperatorProxy.setOperator(futureOperatorAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographOperatorProxy,
-          data: holographOperatorProxy.populateTransaction.setOperator(futureOperatorAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographOperatorProxy.populateTransaction.setOperator(futureOperatorAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographOperatorProxy,
+            data: holographOperatorProxy.populateTransaction.setOperator(futureOperatorAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographOperator.getBridge()) != futureBridgeProxyAddress) {
       hre.deployments.log('Updating Bridge reference');
-      let tx = await holographOperator.setBridge(futureBridgeProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographOperator,
-          data: holographOperator.populateTransaction.setBridge(futureBridgeProxyAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographOperator.populateTransaction.setBridge(futureBridgeProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographOperator,
+            data: holographOperator.populateTransaction.setBridge(futureBridgeProxyAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographOperator.getHolograph()) != futureHolographAddress) {
       hre.deployments.log('Updating Holograph reference');
-      let tx = await holographOperator.setHolograph(futureHolographAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographOperator,
-          data: holographOperator.populateTransaction.setHolograph(futureHolographAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographOperator.populateTransaction.setHolograph(futureHolographAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographOperator,
+            data: holographOperator.populateTransaction.setHolograph(futureHolographAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographOperator.getInterfaces()) != futureHolographInterfacesAddress) {
       hre.deployments.log('Updating HolographInterfaces reference');
-      let tx = await holographOperator.setInterfaces(futureHolographInterfacesAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographOperator,
-          data: holographOperator.populateTransaction.setInterfaces(futureHolographInterfacesAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographOperator.populateTransaction.setInterfaces(futureHolographInterfacesAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographOperator,
+            data: holographOperator.populateTransaction.setInterfaces(futureHolographInterfacesAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographOperator.getRegistry()) != futureRegistryProxyAddress) {
       hre.deployments.log('Updating Registry reference');
-      let tx = await holographOperator.setRegistry(futureRegistryProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographOperator,
-          data: holographOperator.populateTransaction.setRegistry(futureRegistryProxyAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographOperator.populateTransaction.setRegistry(futureRegistryProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographOperator,
+            data: holographOperator.populateTransaction.setRegistry(futureRegistryProxyAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographOperator.getUtilityToken()) != futureHlgAddress) {
       hre.deployments.log('Updating UtilityToken reference');
-      let tx = await holographOperator.setUtilityToken(futureHlgAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographOperator,
-          data: holographOperator.populateTransaction.setUtilityToken(futureHlgAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographOperator.populateTransaction.setUtilityToken(futureHlgAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographOperator,
+            data: holographOperator.populateTransaction.setUtilityToken(futureHlgAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if (!BigNumber.from(await holographOperator.getMinGasPrice()).eq(GWEI)) {
       hre.deployments.log('Updating MinGasPrice reference');
-      let tx = await holographOperator.setMinGasPrice(GWEI.toHexString(), {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographOperator,
-          data: holographOperator.populateTransaction.setMinGasPrice(GWEI.toHexString()),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographOperator.populateTransaction.setMinGasPrice(GWEI.toHexString(), {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographOperator,
+            data: holographOperator.populateTransaction.setMinGasPrice(GWEI.toHexString()),
+          })),
+        })
+      );
       await tx.wait();
     }
   }
@@ -789,14 +880,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     )) as HolographRegistry;
     if ((await holographRegistry.getUtilityToken()) != futureHlgAddress) {
       hre.deployments.log('Updating UtilityToken reference');
-      let tx = await holographRegistry.setUtilityToken(futureHlgAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographRegistry,
-          data: holographRegistry.populateTransaction.setUtilityToken(futureHlgAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographRegistry.populateTransaction.setUtilityToken(futureHlgAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographRegistry,
+            data: holographRegistry.populateTransaction.setUtilityToken(futureHlgAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
   } else {
@@ -813,38 +908,50 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     )) as HolographRegistry;
     if ((await holographRegistryProxy.getRegistry()) != futureRegistryAddress) {
       hre.deployments.log('Updating Registry reference');
-      let tx = await holographRegistryProxy.setRegistry(futureRegistryAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographRegistryProxy,
-          data: holographRegistryProxy.populateTransaction.setRegistry(futureRegistryAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographRegistryProxy.populateTransaction.setRegistry(futureRegistryAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographRegistryProxy,
+            data: holographRegistryProxy.populateTransaction.setRegistry(futureRegistryAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographRegistry.getHolograph()) != futureHolographAddress) {
       hre.deployments.log('Updating Holograph reference');
-      let tx = await holographRegistry.setHolograph(futureHolographAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographRegistry,
-          data: holographRegistry.populateTransaction.setHolograph(futureHolographAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographRegistry.populateTransaction.setHolograph(futureHolographAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographRegistry,
+            data: holographRegistry.populateTransaction.setHolograph(futureHolographAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographRegistry.getUtilityToken()) != futureHlgAddress) {
       hre.deployments.log('Updating UtilityToken reference');
-      let tx = await holographRegistry.setUtilityToken(futureHlgAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographRegistry,
-          data: holographRegistry.populateTransaction.setUtilityToken(futureHlgAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographRegistry.populateTransaction.setUtilityToken(futureHlgAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographRegistry,
+            data: holographRegistry.populateTransaction.setUtilityToken(futureHlgAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
   }
@@ -904,50 +1011,66 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     )) as HolographTreasury;
     if ((await holographTreasuryProxy.getTreasury()) != futureTreasuryAddress) {
       hre.deployments.log('Updating Treasury reference');
-      let tx = await holographTreasuryProxy.setTreasury(futureTreasuryAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographTreasuryProxy,
-          data: holographTreasuryProxy.populateTransaction.setTreasury(futureTreasuryAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographTreasuryProxy.populateTransaction.setTreasury(futureTreasuryAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographTreasuryProxy,
+            data: holographTreasuryProxy.populateTransaction.setTreasury(futureTreasuryAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographTreasury.getBridge()) != futureBridgeProxyAddress) {
       hre.deployments.log('Updating Bridge reference');
-      let tx = await holographTreasury.setBridge(futureBridgeProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographTreasury,
-          data: holographTreasury.populateTransaction.setBridge(futureBridgeProxyAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographTreasury.populateTransaction.setBridge(futureBridgeProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographTreasury,
+            data: holographTreasury.populateTransaction.setBridge(futureBridgeProxyAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographTreasury.getOperator()) != futureOperatorProxyAddress) {
       hre.deployments.log('Updating Operator reference');
-      let tx = await holographTreasury.setOperator(futureOperatorProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographTreasury,
-          data: holographTreasury.populateTransaction.setOperator(futureOperatorProxyAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographTreasury.populateTransaction.setOperator(futureOperatorProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographTreasury,
+            data: holographTreasury.populateTransaction.setOperator(futureOperatorProxyAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
     if ((await holographTreasury.getRegistry()) != futureRegistryProxyAddress) {
       hre.deployments.log('Updating Registry reference');
-      let tx = await holographTreasury.setRegistry(futureRegistryProxyAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holographTreasury,
-          data: holographTreasury.populateTransaction.setRegistry(futureRegistryProxyAddress),
-        })),
-      });
+      let tx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await holographTreasury.populateTransaction.setRegistry(futureRegistryProxyAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographTreasury,
+            data: holographTreasury.populateTransaction.setRegistry(futureRegistryProxyAddress),
+          })),
+        })
+      );
       await tx.wait();
     }
   }
