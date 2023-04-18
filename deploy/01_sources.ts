@@ -54,6 +54,9 @@ import { NetworkType, Network, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 import { Environment, getEnvironment } from '@holographxyz/environment';
 
+import dotenv from 'dotenv';
+dotenv.config();
+
 const GWEI: BigNumber = BigNumber.from('1000000000');
 const ZERO: BigNumber = BigNumber.from('0');
 
@@ -291,6 +294,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.ethers.utils.keccak256(holographerBytecode)
   );
   hre.deployments.log('the future "HolographUtilityToken" address is', futureHlgAddress);
+
+  const dryRun = process.env.DRY_RUN;
+  if ((dryRun && dryRun === 'true') || dryRun === true) {
+    process.exit();
+    throw new Error('WHY?');
+  }
 
   // Holograph
   let holographDeployedCode: string = await hre.provider.send('eth_getCode', [futureHolographAddress, 'latest']);
