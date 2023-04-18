@@ -597,7 +597,11 @@ contract HolographRoyalties is Admin, Owner, Initializable {
    * @param receiver Wallet or smart contract that will receive the royalty payouts.
    * @param bp Uint256 of royalty percentage, provided in base points format.
    */
-  function setRoyalties(uint256 tokenId, address payable receiver, uint256 bp) public onlyOwner {
+  function setRoyalties(
+    uint256 tokenId,
+    address payable receiver,
+    uint256 bp
+  ) public onlyOwner {
     require(receiver != address(0), "ROYALTIES: receiver is zero address");
     require(bp <= 10000, "ROYALTIES: base points over 100%");
     if (tokenId == 0) {
@@ -736,9 +740,9 @@ contract HolographRoyalties is Admin, Owner, Initializable {
     bidShares.prevOwner.value = 0;
     bidShares.owner.value = 0;
     if (_getReceiver(tokenId) == address(0)) {
-      bidShares.creator.value = _getDefaultBp() * (10 ** 16);
+      bidShares.creator.value = _getDefaultBp() * (10**16);
     } else {
-      bidShares.creator.value = _getBp(tokenId) * (10 ** 16);
+      bidShares.creator.value = _getBp(tokenId) * (10**16);
     }
     return bidShares;
   }
@@ -760,7 +764,11 @@ contract HolographRoyalties is Admin, Owner, Initializable {
    *      if return data does not exist (0 length) then success is expected and returns true
    * @return Returns true if the wrapped function call returns without a revert even if it doesn't return true.
    */
-  function _callOptionalReturn(address target, bytes4 functionSignature, bytes memory payload) internal returns (bool) {
+  function _callOptionalReturn(
+    address target,
+    bytes4 functionSignature,
+    bytes memory payload
+  ) internal returns (bool) {
     bytes memory data = abi.encodePacked(functionSignature, payload);
     bool success = true;
     assembly {

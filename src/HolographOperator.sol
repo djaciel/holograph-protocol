@@ -163,7 +163,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
     }
     _blockTime = 60; // 60 seconds allowed for execution
     unchecked {
-      _baseBondAmount = 100 * (10 ** 18); // one single token unit * 100
+      _baseBondAmount = 100 * (10**18); // one single token unit * 100
     }
     // how much to increase bond amount per pod
     _podMultiplier = 2; // 1, 4, 16, 64
@@ -588,7 +588,20 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    * @return msgFee the amount (in wei) of native gas token that will cost for sending message to destiantion chain
    * @return dstGasPrice the amount (in wei) that destination message maximum gas price will be
    */
-  function getMessageFee(uint32, uint256, uint256, bytes calldata) external view returns (uint256, uint256, uint256) {
+  function getMessageFee(
+    uint32,
+    uint256,
+    uint256,
+    bytes calldata
+  )
+    external
+    view
+    returns (
+      uint256,
+      uint256,
+      uint256
+    )
+  {
     assembly {
       calldatacopy(0, 0, calldatasize())
       let result := staticcall(gas(), sload(_messagingModuleSlot), 0, calldatasize(), 0, 0)
@@ -778,7 +791,11 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    * @param amount utility token amount to bond (can be greater than minimum)
    * @param pod number of pod to bond to (can be for one that does not exist yet)
    */
-  function bondUtilityToken(address operator, uint256 amount, uint256 pod) external {
+  function bondUtilityToken(
+    address operator,
+    uint256 amount,
+    uint256 pod
+  ) external {
     /**
      * @dev an operator can only bond to one pod at any give time per network
      */
@@ -1118,18 +1135,18 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    * @dev Internal function used for calculating the base bonding amount for a pod
    */
   function _getBaseBondAmount(uint256 pod) private view returns (uint256) {
-    return (_podMultiplier ** pod) * _baseBondAmount;
+    return (_podMultiplier**pod) * _baseBondAmount;
   }
 
   /**
    * @dev Internal function used for calculating the current bonding amount for a pod
    */
   function _getCurrentBondAmount(uint256 pod) private view returns (uint256) {
-    uint256 current = (_podMultiplier ** pod) * _baseBondAmount;
+    uint256 current = (_podMultiplier**pod) * _baseBondAmount;
     if (pod >= _operatorPods.length) {
       return current;
     }
-    uint256 threshold = _operatorThreshold / (2 ** pod);
+    uint256 threshold = _operatorThreshold / (2**pod);
     uint256 position = _operatorPods[pod].length;
     if (position > threshold) {
       position -= threshold;
@@ -1142,7 +1159,11 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
   /**
    * @dev Internal function used for generating a random pod operator selection by using previously mined blocks
    */
-  function _randomBlockHash(uint256 random, uint256 podSize, uint256 n) private view returns (uint256) {
+  function _randomBlockHash(
+    uint256 random,
+    uint256 podSize,
+    uint256 n
+  ) private view returns (uint256) {
     unchecked {
       return (random + uint256(blockhash(block.number - n))) % podSize;
     }

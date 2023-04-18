@@ -10,9 +10,18 @@ interface HolographGenericInterface is ERC165, Holographable {
 
   function sourceEmit(bytes32 eventId, bytes calldata eventData) external;
 
-  function sourceEmit(bytes32 eventId, bytes32 topic1, bytes calldata eventData) external;
+  function sourceEmit(
+    bytes32 eventId,
+    bytes32 topic1,
+    bytes calldata eventData
+  ) external;
 
-  function sourceEmit(bytes32 eventId, bytes32 topic1, bytes32 topic2, bytes calldata eventData) external;
+  function sourceEmit(
+    bytes32 eventId,
+    bytes32 topic1,
+    bytes32 topic2,
+    bytes calldata eventData
+  ) external;
 
   function sourceEmit(
     bytes32 eventId,

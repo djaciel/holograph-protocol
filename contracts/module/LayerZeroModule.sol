@@ -181,9 +181,9 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
    * @dev This function only allows calls from the configured LayerZero endpoint address
    */
   function lzReceive(
-    uint16 /* _srcChainId*/,
+    uint16, /* _srcChainId*/
     bytes calldata _srcAddress,
-    uint64 /* _nonce*/,
+    uint64, /* _nonce*/
     bytes calldata _payload
   ) external payable {
     assembly {
@@ -228,8 +228,8 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
    * @dev Need to add an extra function to get LZ gas amount needed for their internal cross-chain message verification
    */
   function send(
-    uint256 /* gasLimit*/,
-    uint256 /* gasPrice*/,
+    uint256, /* gasLimit*/
+    uint256, /* gasPrice*/
     uint32 toChain,
     address msgSender,
     uint256 msgValue,
@@ -260,7 +260,15 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
     uint256 gasLimit,
     uint256 gasPrice,
     bytes calldata crossChainPayload
-  ) external view returns (uint256 hlgFee, uint256 msgFee, uint256 dstGasPrice) {
+  )
+    external
+    view
+    returns (
+      uint256 hlgFee,
+      uint256 msgFee,
+      uint256 dstGasPrice
+    )
+  {
     uint16 lzDestChain = uint16(
       _interfaces().getChainId(ChainIdType.HOLOGRAPH, uint256(toChain), ChainIdType.LAYERZERO)
     );
@@ -283,9 +291,9 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
     gasLimit = gasLimit + (gasLimit / 10);
     require(gasLimit < gasParameters.maxGasLimit, "HOLOGRAPH: gas limit over max");
     (uint256 nativeFee, ) = lz.estimateFees(lzDestChain, address(this), crossChainPayload, false, adapterParams);
-    hlgFee = ((gasPrice * gasLimit) * dstPriceRatio) / (10 ** 10);
+    hlgFee = ((gasPrice * gasLimit) * dstPriceRatio) / (10**10);
     msgFee = nativeFee;
-    dstGasPrice = (dstGasPriceInWei * dstPriceRatio) / (10 ** 10);
+    dstGasPrice = (dstGasPriceInWei * dstPriceRatio) / (10**10);
   }
 
   function getHlgFee(
@@ -310,13 +318,14 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
     gasLimit = gasLimit + gasParameters.jobBaseGas + (payloadLength * gasParameters.jobGasPerByte);
     gasLimit = gasLimit + (gasLimit / 10);
     require(gasLimit < gasParameters.maxGasLimit, "HOLOGRAPH: gas limit over max");
-    return ((gasPrice * gasLimit) * dstPriceRatio) / (10 ** 10);
+    return ((gasPrice * gasLimit) * dstPriceRatio) / (10**10);
   }
 
-  function _getPricing(
-    LayerZeroOverrides lz,
-    uint16 lzDestChain
-  ) private view returns (uint128 dstPriceRatio, uint128 dstGasPriceInWei) {
+  function _getPricing(LayerZeroOverrides lz, uint16 lzDestChain)
+    private
+    view
+    returns (uint128 dstPriceRatio, uint128 dstGasPriceInWei)
+  {
     return
       LayerZeroOverrides(LayerZeroOverrides(lz.defaultSendLibrary()).getAppConfig(lzDestChain, address(this)).relayer)
         .dstPriceLookup(lzDestChain);

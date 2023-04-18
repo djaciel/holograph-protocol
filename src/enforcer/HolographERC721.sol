@@ -379,7 +379,11 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    * @param to cannot be the zero address.
    * @param tokenId token must exist and be owned by `from`.
    */
-  function safeTransferFrom(address from, address to, uint256 tokenId) external payable {
+  function safeTransferFrom(
+    address from,
+    address to,
+    uint256 tokenId
+  ) external payable {
     safeTransferFrom(from, to, tokenId, "");
   }
 
@@ -391,7 +395,12 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    * @param to cannot be the zero address.
    * @param tokenId token must exist and be owned by `from`.
    */
-  function safeTransferFrom(address from, address to, uint256 tokenId, bytes memory data) public payable {
+  function safeTransferFrom(
+    address from,
+    address to,
+    uint256 tokenId,
+    bytes memory data
+  ) public payable {
     require(_isApproved(msg.sender, tokenId), "ERC721: not approved sender");
     if (_isEventRegistered(HolographERC721Event.beforeSafeTransfer)) {
       require(
@@ -538,7 +547,11 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    * @param to cannot be the zero address.
    * @param tokenId token must be owned by `from`.
    */
-  function transferFrom(address from, address to, uint256 tokenId) public payable {
+  function transferFrom(
+    address from,
+    address to,
+    uint256 tokenId
+  ) public payable {
     transferFrom(from, to, tokenId, "");
   }
 
@@ -551,7 +564,12 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    * @param tokenId token must be owned by `from`.
    * @param data additional data to pass.
    */
-  function transferFrom(address from, address to, uint256 tokenId, bytes memory data) public payable {
+  function transferFrom(
+    address from,
+    address to,
+    uint256 tokenId,
+    bytes memory data
+  ) public payable {
     require(_isApproved(msg.sender, tokenId), "ERC721: not approved sender");
     if (_isEventRegistered(HolographERC721Event.beforeTransfer)) {
       require(_sourceCall(abi.encodeWithSelector(HolographedERC721.beforeTransfer.selector, from, to, tokenId, data)));
@@ -816,7 +834,11 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    * @param to Address to whom the token is being transferred. Zero address means it is being burned.
    * @param tokenId Id of token that is being transferred/minted/burned.
    */
-  function _transferFrom(address from, address to, uint256 tokenId) private {
+  function _transferFrom(
+    address from,
+    address to,
+    uint256 tokenId
+  ) private {
     require(_tokenOwner[tokenId] == from, "ERC721: token not owned");
     require(to != address(0), "ERC721: use burn instead");
     _clearApproval(tokenId);

@@ -107,7 +107,11 @@ library Bytes {
     return (flag == 1 ? true : false);
   }
 
-  function setBoolean(uint192 _packedBools, uint192 _boolNumber, bool _value) internal pure returns (uint192) {
+  function setBoolean(
+    uint192 _packedBools,
+    uint192 _boolNumber,
+    bool _value
+  ) internal pure returns (uint192) {
     if (_value) {
       return _packedBools | (uint192(1) << _boolNumber);
     } else {
@@ -115,7 +119,11 @@ library Bytes {
     }
   }
 
-  function slice(bytes memory _bytes, uint256 _start, uint256 _length) internal pure returns (bytes memory) {
+  function slice(
+    bytes memory _bytes,
+    uint256 _start,
+    uint256 _length
+  ) internal pure returns (bytes memory) {
     require(_length + 31 >= _length, "slice_overflow");
     require(_bytes.length >= _start + _length, "slice_outOfBounds");
     bytes memory tempBytes;
