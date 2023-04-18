@@ -185,14 +185,7 @@ interface HolographOperatorInterface {
     uint256 gasLimit,
     uint256 gasPrice,
     bytes calldata crossChainPayload
-  )
-    external
-    view
-    returns (
-      uint256 hlgFee,
-      uint256 msgFee,
-      uint256 dstGasPrice
-    );
+  ) external view returns (uint256 hlgFee, uint256 msgFee, uint256 dstGasPrice);
 
   /**
    * @notice Get the details for an available operator job
@@ -286,11 +279,7 @@ interface HolographOperatorInterface {
    * @param amount utility token amount to bond (can be greater than minimum)
    * @param pod number of pod to bond to (can be for one that does not exist yet)
    */
-  function bondUtilityToken(
-    address operator,
-    uint256 amount,
-    uint256 pod
-  ) external;
+  function bondUtilityToken(address operator, uint256 amount, uint256 pod) external;
 
   /**
    * @notice Unbond HLG utility tokens and stop being an operator

@@ -47,7 +47,7 @@ contract DropsPriceOracleBinanceSmartChain is Admin, Initializable, IDropsPriceO
 
   function _getUSDC(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    usdAmount = usdAmount * (10**(18 - 6));
+    usdAmount = usdAmount * (10 ** (18 - 6));
     (uint112 _reserve0, uint112 _reserve1, ) = SushiV2UsdcPool.getReserves();
     // x is always native token / WBNB
     uint256 x = _reserve1;
@@ -62,7 +62,7 @@ contract DropsPriceOracleBinanceSmartChain is Admin, Initializable, IDropsPriceO
 
   function _getUSDT(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    usdAmount = usdAmount * (10**(18 - 6));
+    usdAmount = usdAmount * (10 ** (18 - 6));
     (uint112 _reserve0, uint112 _reserve1, ) = SushiV2UsdtPool.getReserves();
     // x is always native token / WBNB
     uint256 x = _reserve1;
@@ -77,7 +77,7 @@ contract DropsPriceOracleBinanceSmartChain is Admin, Initializable, IDropsPriceO
 
   function _getBUSD(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    usdAmount = usdAmount * (10**(18 - 6));
+    usdAmount = usdAmount * (10 ** (18 - 6));
     (uint112 _reserve0, uint112 _reserve1, ) = SushiV2BusdPool.getReserves();
     // x is always native token / WBNB
     uint256 x = _reserve0;

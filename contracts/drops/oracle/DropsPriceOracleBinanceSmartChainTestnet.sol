@@ -47,7 +47,7 @@ contract DropsPriceOracleBinanceSmartChainTestnet is Admin, Initializable, IDrop
 
   function _getUSDC(uint256 usdAmount) internal pure returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    usdAmount = usdAmount * (10**(18 - 6));
+    usdAmount = usdAmount * (10 ** (18 - 6));
     // (uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdcPool.getReserves();
     uint112 _reserve0 = 13021882855694508203763;
     uint112 _reserve1 = 40694382259814793835;
@@ -64,7 +64,7 @@ contract DropsPriceOracleBinanceSmartChainTestnet is Admin, Initializable, IDrop
 
   function _getUSDT(uint256 usdAmount) internal pure returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    usdAmount = usdAmount * (10**(18 - 6));
+    usdAmount = usdAmount * (10 ** (18 - 6));
     // (uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdtPool.getReserves();
     uint112 _reserve0 = 27194218672878436248359;
     uint112 _reserve1 = 85236077287017749564;
@@ -81,7 +81,7 @@ contract DropsPriceOracleBinanceSmartChainTestnet is Admin, Initializable, IDrop
 
   function _getBUSD(uint256 usdAmount) internal pure returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
-    usdAmount = usdAmount * (10**(18 - 6));
+    usdAmount = usdAmount * (10 ** (18 - 6));
     // (uint112 _reserve0, uint112 _reserve1,) = SushiV2BusdPool.getReserves();
     uint112 _reserve0 = 18888866298338593382;
     uint112 _reserve1 = 6055244885106491861952;

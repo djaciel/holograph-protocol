@@ -13,13 +13,7 @@ interface VmSafe {
   function load(address, bytes32) external returns (bytes32);
 
   // Signs data, (privateKey, digest) => (v, r, s)
-  function sign(uint256, bytes32)
-    external
-    returns (
-      uint8,
-      bytes32,
-      bytes32
-    );
+  function sign(uint256, bytes32) external returns (uint8, bytes32, bytes32);
 
   // Gets the address for a given private key, (privateKey) => (address)
   function addr(uint256) external returns (address);
@@ -170,11 +164,7 @@ interface VmSafe {
   function deriveKey(string calldata, uint32) external returns (uint256);
 
   // Derive a private key from a provided mnenomic string (or mnenomic file path) at the derivation path {path}{index}
-  function deriveKey(
-    string calldata,
-    string calldata,
-    uint32
-  ) external returns (uint256);
+  function deriveKey(string calldata, string calldata, uint32) external returns (uint256);
 
   // Adds a private key to the local forge wallet and returns the address
   function rememberKey(uint256) external returns (address);
@@ -230,11 +220,7 @@ interface Vm is VmSafe {
   function chainId(uint256) external;
 
   // Stores a value to an address' storage slot, (who, slot, value)
-  function store(
-    address,
-    bytes32,
-    bytes32
-  ) external;
+  function store(address, bytes32, bytes32) external;
 
   // Sets the nonce of an account; must be higher than the current nonce of the account
   function setNonce(address, uint64) external;
@@ -270,39 +256,19 @@ interface Vm is VmSafe {
   // Prepare an expected log with (bool checkTopic1, bool checkTopic2, bool checkTopic3, bool checkData).
   // Call this function, then emit an event, then call a function. Internally after the call, we check if
   // logs were emitted in the expected order with the expected topics and data (as specified by the booleans)
-  function expectEmit(
-    bool,
-    bool,
-    bool,
-    bool
-  ) external;
+  function expectEmit(bool, bool, bool, bool) external;
 
-  function expectEmit(
-    bool,
-    bool,
-    bool,
-    bool,
-    address
-  ) external;
+  function expectEmit(bool, bool, bool, bool, address) external;
 
   // Mocks a call to an address, returning specified data.
   // Calldata can either be strict or a partial match, e.g. if you only
   // pass a Solidity selector to the expected calldata, then the entire Solidity
   // function will be mocked.
-  function mockCall(
-    address,
-    bytes calldata,
-    bytes calldata
-  ) external;
+  function mockCall(address, bytes calldata, bytes calldata) external;
 
   // Mocks a call to an address with a specific msg.value, returning specified data.
   // Calldata match takes precedence over msg.value in case of ambiguity.
-  function mockCall(
-    address,
-    uint256,
-    bytes calldata,
-    bytes calldata
-  ) external;
+  function mockCall(address, uint256, bytes calldata, bytes calldata) external;
 
   // Clears all mocked calls
   function clearMockedCalls() external;
@@ -312,11 +278,7 @@ interface Vm is VmSafe {
   function expectCall(address, bytes calldata) external;
 
   // Expects a call to an address with the specified msg.value and calldata
-  function expectCall(
-    address,
-    uint256,
-    bytes calldata
-  ) external;
+  function expectCall(address, uint256, bytes calldata) external;
 
   // Sets block.coinbase (who)
   function coinbase(address) external;
@@ -376,11 +338,7 @@ interface Vm is VmSafe {
 
   function makePersistent(address, address) external;
 
-  function makePersistent(
-    address,
-    address,
-    address
-  ) external;
+  function makePersistent(address, address, address) external;
 
   function makePersistent(address[] calldata) external;
 

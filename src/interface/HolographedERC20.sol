@@ -24,18 +24,10 @@ interface HolographedERC20 {
   ) external returns (bytes memory _data);
 
   // event id = 3
-  function afterApprove(
-    address _owner,
-    address _to,
-    uint256 _amount
-  ) external returns (bool success);
+  function afterApprove(address _owner, address _to, uint256 _amount) external returns (bool success);
 
   // event id = 4
-  function beforeApprove(
-    address _owner,
-    address _to,
-    uint256 _amount
-  ) external returns (bool success);
+  function beforeApprove(address _owner, address _to, uint256 _amount) external returns (bool success);
 
   // event id = 5
   function afterOnERC20Received(
@@ -84,16 +76,8 @@ interface HolographedERC20 {
   ) external returns (bool success);
 
   // event id = 13
-  function afterTransfer(
-    address _from,
-    address _to,
-    uint256 _amount
-  ) external returns (bool success);
+  function afterTransfer(address _from, address _to, uint256 _amount) external returns (bool success);
 
   // event id = 14
-  function beforeTransfer(
-    address _from,
-    address _to,
-    uint256 _amount
-  ) external returns (bool success);
+  function beforeTransfer(address _from, address _to, uint256 _amount) external returns (bool success);
 }

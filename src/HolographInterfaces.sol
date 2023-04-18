@@ -159,11 +159,7 @@ contract HolographInterfaces is Admin, Initializable {
     return _supportedInterfaces[interfaceType][interfaceId];
   }
 
-  function updateInterface(
-    InterfaceType interfaceType,
-    bytes4 interfaceId,
-    bool supported
-  ) external onlyAdmin {
+  function updateInterface(InterfaceType interfaceType, bytes4 interfaceId, bool supported) external onlyAdmin {
     _supportedInterfaces[interfaceType][interfaceId] = supported;
   }
 

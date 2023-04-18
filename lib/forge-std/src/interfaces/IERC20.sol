@@ -29,11 +29,7 @@ interface IERC20 {
 
   /// @notice Moves `amount` tokens from `from` to `to` using the allowance mechanism.
   /// `amount` is then deducted from the caller's allowance.
-  function transferFrom(
-    address from,
-    address to,
-    uint256 amount
-  ) external returns (bool);
+  function transferFrom(address from, address to, uint256 amount) external returns (bool);
 
   /// @notice Returns the name of the token.
   function name() external view returns (string memory);

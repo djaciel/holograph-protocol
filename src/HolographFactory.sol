@@ -61,10 +61,7 @@ contract HolographFactory is Admin, Initializable, Holographable, HolographFacto
    * @dev This function directly forwards the calldata to the deployHolographableContract function
    *      It is used to allow for Holograph Bridge to make cross-chain deployments
    */
-  function bridgeIn(
-    uint32, /* fromChain*/
-    bytes calldata payload
-  ) external returns (bytes4) {
+  function bridgeIn(uint32 /* fromChain*/, bytes calldata payload) external returns (bytes4) {
     (DeploymentConfig memory config, Verification memory signature, address signer) = abi.decode(
       payload,
       (DeploymentConfig, Verification, address)
@@ -79,8 +76,8 @@ contract HolographFactory is Admin, Initializable, Holographable, HolographFacto
    *      It is used to allow for Holograph Bridge to make cross-chain deployments
    */
   function bridgeOut(
-    uint32, /* toChain*/
-    address, /* sender*/
+    uint32 /* toChain*/,
+    address /* sender*/,
     bytes calldata payload
   ) external pure returns (bytes4 selector, bytes memory data) {
     return (Holographable.bridgeOut.selector, payload);
@@ -249,13 +246,7 @@ contract HolographFactory is Admin, Initializable, Holographable, HolographFacto
   /**
    * @dev Internal function used for verifying a signature
    */
-  function _verifySigner(
-    bytes32 r,
-    bytes32 s,
-    uint8 v,
-    bytes32 hash,
-    address signer
-  ) private pure returns (bool) {
+  function _verifySigner(bytes32 r, bytes32 s, uint8 v, bytes32 hash, address signer) private pure returns (bool) {
     if (v < 27) {
       v += 27;
     }
