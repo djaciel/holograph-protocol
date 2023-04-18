@@ -17,6 +17,7 @@ import {
   remove0x,
   txParams,
 } from '../scripts/utils/helpers';
+import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { HolographERC20Event, ConfigureEvents, AllEventsEnabled } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
@@ -151,14 +152,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     }
     if ((await registry.getHToken(chainId)) != futureHTokenAddress) {
       hre.deployments.log('Updated "Registry" with "hToken #' + network.holographId.toString());
-      const setHTokenTx = await registry.setHToken(chainId, futureHTokenAddress, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: registry,
-          data: registry.populateTransaction.setHToken(chainId, futureHTokenAddress),
-        })),
-      });
+      const setHTokenTx = await MultisigAwareTx(
+        hre,
+        deployer,
+        await registry.populateTransaction.setHToken(chainId, futureHTokenAddress, {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: registry,
+            data: registry.populateTransaction.setHToken(chainId, futureHTokenAddress),
+          })),
+        })
+      );
       await setHTokenTx.wait();
     }
   };

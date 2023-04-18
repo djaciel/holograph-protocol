@@ -13,7 +13,7 @@ import "../interface/HolographerInterface.sol";
 
 /**
  * @title CXIP ERC-721 Collection that is bridgeable via Holograph
- * @author CXIP-Labs
+ * @author Holograph Foundation
  * @notice A smart contract for minting and managing Holograph Bridgeable ERC721 NFTs.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */

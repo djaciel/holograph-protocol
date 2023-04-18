@@ -117,7 +117,7 @@ abstract contract Owner {
     _;
   }
 
-  function owner() public view virtual returns (address) {
+  function owner() external view virtual returns (address) {
     return getOwner();
   }
 
@@ -129,7 +129,7 @@ abstract contract Owner {
     }
   }
 
-  function setOwner(address ownerAddress) public onlyOwner {
+  function setOwner(address ownerAddress) public virtual onlyOwner {
     address previousOwner = getOwner();
     assembly {
       sstore(_ownerSlot, ownerAddress)

@@ -7,7 +7,7 @@
     "avoid-sha3": "warn",
     "no-inline-assembly": false,
     "reason-string": false,
-    "compiler-version": false
-  },
-  "plugins": ["prettier"]
+    "compiler-version": false,
+    "func-name-mixedcase": false
+  }
 }

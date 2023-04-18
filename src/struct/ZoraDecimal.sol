@@ -2,6 +2,6 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-struct ZoraDecimal {
+struct HolographDecimal {
   uint256 value;
 }

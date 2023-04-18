@@ -119,7 +119,7 @@ import "../interface/Ownable.sol";
 
 /**
  * @title Holograph Bridgeable Generic Contract
- * @author CXIP-Labs
+ * @author Holograph Foundation
  * @notice A smart contract for creating custom bridgeable logic.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */

@@ -8,10 +8,13 @@ import "./abstract/Initializable.sol";
 import "./enforcer/Holographer.sol";
 
 import "./interface/Holographable.sol";
+import "./interface/HolographBridgeInterface.sol";
 import "./interface/HolographFactoryInterface.sol";
+import "./interface/HolographInterface.sol";
 import "./interface/HolographRegistryInterface.sol";
 import "./interface/InitializableInterface.sol";
 
+import "./struct/BridgeSettings.sol";
 import "./struct/DeploymentConfig.sol";
 import "./struct/Verification.sol";
 
@@ -80,6 +83,34 @@ contract HolographFactory is Admin, Initializable, Holographable, HolographFacto
     return (Holographable.bridgeOut.selector, payload);
   }
 
+  function deployHolographableContractMultiChain(
+    DeploymentConfig memory config,
+    Verification memory signature,
+    address signer,
+    bool deployOnCurrentChain,
+    BridgeSettings[] memory bridgeSettings
+  ) external payable {
+    if (deployOnCurrentChain) {
+      deployHolographableContract(config, signature, signer);
+    }
+    bytes memory payload = abi.encode(config, signature, signer);
+    HolographInterface holograph;
+    assembly {
+      holograph := sload(_holographSlot)
+    }
+    HolographBridgeInterface bridge = HolographBridgeInterface(holograph.getBridge());
+    uint256 l = bridgeSettings.length;
+    for (uint256 i = 0; i < l; i++) {
+      bridge.bridgeOutRequest{value: bridgeSettings[i].value}(
+        bridgeSettings[i].toChain,
+        address(this),
+        bridgeSettings[i].gasLimit,
+        bridgeSettings[i].gasPrice,
+        payload
+      );
+    }
+  }
+
   /**
    * @notice Deploy a holographable smart contract
    * @dev Using this function allows to deploy smart contracts that have the same address across all EVM chains
@@ -91,7 +122,7 @@ contract HolographFactory is Admin, Initializable, Holographable, HolographFacto
     DeploymentConfig memory config,
     Verification memory signature,
     address signer
-  ) external {
+  ) public {
     address registry;
     address holograph;
     assembly {

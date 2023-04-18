@@ -5,6 +5,7 @@ import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Holographer, CxipERC721Proxy } from '../typechain-types';
 import { hreSplit, txParams } from '../scripts/utils/helpers';
+import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { NetworkType, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
@@ -66,6 +67,29 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Deployed a "CxipERC721Proxy" empty contract for block explorer verification purposes.');
     }
 
+    const holographDropERC721Proxy: Contract | null = await hre.ethers.getContractOrNull(
+      'holographDropERC721Proxy',
+      deployer
+    );
+    if (holographDropERC721Proxy == null) {
+      await hre.deployments.deploy('HolographDropERC721Proxy', {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: '0x0000000000000000000000000000000000000000',
+          gasLimit: await hre.ethers.provider.estimateGas(
+            (await hre.ethers.getContractFactory('HolographDropERC721Proxy')).getDeployTransaction()
+          ),
+        })),
+        args: [],
+        log: true,
+        waitConfirmations: 1,
+      });
+      hre.deployments.log(
+        'Deployed a "holographDropERC721Proxy" empty contract for block explorer verification purposes.'
+      );
+    }
+
     const holographUtilityToken: Contract | null = await hre.ethers.getContractOrNull(
       'HolographUtilityToken',
       deployer
@@ -110,5 +134,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 };
 
 export default func;
-func.tags = ['Holographer4verify', 'CxipERC721Proxy4verify', 'HolographUtilityToken4verify', 'hToken4verify'];
+func.tags = [
+  'Holographer4verify',
+  'CxipERC721Proxy4verify',
+  'HolographDropERC721Proxy4verify',
+  'HolographUtilityToken4verify',
+  'hToken4verify',
+];
 func.dependencies = [];

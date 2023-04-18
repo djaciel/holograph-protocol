@@ -1,12 +1,12 @@
+# ignore any file by prepending "ignore." to it
+ignore.*
+
 node_modules
 .env
 .npmrc
 
 .idea
 .DS_Store
-
-# ignore any file by prepending "ignore." to it
-ignore.*
 
 dist
 cache
@@ -23,3 +23,5 @@ gasReport.txt
 
 editor.bbprojectd
 yarn-error.log
+
+tenderly.yaml

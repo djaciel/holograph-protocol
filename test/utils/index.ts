@@ -1,13 +1,7 @@
 declare var global: any;
-import fs from 'fs';
-import { expect, assert } from 'chai';
-import { EthereumProvider, Artifacts, HardhatRuntimeEnvironment } from 'hardhat/types';
-import { Address, Deployment, DeploymentsExtension } from '@holographxyz/hardhat-deploy-holographed/types';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import Web3 from 'web3';
-import { BigNumberish, BytesLike, ContractFactory, Contract } from 'ethers';
-import type { ethers } from 'ethers';
-import type EthersT from 'ethers';
-import { HardhatEthersHelpers } from '@nomiclabs/hardhat-ethers/types';
+import { BytesLike } from 'ethers';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import {
   Admin,
@@ -45,22 +39,12 @@ import {
   Erc20Config,
   Erc721Config,
   LeanHardhatRuntimeEnvironment,
-  l2Ethers,
   hreSplit,
-  utf8ToBytes32,
-  ZERO_ADDRESS,
-  sha256,
-  getHolographedContractHash,
   generateErc20Config,
   generateErc721Config,
   generateInitCode,
 } from '../../scripts/utils/helpers';
-import {
-  HolographERC20Event,
-  HolographERC721Event,
-  HolographERC1155Event,
-  ConfigureEvents,
-} from '../../scripts/utils/events';
+import { HolographERC20Event, HolographERC721Event, ConfigureEvents } from '../../scripts/utils/events';
 import { Network, Networks, networks } from '@holographxyz/networks';
 
 let hre1: HardhatRuntimeEnvironment = require('hardhat');
@@ -153,14 +137,14 @@ const animatedLoader = function (text: string) {
   }, 100);
 };
 
-export default async function (l2?: boolean): Promise<PreTest> {
-  if (l2) {
+export default async function (chain2?: boolean): Promise<PreTest> {
+  if (chain2) {
     global.__companionNetwork = true;
   } else {
     global.__companionNetwork = false;
   }
   const web3 = new Web3();
-  let { hre, hre2 } = await hreSplit(hre1, l2);
+  let { hre, hre2 } = await hreSplit(hre1, chain2);
   const salt = hre.deploymentSalt;
   const network: Network = networks[hre.networkName];
   const network2: Network = networks[hre2.networkName];
