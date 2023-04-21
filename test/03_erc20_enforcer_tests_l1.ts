@@ -1,46 +1,21 @@
-declare var global: any;
-import { expect, assert } from 'chai';
+import { expect } from 'chai';
 import { PreTest } from './utils';
 import setup from './utils';
-import { BigNumberish, BytesLike, BigNumber } from 'ethers';
+import { BytesLike } from 'ethers';
 import {
   Signature,
   zeroAddress,
   functionHash,
   XOR,
   buildDomainSeperator,
-  randomHex,
   StrictECDSA,
   generateInitCode,
 } from '../scripts/utils/helpers';
-import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
 
-import {
-  Admin,
-  CxipERC721,
-  ERC20Mock,
-  Holograph,
-  HolographBridge,
-  HolographBridgeProxy,
-  Holographer,
-  HolographERC20,
-  HolographERC721,
-  HolographFactory,
-  HolographFactoryProxy,
-  HolographGenesis,
-  HolographRegistry,
-  HolographRegistryProxy,
-  HToken,
-  HolographInterfaces,
-  MockERC721Receiver,
-  Owner,
-  HolographRoyalties,
-  SampleERC20,
-  SampleERC721,
-} from '../typechain-types';
+import { Admin, HolographERC20, SampleERC20 } from '../typechain-types';
 
-describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
-  let l1: PreTest;
+describe('Testing the Holograph ERC20 Enforcer (CHAIN1)', async function () {
+  let chain1: PreTest;
 
   let ERC20: HolographERC20;
   let SAMPLEERC20: SampleERC20;
@@ -56,12 +31,12 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
   let smallerAmount: string;
 
   before(async function () {
-    l1 = await setup();
-    tokenName += '(' + l1.hre.networkName + ')';
-    tokensWei = l1.web3.utils.toWei(totalTokens, 'ether');
+    chain1 = await setup();
+    tokenName += '(' + chain1.hre.networkName + ')';
+    tokensWei = chain1.web3.utils.toWei(totalTokens, 'ether');
     smallerAmount = tokensWei.slice(0, -2);
-    ERC20 = await l1.holographErc20.attach(l1.sampleErc20Holographer.address);
-    SAMPLEERC20 = await l1.sampleErc20.attach(l1.sampleErc20Holographer.address);
+    ERC20 = await chain1.holographErc20.attach(chain1.sampleErc20Holographer.address);
+    SAMPLEERC20 = await chain1.sampleErc20.attach(chain1.sampleErc20Holographer.address);
   });
 
   after(async function () {});
@@ -230,7 +205,7 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
 
     it('should fail initializing already initialized ERC721 Enforcer', async function () {
       await expect(
-        l1.sampleErc20Enforcer.init(
+        chain1.sampleErc20Enforcer.init(
           generateInitCode(
             ['string', 'string', 'uint8', 'uint256', 'bool', 'bytes'],
             ['', '', '0x00', '0x' + '00'.repeat(32), false, '0x' + '00'.repeat(32)]
@@ -267,9 +242,9 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
       });
 
       it('should emit Transfer event for ' + totalTokens + ' ' + tokenSymbol + ' tokens', async function () {
-        await expect(SAMPLEERC20.mint(l1.deployer.address, tokensWei))
+        await expect(SAMPLEERC20.mint(chain1.deployer.address, tokensWei))
           .to.emit(ERC20, 'Transfer')
-          .withArgs(zeroAddress, l1.deployer.address, tokensWei);
+          .withArgs(zeroAddress, chain1.deployer.address, tokensWei);
       });
 
       it('should have a total supply of ' + totalTokens + ' ' + tokenSymbol + ' tokens', async function () {
@@ -277,7 +252,7 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
       });
 
       it('deployer wallet should show a balance of ' + totalTokens + ' ' + tokenSymbol + ' tokens', async function () {
-        expect(await ERC20.balanceOf(l1.deployer.address)).to.equal(tokensWei);
+        expect(await ERC20.balanceOf(chain1.deployer.address)).to.equal(tokensWei);
       });
     });
   });
@@ -289,52 +264,55 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
       });
 
       it('should succeed when approving valid address', async function () {
-        await expect(ERC20.approve(l1.wallet2.address, maxValue))
+        await expect(ERC20.approve(chain1.wallet2.address, maxValue))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet2.address, maxValue);
+          .withArgs(chain1.deployer.address, chain1.wallet2.address, maxValue);
       });
 
       it('should succeed decreasing allowance above zero', async function () {
-        await expect(ERC20.decreaseAllowance(l1.wallet2.address, halfValue))
+        await expect(ERC20.decreaseAllowance(chain1.wallet2.address, halfValue))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet2.address, halfInverseValue);
+          .withArgs(chain1.deployer.address, chain1.wallet2.address, halfInverseValue);
       });
 
       it('should fail decreasing allowance below zero', async function () {
-        await expect(ERC20.decreaseAllowance(l1.wallet2.address, maxValue)).to.be.revertedWith(
+        await expect(ERC20.decreaseAllowance(chain1.wallet2.address, maxValue)).to.be.revertedWith(
           'ERC20: decreased below zero'
         );
       });
 
       it('should succeed increasing allowance below max value', async function () {
-        await expect(ERC20.increaseAllowance(l1.wallet2.address, halfValue))
+        await expect(ERC20.increaseAllowance(chain1.wallet2.address, halfValue))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet2.address, maxValue);
+          .withArgs(chain1.deployer.address, chain1.wallet2.address, maxValue);
       });
 
       it('should fail increasing allowance above max value', async function () {
-        await expect(ERC20.increaseAllowance(l1.wallet2.address, maxValue)).to.be.revertedWith(
+        await expect(ERC20.increaseAllowance(chain1.wallet2.address, maxValue)).to.be.revertedWith(
           'ERC20: increased above max value'
         );
       });
 
       it('should succeed decreasing allowance to zero', async function () {
-        await expect(ERC20.decreaseAllowance(l1.wallet2.address, maxValue))
+        await expect(ERC20.decreaseAllowance(chain1.wallet2.address, maxValue))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet2.address, 0);
+          .withArgs(chain1.deployer.address, chain1.wallet2.address, 0);
       });
 
       it('should succeed increasing allowance to max value', async function () {
-        await expect(ERC20.increaseAllowance(l1.wallet2.address, maxValue))
+        await expect(ERC20.increaseAllowance(chain1.wallet2.address, maxValue))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet2.address, maxValue);
+          .withArgs(chain1.deployer.address, chain1.wallet2.address, maxValue);
       });
     });
 
     describe('failed transfer', async function () {
       it("should fail if sender doesn't have enough tokens", async function () {
         await expect(
-          ERC20.transfer(l1.wallet1.address, l1.web3.utils.toWei((parseInt(totalTokens) + 1.0).toString(), 'ether'))
+          ERC20.transfer(
+            chain1.wallet1.address,
+            chain1.web3.utils.toWei((parseInt(totalTokens) + 1.0).toString(), 'ether')
+          )
         ).to.be.revertedWith('ERC20: amount exceeds balance');
       });
 
@@ -343,296 +321,298 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
       });
 
       it('should fail if sending from zero address', async function () {
-        await expect(ERC20.transferFrom(zeroAddress, l1.wallet1.address, tokensWei)).to.be.revertedWith(
+        await expect(ERC20.transferFrom(zeroAddress, chain1.wallet1.address, tokensWei)).to.be.revertedWith(
           'ERC20: amount exceeds allowance'
         );
       });
 
       it('should fail if sending from not approved address', async function () {
-        await expect(ERC20.transferFrom(l1.wallet1.address, l1.deployer.address, tokensWei)).to.be.revertedWith(
+        await expect(ERC20.transferFrom(chain1.wallet1.address, chain1.deployer.address, tokensWei)).to.be.revertedWith(
           'ERC20: amount exceeds allowance'
         );
       });
 
       it('should fail if allowance is smaller than transfer amount', async function () {
-        await expect(ERC20.approve(l1.wallet2.address, smallerAmount))
+        await expect(ERC20.approve(chain1.wallet2.address, smallerAmount))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet2.address, smallerAmount);
+          .withArgs(chain1.deployer.address, chain1.wallet2.address, smallerAmount);
 
         await expect(
-          ERC20.connect(l1.wallet2).transferFrom(l1.deployer.address, l1.wallet1.address, tokensWei)
+          ERC20.connect(chain1.wallet2).transferFrom(chain1.deployer.address, chain1.wallet1.address, tokensWei)
         ).to.be.revertedWith('ERC20: amount exceeds allowance');
 
-        await expect(ERC20.approve(l1.wallet2.address, 0))
+        await expect(ERC20.approve(chain1.wallet2.address, 0))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet2.address, 0);
+          .withArgs(chain1.deployer.address, chain1.wallet2.address, 0);
       });
 
       it.skip('should fail for non-contract onERC20Received call', async function () {
         await expect(
-          ERC20.onERC20Received(l1.deployer.address, l1.deployer.address, tokensWei, '0x')
+          ERC20.onERC20Received(chain1.deployer.address, chain1.deployer.address, tokensWei, '0x')
         ).to.be.revertedWith('ERC20: operator not contract');
       });
 
       it.skip('should fail for fake onERC20Received', async function () {
         await expect(
-          ERC20.onERC20Received(l1.erc20Mock.address, l1.deployer.address, tokensWei, '0x')
+          ERC20.onERC20Received(chain1.erc20Mock.address, chain1.deployer.address, tokensWei, '0x')
         ).to.be.revertedWith('ERC20: balance check failed');
       });
 
       it.skip('should fail safe transfer for broken "ERC20Receiver"', async function () {
-        await l1.erc20Mock.toggleWorks(false);
+        await chain1.erc20Mock.toggleWorks(false);
 
-        await expect(ERC20['safeTransfer(address,uint256)'](l1.erc20Mock.address, tokensWei)).to.be.revertedWith(
+        await expect(ERC20['safeTransfer(address,uint256)'](chain1.erc20Mock.address, tokensWei)).to.be.revertedWith(
           'ERC20: non ERC20Receiver'
         );
 
-        await l1.erc20Mock.toggleWorks(true);
+        await chain1.erc20Mock.toggleWorks(true);
       });
 
       it.skip('should fail safe transfer (with bytes) for broken "ERC20Receiver"', async function () {
-        await l1.erc20Mock.toggleWorks(false);
+        await chain1.erc20Mock.toggleWorks(false);
 
         await expect(
-          ERC20['safeTransfer(address,uint256,bytes)'](l1.erc20Mock.address, tokensWei, '0x')
+          ERC20['safeTransfer(address,uint256,bytes)'](chain1.erc20Mock.address, tokensWei, '0x')
         ).to.be.revertedWith('ERC20: non ERC20Receiver');
 
-        await l1.erc20Mock.toggleWorks(true);
+        await chain1.erc20Mock.toggleWorks(true);
       });
 
       it.skip('should fail safe transfer from for broken "ERC20Receiver"', async function () {
-        await l1.erc20Mock.toggleWorks(false);
+        await chain1.erc20Mock.toggleWorks(false);
 
-        await expect(ERC20.approve(l1.wallet1.address, maxValue))
+        await expect(ERC20.approve(chain1.wallet1.address, maxValue))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet1.address, maxValue);
+          .withArgs(chain1.deployer.address, chain1.wallet1.address, maxValue);
 
         await expect(
-          ERC20.connect(l1.wallet1)['safeTransferFrom(address,address,uint256)'](
-            l1.deployer.address,
-            l1.erc20Mock.address,
+          ERC20.connect(chain1.wallet1)['safeTransferFrom(address,address,uint256)'](
+            chain1.deployer.address,
+            chain1.erc20Mock.address,
             tokensWei
           )
         ).to.be.revertedWith('ERC20: non ERC20Receiver');
 
-        await expect(ERC20.approve(l1.wallet1.address, 0))
+        await expect(ERC20.approve(chain1.wallet1.address, 0))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet1.address, 0);
+          .withArgs(chain1.deployer.address, chain1.wallet1.address, 0);
 
-        await l1.erc20Mock.toggleWorks(true);
+        await chain1.erc20Mock.toggleWorks(true);
       });
 
       it.skip('should fail safe transfer from (with bytes) for broken "ERC20Receiver"', async function () {
-        await l1.erc20Mock.toggleWorks(false);
+        await chain1.erc20Mock.toggleWorks(false);
 
-        await expect(ERC20.approve(l1.wallet1.address, maxValue))
+        await expect(ERC20.approve(chain1.wallet1.address, maxValue))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet1.address, maxValue);
+          .withArgs(chain1.deployer.address, chain1.wallet1.address, maxValue);
 
         await expect(
-          ERC20.connect(l1.wallet1)['safeTransferFrom(address,address,uint256,bytes)'](
-            l1.deployer.address,
-            l1.erc20Mock.address,
+          ERC20.connect(chain1.wallet1)['safeTransferFrom(address,address,uint256,bytes)'](
+            chain1.deployer.address,
+            chain1.erc20Mock.address,
             tokensWei,
             '0x'
           )
         ).to.be.revertedWith('ERC20: non ERC20Receiver');
 
-        await expect(ERC20.approve(l1.wallet1.address, 0))
+        await expect(ERC20.approve(chain1.wallet1.address, 0))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet1.address, 0);
+          .withArgs(chain1.deployer.address, chain1.wallet1.address, 0);
 
-        await l1.erc20Mock.toggleWorks(true);
+        await chain1.erc20Mock.toggleWorks(true);
       });
     });
 
     describe('successful transfer', async function () {
       it('should succeed when transferring available tokens', async function () {
-        await expect(ERC20.transfer(l1.wallet1.address, tokensWei))
+        await expect(ERC20.transfer(chain1.wallet1.address, tokensWei))
           .to.emit(ERC20, 'Transfer')
-          .withArgs(l1.deployer.address, l1.wallet1.address, tokensWei);
+          .withArgs(chain1.deployer.address, chain1.wallet1.address, tokensWei);
       });
 
       it('deployer should have a balance of 0 ' + tokenSymbol + ' tokens', async function () {
-        expect(await ERC20.balanceOf(l1.deployer.address)).to.equal(0);
+        expect(await ERC20.balanceOf(chain1.deployer.address)).to.equal(0);
       });
 
       it('wallet1 should have a balance of ' + totalTokens + ' ' + tokenSymbol + ' tokens', async function () {
-        expect(await ERC20.balanceOf(l1.wallet1.address)).to.equal(tokensWei);
+        expect(await ERC20.balanceOf(chain1.wallet1.address)).to.equal(tokensWei);
       });
 
       it('should succeed when safely transferring available tokens', async function () {
-        await expect(ERC20.connect(l1.wallet1)['safeTransfer(address,uint256)'](l1.deployer.address, tokensWei))
+        await expect(ERC20.connect(chain1.wallet1)['safeTransfer(address,uint256)'](chain1.deployer.address, tokensWei))
           .to.emit(ERC20, 'Transfer')
-          .withArgs(l1.wallet1.address, l1.deployer.address, tokensWei);
+          .withArgs(chain1.wallet1.address, chain1.deployer.address, tokensWei);
       });
 
       it('should succeed when safely transferring from available tokens', async function () {
-        await expect(ERC20.approve(l1.wallet2.address, maxValue))
+        await expect(ERC20.approve(chain1.wallet2.address, maxValue))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet2.address, maxValue);
+          .withArgs(chain1.deployer.address, chain1.wallet2.address, maxValue);
 
         await expect(
-          ERC20.connect(l1.wallet2)['safeTransferFrom(address,address,uint256)'](
-            l1.deployer.address,
-            l1.wallet1.address,
+          ERC20.connect(chain1.wallet2)['safeTransferFrom(address,address,uint256)'](
+            chain1.deployer.address,
+            chain1.wallet1.address,
             tokensWei
           )
         )
           .to.emit(ERC20, 'Transfer')
-          .withArgs(l1.deployer.address, l1.wallet1.address, tokensWei);
+          .withArgs(chain1.deployer.address, chain1.wallet1.address, tokensWei);
 
-        await expect(ERC20.connect(l1.wallet1).transfer(l1.deployer.address, tokensWei))
+        await expect(ERC20.connect(chain1.wallet1).transfer(chain1.deployer.address, tokensWei))
           .to.emit(ERC20, 'Transfer')
-          .withArgs(l1.wallet1.address, l1.deployer.address, tokensWei);
+          .withArgs(chain1.wallet1.address, chain1.deployer.address, tokensWei);
       });
 
       it('wallet1 should have a balance of 0 ' + tokenSymbol + ' tokens', async function () {
-        expect(await ERC20.balanceOf(l1.wallet1.address)).to.equal(0);
+        expect(await ERC20.balanceOf(chain1.wallet1.address)).to.equal(0);
       });
 
       it('deployer should have a balance of ' + totalTokens + ' ' + tokenSymbol + ' tokens', async function () {
-        expect(await ERC20.balanceOf(l1.deployer.address)).to.equal(tokensWei);
+        expect(await ERC20.balanceOf(chain1.deployer.address)).to.equal(tokensWei);
       });
 
       it('should succeed when transferring using an approved spender', async function () {
-        await expect(ERC20.approve(l1.wallet1.address, tokensWei))
+        await expect(ERC20.approve(chain1.wallet1.address, tokensWei))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet1.address, tokensWei);
+          .withArgs(chain1.deployer.address, chain1.wallet1.address, tokensWei);
 
-        expect(await ERC20.allowance(l1.deployer.address, l1.wallet1.address)).to.equal(tokensWei);
+        expect(await ERC20.allowance(chain1.deployer.address, chain1.wallet1.address)).to.equal(tokensWei);
 
-        await expect(ERC20.connect(l1.wallet1).transferFrom(l1.deployer.address, l1.wallet1.address, tokensWei))
+        await expect(
+          ERC20.connect(chain1.wallet1).transferFrom(chain1.deployer.address, chain1.wallet1.address, tokensWei)
+        )
           .to.emit(ERC20, 'Transfer')
-          .withArgs(l1.deployer.address, l1.wallet1.address, tokensWei);
+          .withArgs(chain1.deployer.address, chain1.wallet1.address, tokensWei);
 
-        expect(await ERC20.allowance(l1.deployer.address, l1.wallet1.address)).to.equal(0);
+        expect(await ERC20.allowance(chain1.deployer.address, chain1.wallet1.address)).to.equal(0);
 
-        await expect(ERC20.connect(l1.wallet1).transfer(l1.deployer.address, tokensWei))
+        await expect(ERC20.connect(chain1.wallet1).transfer(chain1.deployer.address, tokensWei))
           .to.emit(ERC20, 'Transfer')
-          .withArgs(l1.wallet1.address, l1.deployer.address, tokensWei);
+          .withArgs(chain1.wallet1.address, chain1.deployer.address, tokensWei);
       });
 
       it('should succeed safe transfer to "ERC20Receiver"', async function () {
-        await l1.erc20Mock.toggleWorks(true);
+        await chain1.erc20Mock.toggleWorks(true);
 
-        await expect(ERC20['safeTransfer(address,uint256)'](l1.erc20Mock.address, tokensWei))
+        await expect(ERC20['safeTransfer(address,uint256)'](chain1.erc20Mock.address, tokensWei))
           .to.emit(ERC20, 'Transfer')
-          .withArgs(l1.deployer.address, l1.erc20Mock.address, tokensWei);
+          .withArgs(chain1.deployer.address, chain1.erc20Mock.address, tokensWei);
 
-        await expect(l1.erc20Mock.transferTokens(ERC20.address, l1.deployer.address, tokensWei))
+        await expect(chain1.erc20Mock.transferTokens(ERC20.address, chain1.deployer.address, tokensWei))
           .to.emit(ERC20, 'Transfer')
-          .withArgs(l1.erc20Mock.address, l1.deployer.address, tokensWei);
+          .withArgs(chain1.erc20Mock.address, chain1.deployer.address, tokensWei);
       });
 
       it('should succeed safe transfer (with bytes) to "ERC20Receiver"', async function () {
-        await l1.erc20Mock.toggleWorks(true);
+        await chain1.erc20Mock.toggleWorks(true);
 
-        await expect(ERC20['safeTransfer(address,uint256,bytes)'](l1.erc20Mock.address, tokensWei, '0x'))
+        await expect(ERC20['safeTransfer(address,uint256,bytes)'](chain1.erc20Mock.address, tokensWei, '0x'))
           .to.emit(ERC20, 'Transfer')
-          .withArgs(l1.deployer.address, l1.erc20Mock.address, tokensWei);
+          .withArgs(chain1.deployer.address, chain1.erc20Mock.address, tokensWei);
 
-        await expect(l1.erc20Mock.transferTokens(ERC20.address, l1.deployer.address, tokensWei))
+        await expect(chain1.erc20Mock.transferTokens(ERC20.address, chain1.deployer.address, tokensWei))
           .to.emit(ERC20, 'Transfer')
-          .withArgs(l1.erc20Mock.address, l1.deployer.address, tokensWei);
+          .withArgs(chain1.erc20Mock.address, chain1.deployer.address, tokensWei);
       });
 
       it('should succeed safe transfer from to "ERC20Receiver"', async function () {
-        await l1.erc20Mock.toggleWorks(true);
+        await chain1.erc20Mock.toggleWorks(true);
 
-        await expect(ERC20.approve(l1.wallet1.address, tokensWei))
+        await expect(ERC20.approve(chain1.wallet1.address, tokensWei))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet1.address, tokensWei);
+          .withArgs(chain1.deployer.address, chain1.wallet1.address, tokensWei);
 
-        expect(await ERC20.allowance(l1.deployer.address, l1.wallet1.address)).to.equal(tokensWei);
+        expect(await ERC20.allowance(chain1.deployer.address, chain1.wallet1.address)).to.equal(tokensWei);
 
         await expect(
-          ERC20.connect(l1.wallet1)['safeTransferFrom(address,address,uint256)'](
-            l1.deployer.address,
-            l1.erc20Mock.address,
+          ERC20.connect(chain1.wallet1)['safeTransferFrom(address,address,uint256)'](
+            chain1.deployer.address,
+            chain1.erc20Mock.address,
             tokensWei
           )
         )
           .to.emit(ERC20, 'Transfer')
-          .withArgs(l1.deployer.address, l1.erc20Mock.address, tokensWei);
+          .withArgs(chain1.deployer.address, chain1.erc20Mock.address, tokensWei);
 
-        await expect(l1.erc20Mock.transferTokens(ERC20.address, l1.deployer.address, tokensWei))
+        await expect(chain1.erc20Mock.transferTokens(ERC20.address, chain1.deployer.address, tokensWei))
           .to.emit(ERC20, 'Transfer')
-          .withArgs(l1.erc20Mock.address, l1.deployer.address, tokensWei);
+          .withArgs(chain1.erc20Mock.address, chain1.deployer.address, tokensWei);
 
-        await expect(ERC20.approve(l1.wallet1.address, 0))
+        await expect(ERC20.approve(chain1.wallet1.address, 0))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet1.address, 0);
+          .withArgs(chain1.deployer.address, chain1.wallet1.address, 0);
 
-        expect(await ERC20.allowance(l1.deployer.address, l1.wallet1.address)).to.equal(0);
+        expect(await ERC20.allowance(chain1.deployer.address, chain1.wallet1.address)).to.equal(0);
       });
 
       it('should succeed safe transfer (with bytes) to "ERC20Receiver"', async function () {
-        await l1.erc20Mock.toggleWorks(true);
+        await chain1.erc20Mock.toggleWorks(true);
 
-        await expect(ERC20.approve(l1.wallet1.address, tokensWei))
+        await expect(ERC20.approve(chain1.wallet1.address, tokensWei))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet1.address, tokensWei);
+          .withArgs(chain1.deployer.address, chain1.wallet1.address, tokensWei);
 
-        expect(await ERC20.allowance(l1.deployer.address, l1.wallet1.address)).to.equal(tokensWei);
+        expect(await ERC20.allowance(chain1.deployer.address, chain1.wallet1.address)).to.equal(tokensWei);
 
         await expect(
-          ERC20.connect(l1.wallet1)['safeTransferFrom(address,address,uint256,bytes)'](
-            l1.deployer.address,
-            l1.erc20Mock.address,
+          ERC20.connect(chain1.wallet1)['safeTransferFrom(address,address,uint256,bytes)'](
+            chain1.deployer.address,
+            chain1.erc20Mock.address,
             tokensWei,
             '0x'
           )
         )
           .to.emit(ERC20, 'Transfer')
-          .withArgs(l1.deployer.address, l1.erc20Mock.address, tokensWei);
+          .withArgs(chain1.deployer.address, chain1.erc20Mock.address, tokensWei);
 
-        await expect(l1.erc20Mock.transferTokens(ERC20.address, l1.deployer.address, tokensWei))
+        await expect(chain1.erc20Mock.transferTokens(ERC20.address, chain1.deployer.address, tokensWei))
           .to.emit(ERC20, 'Transfer')
-          .withArgs(l1.erc20Mock.address, l1.deployer.address, tokensWei);
+          .withArgs(chain1.erc20Mock.address, chain1.deployer.address, tokensWei);
 
-        await expect(ERC20.approve(l1.wallet1.address, 0))
+        await expect(ERC20.approve(chain1.wallet1.address, 0))
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet1.address, 0);
+          .withArgs(chain1.deployer.address, chain1.wallet1.address, 0);
 
-        expect(await ERC20.allowance(l1.deployer.address, l1.wallet1.address)).to.equal(0);
+        expect(await ERC20.allowance(chain1.deployer.address, chain1.wallet1.address)).to.equal(0);
       });
     });
   });
 
   describe('Test ERC20Burnable', async function () {
     it('should fail burning more tokens than current balance', async function () {
-      await expect(ERC20.connect(l1.wallet1).burn(tokensWei)).to.be.revertedWith('ERC20: amount exceeds balance');
+      await expect(ERC20.connect(chain1.wallet1).burn(tokensWei)).to.be.revertedWith('ERC20: amount exceeds balance');
     });
 
     it('should succeed burning current balance', async function () {
       await expect(ERC20.burn(tokensWei))
         .to.emit(ERC20, 'Transfer')
-        .withArgs(l1.deployer.address, zeroAddress, tokensWei);
+        .withArgs(chain1.deployer.address, zeroAddress, tokensWei);
 
       expect(await ERC20.totalSupply()).to.equal(0);
     });
 
     it('should fail burning via not approved spender', async function () {
-      await expect(SAMPLEERC20.mint(l1.deployer.address, tokensWei))
+      await expect(SAMPLEERC20.mint(chain1.deployer.address, tokensWei))
         .to.emit(ERC20, 'Transfer')
-        .withArgs(zeroAddress, l1.deployer.address, tokensWei);
+        .withArgs(zeroAddress, chain1.deployer.address, tokensWei);
 
       expect(await ERC20.totalSupply()).to.equal(tokensWei);
 
-      await expect(ERC20.connect(l1.wallet1).burnFrom(l1.deployer.address, tokensWei)).to.be.revertedWith(
+      await expect(ERC20.connect(chain1.wallet1).burnFrom(chain1.deployer.address, tokensWei)).to.be.revertedWith(
         'ERC20: amount exceeds allowance'
       );
     });
 
     it('should succeed burning via approved spender', async function () {
-      await expect(ERC20.approve(l1.wallet1.address, tokensWei))
+      await expect(ERC20.approve(chain1.wallet1.address, tokensWei))
         .to.emit(ERC20, 'Approval')
-        .withArgs(l1.deployer.address, l1.wallet1.address, tokensWei);
+        .withArgs(chain1.deployer.address, chain1.wallet1.address, tokensWei);
 
-      await expect(ERC20.connect(l1.wallet1).burnFrom(l1.deployer.address, tokensWei))
+      await expect(ERC20.connect(chain1.wallet1).burnFrom(chain1.deployer.address, tokensWei))
         .to.emit(ERC20, 'Transfer')
-        .withArgs(l1.deployer.address, zeroAddress, tokensWei);
+        .withArgs(chain1.deployer.address, zeroAddress, tokensWei);
 
       expect(await ERC20.totalSupply()).to.equal(0);
     });
@@ -642,7 +622,7 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
     describe('Check domain seperator', async function () {
       it('should return correct domain seperator', async function () {
         expect(await ERC20.DOMAIN_SEPARATOR()).to.equal(
-          buildDomainSeperator(l1.network.chain, 'Sample ERC20 Token', '1', ERC20.address)
+          buildDomainSeperator(chain1.network.chain, 'Sample ERC20 Token', '1', ERC20.address)
         );
       });
     });
@@ -653,14 +633,14 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
       const goodDeadline = Math.round(Date.now() / 1000) + 60 * 24;
 
       it('should return 0 nonce', async function () {
-        expect(await ERC20.nonces(l1.deployer.address)).to.equal(0);
+        expect(await ERC20.nonces(chain1.deployer.address)).to.equal(0);
       });
 
       it('should fail for expired deadline', async function () {
         await expect(
           ERC20.permit(
-            l1.deployer.address,
-            l1.wallet1.address,
+            chain1.deployer.address,
+            chain1.wallet1.address,
             maxValue,
             badDeadline,
             '0x00',
@@ -673,8 +653,8 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
       it('should fail for empty signature', async function () {
         await expect(
           ERC20.permit(
-            l1.deployer.address,
-            l1.wallet1.address,
+            chain1.deployer.address,
+            chain1.wallet1.address,
             maxValue,
             goodDeadline,
             '0x1b',
@@ -687,8 +667,8 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
       it('should fail for zero address signature', async function () {
         await expect(
           ERC20.permit(
-            l1.deployer.address,
-            l1.wallet1.address,
+            chain1.deployer.address,
+            chain1.wallet1.address,
             maxValue,
             goodDeadline,
             '0x1b',
@@ -701,8 +681,8 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
       it('should fail for invalid signature v value', async function () {
         await expect(
           ERC20.permit(
-            l1.deployer.address,
-            l1.wallet1.address,
+            chain1.deployer.address,
+            chain1.wallet1.address,
             maxValue,
             goodDeadline,
             '0x04',
@@ -715,8 +695,8 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
       it('should fail for invalid signature', async function () {
         await expect(
           ERC20.permit(
-            l1.deployer.address,
-            l1.wallet1.address,
+            chain1.deployer.address,
+            chain1.wallet1.address,
             maxValue,
             goodDeadline,
             '0x1b',
@@ -730,7 +710,7 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
         let domain = {
           name: 'Sample ERC20 Token',
           version: '1',
-          chainId: l1.network.chain,
+          chainId: chain1.network.chain,
           verifyingContract: ERC20.address,
         };
         let types = {
@@ -742,15 +722,15 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
             { name: 'deadline', type: 'uint256' },
           ],
         };
-        let nonce = await ERC20.nonces(l1.deployer.address);
+        let nonce = await ERC20.nonces(chain1.deployer.address);
         let value = {
-          owner: l1.deployer.address,
-          spender: l1.wallet1.address,
+          owner: chain1.deployer.address,
+          spender: chain1.wallet1.address,
           value: maxValue,
           nonce: nonce,
           deadline: goodDeadline,
         };
-        let sig = await l1.deployer._signTypedData(domain, types, value);
+        let sig = await chain1.deployer._signTypedData(domain, types, value);
         const signature: Signature = StrictECDSA({
           r: '0x' + sig.substring(2, 66),
           s: '0x' + sig.substring(66, 130),
@@ -759,8 +739,8 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
 
         await expect(
           ERC20.permit(
-            l1.deployer.address,
-            l1.wallet1.address,
+            chain1.deployer.address,
+            chain1.wallet1.address,
             maxValue,
             goodDeadline,
             signature.v,
@@ -769,7 +749,7 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
           )
         )
           .to.emit(ERC20, 'Approval')
-          .withArgs(l1.deployer.address, l1.wallet1.address, maxValue);
+          .withArgs(chain1.deployer.address, chain1.wallet1.address, maxValue);
       });
     });
   });
@@ -777,11 +757,11 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
   describe('Ownership tests', async function () {
     describe('Owner', async function () {
       it('should return deployer address', async function () {
-        expect(await ERC20.owner()).to.equal(l1.deployer.address);
+        expect(await ERC20.owner()).to.equal(chain1.deployer.address);
       });
 
       it('deployer should return true for isOwner', async function () {
-        expect(await SAMPLEERC20.attach(l1.sampleErc20.address)['isOwner()']()).to.be.true;
+        expect(await SAMPLEERC20.attach(chain1.sampleErc20.address)['isOwner()']()).to.be.true;
       });
 
       it('deployer should return true for isOwner (msgSender)', async function () {
@@ -789,65 +769,71 @@ describe('Testing the Holograph ERC20 Enforcer (L1)', async function () {
       });
 
       it('wallet1 should return false for isOwner', async function () {
-        expect(await SAMPLEERC20.attach(l1.sampleErc20.address).connect(l1.wallet1)['isOwner()']()).to.be.false;
+        expect(await SAMPLEERC20.attach(chain1.sampleErc20.address).connect(chain1.wallet1)['isOwner()']()).to.be.false;
       });
 
       it('should return "HolographFactoryProxy" address', async function () {
-        expect(await ERC20.getOwner()).to.equal(l1.holographFactoryProxy.address);
+        expect(await ERC20.getOwner()).to.equal(chain1.holographFactoryProxy.address);
       });
 
       it('deployer should fail transferring ownership', async function () {
-        await expect(ERC20.setOwner(l1.wallet1.address)).to.be.revertedWith('HOLOGRAPH: owner only function');
+        await expect(ERC20.setOwner(chain1.wallet1.address)).to.be.revertedWith('HOLOGRAPH: owner only function');
       });
 
       it('deployer should set owner to deployer', async function () {
-        let admin: Admin = (await l1.hre.ethers.getContractAt('Admin', l1.holographFactoryProxy.address)) as Admin;
-        let calldata: string = l1.web3.eth.abi.encodeFunctionCall(
+        let admin: Admin = (await chain1.hre.ethers.getContractAt(
+          'Admin',
+          chain1.holographFactoryProxy.address
+        )) as Admin;
+        let calldata: string = chain1.web3.eth.abi.encodeFunctionCall(
           { name: 'setOwner', type: 'function', inputs: [{ type: 'address', name: 'ownerAddress' }] },
-          [l1.deployer.address]
+          [chain1.deployer.address]
         );
         await expect(admin.adminCall(ERC20.address, calldata))
           .to.emit(ERC20, 'OwnershipTransferred')
-          .withArgs(l1.holographFactoryProxy.address, l1.deployer.address);
-        expect(await ERC20.getOwner()).to.equal(l1.deployer.address);
+          .withArgs(chain1.holographFactoryProxy.address, chain1.deployer.address);
+        expect(await ERC20.getOwner()).to.equal(chain1.deployer.address);
       });
 
       it('deployer should transfer ownership to "HolographFactoryProxy"', async function () {
-        await expect(ERC20.setOwner(l1.holographFactoryProxy.address))
+        await expect(ERC20.setOwner(chain1.holographFactoryProxy.address))
           .to.emit(ERC20, 'OwnershipTransferred')
-          .withArgs(l1.deployer.address, l1.holographFactoryProxy.address);
+          .withArgs(chain1.deployer.address, chain1.holographFactoryProxy.address);
       });
     });
 
     describe('Admin', async function () {
       it('admin() should return "HolographFactoryProxy" address', async function () {
-        expect(await ERC20.admin()).to.equal(l1.holographFactoryProxy.address);
+        expect(await ERC20.admin()).to.equal(chain1.holographFactoryProxy.address);
       });
 
       it('getAdmin() should return "HolographFactoryProxy" address', async function () {
-        expect(await ERC20.getAdmin()).to.equal(l1.holographFactoryProxy.address);
+        expect(await ERC20.getAdmin()).to.equal(chain1.holographFactoryProxy.address);
       });
 
       it('wallet1 should fail setting admin', async function () {
-        await expect(ERC20.connect(l1.wallet1).setAdmin(l1.wallet2.address)).to.be.revertedWith(
+        await expect(ERC20.connect(chain1.wallet1).setAdmin(chain1.wallet2.address)).to.be.revertedWith(
           'HOLOGRAPH: admin only function'
         );
       });
 
       it('deployer should succeed setting admin via "HolographFactoryProxy"', async function () {
-        let admin: Admin = (await l1.hre.ethers.getContractAt('Admin', l1.holographFactoryProxy.address)) as Admin;
-        let calldata: string = l1.web3.eth.abi.encodeFunctionCall(
+        let admin: Admin = (await chain1.hre.ethers.getContractAt(
+          'Admin',
+          chain1.holographFactoryProxy.address
+        )) as Admin;
+        let calldata: string = chain1.web3.eth.abi.encodeFunctionCall(
           { name: 'setAdmin', type: 'function', inputs: [{ type: 'address', name: 'adminAddress' }] },
-          [l1.deployer.address]
+          [chain1.deployer.address]
         );
 
         await admin.adminCall(ERC20.address, calldata);
 
-        expect(await ERC20.admin()).to.equal(l1.deployer.address);
+        expect(await ERC20.admin()).to.equal(chain1.deployer.address);
 
-        await ERC20.setAdmin(l1.holographFactoryProxy.address);
+        await ERC20.setAdmin(chain1.holographFactoryProxy.address);
 
-        expect(await ERC20.admin()).to.equal(l1.holographFactoryProxy.address);
+        expect(await ERC20.admin()).to.equal(chain1.holographFactoryProxy.address);
       });
     });
   });

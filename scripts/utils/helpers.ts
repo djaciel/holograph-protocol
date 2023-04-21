@@ -354,7 +354,8 @@ const getGasLimit = async function (
   from: string | SignerWithAddress | SuperColdStorageSigner,
   to: string,
   data: Promise<UnsignedTransaction> | BytesLike = '',
-  value: BigNumberish = 0
+  value: BigNumberish = 0,
+  skipError: bool = false
 ): Promise<BigNumber> {
   if (typeof from !== 'string') {
     from = (from as SignerWithAddress).address;
@@ -362,14 +363,21 @@ const getGasLimit = async function (
   if (isBytesLike(data) === false) {
     data = (await data).data;
   }
-  const gasLimit = BigNumber.from(
-    await hre.ethers.provider.estimateGas({
-      from: from as string,
-      to,
-      data: data as BytesLike,
-      value,
-    })
-  );
+  let gasLimit: BigNumber = BigNumber.from('0');
+  try {
+    gasLimit = BigNumber.from(
+      await hre.ethers.provider.estimateGas({
+        from: from as string,
+        to,
+        data: data as BytesLike,
+        value,
+      })
+    );
+  } catch (ex: any) {
+    if (!skipError) {
+      throw ex as unknown as Error;
+    }
+  }
   if ('__gasLimitMultiplier' in global) {
     return gasLimit.mul(global.__gasLimitMultiplier).div(BigNumber.from('10000'));
   } else {
@@ -408,17 +416,19 @@ const getGasPrice = async function (): Promise<GasParams> {
     let gasPrice: BigNumber = gasPricing.gasPrice!.mul(global.__gasPriceMultiplier).div(BigNumber.from('10000'));
     let bribe: BigNumber = gasPricing.isEip1559 ? gasPrice.sub(gasPricing.nextBlockFee!) : BigNumber.from('0');
     // loop and wait until gas price stabilizes
-    while (gasPrice.gt(global.__maxGasPrice) || bribe.gt(global.__maxGasBribe)) {
-      await gasService.wait(1);
-      gasPrice = gasPricing.gasPrice!.mul(global.__gasPriceMultiplier).div(BigNumber.from('10000'));
-      bribe = gasPricing.isEip1559 ? gasPrice.sub(gasPricing.nextBlockFee!) : BigNumber.from('0');
-    }
+
+    // TODO: Disabled for now because it is causing the tx to never go through
+    // while (gasPrice.gt(global.__maxGasPrice) || bribe.gt(global.__maxGasBribe)) {
+    // await gasService.wait(1);
+    gasPrice = gasPricing.gasPrice!.mul(global.__gasPriceMultiplier).div(BigNumber.from('10000'));
+    bribe = gasPricing.isEip1559 ? gasPrice.sub(gasPricing.nextBlockFee!) : BigNumber.from('0');
+    // }
 
     if (gasPricing.isEip1559) {
       return {
         gasPrice: null,
         type: 2,
-        //maxPriorityFeePerGas: gasPrice.sub(gasPricing.nextBlockFee!),
+        // maxPriorityFeePerGas: gasPrice.sub(gasPricing.nextBlockFee!),
         maxPriorityFeePerGas: gasPrice,
         maxFeePerGas: gasPrice,
       };
@@ -468,7 +478,7 @@ const txParams = async function ({
       ? '__gasLimitMultiplier' in global
         ? gasLimit.mul(global.__gasLimitMultiplier).div(BigNumber.from('10000'))
         : gasLimit
-      : await getGasLimit(hre, from as string, to as string, data, BigNumber.from(value)),
+      : await getGasLimit(hre, from as string, to as string, data, BigNumber.from(value), true),
     ...(await getGasPrice()),
     nonce: nonce === undefined ? global.__txNonce[hre.networkName] : nonce,
   };

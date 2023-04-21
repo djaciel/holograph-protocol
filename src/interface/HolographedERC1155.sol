@@ -26,12 +26,7 @@ interface HolographedERC1155 {
   ) external returns (bytes memory _data);
 
   // event id = 3
-  function afterApprove(
-    address _owner,
-    address _to,
-    uint256 _tokenId,
-    uint256 _amount
-  ) external returns (bool success);
+  function afterApprove(address _owner, address _to, uint256 _tokenId, uint256 _amount) external returns (bool success);
 
   // event id = 4
   function beforeApprove(
@@ -48,32 +43,16 @@ interface HolographedERC1155 {
   function beforeApprovalAll(address _to, bool _approved) external returns (bool success);
 
   // event id = 7
-  function afterBurn(
-    address _owner,
-    uint256 _tokenId,
-    uint256 _amount
-  ) external returns (bool success);
+  function afterBurn(address _owner, uint256 _tokenId, uint256 _amount) external returns (bool success);
 
   // event id = 8
-  function beforeBurn(
-    address _owner,
-    uint256 _tokenId,
-    uint256 _amount
-  ) external returns (bool success);
+  function beforeBurn(address _owner, uint256 _tokenId, uint256 _amount) external returns (bool success);
 
   // event id = 9
-  function afterMint(
-    address _owner,
-    uint256 _tokenId,
-    uint256 _amount
-  ) external returns (bool success);
+  function afterMint(address _owner, uint256 _tokenId, uint256 _amount) external returns (bool success);
 
   // event id = 10
-  function beforeMint(
-    address _owner,
-    uint256 _tokenId,
-    uint256 _amount
-  ) external returns (bool success);
+  function beforeMint(address _owner, uint256 _tokenId, uint256 _amount) external returns (bool success);
 
   // event id = 11
   function afterSafeTransfer(

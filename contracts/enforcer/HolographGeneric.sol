@@ -119,7 +119,7 @@ import "../interface/Ownable.sol";
 
 /**
  * @title Holograph Bridgeable Generic Contract
- * @author CXIP-Labs
+ * @author Holograph Foundation
  * @notice A smart contract for creating custom bridgeable logic.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
@@ -326,23 +326,14 @@ contract HolographGeneric is Admin, Owner, Initializable, HolographGenericInterf
     }
   }
 
-  function sourceEmit(
-    bytes32 eventId,
-    bytes32 topic1,
-    bytes calldata eventData
-  ) external onlySource {
+  function sourceEmit(bytes32 eventId, bytes32 topic1, bytes calldata eventData) external onlySource {
     assembly {
       calldatacopy(0, eventData.offset, eventData.length)
       log2(0, eventData.length, eventId, topic1)
     }
   }
 
-  function sourceEmit(
-    bytes32 eventId,
-    bytes32 topic1,
-    bytes32 topic2,
-    bytes calldata eventData
-  ) external onlySource {
+  function sourceEmit(bytes32 eventId, bytes32 topic1, bytes32 topic2, bytes calldata eventData) external onlySource {
     assembly {
       calldatacopy(0, eventData.offset, eventData.length)
       log3(0, eventData.length, eventId, topic1, topic2)

@@ -13,7 +13,7 @@ import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 
 describe('HolographRoyalties Contract', async function () {
   let royalties: HolographRoyalties;
-  let l1: PreTest;
+  let chain1: PreTest;
   let mockExternalCall: MockExternalCall;
   let owner: SignerWithAddress;
   let notOwner: SignerWithAddress;
@@ -23,12 +23,12 @@ describe('HolographRoyalties Contract', async function () {
   let anyAddress = createRandomAddress();
 
   before(async function () {
-    l1 = await setup();
+    chain1 = await setup();
 
-    owner = l1.deployer;
-    notOwner = l1.wallet1;
+    owner = chain1.deployer;
+    notOwner = chain1.wallet1;
 
-    royalties = l1.royalties.attach(l1.sampleErc721Holographer.address);
+    royalties = chain1.royalties.attach(chain1.sampleErc721Holographer.address);
 
     const mockExternalCallFactory = await ethers.getContractFactory<MockExternalCall__factory>('MockExternalCall');
     mockExternalCall = await mockExternalCallFactory.deploy();
@@ -46,7 +46,7 @@ describe('HolographRoyalties Contract', async function () {
 
   describe('init()', async function () {
     it('should fail if already initialized', async function () {
-      const initCode = generateInitCode(['address'], [l1.wallet2.address]);
+      const initCode = generateInitCode(['address'], [chain1.wallet2.address]);
       await expect(royalties.connect(owner).init(initCode)).to.be.revertedWith(
         HOLOGRAPHER_ALREADY_INITIALIZED_ERROR_MSG
       );
@@ -238,7 +238,7 @@ describe('HolographRoyalties Contract', async function () {
 
       let data = (await royalties.populateTransaction.configurePayouts(addresses, bps)).data || '';
 
-      const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+      const tx = await chain1.factory.connect(owner).adminCall(royalties.address, data);
       await tx.wait();
 
       const payoutInfo = await royalties.getPayoutInfo();
@@ -253,7 +253,7 @@ describe('HolographRoyalties Contract', async function () {
 
       let data = (await royalties.populateTransaction.configurePayouts(addresses, bps)).data || '';
 
-      await expect(l1.factory.connect(owner).adminCall(royalties.address, data)).to.be.revertedWith(
+      await expect(chain1.factory.connect(owner).adminCall(royalties.address, data)).to.be.revertedWith(
         'ROYALTIES: missmatched lenghts'
       );
     });
@@ -264,7 +264,7 @@ describe('HolographRoyalties Contract', async function () {
 
       let data = (await royalties.populateTransaction.configurePayouts(addresses, bps)).data || '';
 
-      await expect(l1.factory.connect(owner).adminCall(royalties.address, data)).to.be.revertedWith(
+      await expect(chain1.factory.connect(owner).adminCall(royalties.address, data)).to.be.revertedWith(
         'ROYALTIES: max 10 addresses'
       );
     });
@@ -275,7 +275,7 @@ describe('HolographRoyalties Contract', async function () {
 
       let data = (await royalties.populateTransaction.configurePayouts(addresses, bps)).data || '';
 
-      await expect(l1.factory.connect(owner).adminCall(royalties.address, data)).to.be.revertedWith(
+      await expect(chain1.factory.connect(owner).adminCall(royalties.address, data)).to.be.revertedWith(
         'ROYALTIES: bps must equal 10000'
       );
     });
@@ -307,7 +307,7 @@ describe('HolographRoyalties Contract', async function () {
       //TODO: wait for contract changes, if the contract balance is less than the gasCost it should revert with a error msg
       let data = (await royalties.populateTransaction.getEthPayout()).data || '';
 
-      const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+      const tx = await chain1.factory.connect(owner).adminCall(royalties.address, data);
       await tx.wait();
     });
 
@@ -326,7 +326,7 @@ describe('HolographRoyalties Contract', async function () {
       //TODO: wait for contract changes, if the contract balance is less than the gasCost it should revert with a error msg
       let data = (await royalties.populateTransaction.getTokenPayout(owner.address)).data || '';
 
-      const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+      const tx = await chain1.factory.connect(owner).adminCall(royalties.address, data);
       await tx.wait();
     });
 
@@ -347,7 +347,7 @@ describe('HolographRoyalties Contract', async function () {
       //TODO: wait for contract changes, if the contract balance is less than the gasCost it should revert with a error msg
       let data = (await royalties.populateTransaction.getTokensPayout([owner.address])).data || '';
 
-      const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+      const tx = await chain1.factory.connect(owner).adminCall(royalties.address, data);
       await tx.wait();
     });
 
@@ -534,7 +534,7 @@ describe('HolographRoyalties Contract', async function () {
   });
 
   describe('getTokenAddress()', () => {
-    const tokenName = `Sample ERC721 Contract (${l1.network.holographId.toString()})`;
+    const tokenName = `Sample ERC721 Contract (${chain1.network.holographId.toString()})`;
 
     it('anyone should be able to call the fn', async () => {
       await expect(royalties.getTokenAddress(tokenName)).to.not.be.reverted;
@@ -559,7 +559,7 @@ describe('HolographRoyalties Contract', async function () {
 
       before(async () => {
         const data = (await royalties.populateTransaction.configurePayouts([owner.address], [10000])).data || '';
-        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        const tx = await chain1.factory.connect(owner).adminCall(royalties.address, data);
         await tx.wait();
       });
 
@@ -573,7 +573,7 @@ describe('HolographRoyalties Contract', async function () {
         const contractBalanceBefore = await ethers.provider.getBalance(royalties.address);
 
         const data = (await royalties.populateTransaction.getEthPayout()).data || '';
-        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        const tx = await chain1.factory.connect(owner).adminCall(royalties.address, data);
         await tx.wait();
 
         const accountBalanceAfter = await ethers.provider.getBalance(owner.address);
@@ -584,8 +584,8 @@ describe('HolographRoyalties Contract', async function () {
       });
 
       it('should be able to withdraw balance of an ERC20 token', async () => {
-        const ERC20 = await l1.holographErc20.attach(l1.sampleErc20Holographer.address);
-        const SAMPLEERC20 = await l1.sampleErc20.attach(l1.sampleErc20Holographer.address);
+        const ERC20 = await chain1.holographErc20.attach(chain1.sampleErc20Holographer.address);
+        const SAMPLEERC20 = await chain1.sampleErc20.attach(chain1.sampleErc20Holographer.address);
 
         await SAMPLEERC20.mint(owner.address, totalRoyalties);
         await ERC20.transfer(royalties.address, totalRoyalties);
@@ -594,7 +594,7 @@ describe('HolographRoyalties Contract', async function () {
         const accountBalanceBefore = await ERC20.balanceOf(owner.address);
 
         const data = (await royalties.populateTransaction.getTokenPayout(ERC20.address)).data || '';
-        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        const tx = await chain1.factory.connect(owner).adminCall(royalties.address, data);
         await tx.wait();
 
         const accountBalanceAfter = await ERC20.balanceOf(owner.address);
@@ -612,7 +612,7 @@ describe('HolographRoyalties Contract', async function () {
         const data =
           (await royalties.populateTransaction.configurePayouts([anyAddress, notOwner.address], [6000, 4000])).data ||
           '';
-        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        const tx = await chain1.factory.connect(owner).adminCall(royalties.address, data);
         await tx.wait();
       });
 
@@ -627,7 +627,7 @@ describe('HolographRoyalties Contract', async function () {
         const contractBalanceBefore = await ethers.provider.getBalance(royalties.address);
 
         const data = (await royalties.populateTransaction.getEthPayout()).data || '';
-        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        const tx = await chain1.factory.connect(owner).adminCall(royalties.address, data);
         await tx.wait();
 
         const accountABalanceAfter = await ethers.provider.getBalance(anyAddress);
@@ -649,8 +649,8 @@ describe('HolographRoyalties Contract', async function () {
       });
 
       it('should be able to withdraw balance of an ERC20 token', async () => {
-        const ERC20 = await l1.holographErc20.attach(l1.sampleErc20Holographer.address);
-        const SAMPLEERC20 = await l1.sampleErc20.attach(l1.sampleErc20Holographer.address);
+        const ERC20 = await chain1.holographErc20.attach(chain1.sampleErc20Holographer.address);
+        const SAMPLEERC20 = await chain1.sampleErc20.attach(chain1.sampleErc20Holographer.address);
 
         await SAMPLEERC20.mint(owner.address, totalRoyalties);
         await ERC20.transfer(royalties.address, totalRoyalties);
@@ -660,7 +660,7 @@ describe('HolographRoyalties Contract', async function () {
         const accountBBalanceBefore = await ERC20.balanceOf(notOwner.address);
 
         const data = (await royalties.populateTransaction.getTokenPayout(ERC20.address)).data || '';
-        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        const tx = await chain1.factory.connect(owner).adminCall(royalties.address, data);
         await tx.wait();
 
         const accountABalanceAfter = await ERC20.balanceOf(anyAddress);
@@ -688,7 +688,7 @@ describe('HolographRoyalties Contract', async function () {
               [2000, 5000, 3000]
             )
           ).data || '';
-        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        const tx = await chain1.factory.connect(owner).adminCall(royalties.address, data);
         await tx.wait();
       });
 
@@ -704,7 +704,7 @@ describe('HolographRoyalties Contract', async function () {
         const contractBalanceBefore = await ethers.provider.getBalance(royalties.address);
 
         const data = (await royalties.populateTransaction.getEthPayout()).data || '';
-        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        const tx = await chain1.factory.connect(owner).adminCall(royalties.address, data);
         await tx.wait();
 
         const accountABalanceAfter = await ethers.provider.getBalance(anyAddress);
@@ -731,8 +731,8 @@ describe('HolographRoyalties Contract', async function () {
         );
       });
       it('should be able to withdraw balance of an ERC20 token', async () => {
-        const ERC20 = await l1.holographErc20.attach(l1.sampleErc20Holographer.address);
-        const SAMPLEERC20 = await l1.sampleErc20.attach(l1.sampleErc20Holographer.address);
+        const ERC20 = await chain1.holographErc20.attach(chain1.sampleErc20Holographer.address);
+        const SAMPLEERC20 = await chain1.sampleErc20.attach(chain1.sampleErc20Holographer.address);
 
         await SAMPLEERC20.mint(owner.address, totalRoyalties);
         await ERC20.transfer(royalties.address, totalRoyalties);
@@ -743,7 +743,7 @@ describe('HolographRoyalties Contract', async function () {
         const accountCBalanceBefore = await ERC20.balanceOf(mockAddress);
 
         const data = (await royalties.populateTransaction.getTokenPayout(ERC20.address)).data || '';
-        const tx = await l1.factory.connect(owner).adminCall(royalties.address, data);
+        const tx = await chain1.factory.connect(owner).adminCall(royalties.address, data);
         await tx.wait();
 
         const accountABalanceAfter = await ERC20.balanceOf(anyAddress);

@@ -24,13 +24,13 @@ describe('Holograph Registry Contract', async function () {
   let mockAddress: string;
   let hTokenAddress: string;
   let utilityTokenAddress: string;
-  let l1: PreTest;
+  let chain1: PreTest;
   let mockExternalCall: MockExternalCall;
   const validChainId = 5;
   const invalidChainId = 0;
 
   before(async function () {
-    l1 = await setup();
+    chain1 = await setup();
     accounts = await ethers.getSigners();
     deployer = accounts[0];
     owner = accounts[2];
@@ -87,7 +87,7 @@ describe('Holograph Registry Contract', async function () {
     it('Should return fail to add contract because it does not have a factory', async function () {
       const contractHash = getContractType();
       await expect(
-        l1.registry.connect(l1.deployer).setHolographedHashAddress(contractHash, l1.holographErc721.address)
+        chain1.registry.connect(chain1.deployer).setHolographedHashAddress(contractHash, chain1.holographErc721.address)
       ).to.be.revertedWith(FACTORY_ONLY_ERROR_MSG);
     });
     it('Should allow external contract to call fn');
@@ -97,9 +97,9 @@ describe('Holograph Registry Contract', async function () {
   describe('getHolographableContracts', async function () {
     it('Should return valid contracts', async function () {
       const expectedHolographableContractsCount = 5;
-      const contracts = await l1.registry.getHolographableContracts(0, expectedHolographableContractsCount);
+      const contracts = await chain1.registry.getHolographableContracts(0, expectedHolographableContractsCount);
       expect(contracts.length).to.equal(expectedHolographableContractsCount);
-      expect(contracts).include(l1.sampleErc721Holographer.address);
+      expect(contracts).include(chain1.sampleErc721Holographer.address);
     });
     it('Should allow external contract to call fn', async function () {
       await testExternalCallToFunction(
@@ -114,7 +114,7 @@ describe('Holograph Registry Contract', async function () {
   describe('getHolographableContractsLength', async function () {
     it('Should return valid _holographableContracts length', async function () {
       const expectedHolographableContractsCount = 5;
-      const length = await l1.registry.getHolographableContractsLength();
+      const length = await chain1.registry.getHolographableContractsLength();
       expect(length).to.equal(expectedHolographableContractsCount);
     });
     it('Should allow external contract to call fn', async function () {
@@ -128,11 +128,11 @@ describe('Holograph Registry Contract', async function () {
 
   describe('isHolographedContract', async function () {
     it('Should return true if smartContract is valid', async function () {
-      const isHolographed = await l1.registry.isHolographedContract(l1.sampleErc721Holographer.address);
+      const isHolographed = await chain1.registry.isHolographedContract(chain1.sampleErc721Holographer.address);
       expect(isHolographed).to.equal(true);
     });
     it('Should return false if smartContract is INVALID', async function () {
-      const isHolographed = await l1.registry.connect(l1.deployer).isHolographedContract(mockAddress);
+      const isHolographed = await chain1.registry.connect(chain1.deployer).isHolographedContract(mockAddress);
       expect(isHolographed).to.equal(false);
     });
     it('Should allow external contract to call fn', async function () {
@@ -147,19 +147,19 @@ describe('Holograph Registry Contract', async function () {
 
   describe('isHolographedHashDeployed', async function () {
     it('Should return true if hash is valid', async function () {
-      const isHolographed = await l1.registry.isHolographedHashDeployed(l1.sampleErc721Hash.erc721ConfigHash);
+      const isHolographed = await chain1.registry.isHolographedHashDeployed(chain1.sampleErc721Hash.erc721ConfigHash);
       expect(isHolographed).to.equal(true);
     });
     it('should return false if hash is INVALID', async function () {
       const contractHash = getContractType();
-      const isHolographed = await l1.registry.isHolographedHashDeployed(contractHash);
+      const isHolographed = await chain1.registry.isHolographedHashDeployed(contractHash);
       expect(isHolographed).to.equal(false);
     });
     it('Should allow external contract to call fn', async function () {
       await testExternalCallToFunction(
         'function isHolographedHashDeployed(bytes32 hash) external view returns (bool)',
         'isHolographedHashDeployed',
-        [l1.sampleErc721Hash.erc721ConfigHash]
+        [chain1.sampleErc721Hash.erc721ConfigHash]
       );
     });
     // it('should fail to allow inherited contract to call fn');
@@ -167,19 +167,19 @@ describe('Holograph Registry Contract', async function () {
 
   describe('getHolographedHashAddress', async function () {
     it('Should return valid _holographedContractsHashMap', async function () {
-      const address = await l1.registry.getHolographedHashAddress(l1.sampleErc721Hash.erc721ConfigHash);
-      expect(address).to.equal(l1.sampleErc721Holographer.address);
+      const address = await chain1.registry.getHolographedHashAddress(chain1.sampleErc721Hash.erc721ConfigHash);
+      expect(address).to.equal(chain1.sampleErc721Holographer.address);
     });
     it('should return 0x0 for invalid hash', async function () {
       const contractHash = getContractType();
-      const address = await l1.registry.getHolographedHashAddress(contractHash);
+      const address = await chain1.registry.getHolographedHashAddress(contractHash);
       expect(address).to.equal(zeroAddress);
     });
     it('Should allow external contract to call fn', async function () {
       await testExternalCallToFunction(
         'function getHolographedHashAddress(bytes32 hash) external view returns (address)',
         'getHolographedHashAddress',
-        [l1.sampleErc721Hash.erc721ConfigHash]
+        [chain1.sampleErc721Hash.erc721ConfigHash]
       );
     });
     // it('should fail to allow inherited contract to call fn');
@@ -188,20 +188,21 @@ describe('Holograph Registry Contract', async function () {
   describe('setReservedContractTypeAddress()', async function () {
     it('should allow admin to set contract type address', async function () {
       const contractTypeHash = getContractType();
-      await expect(l1.registry.connect(l1.deployer).setReservedContractTypeAddress(contractTypeHash, true)).to.not.be
-        .reverted;
+      await expect(chain1.registry.connect(chain1.deployer).setReservedContractTypeAddress(contractTypeHash, true)).to
+        .not.be.reverted;
     });
     it('should fail to allow rand user to alter contract type address', async function () {
       const contractTypeHash = getContractType();
-      await expect(l1.registry.connect(randUser).setReservedContractTypeAddress(contractTypeHash, true)).to.be.reverted;
+      await expect(chain1.registry.connect(randUser).setReservedContractTypeAddress(contractTypeHash, true)).to.be
+        .reverted;
     });
   });
 
   describe('getReservedContractTypeAddress()', async function () {
     it('should return expected contract type address', async function () {
       const contractTypeHash = getContractType();
-      const contractAddress = await l1.registry.getReservedContractTypeAddress(contractTypeHash);
-      expect(contractAddress).to.be.equal(l1.holographErc721.address);
+      const contractAddress = await chain1.registry.getReservedContractTypeAddress(contractTypeHash);
+      expect(contractAddress).to.be.equal(chain1.holographErc721.address);
     });
   });
 
@@ -209,20 +210,20 @@ describe('Holograph Registry Contract', async function () {
     it('should allow admin to alter setContractTypeAddress', async function () {
       const contractTypeHash = getContractType();
       const contractAddress = createRandomAddress();
-      await l1.registry.connect(l1.deployer).setReservedContractTypeAddress(contractTypeHash, true);
-      await expect(l1.registry.connect(l1.deployer).setContractTypeAddress(contractTypeHash, contractAddress)).to.not.be
-        .reverted;
-      const tmp = await l1.registry.getReservedContractTypeAddress(contractTypeHash);
+      await chain1.registry.connect(chain1.deployer).setReservedContractTypeAddress(contractTypeHash, true);
+      await expect(chain1.registry.connect(chain1.deployer).setContractTypeAddress(contractTypeHash, contractAddress))
+        .to.not.be.reverted;
+      const tmp = await chain1.registry.getReservedContractTypeAddress(contractTypeHash);
       expect(tmp).to.equal(contractAddress);
     });
 
     it('should fail to allow rand user to alter setContractTypeAddress', async function () {
       const contractTypeHash = getContractType();
       const contractAddress = createRandomAddress();
-      await l1.registry.connect(l1.deployer).setReservedContractTypeAddress(contractTypeHash, true);
-      await expect(l1.registry.connect(randUser).setContractTypeAddress(contractTypeHash, contractAddress)).to.be
+      await chain1.registry.connect(chain1.deployer).setReservedContractTypeAddress(contractTypeHash, true);
+      await expect(chain1.registry.connect(randUser).setContractTypeAddress(contractTypeHash, contractAddress)).to.be
         .reverted;
-      const tmp = await l1.registry.getReservedContractTypeAddress(contractTypeHash);
+      const tmp = await chain1.registry.getReservedContractTypeAddress(contractTypeHash);
       expect(tmp).to.not.equal(contractAddress);
     });
     it('should allow external contract to call fn');
@@ -233,10 +234,10 @@ describe('Holograph Registry Contract', async function () {
     it('Should return valid _contractTypeAddresses', async function () {
       const contractTypeHash = getContractType();
       const contractAddress = createRandomAddress();
-      await l1.registry.connect(l1.deployer).setReservedContractTypeAddress(contractTypeHash, true);
-      await expect(l1.registry.connect(l1.deployer).setContractTypeAddress(contractTypeHash, contractAddress)).to.not.be
-        .reverted;
-      const tmp = await l1.registry.getContractTypeAddress(contractTypeHash);
+      await chain1.registry.connect(chain1.deployer).setReservedContractTypeAddress(contractTypeHash, true);
+      await expect(chain1.registry.connect(chain1.deployer).setContractTypeAddress(contractTypeHash, contractAddress))
+        .to.not.be.reverted;
+      const tmp = await chain1.registry.getContractTypeAddress(contractTypeHash);
       expect(tmp).to.equal(contractAddress);
     });
     it('Should allow external contract to call fn', async function () {
@@ -251,16 +252,16 @@ describe('Holograph Registry Contract', async function () {
 
   describe('referenceContractTypeAddress', async function () {
     it('should return valid address', async function () {
-      await expect(l1.registry.referenceContractTypeAddress(l1.holographErc20.address)).to.not.be.reverted;
+      await expect(chain1.registry.referenceContractTypeAddress(chain1.holographErc20.address)).to.not.be.reverted;
     });
     it('should fail if contract is empty', async function () {
       const contractAddress = createRandomAddress();
-      await expect(l1.registry.referenceContractTypeAddress(contractAddress)).to.be.revertedWith(
+      await expect(chain1.registry.referenceContractTypeAddress(contractAddress)).to.be.revertedWith(
         EMPTY_CONTRACT_ERROR_MSG
       );
     });
     it('should fail if contract is already set', async function () {
-      await expect(l1.registry.referenceContractTypeAddress(l1.holographErc20.address)).to.revertedWith(
+      await expect(chain1.registry.referenceContractTypeAddress(chain1.holographErc20.address)).to.revertedWith(
         CONTRACT_ALREADY_SET_ERROR_MSG
       );
     });
@@ -269,7 +270,7 @@ describe('Holograph Registry Contract', async function () {
       await testExternalCallToFunction(
         'function referenceContractTypeAddress(address contractAddress) external returns (bytes32)',
         'referenceContractTypeAddress',
-        [l1.holographErc20.address]
+        [chain1.holographErc20.address]
       );
     });
     // it('should fail to allow inherited contract to call fn');

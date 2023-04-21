@@ -110,7 +110,7 @@ import "../interface/HolographerInterface.sol";
 
 /**
  * @title Holograph token (aka hToken), used to wrap and bridge native tokens across blockchains.
- * @author CXIP-Labs
+ * @author Holograph Foundation
  * @notice A smart contract for minting and managing Holograph's Bridgeable ERC20 Tokens.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
@@ -211,11 +211,7 @@ contract hToken is ERC20H {
    * @dev Send supported wrapped token, get back hToken equivalent.
    * @param recipient Address of where to send the hToken(s) to.
    */
-  function holographWrappedToken(
-    address token,
-    address recipient,
-    uint256 amount
-  ) external onlyHolographer {
+  function holographWrappedToken(address token, address recipient, uint256 amount) external onlyHolographer {
     require(_supportedWrappers[token], "hToken: unsupported token type");
     ERC20 erc20 = ERC20(token);
     address sender = msgSender();
@@ -241,11 +237,7 @@ contract hToken is ERC20H {
    * @dev Send hToken, get back native token value equivalent.
    * @param recipient Address of where to send the native token(s) to.
    */
-  function extractWrappedToken(
-    address token,
-    address payable recipient,
-    uint256 amount
-  ) external onlyHolographer {
+  function extractWrappedToken(address token, address payable recipient, uint256 amount) external onlyHolographer {
     require(_supportedWrappers[token], "hToken: unsupported token type");
     address sender = msgSender();
     require(ERC20(address(this)).balanceOf(sender) >= amount, "hToken: not enough hToken(s)");

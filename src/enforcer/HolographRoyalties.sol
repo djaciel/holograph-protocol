@@ -14,8 +14,8 @@ import "../interface/HolographRoyaltiesInterface.sol";
 import "../struct/ZoraBidShares.sol";
 
 /**
- * @title HolographRoyalties (previously PA1D)
- * @author CXIP-Labs
+ * @title HolographRoyalties
+ * @author Holograph Foundation
  * @notice A smart contract for providing royalty info, collecting royalties, and distributing it to configured payout wallets.
  * @dev This smart contract is not intended to be used directly. Apply it to any of your ERC721 or ERC1155 smart contracts through a delegatecall fallback.
  */
@@ -498,11 +498,7 @@ contract HolographRoyalties is Admin, Owner, Initializable {
    * @param receiver Wallet or smart contract that will receive the royalty payouts.
    * @param bp Uint256 of royalty percentage, provided in base points format.
    */
-  function setRoyalties(
-    uint256 tokenId,
-    address payable receiver,
-    uint256 bp
-  ) public onlyOwner {
+  function setRoyalties(uint256 tokenId, address payable receiver, uint256 bp) public onlyOwner {
     require(receiver != address(0), "ROYALTIES: receiver is zero address");
     require(bp <= 10000, "ROYALTIES: base points over 100%");
     if (tokenId == 0) {
@@ -618,13 +614,13 @@ contract HolographRoyalties is Admin, Owner, Initializable {
     }
   }
 
-  // Zora
+  // Holograph
   // we indicate that this contract operates market functions
   function marketContract() public view returns (address) {
     return address(this);
   }
 
-  // Zora
+  // Holograph
   // we indicate that the receiver is the creator, to convince the smart contract to pay
   function tokenCreators(uint256 tokenId) public view returns (address) {
     address receiver = _getReceiver(tokenId);
@@ -634,16 +630,16 @@ contract HolographRoyalties is Admin, Owner, Initializable {
     return receiver;
   }
 
-  // Zora
+  // Holograph
   // we provide the percentage that needs to be paid out from the sale
-  function bidSharesForToken(uint256 tokenId) public view returns (ZoraBidShares memory bidShares) {
+  function bidSharesForToken(uint256 tokenId) public view returns (HolographBidShares memory bidShares) {
     // this information is outside of the scope of our
     bidShares.prevOwner.value = 0;
     bidShares.owner.value = 0;
     if (_getReceiver(tokenId) == address(0)) {
-      bidShares.creator.value = _getDefaultBp() * (10**16);
+      bidShares.creator.value = _getDefaultBp() * (10 ** 16);
     } else {
-      bidShares.creator.value = _getBp(tokenId) * (10**16);
+      bidShares.creator.value = _getBp(tokenId) * (10 ** 16);
     }
     return bidShares;
   }
@@ -665,11 +661,7 @@ contract HolographRoyalties is Admin, Owner, Initializable {
    *      if return data does not exist (0 length) then success is expected and returns true
    * @return Returns true if the wrapped function call returns without a revert even if it doesn't return true.
    */
-  function _callOptionalReturn(
-    address target,
-    bytes4 functionSignature,
-    bytes memory payload
-  ) internal returns (bool) {
+  function _callOptionalReturn(address target, bytes4 functionSignature, bytes memory payload) internal returns (bool) {
     bytes memory data = abi.encodePacked(functionSignature, payload);
     bool success = true;
     assembly {

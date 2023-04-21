@@ -112,10 +112,10 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   bool private _success;
 
   function bridgeIn(
-    uint32, /* _chainId*/
-    address, /* _from*/
-    address, /* _to*/
-    uint256, /* _tokenId*/
+    uint32 /* _chainId*/,
+    address /* _from*/,
+    address /* _to*/,
+    uint256 /* _tokenId*/,
     bytes calldata /* _data*/
   ) external virtual onlyHolographer returns (bool) {
     _success = true;
@@ -123,9 +123,9 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function bridgeOut(
-    uint32, /* _chainId*/
-    address, /* _from*/
-    address, /* _to*/
+    uint32 /* _chainId*/,
+    address /* _from*/,
+    address /* _to*/,
     uint256 /* _tokenId*/
   ) external virtual onlyHolographer returns (bytes memory _data) {
     _success = true;
@@ -133,8 +133,8 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function afterApprove(
-    address, /* _owner*/
-    address, /* _to*/
+    address /* _owner*/,
+    address /* _to*/,
     uint256 /* _tokenId*/
   ) external virtual onlyHolographer returns (bool success) {
     _success = true;
@@ -142,8 +142,8 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function beforeApprove(
-    address, /* _owner*/
-    address, /* _to*/
+    address /* _owner*/,
+    address /* _to*/,
     uint256 /* _tokenId*/
   ) external virtual onlyHolographer returns (bool success) {
     _success = true;
@@ -151,8 +151,8 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function afterApprovalAll(
-    address, /* _sender*/
-    address, /* _to*/
+    address /* _sender*/,
+    address /* _to*/,
     bool /* _approved*/
   ) external virtual onlyHolographer returns (bool success) {
     _success = true;
@@ -160,8 +160,8 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function beforeApprovalAll(
-    address, /* _sender*/
-    address, /* _to*/
+    address /* _sender*/,
+    address /* _to*/,
     bool /* _approved*/
   ) external virtual onlyHolographer returns (bool success) {
     _success = true;
@@ -169,7 +169,7 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function afterBurn(
-    address, /* _owner*/
+    address /* _owner*/,
     uint256 /* _tokenId*/
   ) external virtual onlyHolographer returns (bool success) {
     _success = true;
@@ -177,7 +177,7 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function beforeBurn(
-    address, /* _owner*/
+    address /* _owner*/,
     uint256 /* _tokenId*/
   ) external virtual onlyHolographer returns (bool success) {
     _success = true;
@@ -185,7 +185,7 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function afterMint(
-    address, /* _owner*/
+    address /* _owner*/,
     uint256 /* _tokenId*/
   ) external virtual onlyHolographer returns (bool success) {
     _success = true;
@@ -193,7 +193,7 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function beforeMint(
-    address, /* _owner*/
+    address /* _owner*/,
     uint256 /* _tokenId*/
   ) external virtual onlyHolographer returns (bool success) {
     _success = true;
@@ -201,9 +201,9 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function afterSafeTransfer(
-    address, /* _from*/
-    address, /* _to*/
-    uint256, /* _tokenId*/
+    address /* _from*/,
+    address /* _to*/,
+    uint256 /* _tokenId*/,
     bytes calldata /* _data*/
   ) external virtual onlyHolographer returns (bool success) {
     _success = true;
@@ -211,9 +211,9 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function beforeSafeTransfer(
-    address, /* _from*/
-    address, /* _to*/
-    uint256, /* _tokenId*/
+    address /* _from*/,
+    address /* _to*/,
+    uint256 /* _tokenId*/,
     bytes calldata /* _data*/
   ) external virtual onlyHolographer returns (bool success) {
     _success = true;
@@ -221,9 +221,9 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function afterTransfer(
-    address, /* _from*/
-    address, /* _to*/
-    uint256, /* _tokenId*/
+    address /* _from*/,
+    address /* _to*/,
+    uint256 /* _tokenId*/,
     bytes calldata /* _data*/
   ) external virtual onlyHolographer returns (bool success) {
     _success = true;
@@ -231,9 +231,9 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function beforeTransfer(
-    address, /* _from*/
-    address, /* _to*/
-    uint256, /* _tokenId*/
+    address /* _from*/,
+    address /* _to*/,
+    uint256 /* _tokenId*/,
     bytes calldata /* _data*/
   ) external virtual onlyHolographer returns (bool success) {
     _success = true;
@@ -241,10 +241,10 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function afterOnERC721Received(
-    address, /* _operator*/
-    address, /* _from*/
-    address, /* _to*/
-    uint256, /* _tokenId*/
+    address /* _operator*/,
+    address /* _from*/,
+    address /* _to*/,
+    uint256 /* _tokenId*/,
     bytes calldata /* _data*/
   ) external virtual onlyHolographer returns (bool success) {
     _success = true;
@@ -252,13 +252,25 @@ abstract contract StrictERC721H is ERC721H, HolographedERC721 {
   }
 
   function beforeOnERC721Received(
-    address, /* _operator*/
-    address, /* _from*/
-    address, /* _to*/
-    uint256, /* _tokenId*/
+    address /* _operator*/,
+    address /* _from*/,
+    address /* _to*/,
+    uint256 /* _tokenId*/,
     bytes calldata /* _data*/
   ) external virtual onlyHolographer returns (bool success) {
     _success = true;
     return _success;
+  }
+
+  function onIsApprovedForAll(
+    address /* _wallet*/,
+    address /* _operator*/
+  ) external view virtual onlyHolographer returns (bool approved) {
+    approved = _success;
+    return false;
+  }
+
+  function contractURI() external view virtual onlyHolographer returns (string memory contractJSON) {
+    contractJSON = _success ? "" : "";
   }
 }

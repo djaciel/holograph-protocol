@@ -107,7 +107,7 @@ import "../interface/HolographERC721Interface.sol";
 
 /**
  * @title Sample ERC-721 Collection that is bridgeable via Holograph
- * @author CXIP-Labs
+ * @author Holograph Foundation
  * @notice A smart contract for minting and managing Holograph Bridgeable ERC721 NFTs.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
@@ -157,11 +157,7 @@ contract SampleERC721 is StrictERC721H {
   /**
    * @dev Sample mint where anyone can mint specific token, with a custom URI
    */
-  function mint(
-    address to,
-    uint224 tokenId,
-    string calldata URI
-  ) external onlyHolographer onlyOwner {
+  function mint(address to, uint224 tokenId, string calldata URI) external onlyHolographer onlyOwner {
     HolographERC721Interface H721 = HolographERC721Interface(holographer());
     if (tokenId == 0) {
       _currentTokenId += 1;
@@ -176,9 +172,9 @@ contract SampleERC721 is StrictERC721H {
   }
 
   function bridgeIn(
-    uint32, /* _chainId*/
-    address, /* _from*/
-    address, /* _to*/
+    uint32 /* _chainId*/,
+    address /* _from*/,
+    address /* _to*/,
     uint256 _tokenId,
     bytes calldata _data
   ) external override onlyHolographer returns (bool) {
@@ -188,19 +184,16 @@ contract SampleERC721 is StrictERC721H {
   }
 
   function bridgeOut(
-    uint32, /* _chainId*/
-    address, /* _from*/
-    address, /* _to*/
+    uint32 /* _chainId*/,
+    address /* _from*/,
+    address /* _to*/,
     uint256 _tokenId
   ) external override onlyHolographer returns (bytes memory _data) {
     _dummy = false;
     _data = abi.encode(_tokenURIs[_tokenId]);
   }
 
-  function afterBurn(
-    address, /* _owner*/
-    uint256 _tokenId
-  ) external override onlyHolographer returns (bool) {
+  function afterBurn(address /* _owner*/, uint256 _tokenId) external override onlyHolographer returns (bool) {
     delete _tokenURIs[_tokenId];
     return true;
   }
