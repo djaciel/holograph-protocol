@@ -48,14 +48,14 @@ contract DropsPriceOracleAvalanche is Admin, Initializable, IDropsPriceOracle {
   function _getTraderJoeUSDC(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
     // usdAmount = usdAmount * (10**(18 - 6));
-    (uint256 amountIn, uint256 feesIn) = TraderJoeRouter.getSwapIn(TraderJoeUsdcPool, usdAmount, false);
+    (uint256 amountIn, uint256 feesIn) = TraderJoeRouter.getSwapIn(TraderJoeUsdcPool, usdAmount, true);
     weiAmount = amountIn + feesIn;
   }
 
   function _getTraderJoeUSDT(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
     // usdAmount = usdAmount * (10**(18 - 6));
-    (uint256 amountIn, uint256 feesIn) = TraderJoeRouter.getSwapIn(TraderJoeUsdtPool, usdAmount, false);
+    (uint256 amountIn, uint256 feesIn) = TraderJoeRouter.getSwapIn(TraderJoeUsdtPool, usdAmount, true);
     weiAmount = amountIn + feesIn;
   }
 }
