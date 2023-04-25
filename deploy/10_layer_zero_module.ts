@@ -1,6 +1,7 @@
 declare var global: any;
 import { BigNumber, Contract } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
+import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
 import {
@@ -12,6 +13,7 @@ import {
   LeanHardhatRuntimeEnvironment,
   hreSplit,
 } from '../scripts/utils/helpers';
+import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
@@ -54,27 +56,53 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     GAS_LIMIT,
   ];
 
+  const networkSpecificParams: { [key: string]: BigNumber[] } = {
+    binanceSmartChainTestnet: [
+      MSG_BASE_GAS,
+      MSG_GAS_PER_BYTE,
+      BigNumber.from('180000'),
+      BigNumber.from('40'),
+      MIN_GAS_PRICE,
+      GAS_LIMIT,
+    ],
+    binanceSmartChain: [
+      MSG_BASE_GAS,
+      MSG_GAS_PER_BYTE,
+      BigNumber.from('180000'),
+      BigNumber.from('40'),
+      MIN_GAS_PRICE,
+      GAS_LIMIT,
+    ],
+  };
+
   const network: Network = networks[hre.networkName];
   const networkType: NetworkType = network.type;
   const networkKeys: string[] = Object.keys(networks);
-  const networkValues: Network[] = Object.values(networks);
   let supportedNetworkNames: string[] = [];
   let supportedNetworks: Network[] = [];
   let chainIds: number[] = [];
   let gasParameters: BigNumber[][] = [];
   for (let i = 0, l = networkKeys.length; i < l; i++) {
     const key: string = networkKeys[i];
-    const value: Network = networkValues[i];
-    if (value.type == networkType) {
+    const value: Network = networks[key];
+    if (value.active && value.type == networkType) {
       supportedNetworkNames.push(key);
       supportedNetworks.push(value);
       if (value.holographId > 0) {
         if (value.holographId == network.holographId) {
           chainIds.push(0);
-          gasParameters.push(defaultParams);
+          if (key in networkSpecificParams) {
+            gasParameters.push(networkSpecificParams[key]!);
+          } else {
+            gasParameters.push(defaultParams);
+          }
         }
         chainIds.push(value.holographId);
-        gasParameters.push(defaultParams);
+        if (key in networkSpecificParams) {
+          gasParameters.push(networkSpecificParams[key]!);
+        } else {
+          gasParameters.push(defaultParams);
+        }
       }
     }
   }
@@ -124,8 +152,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   );
 
   if ((await holographOperator.getMessagingModule()).toLowerCase() != futureLayerZeroModuleAddress.toLowerCase()) {
-    const lzTx = await holographOperator
-      .setMessagingModule(futureLayerZeroModuleAddress, {
+    const lzTx = await MultisigAwareTx(
+      hre,
+      deployer,
+      await holographOperator.populateTransaction.setMessagingModule(futureLayerZeroModuleAddress, {
         ...(await txParams({
           hre,
           from: deployer,
@@ -133,7 +163,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           data: holographOperator.populateTransaction.setMessagingModule(futureLayerZeroModuleAddress),
         })),
       })
-      .catch(error);
+    );
     hre.deployments.log('Transaction hash:', lzTx.hash);
     await lzTx.wait();
     hre.deployments.log(`Registered MessagingModule to: ${await holographOperator.getMessagingModule()}`);
@@ -146,23 +176,40 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   chainIds = [];
   gasParameters = [];
 
+  hre.deployments.log(`Checking existing gas parameters`);
   for (let i = 0, l = supportedNetworks.length; i < l; i++) {
     let currentNetwork: Network = supportedNetworks[i];
     let currentGasParameters: BigNumber[] = await lzModule.getGasParameters(currentNetwork.holographId);
     for (let i = 0; i < 6; i++) {
-      if (!defaultParams[i].eq(currentGasParameters[i])) {
+      if (currentNetwork.key in networkSpecificParams) {
+        if (!networkSpecificParams[currentNetwork.key]![i].eq(currentGasParameters[i])) {
+          chainIds.push(currentNetwork.holographId);
+          gasParameters.push(networkSpecificParams[currentNetwork.key]!);
+          if (currentNetwork.holographId == network.holographId) {
+            chainIds.push(0);
+            gasParameters.push(networkSpecificParams[currentNetwork.key]!);
+          }
+          break;
+        }
+      } else if (!defaultParams[i].eq(currentGasParameters[i])) {
         chainIds.push(currentNetwork.holographId);
         gasParameters.push(defaultParams);
+        if (currentNetwork.holographId == network.holographId) {
+          chainIds.push(0);
+          gasParameters.push(defaultParams);
+        }
         break;
       }
     }
   }
   if (chainIds.length > 0) {
     hre.deployments.log('Found some gas parameter inconsistencies');
-    const lzTx = await lzModule['setGasParameters(uint32[],(uint256,uint256,uint256,uint256,uint256,uint256)[])'](
-      chainIds,
-      gasParameters,
-      {
+    const lzTx = await MultisigAwareTx(
+      hre,
+      deployer,
+      await lzModule.populateTransaction[
+        'setGasParameters(uint32[],(uint256,uint256,uint256,uint256,uint256,uint256)[])'
+      ](chainIds, gasParameters, {
         ...(await txParams({
           hre,
           from: deployer,
@@ -171,8 +218,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             'setGasParameters(uint32[],(uint256,uint256,uint256,uint256,uint256,uint256)[])'
           ](chainIds, gasParameters),
         })),
-      }
-    ).catch(error);
+      })
+    );
     hre.deployments.log('Transaction hash:', lzTx.hash);
     await lzTx.wait();
     hre.deployments.log('Updated LayerZero GasParameters');

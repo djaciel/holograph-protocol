@@ -17,6 +17,7 @@ import {
   remove0x,
   txParams,
 } from '../scripts/utils/helpers';
+import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { HolographERC20Event, ConfigureEvents, AllEventsEnabled } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
@@ -178,27 +179,35 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   hre.deployments.log('checking Holograph UtilityToken reference');
   if ((await holograph.getUtilityToken()) != hlgTokenAddress) {
-    const setHTokenTx = await holograph.setUtilityToken(hlgTokenAddress, {
-      ...(await txParams({
-        hre,
-        from: deployer,
-        to: holograph,
-        data: holograph.populateTransaction.setUtilityToken(hlgTokenAddress),
-      })),
-    });
+    const setHTokenTx = await MultisigAwareTx(
+      hre,
+      deployer,
+      await holograph.populateTransaction.setUtilityToken(hlgTokenAddress, {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holograph,
+          data: holograph.populateTransaction.setUtilityToken(hlgTokenAddress),
+        })),
+      })
+    );
     await setHTokenTx.wait();
   }
 
   hre.deployments.log('checking HolographRegistry UtilityToken reference');
   if ((await holographRegistry.getUtilityToken()) != hlgTokenAddress) {
-    const setHTokenTx2 = await holographRegistry.setUtilityToken(hlgTokenAddress, {
-      ...(await txParams({
-        hre,
-        from: deployer,
-        to: holographRegistry,
-        data: holographRegistry.populateTransaction.setUtilityToken(hlgTokenAddress),
-      })),
-    });
+    const setHTokenTx2 = await MultisigAwareTx(
+      hre,
+      deployer,
+      await holographRegistry.populateTransaction.setUtilityToken(hlgTokenAddress, {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holographRegistry,
+          data: holographRegistry.populateTransaction.setUtilityToken(hlgTokenAddress),
+        })),
+      })
+    );
     await setHTokenTx2.wait();
   }
 
@@ -208,18 +217,22 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       const hlgContract = (await hre.ethers.getContract('HolographERC20', deployer)).attach(hlgTokenAddress);
       if ((await hlgContract.balanceOf(operatorAddress)).isZero()) {
         hre.deployments.log('HolographOperator has no HLG');
-        const transferTx = await hlgContract.transfer(operatorAddress, BigNumber.from('1000000000000000000000000'), {
-          ...(await txParams({
-            hre,
-            from: deployer,
-            to: hlgContract,
-            gasLimit: (
-              await hre.ethers.provider.estimateGas(
-                hlgContract.populateTransaction.transfer(operatorAddress, BigNumber.from('1000000000000000000000000'))
-              )
-            ).mul(BigNumber.from('2')),
-          })),
-        });
+        const transferTx = await MultisigAwareTx(
+          hre,
+          deployer,
+          await hlgContract.populateTransaction.transfer(operatorAddress, BigNumber.from('1000000000000000000000000'), {
+            ...(await txParams({
+              hre,
+              from: deployer,
+              to: hlgContract,
+              gasLimit: (
+                await hre.ethers.provider.estimateGas(
+                  hlgContract.populateTransaction.transfer(operatorAddress, BigNumber.from('1000000000000000000000000'))
+                )
+              ).mul(BigNumber.from('2')),
+            })),
+          })
+        );
         await transferTx.wait();
       }
     }

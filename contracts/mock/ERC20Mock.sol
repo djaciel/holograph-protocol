@@ -118,7 +118,7 @@ import "../library/ECDSA.sol";
 
 /**
  * @title Mock ERC20 Token
- * @author CXIP-Labs
+ * @author Holograph Foundation
  * @notice Used for imitating the likes of WETH and WMATIC tokens.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
@@ -250,11 +250,7 @@ contract ERC20Mock is
     _works = active;
   }
 
-  function transferTokens(
-    address payable token,
-    address to,
-    uint256 amount
-  ) external {
+  function transferTokens(address payable token, address to, uint256 amount) external {
     ERC20(token).transfer(to, amount);
   }
 
@@ -354,7 +350,7 @@ contract ERC20Mock is
 
   function onERC20Received(
     address account,
-    address, /* sender*/
+    address /* sender*/,
     uint256 amount,
     bytes calldata /* data*/
   ) public returns (bytes4) {
@@ -407,21 +403,13 @@ contract ERC20Mock is
     return safeTransfer(recipient, amount, "");
   }
 
-  function safeTransfer(
-    address recipient,
-    uint256 amount,
-    bytes memory data
-  ) public returns (bool) {
+  function safeTransfer(address recipient, uint256 amount, bytes memory data) public returns (bool) {
     _transfer(msg.sender, recipient, amount);
     require(_checkOnERC20Received(msg.sender, recipient, amount, data), "ERC20: non ERC20Receiver");
     return true;
   }
 
-  function safeTransferFrom(
-    address account,
-    address recipient,
-    uint256 amount
-  ) public returns (bool) {
+  function safeTransferFrom(address account, address recipient, uint256 amount) public returns (bool) {
     return safeTransferFrom(account, recipient, amount, "");
   }
 
@@ -448,11 +436,7 @@ contract ERC20Mock is
     return true;
   }
 
-  function transferFrom(
-    address account,
-    address recipient,
-    uint256 amount
-  ) public returns (bool) {
+  function transferFrom(address account, address recipient, uint256 amount) public returns (bool) {
     if (account != msg.sender) {
       uint256 currentAllowance = _allowances[account][msg.sender];
       require(currentAllowance >= amount, "ERC20: amount exceeds allowance");
@@ -464,11 +448,7 @@ contract ERC20Mock is
     return true;
   }
 
-  function _approve(
-    address account,
-    address spender,
-    uint256 amount
-  ) internal {
+  function _approve(address account, address spender, uint256 amount) internal {
     require(account != address(0), "ERC20: account is zero address");
     require(spender != address(0), "ERC20: spender is zero address");
     _allowances[account][spender] = amount;
@@ -539,11 +519,7 @@ contract ERC20Mock is
     emit Transfer(address(0), to, amount);
   }
 
-  function _transfer(
-    address account,
-    address recipient,
-    uint256 amount
-  ) internal {
+  function _transfer(address account, address recipient, uint256 amount) internal {
     require(account != address(0), "ERC20: account is zero address");
     require(recipient != address(0), "ERC20: recipient is zero address");
     uint256 accountBalance = _balances[account];

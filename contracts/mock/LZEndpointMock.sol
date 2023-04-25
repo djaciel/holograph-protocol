@@ -228,7 +228,7 @@ contract LZEndpointMock is LayerZeroEndpointInterface {
     bytes calldata _srcAddress,
     address _dstAddress,
     uint64 _nonce,
-    uint256, /*_gasLimit*/
+    uint256 /*_gasLimit*/,
     bytes calldata _payload
   ) external override {
     StoredPayload storage sp = storedPayload[_srcChainId][_srcAddress];
@@ -317,38 +317,30 @@ contract LZEndpointMock is LayerZeroEndpointInterface {
   }
 
   function setConfig(
-    uint16, /*_version*/
-    uint16, /*_chainId*/
-    uint256, /*_configType*/
+    uint16 /*_version*/,
+    uint16 /*_chainId*/,
+    uint256 /*_configType*/,
     bytes memory /*_config*/
   ) external override {}
 
   function getConfig(
-    uint16, /*_version*/
-    uint16, /*_chainId*/
-    address, /*_ua*/
+    uint16 /*_version*/,
+    uint16 /*_chainId*/,
+    address /*_ua*/,
     uint256 /*_configType*/
   ) external pure override returns (bytes memory) {
     return "";
   }
 
-  function setSendVersion(
-    uint16 /*version*/
-  ) external override {}
+  function setSendVersion(uint16 /*version*/) external override {}
 
-  function setReceiveVersion(
-    uint16 /*version*/
-  ) external override {}
+  function setReceiveVersion(uint16 /*version*/) external override {}
 
-  function getSendVersion(
-    address /*_userApplication*/
-  ) external pure override returns (uint16) {
+  function getSendVersion(address /*_userApplication*/) external pure override returns (uint16) {
     return 1;
   }
 
-  function getReceiveVersion(
-    address /*_userApplication*/
-  ) external pure override returns (uint16) {
+  function getReceiveVersion(address /*_userApplication*/) external pure override returns (uint16) {
     return 1;
   }
 
@@ -394,11 +386,7 @@ contract LZEndpointMock is LayerZeroEndpointInterface {
     _clearMsgQue(_srcChainId, _srcAddress);
   }
 
-  function retryPayload(
-    uint16 _srcChainId,
-    bytes calldata _srcAddress,
-    bytes calldata _payload
-  ) external override {
+  function retryPayload(uint16 _srcChainId, bytes calldata _srcAddress, bytes calldata _payload) external override {
     StoredPayload storage sp = storedPayload[_srcChainId][_srcAddress];
     require(sp.payloadHash != bytes32(0), "LayerZero: no stored payload");
     require(_payload.length == sp.payloadLength && keccak256(_payload) == sp.payloadHash, "LayerZero: invalid payload");

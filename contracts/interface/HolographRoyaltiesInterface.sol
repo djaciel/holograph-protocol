@@ -118,11 +118,7 @@ interface HolographRoyaltiesInterface {
 
   function supportsInterface(bytes4 interfaceId) external pure returns (bool);
 
-  function setRoyalties(
-    uint256 tokenId,
-    address payable receiver,
-    uint256 bp
-  ) external;
+  function setRoyalties(uint256 tokenId, address payable receiver, uint256 bp) external;
 
   function royaltyInfo(uint256 tokenId, uint256 value) external view returns (address, uint256);
 
@@ -134,13 +130,10 @@ interface HolographRoyaltiesInterface {
 
   function getFees(uint256 tokenId) external view returns (address payable[] memory, uint256[] memory);
 
-  function tokenCreator(
-    address, /* contractAddress*/
-    uint256 tokenId
-  ) external view returns (address);
+  function tokenCreator(address /* contractAddress*/, uint256 tokenId) external view returns (address);
 
   function calculateRoyaltyFee(
-    address, /* contractAddress */
+    address /* contractAddress */,
     uint256 tokenId,
     uint256 amount
   ) external view returns (uint256);
@@ -149,7 +142,7 @@ interface HolographRoyaltiesInterface {
 
   function tokenCreators(uint256 tokenId) external view returns (address);
 
-  function bidSharesForToken(uint256 tokenId) external view returns (ZoraBidShares memory bidShares);
+  function bidSharesForToken(uint256 tokenId) external view returns (HolographBidShares memory bidShares);
 
   function getStorageSlot(string calldata slot) external pure returns (bytes32);
 

@@ -107,7 +107,7 @@ import "../interface/HolographERC20Interface.sol";
 
 /**
  * @title Sample ERC-20 token that is bridgeable via Holograph
- * @author CXIP-Labs
+ * @author Holograph Foundation
  * @notice A smart contract for minting and managing Holograph Bridgeable ERC20 Tokens.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
@@ -153,10 +153,10 @@ contract SampleERC20 is StrictERC20H {
   }
 
   function bridgeIn(
-    uint32, /* _chainId*/
-    address, /* _from*/
+    uint32 /* _chainId*/,
+    address /* _from*/,
     address _to,
-    uint256, /* _amount*/
+    uint256 /* _amount*/,
     bytes calldata _data
   ) external override onlyHolographer returns (bool) {
     bytes32 salt = abi.decode(_data, (bytes32));
@@ -165,8 +165,8 @@ contract SampleERC20 is StrictERC20H {
   }
 
   function bridgeOut(
-    uint32, /* _chainId*/
-    address, /* _from*/
+    uint32 /* _chainId*/,
+    address /* _from*/,
     address _to,
     uint256 /* _amount*/
   ) external override onlyHolographer returns (bytes memory _data) {

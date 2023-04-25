@@ -123,32 +123,16 @@ interface HolographedERC721 {
   ) external returns (bytes memory _data);
 
   // event id = 3
-  function afterApprove(
-    address _owner,
-    address _to,
-    uint256 _tokenId
-  ) external returns (bool success);
+  function afterApprove(address _owner, address _to, uint256 _tokenId) external returns (bool success);
 
   // event id = 4
-  function beforeApprove(
-    address _owner,
-    address _to,
-    uint256 _tokenId
-  ) external returns (bool success);
+  function beforeApprove(address _owner, address _to, uint256 _tokenId) external returns (bool success);
 
   // event id = 5
-  function afterApprovalAll(
-    address _sender,
-    address _to,
-    bool _approved
-  ) external returns (bool success);
+  function afterApprovalAll(address _sender, address _to, bool _approved) external returns (bool success);
 
   // event id = 6
-  function beforeApprovalAll(
-    address _sender,
-    address _to,
-    bool _approved
-  ) external returns (bool success);
+  function beforeApprovalAll(address _sender, address _to, bool _approved) external returns (bool success);
 
   // event id = 7
   function afterBurn(address _owner, uint256 _tokenId) external returns (bool success);
@@ -211,4 +195,10 @@ interface HolographedERC721 {
     uint256 _tokenId,
     bytes calldata _data
   ) external returns (bool success);
+
+  // event id = 17
+  function onIsApprovedForAll(address _wallet, address _operator) external view returns (bool approved);
+
+  // event id = 18
+  function contractURI() external view returns (string memory contractJSON);
 }

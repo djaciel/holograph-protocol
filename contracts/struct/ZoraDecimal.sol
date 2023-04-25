@@ -101,6 +101,6 @@
 
 pragma solidity 0.8.13;
 
-struct ZoraDecimal {
+struct HolographDecimal {
   uint256 value;
 }

@@ -13,7 +13,7 @@ import { DeploymentConfigStruct } from '../typechain-types/HolographFactory';
 describe('Holograph Holographer Contract', function () {
   const web3 = new Web3();
 
-  let l1: PreTest;
+  let chain1: PreTest;
   let holographer: Holographer;
   let mockExternalCall: MockExternalCall;
   let deployer: SignerWithAddress;
@@ -23,11 +23,11 @@ describe('Holograph Holographer Contract', function () {
 
   before(async () => {
     [deployer] = await ethers.getSigners();
-    l1 = await setup();
+    chain1 = await setup();
 
     let { erc721Config, erc721ConfigHash, erc721ConfigHashBytes } = await generateErc721Config(
-      l1.network, // reference to hardhat network object
-      l1.deployer.address, // address of creator of contract
+      chain1.network, // reference to hardhat network object
+      chain1.deployer.address, // address of creator of contract
       'SampleERC721', // contract bytecode to use
       'Sample ERC721 Contract: unit test', // name of contract
       'SMPLR', // token symbol of contract
@@ -38,8 +38,8 @@ describe('Holograph Holographer Contract', function () {
         HolographERC721Event.bridgeOut,
         HolographERC721Event.afterBurn,
       ]),
-      generateInitCode(['address'], [l1.deployer.address]), // init code for SampleERC721 itself
-      l1.salt // random bytes32 salt that you decide to assign this config, used again on other chains to guarantee uniqueness if all above vars are same for another contract for some reason
+      generateInitCode(['address'], [chain1.deployer.address]), // init code for SampleERC721 itself
+      chain1.salt // random bytes32 salt that you decide to assign this config, used again on other chains to guarantee uniqueness if all above vars are same for another contract for some reason
     );
 
     const sig = await deployer.signMessage(erc721ConfigHashBytes);
@@ -49,7 +49,7 @@ describe('Holograph Holographer Contract', function () {
       v: '0x' + sig.substring(130, 132),
     } as Signature);
 
-    const depoyTx = await l1.factory
+    const depoyTx = await chain1.factory
       .connect(deployer)
       .deployHolographableContract(erc721Config, signature, deployer.address);
     const deployResult = await depoyTx.wait();
@@ -65,7 +65,7 @@ describe('Holograph Holographer Contract', function () {
     await mockExternalCall.deployed();
 
     erc721ConfigEncodedInfo = erc721Config;
-    holograph = l1.holograph.address;
+    holograph = chain1.holograph.address;
   });
 
   describe('constructor', async function () {
@@ -115,7 +115,7 @@ describe('Holograph Holographer Contract', function () {
 
   describe(`getOriginChain()`, async function () {
     it('Should return valid _originChainSlot', async () => {
-      const chainID = await l1.holograph.getHolographChainId();
+      const chainID = await chain1.holograph.getHolographChainId();
       expect(await holographer.getOriginChain()).to.equal(chainID);
     });
 
