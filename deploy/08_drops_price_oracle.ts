@@ -97,7 +97,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'latest',
   ]);
   if (dropsPriceOracleProxyDeployedCode == '0x' || dropsPriceOracleProxyDeployedCode == '') {
-    definedOracleNames;
     hre.deployments.log('"DropsPriceOracleProxy" bytecode not found, need to deploy"');
     let dropsPriceOracleProxy = await genesisDeployHelper(
       hre,

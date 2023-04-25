@@ -6,15 +6,17 @@ import {Admin} from "../../abstract/Admin.sol";
 import {Initializable} from "../../abstract/Initializable.sol";
 
 import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
-import {IUniswapV2Pair} from "./interface/IUniswapV2Pair.sol";
+import {ILBPair} from "./interface/ILBPair.sol";
+import {ILBRouter} from "./interface/ILBRouter.sol";
 
 contract DropsPriceOracleAvalanche is Admin, Initializable, IDropsPriceOracle {
   address constant WAVAX = 0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7; // 18 decimals
   address constant USDC = 0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E; // 6 decimals
   address constant USDT = 0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7; // 6 decimals
 
-  IUniswapV2Pair constant SushiV2UsdcPool = IUniswapV2Pair(0x6539bF462F73fF9497054bA261C195DA8639ED61);
-  IUniswapV2Pair constant SushiV2UsdtPool = IUniswapV2Pair(0x7e5E4b677c2a682B6d2e95Ae3ec07ae1Ea7D3aB5);
+  ILBRouter constant TraderJoeRouter = ILBRouter(0xE3Ffc583dC176575eEA7FD9dF2A7c65F7E23f4C3);
+  ILBPair constant TraderJoeUsdcPool = ILBPair(0xB5352A39C11a81FE6748993D586EC448A01f08b5);
+  ILBPair constant TraderJoeUsdtPool = ILBPair(0xdF3E481a05F58c387Af16867e9F5dB7f931113c9);
 
   /**
    * @dev Constructor is left empty and init is used instead
@@ -40,36 +42,20 @@ contract DropsPriceOracleAvalanche is Admin, Initializable, IDropsPriceOracle {
    * @param usdAmount a 6 decimal places USD amount
    */
   function convertUsdToWei(uint256 usdAmount) external view returns (uint256 weiAmount) {
-    weiAmount = (_getSushiUSDC(usdAmount) + _getSushiUSDT(usdAmount)) / 2;
+    weiAmount = (_getTraderJoeUSDC(usdAmount) + _getTraderJoeUSDT(usdAmount)) / 2;
   }
 
-  function _getSushiUSDC(uint256 usdAmount) internal view returns (uint256 weiAmount) {
+  function _getTraderJoeUSDC(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
     // usdAmount = usdAmount * (10**(18 - 6));
-    (uint112 _reserve0, uint112 _reserve1, ) = SushiV2UsdcPool.getReserves();
-    // x is always native token / WAVAX
-    uint256 x = _reserve0;
-    // y is always USD token / USDC
-    uint256 y = _reserve1;
-
-    uint256 numerator = (x * usdAmount) * 1000;
-    uint256 denominator = (y - usdAmount) * 997;
-
-    weiAmount = (numerator / denominator) + 1;
+    (uint256 amountIn, uint256 feesIn) = TraderJoeRouter.getSwapIn(TraderJoeUsdcPool, usdAmount, true);
+    weiAmount = amountIn + feesIn;
   }
 
-  function _getSushiUSDT(uint256 usdAmount) internal view returns (uint256 weiAmount) {
+  function _getTraderJoeUSDT(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
     // usdAmount = usdAmount * (10**(18 - 6));
-    (uint112 _reserve0, uint112 _reserve1, ) = SushiV2UsdtPool.getReserves();
-    // x is always native token / WAVAX
-    uint256 x = _reserve1;
-    // y is always USD token / USDT
-    uint256 y = _reserve0;
-
-    uint256 numerator = (x * usdAmount) * 1000;
-    uint256 denominator = (y - usdAmount) * 997;
-
-    weiAmount = (numerator / denominator) + 1;
+    (uint256 amountIn, uint256 feesIn) = TraderJoeRouter.getSwapIn(TraderJoeUsdtPool, usdAmount, true);
+    weiAmount = amountIn + feesIn;
   }
 }
