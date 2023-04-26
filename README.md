@@ -158,11 +158,9 @@ To become an operator, you must view the pods available to join, select a pod, a
 
 At step 1, you call `getTotalPods` method to get a list of available pods. If the length of pod is zero, then you can bond into pod `1`.
 
-At step 2, when you call `getPodBondAmounts`, you will get two values: [`_base`, `current`]. The `base` value represents the original minimum bond requirement to join the pod, while the `current` value is the current amount you must provide to join the pod. Please refer to here [TODO - ADD LINK] for more info.
+At step 2, when you call `getPodBondAmounts`, you will get two values: [`_base`, `current`]. The `base` value represents the original minimum bond requirement to join the pod, while the `current` value is the current amount you must provide to join the pod.
 
 At step 3, you are now able to call the `bondUtilityToken` function with the pod and amounts you want to use to enter the pod. Please note, there is a minimum bond requirement to join but no maximum.
-
-You are now an 0perator. We will launch a CLI in the future that will process jobs on your behalf.
 
 ### Leaving Pods
 
@@ -170,7 +168,7 @@ To leave a pod, you have to call the `unbondUtilityToken` in `HolographOperator.
 
 ### Processing Jobs
 
-You must join a pod to become an Oper ator. The simplified code path for operating is:
+You must join a pod to become an operator. The simplified code path for operating is:
 
 1. Receive new Block from the network
 2. Iterate over block looking for event `AvailableOperatorJob(jobHash, bridgeInRequestPayload);`
