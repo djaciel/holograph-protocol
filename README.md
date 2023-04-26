@@ -24,7 +24,7 @@ Holograph provides omnichain NFT infrastructure for the web3 ecosystem. Holograp
 
 ## Specification
 
-Please reference the [documentation](https://docs.holograph.xyz/holograph-protocol/technical-specification) for the full technical specification of the protocol
+Please reference the [documentation](https://docs.holograph.xyz/holograph-protocol/technical-specification) for the full technical specification of the protocol.
 
 ## Architecture
 
