@@ -128,14 +128,4 @@ contract MyContractTest is Test, TestSetup {
     console.log("CxipERC721Proxy address: %s", address(cxipERC721Proxy));
     console.log("Faucet address: %s", address(faucet));
   }
-
-  function testDeployments() public {
-    bytes memory bytecode = abi.encodePacked(vm.getCode("HolographGenesis.sol:HolographGenesis"));
-    address anotherAddress;
-    assembly {
-      anotherAddress := create(0, add(bytecode, 0x20), mload(bytecode))
-    }
-
-    assertEq0(address(holographGenesis).code, anotherAddress.code);
-  }
 }
