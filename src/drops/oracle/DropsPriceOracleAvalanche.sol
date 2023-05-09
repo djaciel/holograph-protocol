@@ -42,6 +42,10 @@ contract DropsPriceOracleAvalanche is Admin, Initializable, IDropsPriceOracle {
    * @param usdAmount a 6 decimal places USD amount
    */
   function convertUsdToWei(uint256 usdAmount) external view returns (uint256 weiAmount) {
+    if (usdAmount == 0) {
+      weiAmount = 0;
+      return weiAmount;
+    }
     weiAmount = (_getTraderJoeUSDC(usdAmount) + _getTraderJoeUSDT(usdAmount)) / 2;
   }
 
