@@ -47,7 +47,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     ethereumTestnetGoerli: 'EthereumTestnetGoerli',
     polygon: 'Polygon',
     polygonTestnet: 'PolygonTestnet',
-    optimismTestnetGoerli: 'EthereumTestnetGoerli',
+    optimismTestnetGoerli: 'OptimismTestnetGoerli',
   };
 
   let targetDropsPriceOracle = 'DummyDropsPriceOracle';
