@@ -46,9 +46,7 @@ contract DropsMetadataRenderer is Initializable, IMetadataRenderer, MetadataRend
    * @dev A blank init function is required to be able to call genesisDeriveFutureAddress to get the deterministic address
    * @dev Since no data is required to be intialized the selector is just returned and _setInitialized() does not need to be called
    */
-  function init(
-    bytes memory /* initPayload */
-  ) external pure override returns (bytes4) {
+  function init(bytes memory /* initPayload */) external pure override returns (bytes4) {
     return Initializable.init.selector;
   }
 

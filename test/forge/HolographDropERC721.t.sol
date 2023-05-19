@@ -61,9 +61,9 @@ contract HolographDropERC721Test is Test {
   DropsMetadataRenderer public dropsMetadataRenderer;
   DummyDropsPriceOracle public dummyPriceOracle;
 
-  uint104 constant usd10 = 10 * (10**6); // 10 USD (6 decimal places)
-  uint104 constant usd100 = 100 * (10**6); // 100 USD (6 decimal places)
-  uint104 constant usd1000 = 1000 * (10**6); // 1000 USD (6 decimal places)
+  uint104 constant usd10 = 10 * (10 ** 6); // 10 USD (6 decimal places)
+  uint104 constant usd100 = 100 * (10 ** 6); // 100 USD (6 decimal places)
+  uint104 constant usd1000 = 1000 * (10 ** 6); // 1000 USD (6 decimal places)
 
   address public constant DEFAULT_OWNER_ADDRESS = address(0x1);
   address payable public constant DEFAULT_FUNDS_RECIPIENT_ADDRESS = payable(address(0x2));

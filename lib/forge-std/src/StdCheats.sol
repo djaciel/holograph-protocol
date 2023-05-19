@@ -279,11 +279,7 @@ abstract contract StdCheatsSafe {
     return keccak256(abi.encode(a)) == keccak256(abi.encode(b));
   }
 
-  function isEqual(
-    string memory a,
-    string memory b,
-    string memory c
-  ) private pure returns (bool) {
+  function isEqual(string memory a, string memory b, string memory c) private pure returns (bool) {
     return keccak256(abi.encode(a)) == keccak256(abi.encode(b)) || keccak256(abi.encode(a)) == keccak256(abi.encode(c));
   }
 
@@ -368,12 +364,9 @@ abstract contract StdCheatsSafe {
     return transaction;
   }
 
-  function rawToConvertedEIP1559Detail(RawTx1559Detail memory rawDetail)
-    internal
-    pure
-    virtual
-    returns (Tx1559Detail memory)
-  {
+  function rawToConvertedEIP1559Detail(
+    RawTx1559Detail memory rawDetail
+  ) internal pure virtual returns (Tx1559Detail memory) {
     Tx1559Detail memory txDetail;
     txDetail.data = rawDetail.data;
     txDetail.from = rawDetail.from;
@@ -443,12 +436,9 @@ abstract contract StdCheatsSafe {
     return receipt;
   }
 
-  function rawToConvertedReceiptLogs(RawReceiptLog[] memory rawLogs)
-    internal
-    pure
-    virtual
-    returns (ReceiptLog[] memory)
-  {
+  function rawToConvertedReceiptLogs(
+    RawReceiptLog[] memory rawLogs
+  ) internal pure virtual returns (ReceiptLog[] memory) {
     ReceiptLog[] memory logs = new ReceiptLog[](rawLogs.length);
     for (uint256 i; i < rawLogs.length; i++) {
       logs[i].logAddress = rawLogs[i].logAddress;
@@ -488,11 +478,7 @@ abstract contract StdCheatsSafe {
   }
 
   /// @dev deploy contract with value on construction
-  function deployCode(
-    string memory what,
-    bytes memory args,
-    uint256 val
-  ) internal virtual returns (address addr) {
+  function deployCode(string memory what, bytes memory args, uint256 val) internal virtual returns (address addr) {
     bytes memory bytecode = abi.encodePacked(vm.getCode(what), args);
     /// @solidity memory-safe-assembly
     assembly {
@@ -524,11 +510,10 @@ abstract contract StdCheatsSafe {
     (addr, ) = makeAddrAndKey(name);
   }
 
-  function deriveRememberKey(string memory mnemonic, uint32 index)
-    internal
-    virtual
-    returns (address who, uint256 privateKey)
-  {
+  function deriveRememberKey(
+    string memory mnemonic,
+    uint32 index
+  ) internal virtual returns (address who, uint256 privateKey) {
     privateKey = vm.deriveKey(mnemonic, index);
     who = vm.rememberKey(privateKey);
   }
@@ -536,7 +521,7 @@ abstract contract StdCheatsSafe {
   function bytesToUint(bytes memory b) private pure returns (uint256) {
     uint256 number;
     for (uint256 i = 0; i < b.length; i++) {
-      number = number + uint256(uint8(b[i])) * (2**(8 * (b.length - (i + 1))));
+      number = number + uint256(uint8(b[i])) * (2 ** (8 * (b.length - (i + 1))));
     }
     return number;
   }
@@ -574,11 +559,7 @@ abstract contract StdCheats is StdCheatsSafe {
     vm.prank(who, origin);
   }
 
-  function hoax(
-    address who,
-    address origin,
-    uint256 give
-  ) internal virtual {
+  function hoax(address who, address origin, uint256 give) internal virtual {
     vm.deal(who, give);
     vm.prank(who, origin);
   }
@@ -601,11 +582,7 @@ abstract contract StdCheats is StdCheatsSafe {
     vm.startPrank(who, origin);
   }
 
-  function startHoax(
-    address who,
-    address origin,
-    uint256 give
-  ) internal virtual {
+  function startHoax(address who, address origin, uint256 give) internal virtual {
     vm.deal(who, give);
     vm.startPrank(who, origin);
   }
@@ -623,20 +600,11 @@ abstract contract StdCheats is StdCheatsSafe {
 
   // Set the balance of an account for any ERC20 token
   // Use the alternative signature to update `totalSupply`
-  function deal(
-    address token,
-    address to,
-    uint256 give
-  ) internal virtual {
+  function deal(address token, address to, uint256 give) internal virtual {
     deal(token, to, give, false);
   }
 
-  function deal(
-    address token,
-    address to,
-    uint256 give,
-    bool adjust
-  ) internal virtual {
+  function deal(address token, address to, uint256 give, bool adjust) internal virtual {
     // get current balance
     (, bytes memory balData) = token.call(abi.encodeWithSelector(0x70a08231, to));
     uint256 prevBal = abi.decode(balData, (uint256));

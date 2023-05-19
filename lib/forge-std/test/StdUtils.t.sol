@@ -47,11 +47,7 @@ contract StdUtilsTest is Test {
     }
   }
 
-  function testBound(
-    uint256 num,
-    uint256 min,
-    uint256 max
-  ) public {
+  function testBound(uint256 num, uint256 min, uint256 max) public {
     if (min > max) (min, max) = (max, min);
 
     uint256 result = bound(num, min, max);
@@ -72,11 +68,7 @@ contract StdUtilsTest is Test {
     bound(5, 100, 10);
   }
 
-  function testCannotBoundMaxLessThanMin(
-    uint256 num,
-    uint256 min,
-    uint256 max
-  ) public {
+  function testCannotBoundMaxLessThanMin(uint256 num, uint256 min, uint256 max) public {
     vm.assume(min > max);
     vm.expectRevert(bytes("StdUtils bound(uint256,uint256,uint256): Max is less than min."));
     bound(num, min, max);

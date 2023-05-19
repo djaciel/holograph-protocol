@@ -47,7 +47,8 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   /**
    * @dev Address of the operator filter registry
    */
-  IOperatorFilterRegistry public constant openseaOperatorFilterRegistry = IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
+  IOperatorFilterRegistry public constant openseaOperatorFilterRegistry =
+    IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
 
   /**
    * @dev Address of the price oracle proxy
@@ -232,8 +233,8 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
   function beforeSafeTransfer(
     address _from,
-    address, /* _to*/
-    uint256, /* _tokenId*/
+    address /* _to*/,
+    uint256 /* _tokenId*/,
     bytes calldata /* _data*/
   ) external view returns (bool) {
     if (
@@ -257,8 +258,8 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
   function beforeTransfer(
     address _from,
-    address, /* _to*/
-    uint256, /* _tokenId*/
+    address /* _to*/,
+    uint256 /* _tokenId*/,
     bytes calldata /* _data*/
   ) external view returns (bool) {
     if (
@@ -280,10 +281,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     return true;
   }
 
-  function onIsApprovedForAll(
-    address, /* _wallet*/
-    address _operator
-  ) external view returns (bool approved) {
+  function onIsApprovedForAll(address /* _wallet*/, address _operator) external view returns (bool approved) {
     approved = (erc721TransferHelper != address(0) && _operator == erc721TransferHelper);
   }
 
@@ -377,14 +375,9 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   /**
    * @dev This allows the user to purchase/mint a edition at the given price in the contract.
    */
-  function purchase(uint256 quantity)
-    external
-    payable
-    nonReentrant
-    canMintTokens(quantity)
-    onlyPublicSaleActive
-    returns (uint256)
-  {
+  function purchase(
+    uint256 quantity
+  ) external payable nonReentrant canMintTokens(quantity) onlyPublicSaleActive returns (uint256) {
     uint256 salePrice = _usdToWei(salesConfig.publicSalePrice);
 
     if (msg.value < salePrice * quantity) {
@@ -543,12 +536,9 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * @dev Mints multiple editions to the given list of addresses.
    * @param recipients list of addresses to send the newly minted editions to
    */
-  function adminMintAirdrop(address[] calldata recipients)
-    external
-    onlyOwner
-    canMintTokens(recipients.length)
-    returns (uint256)
-  {
+  function adminMintAirdrop(
+    address[] calldata recipients
+  ) external onlyOwner canMintTokens(recipients.length) returns (uint256) {
     unchecked {
       for (uint256 i = 0; i < recipients.length; i++) {
         _mintNFTs(recipients[i], 1);
@@ -626,7 +616,9 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
     // Get fee amount
     uint256 funds = address(this).balance;
-    address payable feeRecipient = payable(HolographInterface(HolographerInterface(holographer()).getHolograph()).getTreasury());
+    address payable feeRecipient = payable(
+      HolographInterface(HolographerInterface(holographer()).getHolograph()).getTreasury()
+    );
     // for now set it to 0 since there is no fee
     uint256 holographFee = 0;
 
@@ -705,7 +697,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     }
   }
 
-  fallback() external override payable {
+  fallback() external payable override {
     assembly {
       // Allocate memory for the error message
       let errorMsg := mload(0x40)

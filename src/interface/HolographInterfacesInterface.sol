@@ -43,15 +43,7 @@ interface HolographInterfacesInterface {
 
   function supportsInterface(InterfaceType interfaceType, bytes4 interfaceId) external view returns (bool);
 
-  function updateInterface(
-    InterfaceType interfaceType,
-    bytes4 interfaceId,
-    bool supported
-  ) external;
+  function updateInterface(InterfaceType interfaceType, bytes4 interfaceId, bool supported) external;
 
-  function updateInterfaces(
-    InterfaceType interfaceType,
-    bytes4[] calldata interfaceIds,
-    bool supported
-  ) external;
+  function updateInterfaces(InterfaceType interfaceType, bytes4[] calldata interfaceIds, bool supported) external;
 }

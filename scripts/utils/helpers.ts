@@ -354,7 +354,8 @@ const getGasLimit = async function (
   from: string | SignerWithAddress | SuperColdStorageSigner,
   to: string,
   data: Promise<UnsignedTransaction> | BytesLike = '',
-  value: BigNumberish = 0
+  value: BigNumberish = 0,
+  skipError: bool = false
 ): Promise<BigNumber> {
   if (typeof from !== 'string') {
     from = (from as SignerWithAddress).address;
@@ -362,14 +363,21 @@ const getGasLimit = async function (
   if (isBytesLike(data) === false) {
     data = (await data).data;
   }
-  const gasLimit = BigNumber.from(
-    await hre.ethers.provider.estimateGas({
-      from: from as string,
-      to,
-      data: data as BytesLike,
-      value,
-    })
-  );
+  let gasLimit: BigNumber = BigNumber.from('0');
+  try {
+    gasLimit = BigNumber.from(
+      await hre.ethers.provider.estimateGas({
+        from: from as string,
+        to,
+        data: data as BytesLike,
+        value,
+      })
+    );
+  } catch (ex: any) {
+    if (!skipError) {
+      throw ex as unknown as Error;
+    }
+  }
   if ('__gasLimitMultiplier' in global) {
     return gasLimit.mul(global.__gasLimitMultiplier).div(BigNumber.from('10000'));
   } else {
@@ -470,7 +478,7 @@ const txParams = async function ({
       ? '__gasLimitMultiplier' in global
         ? gasLimit.mul(global.__gasLimitMultiplier).div(BigNumber.from('10000'))
         : gasLimit
-      : await getGasLimit(hre, from as string, to as string, data, BigNumber.from(value)),
+      : await getGasLimit(hre, from as string, to as string, data, BigNumber.from(value), true),
     ...(await getGasPrice()),
     nonce: nonce === undefined ? global.__txNonce[hre.networkName] : nonce,
   };

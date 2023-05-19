@@ -54,10 +54,10 @@ contract SampleERC20 is StrictERC20H {
   }
 
   function bridgeIn(
-    uint32, /* _chainId*/
-    address, /* _from*/
+    uint32 /* _chainId*/,
+    address /* _from*/,
     address _to,
-    uint256, /* _amount*/
+    uint256 /* _amount*/,
     bytes calldata _data
   ) external override onlyHolographer returns (bool) {
     bytes32 salt = abi.decode(_data, (bytes32));
@@ -66,8 +66,8 @@ contract SampleERC20 is StrictERC20H {
   }
 
   function bridgeOut(
-    uint32, /* _chainId*/
-    address, /* _from*/
+    uint32 /* _chainId*/,
+    address /* _from*/,
     address _to,
     uint256 /* _amount*/
   ) external override onlyHolographer returns (bytes memory _data) {

@@ -139,10 +139,10 @@ contract OperatorFilterRegistry is IOperatorFilterRegistry, OperatorFilterRegist
    * @notice Registers an address with the registry and copies the filtered operators and codeHashes from another
    *         address without subscribing.
    */
-  function registerAndCopyEntries(address registrant, address registrantToCopy)
-    external
-    onlyAddressOrOwner(registrant)
-  {
+  function registerAndCopyEntries(
+    address registrant,
+    address registrantToCopy
+  ) external onlyAddressOrOwner(registrant) {
     if (registrantToCopy == registrant) {
       revert CannotCopyFromSelf();
     }
@@ -162,11 +162,7 @@ contract OperatorFilterRegistry is IOperatorFilterRegistry, OperatorFilterRegist
   /**
    * @notice Update an operator address for a registered address - when filtered is true, the operator is filtered.
    */
-  function updateOperator(
-    address registrant,
-    address operator,
-    bool filtered
-  ) external onlyAddressOrOwner(registrant) {
+  function updateOperator(address registrant, address operator, bool filtered) external onlyAddressOrOwner(registrant) {
     address registration = _registrations[registrant];
     if (registration == address(0)) {
       revert NotRegistered(registrant);
@@ -193,11 +189,7 @@ contract OperatorFilterRegistry is IOperatorFilterRegistry, OperatorFilterRegist
   /**
    * @notice Update a codeHash for a registered address - when filtered is true, the codeHash is filtered.
    */
-  function updateCodeHash(
-    address registrant,
-    bytes32 codeHash,
-    bool filtered
-  ) external onlyAddressOrOwner(registrant) {
+  function updateCodeHash(address registrant, bytes32 codeHash, bool filtered) external onlyAddressOrOwner(registrant) {
     if (codeHash == EOA_CODEHASH) {
       revert CannotFilterEOAs();
     }
