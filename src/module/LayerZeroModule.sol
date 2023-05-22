@@ -375,7 +375,7 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
   }
 
   /**
-   * @dev Internal function used for getting the Holograph Operator Interface
+   * @dev Internal function used for getting the Optimism Gas Price Oracle Interface
    */
   function _optimismGasPriceOracle() private view returns (OVM_GasPriceOracle optimismGasPriceOracle) {
     assembly {
