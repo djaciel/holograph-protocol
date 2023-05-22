@@ -12,7 +12,7 @@ import {
   zeroAddress,
   LeanHardhatRuntimeEnvironment,
   hreSplit,
-  GweiToWei,
+  gweiToWei,
 } from '../scripts/utils/helpers';
 import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
@@ -63,7 +63,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      GweiToWei(BigNumber.from('40')), // MIN_GAS_PRICE, // 40 GWEI
+      gweiToWei(BigNumber.from('40')), // MIN_GAS_PRICE, // 40 GWEI
       GAS_LIMIT,
     ],
     ethereumTestnetGoerli: [
@@ -71,7 +71,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      GweiToWei(BigNumber.from('5')), // MIN_GAS_PRICE, // 5 GWEI
+      gweiToWei(BigNumber.from('5')), // MIN_GAS_PRICE, // 5 GWEI
       GAS_LIMIT,
     ],
 
@@ -80,7 +80,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       BigNumber.from('180000'),
       BigNumber.from('40'),
-      GweiToWei(BigNumber.from('3')), // MIN_GAS_PRICE, // 3 GWEI
+      gweiToWei(BigNumber.from('3')), // MIN_GAS_PRICE, // 3 GWEI
       GAS_LIMIT,
     ],
     binanceSmartChainTestnet: [
@@ -88,7 +88,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       BigNumber.from('180000'),
       BigNumber.from('40'),
-      GweiToWei(BigNumber.from('1')), // MIN_GAS_PRICE, // 1 GWEI
+      gweiToWei(BigNumber.from('1')), // MIN_GAS_PRICE, // 1 GWEI
       GAS_LIMIT,
     ],
 
@@ -97,7 +97,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      GweiToWei(BigNumber.from('30')), // MIN_GAS_PRICE, // 30 GWEI
+      gweiToWei(BigNumber.from('30')), // MIN_GAS_PRICE, // 30 GWEI
       GAS_LIMIT,
     ],
     avalancheTestnet: [
@@ -105,7 +105,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      GweiToWei(BigNumber.from('30')), // MIN_GAS_PRICE, // 30 GWEI
+      gweiToWei(BigNumber.from('30')), // MIN_GAS_PRICE, // 30 GWEI
       GAS_LIMIT,
     ],
 
@@ -114,7 +114,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      GweiToWei(BigNumber.from('200')), // MIN_GAS_PRICE, // 200 GWEI
+      gweiToWei(BigNumber.from('200')), // MIN_GAS_PRICE, // 200 GWEI
       GAS_LIMIT,
     ],
     polygonTestnet: [
@@ -122,7 +122,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      GweiToWei(BigNumber.from('5')), // MIN_GAS_PRICE, // 5 GWEI
+      gweiToWei(BigNumber.from('5')), // MIN_GAS_PRICE, // 5 GWEI
       GAS_LIMIT,
     ],
 
@@ -139,7 +139,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      GweiToWei(BigNumber.from('5')), // MIN_GAS_PRICE, // 5 GWEI
+      gweiToWei(BigNumber.from('5')), // MIN_GAS_PRICE, // 5 GWEI
       GAS_LIMIT,
     ],
 
@@ -156,7 +156,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      GweiToWei(BigNumber.from('5')), // MIN_GAS_PRICE, // 5 GWEI
+      gweiToWei(BigNumber.from('5')), // MIN_GAS_PRICE, // 5 GWEI
       GAS_LIMIT,
     ],
   };
@@ -205,7 +205,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // OVM_GasPriceOracle
   let optimismGasPriceOracleDeployedCode: string = await hre.provider.send('eth_getCode', [
-    futureoptimismGasPriceOracleAddress,
+    futureOptimismGasPriceOracleAddress,
     'latest',
   ]);
   if (optimismGasPriceOracleDeployedCode == '0x' || optimismGasPriceOracleDeployedCode == '') {
@@ -260,7 +260,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       salt,
       'LayerZeroModule',
       generateInitCode(
-        ['address', 'address', 'address', 'uint32[]', 'struct(uint256,uint256,uint256,uint256,uint256,uint256)[]'],
+        [
+          'address',
+          'address',
+          'address',
+          'address',
+          'uint32[]',
+          'struct(uint256,uint256,uint256,uint256,uint256,uint256)[]',
+        ],
         [
           await holograph.getBridge(),
           await holograph.getInterfaces(),
@@ -303,16 +310,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const lzModule = (await hre.ethers.getContract('LayerZeroModule', deployer)) as Contract;
 
   // we check that LayerZeroModule has correct OptimismGasPriceOracle set
-  if ((await lzModule.getOptimismGasPriceOracle()).toLowerCase() != futureoptimismGasPriceOracleAddress.toLowerCase()) {
+  if ((await lzModule.getOptimismGasPriceOracle()).toLowerCase() != futureOptimismGasPriceOracleAddress.toLowerCase()) {
     const lzOpTx = await MultisigAwareTx(
       hre,
       deployer,
-      await lzModule.populateTransaction.setOptimismGasPriceOracle(futureoptimismGasPriceOracleAddress, {
+      await lzModule.populateTransaction.setOptimismGasPriceOracle(futureOptimismGasPriceOracleAddress, {
         ...(await txParams({
           hre,
           from: deployer,
           to: lzModule,
-          data: lzModule.populateTransaction.setOptimismGasPriceOracle(futureoptimismGasPriceOracleAddress),
+          data: lzModule.populateTransaction.setOptimismGasPriceOracle(futureOptimismGasPriceOracleAddress),
         })),
       })
     );

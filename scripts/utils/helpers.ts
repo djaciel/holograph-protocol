@@ -916,6 +916,10 @@ const HASH = function (input: string | BytesLike, prepend: boolean = true): stri
   return (prepend ? '0x' : '') + remove0x(web3.utils.keccak256(input as string));
 };
 
+const gweiToWei = function (input: BigNumber): BigNumber {
+  return input.mul(BigNumber.from('1000000000'));
+};
+
 export {
   web3,
   executeJobGas,
@@ -955,4 +959,5 @@ export {
   ownerCallFull,
   beamSomething,
   HASH,
+  gweiToWei,
 };
