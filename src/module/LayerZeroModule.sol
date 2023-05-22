@@ -193,6 +193,11 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
     require(gasLimit < gasParameters.maxGasLimit, "HOLOGRAPH: gas limit over max");
     (uint256 nativeFee, ) = lz.estimateFees(lzDestChain, address(this), crossChainPayload, false, adapterParams);
     hlgFee = ((gasPrice * gasLimit) * dstPriceRatio) / (10 ** 10);
+    /*
+     * @dev toChain is a ChainIdType.HOLOGRAPH, which can be found at https://github.com/holographxyz/networks/blob/main/src/networks.ts
+     *      chainId 7 == optimism
+     *      chainId 4000000015 == optimismTestnetGoerli
+     */
     if (toChain == uint32(7) || toChain == uint32(4000000015)) {
       hlgFee += (_optimismGasPriceOracle().getL1Fee(crossChainPayload) * dstPriceRatio) / (10 ** 10);
     }
@@ -223,6 +228,11 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
     gasLimit = gasLimit + (gasLimit / 10);
     require(gasLimit < gasParameters.maxGasLimit, "HOLOGRAPH: gas limit over max");
     hlgFee = ((gasPrice * gasLimit) * dstPriceRatio) / (10 ** 10);
+    /*
+     * @dev toChain is a ChainIdType.HOLOGRAPH, which can be found at https://github.com/holographxyz/networks/blob/main/src/networks.ts
+     *      chainId 7 == optimism
+     *      chainId 4000000015 == optimismTestnetGoerli
+     */
     if (toChain == uint32(7) || toChain == uint32(4000000015)) {
       hlgFee += (_optimismGasPriceOracle().getL1Fee(crossChainPayload) * dstPriceRatio) / (10 ** 10);
     }
