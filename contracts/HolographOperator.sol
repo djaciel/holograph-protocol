@@ -615,7 +615,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
   ) external payable {
     require(msg.sender == _bridge(), "HOLOGRAPH: bridge only call");
     CrossChainMessageInterface messagingModule = _messagingModule();
-    uint256 hlgFee = messagingModule.getHlgFee(toChain, gasLimit, gasPrice, bridgeOutPayload.length);
+    uint256 hlgFee = messagingModule.getHlgFee(toChain, gasLimit, gasPrice, bridgeOutPayload);
     address hToken = _registry().getHToken(_holograph().getHolographChainId());
     require(hlgFee < msg.value, "HOLOGRAPH: not enough value");
     payable(hToken).transfer(hlgFee);
