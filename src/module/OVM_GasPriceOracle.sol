@@ -47,8 +47,8 @@ contract OVM_GasPriceOracle is Admin, Initializable {
     gasPrice = _gasPrice;
     l1BaseFee = _l1BaseFee;
     overhead = _overhead;
-    decimals = _decimals;
     scalar = _scalar;
+    decimals = _decimals;
     assembly {
       sstore(_adminSlot, origin())
     }
