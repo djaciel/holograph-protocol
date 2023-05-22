@@ -39,6 +39,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     process.exit();
   };
 
+  const subOneWei = function (input: BigNumber): BigNumber {
+    return input.sub(BigNumber.from('1'));
+  };
+
   const salt = hre.deploymentSalt;
 
   const MSG_BASE_GAS: BigNumber = BigNumber.from('110000');
@@ -63,7 +67,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      gweiToWei(BigNumber.from('40')), // MIN_GAS_PRICE, // 40 GWEI
+      subOneWei(gweiToWei(BigNumber.from('40'))), // MIN_GAS_PRICE, // 40 GWEI
       GAS_LIMIT,
     ],
     ethereumTestnetGoerli: [
@@ -71,7 +75,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      gweiToWei(BigNumber.from('5')), // MIN_GAS_PRICE, // 5 GWEI
+      subOneWei(gweiToWei(BigNumber.from('5'))), // MIN_GAS_PRICE, // 5 GWEI
       GAS_LIMIT,
     ],
 
@@ -80,7 +84,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       BigNumber.from('180000'),
       BigNumber.from('40'),
-      gweiToWei(BigNumber.from('3')), // MIN_GAS_PRICE, // 3 GWEI
+      subOneWei(gweiToWei(BigNumber.from('3'))), // MIN_GAS_PRICE, // 3 GWEI
       GAS_LIMIT,
     ],
     binanceSmartChainTestnet: [
@@ -88,7 +92,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       BigNumber.from('180000'),
       BigNumber.from('40'),
-      gweiToWei(BigNumber.from('1')), // MIN_GAS_PRICE, // 1 GWEI
+      subOneWei(gweiToWei(BigNumber.from('1'))), // MIN_GAS_PRICE, // 1 GWEI
       GAS_LIMIT,
     ],
 
@@ -97,7 +101,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      gweiToWei(BigNumber.from('30')), // MIN_GAS_PRICE, // 30 GWEI
+      subOneWei(gweiToWei(BigNumber.from('30'))), // MIN_GAS_PRICE, // 30 GWEI
       GAS_LIMIT,
     ],
     avalancheTestnet: [
@@ -105,7 +109,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      gweiToWei(BigNumber.from('30')), // MIN_GAS_PRICE, // 30 GWEI
+      subOneWei(gweiToWei(BigNumber.from('30'))), // MIN_GAS_PRICE, // 30 GWEI
       GAS_LIMIT,
     ],
 
@@ -114,7 +118,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      gweiToWei(BigNumber.from('200')), // MIN_GAS_PRICE, // 200 GWEI
+      subOneWei(gweiToWei(BigNumber.from('200'))), // MIN_GAS_PRICE, // 200 GWEI
       GAS_LIMIT,
     ],
     polygonTestnet: [
@@ -122,7 +126,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      gweiToWei(BigNumber.from('5')), // MIN_GAS_PRICE, // 5 GWEI
+      subOneWei(gweiToWei(BigNumber.from('5'))), // MIN_GAS_PRICE, // 5 GWEI
       GAS_LIMIT,
     ],
 
@@ -131,7 +135,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      BigNumber.from('10000000'), // MIN_GAS_PRICE, // 0.01 GWEI
+      subOneWei(BigNumber.from('10000000')), // MIN_GAS_PRICE, // 0.01 GWEI
       GAS_LIMIT,
     ],
     optimismTestnetGoerli: [
@@ -139,7 +143,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      gweiToWei(BigNumber.from('5')), // MIN_GAS_PRICE, // 5 GWEI
+      subOneWei(gweiToWei(BigNumber.from('5'))), // MIN_GAS_PRICE, // 5 GWEI
       GAS_LIMIT,
     ],
 
@@ -148,7 +152,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      BigNumber.from('100000000'), // MIN_GAS_PRICE, // 0.1 GWEI
+      subOneWei(BigNumber.from('100000000')), // MIN_GAS_PRICE, // 0.1 GWEI
       GAS_LIMIT,
     ],
     arbitrumTestnetGoerli: [
@@ -156,7 +160,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      gweiToWei(BigNumber.from('5')), // MIN_GAS_PRICE, // 5 GWEI
+      subOneWei(gweiToWei(BigNumber.from('5'))), // MIN_GAS_PRICE, // 5 GWEI
       GAS_LIMIT,
     ],
   };
@@ -220,8 +224,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           1000000, // gasPrice == 1 (since scalar is with 6 decimal places)
           100000000000, // l1BaseFee == 100 GWEI
           2100, // overhead
-          6, // decimals
           1000000, // scalar (since division does not work well in non-decimal numbers, we multiply and then divide by scalar after)
+          6, // decimals
         ]
       ),
       futureOptimismGasPriceOracleAddress
