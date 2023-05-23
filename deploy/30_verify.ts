@@ -52,6 +52,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       'LayerZeroModule',
       'EditionsMetadataRenderer',
       'EditionsMetadataRendererProxy',
+      'OVM_GasPriceOracle',
     ];
     for (let i: number = 0, l: number = contracts.length; i < l; i++) {
       let contract: string = contracts[i];

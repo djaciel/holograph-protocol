@@ -771,6 +771,9 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   }
 
   function _usdToWei(uint256 amount) internal view returns (uint256 weiAmount) {
+    if (amount == 0) {
+      return 0;
+    }
     weiAmount = dropsPriceOracle.convertUsdToWei(amount);
   }
 
