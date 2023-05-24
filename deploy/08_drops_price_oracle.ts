@@ -47,6 +47,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     ethereumTestnetGoerli: 'EthereumTestnetGoerli',
     polygon: 'Polygon',
     polygonTestnet: 'PolygonTestnet',
+    optimism: 'Optimism',
     optimismTestnetGoerli: 'OptimismTestnetGoerli',
   };
 
