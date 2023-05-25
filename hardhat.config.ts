@@ -19,6 +19,8 @@ import { Environment, getEnvironment } from '@holographxyz/environment';
 import { NetworkType, Network, Networks, networks } from '@holographxyz/networks';
 import { GasService } from './scripts/utils/gas-service';
 import dotenv from 'dotenv';
+import * as tenderly from '@tenderly/hardhat-tenderly';
+tenderly.setup();
 dotenv.config();
 
 function getRemappings() {
@@ -323,6 +325,10 @@ const config: HardhatUserConfig = {
       saveDeployments: false,
     },
     ...dynamicNetworks(),
+    tenderly: {
+      chainId: 5,
+      url: 'https://rpc.tenderly.co/fork/<fork-chain-id>',
+    },
   },
   namedAccounts: {
     deployer: setDeployerKey(0),
@@ -373,6 +379,12 @@ const config: HardhatUserConfig = {
   hardhatHolographContractBuilder: {
     runOnCompile: true,
     verbose: false,
+  },
+  tenderly: {
+    project: 'holograph',
+    username: 'attar',
+    privateVerification: false,
+    forkNetwork: '<fork-chain-id>',
   },
 };
 
