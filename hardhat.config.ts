@@ -388,4 +388,19 @@ const config: HardhatUserConfig = {
   },
 };
 
+// Allow hardhat to use short network names
+function mapNetworkKeysByShortKey(networks: Networks) {
+  for (let key in networks) {
+    // Not all networks in @holographxyz/networks are supported by hardhat
+    if (key in config.networks!) {
+      let shortKey = networks[key]!.shortKey;
+      config.networks![shortKey] = config.networks![key];
+    }
+  }
+
+  return config;
+}
+
+mapNetworkKeysByShortKey(networks as Networks);
+
 export default config;
