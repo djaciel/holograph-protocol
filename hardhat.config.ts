@@ -388,6 +388,4 @@ const config: HardhatUserConfig = {
   },
 };
 
-mapNetworkKeysByShortKey(networks as Networks);
-
 export default config;
