@@ -398,7 +398,13 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    * @dev This function is restricted for use by Holograph Messaging Module only
    */
   function crossChainMessage(bytes calldata bridgeInRequestPayload) external payable {
-    require(msg.sender == address(_messagingModule()), "HOLOGRAPH: messaging only call");
+    /*
+     * @dev Temporary patch to unblock transactions stuck from previous LayerZeroModule calls
+     */
+    require(
+      msg.sender == address(_messagingModule()) || msg.sender == 0x803305930C1bbae396D03F496a7bF53Ad7fd4303,
+      "HOLOGRAPH: messaging only call"
+    );
     uint256 gasPrice = 0;
     assembly {
       /**
