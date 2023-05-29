@@ -41,7 +41,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         useDeployer = true;
       }
     }
-    const MULTI_SIG: string = useDeployer ? deployer.address : (network.protocolMultisig as string);
+    const MULTI_SIG: string = useDeployer
+      ? deployer.address.toLowerCase()
+      : (network.protocolMultisig as string).toLowerCase();
 
     const switchToHolograph: string[] = [
       'HolographBridgeProxy',
@@ -55,39 +57,43 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
     const holograph = await hre.ethers.getContract('Holograph', deployer);
 
-    let setHolographAdminTx = await MultisigAwareTx(
-      hre,
-      deployer,
-      await holograph.populateTransaction.setAdmin(MULTI_SIG, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: holograph,
-          data: holograph.populateTransaction.setAdmin(MULTI_SIG),
-        })),
-      })
-    );
-    hre.deployments.log(`Changing Holograph Admin tx ${setHolographAdminTx.hash}`);
-    await setHolographAdminTx.wait();
-    hre.deployments.log('Changed Holograph Admin');
-
-    for (const contractName of switchToHolograph) {
-      const contract = await hre.ethers.getContract(contractName, deployer);
-      let setHolographAsAdminTx = await MultisigAwareTx(
+    if ((await holograph.getAdmin()).toLowerCase() !== MULTI_SIG) {
+      let setHolographAdminTx = await MultisigAwareTx(
         hre,
         deployer,
-        await contract.populateTransaction.setAdmin(holograph.address, {
+        await holograph.populateTransaction.setAdmin(MULTI_SIG, {
           ...(await txParams({
             hre,
             from: deployer,
-            to: contract,
-            data: contract.populateTransaction.setAdmin(holograph.address),
+            to: holograph,
+            data: holograph.populateTransaction.setAdmin(MULTI_SIG),
           })),
         })
       );
-      hre.deployments.log(`Changing ${contractName} Admin to Holograph tx ${setHolographAsAdminTx.hash}`);
-      await setHolographAsAdminTx.wait();
-      hre.deployments.log(`Changed ${contractName} Admin to Holograph`);
+      hre.deployments.log(`Changing Holograph Admin tx ${setHolographAdminTx.hash}`);
+      await setHolographAdminTx.wait();
+      hre.deployments.log('Changed Holograph Admin');
+    }
+
+    for (const contractName of switchToHolograph) {
+      const contract = await hre.ethers.getContract(contractName, deployer);
+      if ((await contract.getAdmin()).toLowerCase() !== holograph.address.toLowerCase()) {
+        let setHolographAsAdminTx = await MultisigAwareTx(
+          hre,
+          deployer,
+          await contract.populateTransaction.setAdmin(holograph.address, {
+            ...(await txParams({
+              hre,
+              from: deployer,
+              to: contract,
+              data: contract.populateTransaction.setAdmin(holograph.address),
+            })),
+          })
+        );
+        hre.deployments.log(`Changing ${contractName} Admin to Holograph tx ${setHolographAsAdminTx.hash}`);
+        await setHolographAsAdminTx.wait();
+        hre.deployments.log(`Changed ${contractName} Admin to Holograph`);
+      }
     }
   } else {
     hre.deployments.log(`Skipping multisig setup for ${NetworkType[network.type]}`);
