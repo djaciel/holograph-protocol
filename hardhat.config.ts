@@ -8,7 +8,6 @@ import '@nomiclabs/hardhat-waffle';
 import '@nomiclabs/hardhat-ethers';
 import '@nomiclabs/hardhat-etherscan';
 import '@nomicfoundation/hardhat-foundry';
-// import '@tenderly/hardhat-tenderly';
 import { subtask } from 'hardhat/config';
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from 'hardhat/builtin-tasks/task-names';
 
@@ -19,6 +18,9 @@ import { Environment, getEnvironment } from '@holographxyz/environment';
 import { NetworkType, Network, Networks, networks } from '@holographxyz/networks';
 import { GasService } from './scripts/utils/gas-service';
 import dotenv from 'dotenv';
+import * as tenderly from '@tenderly/hardhat-tenderly';
+import { network } from 'hardhat';
+tenderly.setup();
 dotenv.config();
 
 function getRemappings() {
@@ -323,6 +325,10 @@ const config: HardhatUserConfig = {
       saveDeployments: false,
     },
     ...dynamicNetworks(),
+    tenderly: {
+      chainId: 5,
+      url: 'https://rpc.tenderly.co/fork/<fork-chain-id>',
+    },
   },
   namedAccounts: {
     deployer: setDeployerKey(0),
@@ -374,6 +380,27 @@ const config: HardhatUserConfig = {
     runOnCompile: true,
     verbose: false,
   },
+  tenderly: {
+    project: 'holograph',
+    username: 'attar',
+    privateVerification: false,
+    forkNetwork: '<fork-chain-id>',
+  },
 };
+
+// Allow hardhat to use short network names
+function mapNetworkKeysByShortKey(networks: Networks) {
+  for (let key in networks) {
+    // Not all networks in @holographxyz/networks are supported by hardhat
+    if (key in config.networks!) {
+      let shortKey = networks[key]!.shortKey;
+      config.networks![shortKey] = config.networks![key];
+    }
+  }
+
+  return config;
+}
+
+mapNetworkKeysByShortKey(networks as Networks);
 
 export default config;
