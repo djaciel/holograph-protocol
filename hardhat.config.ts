@@ -368,6 +368,8 @@ const config: HardhatUserConfig = {
       bscTestnet: process.env.BSCSCAN_API_KEY || '',
       optimisticEthereum: process.env.OPTIMISTIC_API_KEY || process.env.OPTIMISM_API_KEY || '',
       optimisticGoerli: process.env.OPTIMISTIC_API_KEY || process.env.OPTIMISM_API_KEY || '',
+      arbitrumOne: process.env.ARBISCAN_API_KEY || '',
+      arbitrumGoerli: process.env.ARBISCAN_API_KEY || '',
     },
   },
   hardhatHolographContractBuilder: {
