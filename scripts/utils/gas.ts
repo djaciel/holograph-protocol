@@ -70,8 +70,13 @@ export function adjustBaseBlockFee(network: string, baseBlockFee: BigNumber): Bi
     baseBlockFee.lt(BigNumber.from('25000000000'))
   ) {
     return BigNumber.from('25000000000');
+  } else if (
+    (network === networks['arbitrumOne' as NetworkKeys].key ||
+      network === networks['arbitrumTestnetGoerli' as NetworkKeys].key) &&
+    baseBlockFee.lt(BigNumber.from('100000000'))
+  ) {
+    return BigNumber.from('100000000');
   }
-
   return baseBlockFee;
 }
 

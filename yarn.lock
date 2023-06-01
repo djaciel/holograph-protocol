@@ -624,6 +624,16 @@
     dotenv "^10.0.0"
     path "^0.12.7"
 
+"@holographxyz/networks@0.1.25":
+  version "0.1.25"
+  resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.1.25.tgz#bf05eb12efb6b7f4a4443767355a4e16e82bd178"
+  integrity sha512-5ssbUaWVTQpcN5Ae/Wwe5uTFKzZNpcv2Ni/aTMtvVRuo0ptdJQ+SEvxumf85zt3bTd8+TbbsgNGEcybYO2WyNA==
+  dependencies:
+    "@ethersproject/bignumber" "^5.7.0"
+    "@holographxyz/environment" "0.1.10"
+    dotenv "^10.0.0"
+    path "^0.12.7"
+
 "@humanwhocodes/config-array@^0.11.8":
   version "0.11.8"
   resolved "https://registry.yarnpkg.com/@humanwhocodes/config-array/-/config-array-0.11.8.tgz#03595ac2075a4dc0f191cc2131de14fbd7d410b9"

@@ -370,7 +370,18 @@ const config: HardhatUserConfig = {
       optimisticGoerli: process.env.OPTIMISTIC_API_KEY || process.env.OPTIMISM_API_KEY || '',
       arbitrumOne: process.env.ARBISCAN_API_KEY || '',
       arbitrumGoerli: process.env.ARBISCAN_API_KEY || '',
+      arbitrumNova: process.env.ARBISCAN_NOVA_API_KEY || '',
     },
+    customChains: [
+      {
+        network: 'arbitrumNova',
+        chainId: 42170,
+        urls: {
+          apiURL: 'https://api-nova.arbiscan.io/api',
+          browserURL: 'https://nova.arbiscan.io',
+        },
+      },
+    ],
   },
   hardhatHolographContractBuilder: {
     runOnCompile: true,
