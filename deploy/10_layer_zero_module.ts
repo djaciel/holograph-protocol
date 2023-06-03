@@ -147,7 +147,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       GAS_LIMIT,
     ],
 
-    arbitrum: [
+    arbitrumOne: [
       MSG_BASE_GAS,
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
