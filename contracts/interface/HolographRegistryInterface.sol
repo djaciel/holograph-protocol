@@ -102,7 +102,7 @@
 pragma solidity 0.8.13;
 
 interface HolographRegistryInterface {
-  event HolographableContractEvent(bytes payload);
+  event HolographableContractEvent(address indexed holographableContract, bytes payload);
 
   function isHolographedContract(address smartContract) external view returns (bool);
 

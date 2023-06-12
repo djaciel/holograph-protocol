@@ -3,7 +3,7 @@
 /*SOLIDITY_COMPILER_VERSION*/
 
 interface HolographRegistryInterface {
-  event HolographableContractEvent(bytes payload);
+  event HolographableContractEvent(address indexed holographableContract, bytes payload);
 
   function isHolographedContract(address smartContract) external view returns (bool);
 

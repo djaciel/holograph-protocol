@@ -9,15 +9,15 @@ import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
 import {IUniswapV2Pair} from "./interface/IUniswapV2Pair.sol";
 
 contract DropsPriceOracleArbitrumNova is Admin, Initializable, IDropsPriceOracle {
-  address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2; // 18 decimals
-  address constant USDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48; // 6 decimals
-  address constant USDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7; // 6 decimals
+  address constant WETH = 0x0000000000000000000000000000000000000000; // 18 decimals
+  address constant USDC = 0x0000000000000000000000000000000000000000; // 6 decimals
+  address constant USDT = 0x0000000000000000000000000000000000000000; // 6 decimals
 
-  IUniswapV2Pair constant SushiV2UsdcPool = IUniswapV2Pair(0x397FF1542f962076d0BFE58eA045FfA2d347ACa0);
-  IUniswapV2Pair constant SushiV2UsdtPool = IUniswapV2Pair(0x06da0fd433C1A5d7a4faa01111c044910A184553);
+  IUniswapV2Pair constant SushiV2UsdcPool = IUniswapV2Pair(0x0000000000000000000000000000000000000000);
+  IUniswapV2Pair constant SushiV2UsdtPool = IUniswapV2Pair(0x0000000000000000000000000000000000000000);
 
-  IUniswapV2Pair constant UniV2UsdcPool = IUniswapV2Pair(0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc);
-  IUniswapV2Pair constant UniV2UsdtPool = IUniswapV2Pair(0x0d4a11d5EEaaC28EC3F61d100daF4d40471f1852);
+  IUniswapV2Pair constant UniV2UsdcPool = IUniswapV2Pair(0x0000000000000000000000000000000000000000);
+  IUniswapV2Pair constant UniV2UsdtPool = IUniswapV2Pair(0x0000000000000000000000000000000000000000);
 
   /**
    * @dev Constructor is left empty and init is used instead

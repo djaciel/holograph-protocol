@@ -1042,8 +1042,8 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
     emit Transfer(_from, _to, _tokenId);
     HolographRegistryInterface(_holograph().getRegistry()).holographableEvent(
       abi.encode(
-        // keccak256("Transfer(address,address,uint256)")
-        bytes32(0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef),
+        // keccak256("TransferERC721(address,address,uint256)")
+        bytes32(0x351b8d13789e4d8d2717631559251955685881a31494dd0b8b19b4ef8530bb6d),
         _from,
         _to,
         _tokenId

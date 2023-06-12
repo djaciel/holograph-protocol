@@ -770,8 +770,8 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
     emit Transfer(_from, _to, _amount);
     HolographRegistryInterface(_holograph().getRegistry()).holographableEvent(
       abi.encode(
-        // keccak256("Transfer(address,address,uint256)")
-        bytes32(0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef),
+        // keccak256("TransferERC20(address,address,uint256)")
+        bytes32(0x9b035625e569d1d2bf54830a290aefba7ab11610ba8490871dc62b86b63a8956),
         _from,
         _to,
         _amount
