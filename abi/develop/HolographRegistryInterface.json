@@ -5,13 +5,13 @@
       {
         "indexed": true,
         "internalType": "address",
-        "name": "holographableContract",
+        "name": "_holographableContract",
         "type": "address"
       },
       {
         "indexed": false,
         "internalType": "bytes",
-        "name": "payload",
+        "name": "_payload",
         "type": "bytes"
       }
     ],
