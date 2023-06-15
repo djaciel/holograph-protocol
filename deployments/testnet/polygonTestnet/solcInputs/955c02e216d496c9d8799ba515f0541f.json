@@ -450,9 +450,7 @@
           "storageLayout",
           "evm.gasEstimates"
         ],
-        "": [
-          "ast"
-        ]
+        "": ["ast"]
       }
     },
     "remappings": [
