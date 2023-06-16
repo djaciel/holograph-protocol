@@ -102,6 +102,8 @@
 pragma solidity 0.8.13;
 
 interface HolographRegistryInterface {
+  event HolographableContractEvent(address indexed _holographableContract, bytes _payload);
+
   function isHolographedContract(address smartContract) external view returns (bool);
 
   function isHolographedHashDeployed(bytes32 hash) external view returns (bool);
@@ -137,4 +139,6 @@ interface HolographRegistryInterface {
   function getUtilityToken() external view returns (address utilityToken);
 
   function setUtilityToken(address utilityToken) external;
+
+  function holographableEvent(bytes calldata payload) external;
 }

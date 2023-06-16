@@ -14,9 +14,9 @@ contract DropsPriceOracleAvalanche is Admin, Initializable, IDropsPriceOracle {
   address constant USDC = 0xB97EF9Ef8734C71904D8002F8b6Bc66Dd9c48a6E; // 6 decimals
   address constant USDT = 0x9702230A8Ea53601f5cD2dc00fDBc13d4dF4A8c7; // 6 decimals
 
-  ILBRouter constant TraderJoeRouter = ILBRouter(0xE3Ffc583dC176575eEA7FD9dF2A7c65F7E23f4C3);
-  ILBPair constant TraderJoeUsdcPool = ILBPair(0xB5352A39C11a81FE6748993D586EC448A01f08b5);
-  ILBPair constant TraderJoeUsdtPool = ILBPair(0xdF3E481a05F58c387Af16867e9F5dB7f931113c9);
+  ILBRouter constant TraderJoeRouter = ILBRouter(0xb4315e873dBcf96Ffd0acd8EA43f689D8c20fB30);
+  ILBPair constant TraderJoeUsdcPool = ILBPair(0xD446eb1660F766d533BeCeEf890Df7A69d26f7d1);
+  ILBPair constant TraderJoeUsdtPool = ILBPair(0x87EB2F90d7D0034571f343fb7429AE22C1Bd9F72);
 
   /**
    * @dev Constructor is left empty and init is used instead
@@ -42,20 +42,32 @@ contract DropsPriceOracleAvalanche is Admin, Initializable, IDropsPriceOracle {
    * @param usdAmount a 6 decimal places USD amount
    */
   function convertUsdToWei(uint256 usdAmount) external view returns (uint256 weiAmount) {
+    if (usdAmount == 0) {
+      weiAmount = 0;
+      return weiAmount;
+    }
     weiAmount = (_getTraderJoeUSDC(usdAmount) + _getTraderJoeUSDT(usdAmount)) / 2;
   }
 
   function _getTraderJoeUSDC(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
     // usdAmount = usdAmount * (10**(18 - 6));
-    (uint256 amountIn, uint256 feesIn) = TraderJoeRouter.getSwapIn(TraderJoeUsdcPool, usdAmount, true);
-    weiAmount = amountIn + feesIn;
+    (uint128 amountIn, uint128 amountOutLeft, uint128 fee) = TraderJoeRouter.getSwapIn(
+      TraderJoeUsdcPool,
+      uint128(usdAmount),
+      true
+    );
+    weiAmount = amountIn + fee;
   }
 
   function _getTraderJoeUSDT(uint256 usdAmount) internal view returns (uint256 weiAmount) {
     // add decimal places for amount IF decimals are above 6!
     // usdAmount = usdAmount * (10**(18 - 6));
-    (uint256 amountIn, uint256 feesIn) = TraderJoeRouter.getSwapIn(TraderJoeUsdtPool, usdAmount, true);
-    weiAmount = amountIn + feesIn;
+    (uint128 amountIn, uint128 amountOutLeft, uint128 fee) = TraderJoeRouter.getSwapIn(
+      TraderJoeUsdtPool,
+      uint128(usdAmount),
+      true
+    );
+    weiAmount = amountIn + fee;
   }
 }

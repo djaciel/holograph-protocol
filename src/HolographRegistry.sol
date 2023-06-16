@@ -88,6 +88,11 @@ contract HolographRegistry is Admin, Initializable, HolographRegistryInterface {
     return _holographedContractsHashMap[hash] != address(0);
   }
 
+  function holographableEvent(bytes calldata payload) external {
+    require(_holographedContracts[msg.sender], "HOLOGRAPH: not holographed");
+    emit HolographableContractEvent(msg.sender, payload);
+  }
+
   /**
    * @dev Allows to reference a deployed smart contract, and use it's code as reference inside of Holographers
    */

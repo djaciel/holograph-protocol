@@ -3,31 +3,36 @@
     "inputs": [
       {
         "internalType": "contract ILBPair",
-        "name": "_LBPair",
+        "name": "LBPair",
         "type": "address"
       },
       {
-        "internalType": "uint256",
-        "name": "_amountOut",
-        "type": "uint256"
+        "internalType": "uint128",
+        "name": "amountOut",
+        "type": "uint128"
       },
       {
         "internalType": "bool",
-        "name": "_swapForY",
+        "name": "swapForY",
         "type": "bool"
       }
     ],
     "name": "getSwapIn",
     "outputs": [
       {
-        "internalType": "uint256",
+        "internalType": "uint128",
         "name": "amountIn",
-        "type": "uint256"
+        "type": "uint128"
       },
       {
-        "internalType": "uint256",
-        "name": "feesIn",
-        "type": "uint256"
+        "internalType": "uint128",
+        "name": "amountOutLeft",
+        "type": "uint128"
+      },
+      {
+        "internalType": "uint128",
+        "name": "fee",
+        "type": "uint128"
       }
     ],
     "stateMutability": "view",

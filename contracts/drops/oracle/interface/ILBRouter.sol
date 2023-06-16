@@ -6,8 +6,8 @@ import {ILBPair} from "./ILBPair.sol";
 
 interface ILBRouter {
   function getSwapIn(
-    ILBPair _LBPair,
-    uint256 _amountOut,
-    bool _swapForY
-  ) external view returns (uint256 amountIn, uint256 feesIn);
+    ILBPair LBPair,
+    uint128 amountOut,
+    bool swapForY
+  ) external view returns (uint128 amountIn, uint128 amountOutLeft, uint128 fee);
 }

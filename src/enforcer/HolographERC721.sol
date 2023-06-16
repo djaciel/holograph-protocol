@@ -177,11 +177,19 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    */
   function contractURI() external view returns (string memory) {
     if (_isEventRegistered(HolographERC721Event.customContractURI)) {
-      HolographedERC721 sourceContract;
       assembly {
-        sourceContract := sload(_sourceContractSlot)
+        calldatacopy(0, 0, calldatasize())
+        mstore(calldatasize(), caller())
+        let result := staticcall(gas(), sload(_sourceContractSlot), 0, add(calldatasize(), 0x20), 0, 0)
+        returndatacopy(0, 0, returndatasize())
+        switch result
+        case 0 {
+          revert(0, returndatasize())
+        }
+        default {
+          return(0, returndatasize())
+        }
       }
-      return sourceContract.contractURI();
     }
     return HolographInterfacesInterface(_interfaces()).contractURI(_name, "", "", _bps, address(this));
   }
@@ -232,11 +240,19 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    */
   function tokenURI(uint256 tokenId) external view returns (string memory) {
     require(_exists(tokenId), "ERC721: token does not exist");
-    ERC721Metadata sourceContract;
     assembly {
-      sourceContract := sload(_sourceContractSlot)
+      calldatacopy(0, 0, calldatasize())
+      mstore(calldatasize(), caller())
+      let result := staticcall(gas(), sload(_sourceContractSlot), 0, add(calldatasize(), 0x20), 0, 0)
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
+        revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
+      }
     }
-    return sourceContract.tokenURI(tokenId);
   }
 
   /**
@@ -742,7 +758,7 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
   function _burn(address wallet, uint256 tokenId) private {
     _clearApproval(tokenId);
     _tokenOwner[tokenId] = address(0);
-    emit Transfer(wallet, address(0), tokenId);
+    _registryTransfer(wallet, address(0), tokenId);
     _removeTokenFromOwnerEnumeration(wallet, tokenId);
     _burnedTokens[tokenId] = true;
   }
@@ -768,7 +784,7 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
     require(!_exists(tokenId), "ERC721: token already exists");
     require(!_burnedTokens[tokenId], "ERC721: token has been burned");
     _tokenOwner[tokenId] = to;
-    emit Transfer(address(0), to, tokenId);
+    _registryTransfer(address(0), to, tokenId);
     _addTokenToOwnerEnumeration(to, tokenId);
   }
 
@@ -817,7 +833,7 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
     require(to != address(0), "ERC721: use burn instead");
     _clearApproval(tokenId);
     _tokenOwner[tokenId] = to;
-    emit Transfer(from, to, tokenId);
+    _registryTransfer(from, to, tokenId);
     _removeTokenFromOwnerEnumeration(from, tokenId);
     _addTokenToOwnerEnumeration(to, tokenId);
   }
@@ -892,11 +908,19 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
   }
 
   function owner() public view override returns (address) {
-    Ownable ownableContract;
     assembly {
-      ownableContract := sload(_sourceContractSlot)
+      calldatacopy(0, 0, calldatasize())
+      mstore(calldatasize(), caller())
+      let result := staticcall(gas(), sload(_sourceContractSlot), 0, add(calldatasize(), 0x20), 0, 0)
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
+        revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
+      }
     }
-    return ownableContract.owner();
   }
 
   function _holograph() private view returns (HolographInterface holograph) {
@@ -911,6 +935,19 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
   function _royalties() private view returns (address) {
     return
       HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(asciihex("HolographRoyalties"));
+  }
+
+  function _registryTransfer(address _from, address _to, uint256 _tokenId) private {
+    emit Transfer(_from, _to, _tokenId);
+    HolographRegistryInterface(_holograph().getRegistry()).holographableEvent(
+      abi.encode(
+        // keccak256("TransferERC721(address,address,uint256)")
+        bytes32(precomputekeccak256("TransferERC721(address,address,uint256)")),
+        _from,
+        _to,
+        _tokenId
+      )
+    );
   }
 
   /**
