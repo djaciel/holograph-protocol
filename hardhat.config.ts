@@ -22,11 +22,10 @@ import dotenv from 'dotenv';
 import { network } from 'hardhat';
 dotenv.config();
 
-/*
 let tenderlyNetwork = {};
 let tenderlyConfig = {};
+/*
 if (process.env.USE_TENDERLY && process.env.USE_TENDERLY == 'true') {
-  import * as tenderly from '@tenderly/hardhat-tenderly';
   tenderly.setup();
   tenderlyNetwork = {
     tenderly: {
@@ -36,8 +35,8 @@ if (process.env.USE_TENDERLY && process.env.USE_TENDERLY == 'true') {
   };
   tenderlyConfig = {
     tenderly: {
-      project: 'holograph',
-      username: 'attar',
+      project: process.env.TENDERLY_PROJECT,
+      username: process.env.TENDERLY_USERNAME,
       privateVerification: false,
       forkNetwork: '<fork-chain-id>',
     },
@@ -347,7 +346,7 @@ const config: HardhatUserConfig = {
       saveDeployments: false,
     },
     ...dynamicNetworks(),
-    //    ...tenderlyNetwork,
+    ...tenderlyNetwork,
   },
   namedAccounts: {
     deployer: setDeployerKey(0),
@@ -412,7 +411,7 @@ const config: HardhatUserConfig = {
     runOnCompile: true,
     verbose: false,
   },
-  //  ...tenderlyConfig,
+  ...tenderlyConfig,
 };
 
 // Allow hardhat to use short network names
