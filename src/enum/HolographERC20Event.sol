@@ -17,5 +17,6 @@ enum HolographERC20Event {
   afterSafeTransfer, // 11
   beforeSafeTransfer, // 12
   afterTransfer, // 13
-  beforeTransfer // 14
+  beforeTransfer, // 14
+  onAllowance // 15
 }

@@ -80,4 +80,7 @@ interface HolographedERC20 {
 
   // event id = 14
   function beforeTransfer(address _from, address _to, uint256 _amount) external returns (bool success);
+
+  // event id = 15
+  function onAllowance(address _owner, address _to, uint256 _amount) external returns (bool success);
 }
