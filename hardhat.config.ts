@@ -18,10 +18,32 @@ import { Environment, getEnvironment } from '@holographxyz/environment';
 import { NetworkType, Network, Networks, networks } from '@holographxyz/networks';
 import { GasService } from './scripts/utils/gas-service';
 import dotenv from 'dotenv';
-import * as tenderly from '@tenderly/hardhat-tenderly';
+//import * as tenderly from '@tenderly/hardhat-tenderly';
 import { network } from 'hardhat';
-tenderly.setup();
 dotenv.config();
+
+/*
+let tenderlyNetwork = {};
+let tenderlyConfig = {};
+if (process.env.USE_TENDERLY && process.env.USE_TENDERLY == 'true') {
+  import * as tenderly from '@tenderly/hardhat-tenderly';
+  tenderly.setup();
+  tenderlyNetwork = {
+    tenderly: {
+      chainId: 5,
+      url: 'https://rpc.tenderly.co/fork/<fork-chain-id>',
+    },
+  };
+  tenderlyConfig = {
+    tenderly: {
+      project: 'holograph',
+      username: 'attar',
+      privateVerification: false,
+      forkNetwork: '<fork-chain-id>',
+    },
+  };
+}
+*/
 
 function getRemappings() {
   return fs
@@ -325,10 +347,7 @@ const config: HardhatUserConfig = {
       saveDeployments: false,
     },
     ...dynamicNetworks(),
-    tenderly: {
-      chainId: 5,
-      url: 'https://rpc.tenderly.co/fork/<fork-chain-id>',
-    },
+    //    ...tenderlyNetwork,
   },
   namedAccounts: {
     deployer: setDeployerKey(0),
@@ -393,12 +412,7 @@ const config: HardhatUserConfig = {
     runOnCompile: true,
     verbose: false,
   },
-  tenderly: {
-    project: 'holograph',
-    username: 'attar',
-    privateVerification: false,
-    forkNetwork: '<fork-chain-id>',
-  },
+  //  ...tenderlyConfig,
 };
 
 // Allow hardhat to use short network names

@@ -103,7 +103,7 @@ pragma solidity 0.8.13;
 
 import "../abstract/Initializable.sol";
 
-abstract contract ERC20H is Initializable {
+abstract contract HLGERC20H is Initializable {
   /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.holographer')) - 1)
    */
@@ -119,7 +119,11 @@ abstract contract ERC20H is Initializable {
   }
 
   modifier onlyOwner() {
-    require(msgSender() == _getOwner(), "ERC20: owner only function");
+    if (msg.sender == holographer()) {
+      require(msgSender() == _getOwner(), "ERC20: owner only function");
+    } else {
+      require(msg.sender == _getOwner(), "ERC20: owner only function");
+    }
     _;
   }
 
@@ -153,15 +157,9 @@ abstract contract ERC20H is Initializable {
   /**
    * @dev The Holographer passes original msg.sender via calldata. This function extracts it.
    */
-  function msgSender() internal view returns (address sender) {
+  function msgSender() internal pure returns (address sender) {
     assembly {
-      switch eq(caller(), sload(_holographerSlot))
-      case 0 {
-        sender := caller()
-      }
-      default {
-        sender := calldataload(sub(calldatasize(), 0x20))
-      }
+      sender := calldataload(sub(calldatasize(), 0x20))
     }
   }
 
@@ -174,19 +172,23 @@ abstract contract ERC20H is Initializable {
     }
   }
 
-  function supportsInterface(bytes4) external pure virtual returns (bool) {
+  function supportsInterface(bytes4) external pure returns (bool) {
     return false;
   }
 
   /**
    * @dev Address of initial creator/owner of the token contract.
    */
-  function owner() external view virtual returns (address) {
+  function owner() external view returns (address) {
     return _getOwner();
   }
 
   function isOwner() external view returns (bool) {
-    return (msgSender() == _getOwner());
+    if (msg.sender == holographer()) {
+      return msgSender() == _getOwner();
+    } else {
+      return msg.sender == _getOwner();
+    }
   }
 
   function isOwner(address wallet) external view returns (bool) {
@@ -209,20 +211,18 @@ abstract contract ERC20H is Initializable {
     payable(_getOwner()).transfer(address(this).balance);
   }
 
-  event FundsReceived(address indexed source, uint256 amount);
-
   /**
-   * @dev This function emits an event to indicate native gas token receipt. Do not rely on this to work.
+   * @dev This function is unreachable unless custom contract address is called directly.
    *      Please use custom payable functions for accepting native value.
    */
-  receive() external payable virtual {
-    emit FundsReceived(msgSender(), msg.value);
+  receive() external payable {
+    revert("ERC20: unreachable code");
   }
 
   /**
    * @dev Return true for any un-implemented event hooks
    */
-  fallback() external payable virtual {
+  fallback() external payable {
     assembly {
       switch eq(sload(_holographerSlot), caller())
       case 1 {
