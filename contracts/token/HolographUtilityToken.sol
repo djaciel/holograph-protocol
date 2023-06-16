@@ -101,7 +101,7 @@
 
 pragma solidity 0.8.13;
 
-import "../abstract/ERC20H.sol";
+import "../abstract/HLGERC20H.sol";
 
 import "../interface/ERC20.sol";
 import "../interface/HolographERC20Interface.sol";
@@ -114,7 +114,7 @@ import "../interface/HolographerInterface.sol";
  * @notice A smart contract for minting and managing Holograph's ERC20 Utility Tokens.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
-contract HolographUtilityToken is ERC20H {
+contract HolographUtilityToken is HLGERC20H {
   /**
    * @dev Constructor is left empty and init is used instead
    */
