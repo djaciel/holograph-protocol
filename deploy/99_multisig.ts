@@ -25,6 +25,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
   }
 
+  global.__txNonce = {} as { [key: string]: number };
+  global.__txNonce[hre.networkName] = await hre.ethers.provider.getTransactionCount(deployer.address);
+
   const network: Network = networks[hre.networkName];
 
   const environment: Environment = getEnvironment();
