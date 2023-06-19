@@ -31,10 +31,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         hre,
         from: deployer,
         to: holographGenesis,
-        data: holographGenesis.populateTransaction.approveDeployer(
-          '0xa198FA5db682a2A828A90b42D3Cd938DAcc01ADE',
-          true
-        ),
+        data: holographGenesis.populateTransaction.approveDeployer('0xa198FA5db682a2A828A90b42D3Cd938DAcc01ADE', true),
       })),
     });
     let receipt = await tx.wait();
