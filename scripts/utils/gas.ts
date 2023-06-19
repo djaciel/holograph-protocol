@@ -131,6 +131,11 @@ export function adjustBaseBlockFee(network: string, baseBlockFee: BigNumber): Bi
     baseBlockFee.lt(BigNumber.from('25000000000'))
   ) {
     return BigNumber.from('25000000000');
+  } else if (
+    network === networks['localhost' as NetworkKeys].key ||
+    network === networks['localhost2' as NetworkKeys].key
+  ) {
+    return zero;
   }
   // Arbitrum has a minimum BaseBlockFee of 0.1 GWEI
   else if (
@@ -239,6 +244,13 @@ export function updateGasPricing(
     }
 
     gasPricing.gasPrice = adjustBaseBlockFee(network, gasPricing.gasPrice);
+  }
+
+  if (network === networks['localhost' as NetworkKeys].key || network === networks['localhost2' as NetworkKeys].key) {
+    gasPricing.nextBlockFee = zero;
+    gasPricing.maxFeePerGas = zero;
+    gasPricing.nextPriorityFee = zero;
+    gasPricing.gasPrice = zero;
   }
 
   return gasPricing;
