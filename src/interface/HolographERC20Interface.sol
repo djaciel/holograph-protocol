@@ -31,7 +31,7 @@ interface HolographERC20Interface is
 
   function sourceTransfer(address from, address to, uint256 amount) external;
 
-  function sourceTransfer(address payable destination) external;
+  function sourceTransfer(address payable destination, uint256 amount) external;
 
   function sourceExternalCall(address target, bytes calldata data) external;
 }
