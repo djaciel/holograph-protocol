@@ -239,7 +239,6 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    * @return string The URI.
    */
   function tokenURI(uint256 tokenId) external view returns (string memory) {
-    require(_exists(tokenId), "ERC721: token does not exist");
     assembly {
       calldatacopy(0, 0, calldatasize())
       mstore(calldatasize(), caller())
@@ -534,6 +533,24 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
   }
 
   /**
+   * @dev Allows for source smart contract to make calls to external contracts
+   */
+  function sourceExternalCall(address target, bytes calldata data) external onlySource {
+    assembly {
+      calldatacopy(0, data.offset, data.length)
+      let result := call(gas(), target, callvalue(), 0, data.length, 0, 0)
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
+        revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
+      }
+    }
+  }
+
+  /**
    * @notice Transfers `tokenId` token from `msg.sender` to `to`.
    * @dev WARNING: Usage of this method is discouraged, use {safeTransferFrom} whenever possible.
    * @param to cannot be the zero address.
@@ -581,7 +598,6 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    * @return uint256 Returns an integer, representing total amount of tokens held by address.
    */
   function balanceOf(address wallet) public view returns (uint256) {
-    require(wallet != address(0), "ERC721: zero address");
     return _ownedTokensCount[wallet];
   }
 

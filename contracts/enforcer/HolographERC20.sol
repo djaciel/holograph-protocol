@@ -686,8 +686,26 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
   /**
    * @dev Allows for source smart contract to withdraw contract balance.
    */
-  function sourceWithdraw(address payable destination) external onlySource {
+  function sourceTransfer(address payable destination) external onlySource {
     destination.transfer(address(this).balance);
+  }
+
+  /**
+   * @dev Allows for source smart contract to make calls to external contracts
+   */
+  function sourceExternalCall(address target, bytes calldata data) external onlySource {
+    assembly {
+      calldatacopy(0, data.offset, data.length)
+      let result := call(gas(), target, callvalue(), 0, data.length, 0, 0)
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
+        revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
+      }
+    }
   }
 
   function transfer(address recipient, uint256 amount) public returns (bool) {

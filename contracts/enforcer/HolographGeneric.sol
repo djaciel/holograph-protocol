@@ -187,15 +187,26 @@ contract HolographGeneric is Admin, Owner, Initializable, HolographGenericInterf
   /**
    * @dev Allows for source smart contract to withdraw contract balance.
    */
-  function sourceWithdraw(address payable destination) external onlySource {
-    destination.transfer(address(this).balance);
+  function sourceTransfer(address payable destination, uint256 amount) external onlySource {
+    destination.transfer(amount);
   }
 
   /**
-   * @dev Allows for source smart contract to withdraw contract balance.
+   * @dev Allows for source smart contract to make calls to external contracts
    */
-  function sourceTransfer(address payable destination, uint256 amount) external onlySource {
-    destination.transfer(amount);
+  function sourceExternalCall(address target, bytes calldata data) external onlySource {
+    assembly {
+      calldatacopy(0, data.offset, data.length)
+      let result := call(gas(), target, callvalue(), 0, data.length, 0, 0)
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
+        revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
+      }
+    }
   }
 
   /**
