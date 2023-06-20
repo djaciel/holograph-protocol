@@ -155,6 +155,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       const setHTokenTx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographRegistry',
+        registry,
         await registry.populateTransaction.setHToken(chainId, futureHTokenAddress, {
           ...(await txParams({
             hre,

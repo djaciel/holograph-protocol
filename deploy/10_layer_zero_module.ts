@@ -295,6 +295,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const lzTx = await MultisigAwareTx(
       hre,
       deployer,
+      'HolographOperator',
+      holographOperator,
       await holographOperator.populateTransaction.setMessagingModule(futureLayerZeroModuleAddress, {
         ...(await txParams({
           hre,
@@ -318,6 +320,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const lzOpTx = await MultisigAwareTx(
       hre,
       deployer,
+      'LayerZeroModule',
+      lzModule,
       await lzModule.populateTransaction.setOptimismGasPriceOracle(futureOptimismGasPriceOracleAddress, {
         ...(await txParams({
           hre,
@@ -370,6 +374,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const lzTx = await MultisigAwareTx(
       hre,
       deployer,
+      'LayerZeroModule',
+      lzModule,
       await lzModule.populateTransaction[
         'setGasParameters(uint32[],(uint256,uint256,uint256,uint256,uint256,uint256)[])'
       ](chainIds, gasParameters, {

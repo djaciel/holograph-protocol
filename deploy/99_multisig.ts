@@ -64,6 +64,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let setHolographAdminTx = await MultisigAwareTx(
         hre,
         deployer,
+        'Holograph',
+        holograph,
         await holograph.populateTransaction.setAdmin(MULTI_SIG, {
           ...(await txParams({
             hre,
@@ -84,6 +86,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         let setHolographAsAdminTx = await MultisigAwareTx(
           hre,
           deployer,
+          contractName,
+          contract,
           await contract.populateTransaction.setAdmin(holograph.address, {
             ...(await txParams({
               hre,
