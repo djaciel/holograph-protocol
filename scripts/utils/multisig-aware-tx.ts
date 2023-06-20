@@ -34,9 +34,7 @@ const pressAnyKeyToContinue = async (prompt?: string = 'Press any key to continu
 const zero: BigNumber = BigNumber.from('0');
 
 const hex2ascii = function (hex: string): string {
-  hex = remove0x(hex)
-    .trimStart('0')
-    .replace(/^(00){0,}/, '');
+  hex = remove0x(hex).replace(/^(00){1,}/, '');
   let str: string = '';
   for (let i: number = 0; i < hex.length; i += 2) {
     str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
