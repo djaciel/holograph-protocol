@@ -42,7 +42,6 @@ const hex2ascii = function (hex: string): string {
   return str;
 };
 
-//setReservedContractTypeAddresses   hashes
 const MultisigAwareTx = async (
   hre: HardhatRuntimeEnvironment,
   deployer: Signer,
