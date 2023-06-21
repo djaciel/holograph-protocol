@@ -89,8 +89,9 @@ contract HolographRegistry is Admin, Initializable, HolographRegistryInterface {
   }
 
   function holographableEvent(bytes calldata payload) external {
-    require(_holographedContracts[msg.sender], "HOLOGRAPH: not holographed");
-    emit HolographableContractEvent(msg.sender, payload);
+    if (_holographedContracts[msg.sender]) {
+      emit HolographableContractEvent(msg.sender, payload);
+    }
   }
 
   /**
