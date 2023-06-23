@@ -86,6 +86,9 @@ export class GasService {
       } else {
         this.gasPrice.nextPriorityFee = this.gasPrice.nextPriorityFee!.add(priorityFee).div(TWO);
       }
+      if (this.gasPrice.nextPriorityFee.lt(ZERO)) {
+        this.gasPrice.nextPriorityFee = ZERO;
+      }
     }
     // for legacy networks (non EIP-1559), get average rolling gasPrice
     // it's important to skip this calculation if gas price is 0, which happens in some instances like on BSC

@@ -23,41 +23,102 @@ export type GasPricing = {
   highestPriorityFee: BigNumber | null;
 };
 
+export type BlockFeeConfig = {
+  gasLimit: BigNumber;
+  gasTarget: BigNumber;
+  elasticityMultiplier: BigNumber;
+  maxChangeDenominator: BigNumber;
+  maxBaseFeeIncrease: BigNumber;
+  maxBaseFeeDecrease: BigNumber;
+  blockTime: BigNumber;
+};
+const defaultBlockFeeConfig: BlockFeeConfig = {
+  gasLimit: BigNumber.from('30000000'),
+  gasTarget: BigNumber.from('15000000'),
+  elasticityMultiplier: BigNumber.from('2'),
+  maxChangeDenominator: BigNumber.from('8'),
+  maxBaseFeeIncrease: BigNumber.from('1250'), // bps
+  maxBaseFeeDecrease: BigNumber.from('1250'), // bps
+  blockTime: BigNumber.from('12000'), // milliseconds
+};
+
+const blockFeeConfigOverrides: { [k: NetworkKeys]: BlockFeeConfig } = {
+  ['polygon' as NetworkKeys]: Object.assign(defaultBlockFeeConfig, {
+    maxChangeDenominator: BigNumber.from('16'),
+  }) as BlockFeeConfig,
+  ['polygonTestnet' as NetworkKeys]: Object.assign(defaultBlockFeeConfig, {
+    maxChangeDenominator: BigNumber.from('16'),
+  }) as BlockFeeConfig,
+  ['optimism' as NetworkKeys]: Object.assign(defaultBlockFeeConfig, {
+    gasTarget: BigNumber.from('5000000'),
+    elasticityMultiplier: BigNumber.from('6'),
+    maxChangeDenominator: BigNumber.from('50'),
+    maxBaseFeeIncrease: BigNumber.from('1000'), // bps
+    maxBaseFeeDecrease: BigNumber.from('200'), // bps
+    blockTime: BigNumber.from('2000'), // milliseconds
+  }) as BlockFeeConfig,
+  ['optimismTestnetGoerli' as NetworkKeys]: Object.assign(defaultBlockFeeConfig, {
+    gasTarget: BigNumber.from('5000000'),
+    elasticityMultiplier: BigNumber.from('6'),
+    maxChangeDenominator: BigNumber.from('50'),
+    maxBaseFeeIncrease: BigNumber.from('1000'), // bps
+    maxBaseFeeDecrease: BigNumber.from('200'), // bps
+    blockTime: BigNumber.from('2000'), // milliseconds
+  }) as BlockFeeConfig,
+};
+
+const zero: BigNumber = BigNumber.from('0');
+const one: BigNumber = BigNumber.from('1');
+
 // Implemented from https://eips.ethereum.org/EIPS/eip-1559
-export function calculateNextBlockFee(parent: Block | BlockWithTransactions): BigNumber {
-  const zero: BigNumber = BigNumber.from('0');
+export function calculateNextBlockFee(network: string, parent: Block | BlockWithTransactions): BigNumber {
   if (parent.baseFeePerGas === undefined) {
     return zero;
   }
 
-  const one: BigNumber = BigNumber.from('1');
-  const elasticityMultiplier: BigNumber = BigNumber.from('2');
-  const baseFeeMaxChangeDenominator: BigNumber = BigNumber.from('8');
+  let blockFeeConfig: BlockFeeConfig = defaultBlockFeeConfig;
+  if ((network as NetworkKeys) in blockFeeConfigOverrides) {
+    blockFeeConfig = blockFeeConfigOverrides[network as NetworkKeys];
+  }
+
   const baseFeePerGas: BigNumber = parent.baseFeePerGas!;
-  const parentGasTarget: BigNumber = parent.gasLimit.div(elasticityMultiplier);
+  let nextBlockFee: BigNumber = baseFeePerGas;
+  const parentGasTarget: BigNumber = blockFeeConfig.gasLimit.div(blockFeeConfig.elasticityMultiplier);
   if (parent.gasUsed.eq(parentGasTarget)) {
     return baseFeePerGas;
   }
 
   let gasUsedDelta: BigNumber;
   let baseFeeDelta: BigNumber;
+  const maxFeeIncrease: BigNumber = baseFeePerGas.mul(blockFeeConfig.maxBaseFeeIncrease).div(BigNumber.from('10000'));
+  const maxFeeDecrease: BigNumber = baseFeePerGas.mul(blockFeeConfig.maxBaseFeeDecrease).div(BigNumber.from('10000'));
 
   // If the parent block used more gas than its target, the baseFee should increase.
   if (parent.gasUsed.gt(parentGasTarget)) {
     gasUsedDelta = parent.gasUsed.sub(parentGasTarget);
-    baseFeeDelta = baseFeePerGas.mul(gasUsedDelta).div(parentGasTarget).div(baseFeeMaxChangeDenominator);
+    baseFeeDelta = baseFeePerGas.mul(gasUsedDelta).div(parentGasTarget).div(blockFeeConfig.maxChangeDenominator);
     if (one.gt(baseFeeDelta)) {
       baseFeeDelta = one;
     }
 
-    return baseFeePerGas.add(baseFeeDelta);
+    nextBlockFee = baseFeePerGas.add(baseFeeDelta);
+    if (nextBlockFee.gt(baseFeePerGas.add(maxFeeIncrease))) {
+      return baseFeePerGas.add(maxFeeIncrease);
+    }
+
+    return nextBlockFee;
   }
 
   // Otherwise if the parent block used less gas than its target, the baseFee should decrease.
   gasUsedDelta = parentGasTarget.sub(parent.gasUsed);
-  baseFeeDelta = baseFeePerGas.mul(gasUsedDelta).div(parentGasTarget).div(baseFeeMaxChangeDenominator);
+  baseFeeDelta = baseFeePerGas.mul(gasUsedDelta).div(parentGasTarget).div(blockFeeConfig.maxChangeDenominator);
 
-  return baseFeePerGas.sub(baseFeeDelta);
+  nextBlockFee = baseFeePerGas.sub(baseFeeDelta);
+  if (nextBlockFee.lt(baseFeePerGas.sub(maxFeeDecrease))) {
+    return baseFeePerGas.sub(maxFeeDecrease);
+  }
+
+  return nextBlockFee;
 }
 
 // This function is here to accomodate instances where a network has a minimum BaseBlockFee
@@ -70,6 +131,57 @@ export function adjustBaseBlockFee(network: string, baseBlockFee: BigNumber): Bi
     baseBlockFee.lt(BigNumber.from('25000000000'))
   ) {
     return BigNumber.from('25000000000');
+  }
+  // Arbitrum has a minimum BaseBlockFee of 0.1 GWEI
+  else if (
+    (network === networks['arbitrumOne' as NetworkKeys].key ||
+      network === networks['arbitrumTestnetGoerli' as NetworkKeys].key) &&
+    baseBlockFee.lt(BigNumber.from('100000000'))
+  ) {
+    return BigNumber.from('100000000');
+  } else if (
+    (network === networks['canto' as NetworkKeys].key || network === networks['cantoTestnet' as NetworkKeys].key) &&
+    baseBlockFee.lt(BigNumber.from('100000000000'))
+  ) {
+    return BigNumber.from('100000000000');
+  } else if (
+    (network === networks['kekChain' as NetworkKeys].key ||
+      network === networks['kekChainTestnet' as NetworkKeys].key) &&
+    baseBlockFee.lt(BigNumber.from('1500000000'))
+  ) {
+    return BigNumber.from('1500000000');
+  } else if (
+    (network === networks['klaytnCypress' as NetworkKeys].key ||
+      network === networks['klaytnTestnet' as NetworkKeys].key) &&
+    baseBlockFee.lt(BigNumber.from('25000000000'))
+  ) {
+    return BigNumber.from('25000000000');
+  } else if (
+    (network === networks['iotex' as NetworkKeys].key || network === networks['iotexTestnet' as NetworkKeys].key) &&
+    baseBlockFee.lt(BigNumber.from('1000000000000'))
+  ) {
+    return BigNumber.from('1000000000000');
+  } else if (
+    (network === networks['evmos' as NetworkKeys].key || network === networks['evmosTestnet' as NetworkKeys].key) &&
+    baseBlockFee.lt(BigNumber.from('10000000'))
+  ) {
+    return BigNumber.from('10000000');
+  } else if (
+    (network === networks['bobaEthereumTestnetGoerli' as NetworkKeys].key ||
+      network === networks['bobaAvalancheTestnet' as NetworkKeys].key ||
+      network === networks['bobaBinanceChainTestnet' as NetworkKeys].key ||
+      network === networks['bobaMoonbeamTestnet' as NetworkKeys].key ||
+      network === networks['bobaFantomTestnet' as NetworkKeys].key) &&
+    baseBlockFee.lt(BigNumber.from('1000000000'))
+  ) {
+    return BigNumber.from('1000000000');
+  } else if (network === networks['dogechain' as NetworkKeys].key && baseBlockFee.lt(BigNumber.from('250000000000'))) {
+    return BigNumber.from('250000000000');
+  } else if (
+    network === networks['ethereumTestnetRinkeby' as NetworkKeys].key &&
+    baseBlockFee.lt(BigNumber.from('1500000000'))
+  ) {
+    return BigNumber.from('1500000000');
   }
 
   return baseBlockFee;
@@ -108,7 +220,7 @@ export function updateGasPricing(
 ): GasPricing {
   if (block.baseFeePerGas) {
     gasPricing.isEip1559 = true;
-    gasPricing.nextBlockFee = adjustBaseBlockFee(network, calculateNextBlockFee(block));
+    gasPricing.nextBlockFee = adjustBaseBlockFee(network, calculateNextBlockFee(network, block));
     gasPricing.maxFeePerGas = gasPricing.nextBlockFee!;
     if (gasPricing.nextPriorityFee === null) {
       gasPricing.nextPriorityFee = BigNumber.from('0');
@@ -117,6 +229,16 @@ export function updateGasPricing(
       gasPricing.maxFeePerGas = gasPricing.nextBlockFee!.add(gasPricing.nextPriorityFee!);
       gasPricing.gasPrice = gasPricing.maxFeePerGas;
     }
+  }
+  // this is only called if blockchain is not EIP-1559 compatible
+  // mostly POW chains
+  else {
+    // this if statement is only used once when gas pricing is undefined and first block is being passed in
+    if (gasPricing.gasPrice === null) {
+      gasPricing.gasPrice = BigNumber.from('0');
+    }
+
+    gasPricing.gasPrice = adjustBaseBlockFee(network, gasPricing.gasPrice);
   }
 
   return gasPricing;
