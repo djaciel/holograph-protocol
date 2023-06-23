@@ -738,7 +738,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
       _balances[account] = accountBalance - amount;
     }
     _totalSupply -= amount;
-    emit Transfer(account, address(0), amount);
+    _registryTransfer(account, address(0), amount);
   }
 
   /**
@@ -751,7 +751,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
     require(to != address(0), "ERC20: minting to burn address");
     _totalSupply += amount;
     _balances[to] += amount;
-    emit Transfer(address(0), to, amount);
+    _registryTransfer(address(0), to, amount);
   }
 
   function _transfer(address account, address recipient, uint256 amount) private {
@@ -763,7 +763,20 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
       _balances[account] = accountBalance - amount;
     }
     _balances[recipient] += amount;
-    emit Transfer(account, recipient, amount);
+    _registryTransfer(account, recipient, amount);
+  }
+
+  function _registryTransfer(address _from, address _to, uint256 _amount) private {
+    emit Transfer(_from, _to, _amount);
+    HolographRegistryInterface(_holograph().getRegistry()).holographableEvent(
+      abi.encode(
+        // keccak256("TransferERC20(address,address,uint256)")
+        bytes32(0x9b035625e569d1d2bf54830a290aefba7ab11610ba8490871dc62b86b63a8956),
+        _from,
+        _to,
+        _amount
+      )
+    );
   }
 
   /**
