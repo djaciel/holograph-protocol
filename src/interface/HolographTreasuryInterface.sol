@@ -3,5 +3,5 @@
 /*SOLIDITY_COMPILER_VERSION*/
 
 interface HolographTreasuryInterface {
-
+  // purposefully left blank
 }

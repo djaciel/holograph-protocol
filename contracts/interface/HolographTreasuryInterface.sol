@@ -101,4 +101,6 @@
 
 pragma solidity 0.8.13;
 
-interface HolographTreasuryInterface {}
+interface HolographTreasuryInterface {
+  // purposefully left blank
+}

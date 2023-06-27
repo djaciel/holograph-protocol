@@ -20,6 +20,16 @@ interface MultisigHandler extends ContractTransaction {
   wait(confirmations?: number): Promise<ContractReceipt>;
 }
 
+const getNetworkByHolographId = function (currentNetwork: string, holographId: number): Network {
+  let networkArray: Network[] = Object.values(networks);
+  for (network of networkArray) {
+    if (network.holographId === holographId) {
+      return network;
+    }
+  }
+  return networks[currentNetwork];
+};
+
 const pressAnyKeyToContinue = async (prompt?: string = 'Press any key to continue: '): Promise<void> => {
   return new Promise((resolve, reject): void => {
     process.stdin.resume();
@@ -54,77 +64,114 @@ const MultisigAwareTx = async (
   for (let key of Object.keys(tx.args)) {
     if (!/\d+/.test(key)) {
       let value = tx.args[key];
-      if (BigNumber.isBigNumber(value)) {
-        txArgs[key] = BigNumber.from(value).toString() + ' => ' + BigNumber.from(value).toHexString();
-      } else {
-        switch (tx.name) {
-          case 'setReservedContractTypeAddresses':
-            if (key == 'hashes') {
-              let newValue: string = [];
-              for (let hash of value as string[]) {
-                newValue.push(hex2ascii(hash));
-              }
-              value = newValue;
+      switch (tx.name) {
+        case 'setReservedContractTypeAddresses':
+          if (key == 'hashes') {
+            let newValue: string = [];
+            for (let hash of value as string[]) {
+              newValue.push(hex2ascii(hash));
             }
-            break;
-          case 'setContractTypeAddress':
-            if (key == 'contractType') {
-              value = hex2ascii(value);
+            value = newValue;
+          }
+          break;
+        case 'setContractTypeAddress':
+          if (key == 'contractType') {
+            value = hex2ascii(value);
+          }
+          break;
+        case 'updateChainIdMaps':
+          if (key == 'fromChainType' || key == 'toChainType') {
+            let newValue: string = [];
+            for (let chainIdType of value as number[]) {
+              let chainIdTypes: string[] = [
+                'ChainIdType.UNDEFINED',
+                'ChainIdType.EVM',
+                'ChainIdType.HOLOGRAPH',
+                'ChainIdType.LAYERZERO',
+                'ChainIdType.HYPERLANE',
+              ];
+              newValue.push(chainIdTypes[chainIdType]);
             }
-            break;
-          case 'updateChainIdMaps':
-            if (key == 'fromChainType' || key == 'toChainType') {
-              let newValue: string = [];
-              for (let chainIdType of value as number[]) {
-                let chainIdTypes: string[] = [
-                  'ChainIdType.UNDEFINED',
-                  'ChainIdType.EVM',
-                  'ChainIdType.HOLOGRAPH',
-                  'ChainIdType.LAYERZERO',
-                  'ChainIdType.HYPERLANE',
-                ];
-                newValue.push(chainIdTypes[chainIdType]);
-              }
-              value = newValue;
+            value = newValue;
+          }
+          break;
+        case 'updateUriPrepends':
+          if (key == 'uriTypes') {
+            let newValue: string = [];
+            for (let uriType of value as number[]) {
+              let tokenUriTypes: string[] = [
+                'TokenUriType.UNDEFINED',
+                'TokenUriType.IPFS',
+                'TokenUriType.HTTPS',
+                'TokenUriType.ARWEAVE',
+              ];
+              newValue.push(tokenUriTypes[uriType]);
             }
-            break;
-          case 'updateUriPrepends':
-            if (key == 'uriTypes') {
-              let newValue: string = [];
-              for (let uriType of value as number[]) {
-                let tokenUriTypes: string[] = [
-                  'TokenUriType.UNDEFINED',
-                  'TokenUriType.IPFS',
-                  'TokenUriType.HTTPS',
-                  'TokenUriType.ARWEAVE',
-                ];
-                newValue.push(tokenUriTypes[uriType]);
-              }
-              value = newValue;
+            value = newValue;
+          }
+          break;
+        case 'setGasParameters':
+          if (key == 'chainIds') {
+            let newValue: string = [];
+            for (let holographId of value as number[]) {
+              newValue.push(getNetworkByHolographId(hre.networkName, holographId).key);
             }
-            break;
-        }
-        txArgs[key] = value;
+            value = newValue;
+          } else if (key == 'gasParameters') {
+            let newValue: {
+              msgBaseGas: string;
+              msgGasPerByte: string;
+              jobBaseGas: string;
+              jobGasPerByte: string;
+              minGasPrice: string;
+              maxGasLimit: string;
+            }[] = [];
+            for (let gasParams of value as {
+              msgBaseGas: string;
+              msgGasPerByte: string;
+              jobBaseGas: string;
+              jobGasPerByte: string;
+              minGasPrice: string;
+              maxGasLimit: string;
+            }[]) {
+              newValue.push({
+                msgBaseGas:
+                  BigNumber.from(gasParams.msgBaseGas).toString() +
+                  ' => ' +
+                  BigNumber.from(gasParams.msgBaseGas).toHexString(),
+                msgGasPerByte:
+                  BigNumber.from(gasParams.msgGasPerByte).toString() +
+                  ' => ' +
+                  BigNumber.from(gasParams.msgGasPerByte).toHexString(),
+                jobBaseGas:
+                  BigNumber.from(gasParams.jobBaseGas).toString() +
+                  ' => ' +
+                  BigNumber.from(gasParams.jobBaseGas).toHexString(),
+                jobGasPerByte:
+                  BigNumber.from(gasParams.jobGasPerByte).toString() +
+                  ' => ' +
+                  BigNumber.from(gasParams.jobGasPerByte).toHexString(),
+                minGasPrice:
+                  BigNumber.from(gasParams.minGasPrice).toString() +
+                  ' => ' +
+                  BigNumber.from(gasParams.minGasPrice).toHexString(),
+                maxGasLimit:
+                  BigNumber.from(gasParams.maxGasLimit).toString() +
+                  ' => ' +
+                  BigNumber.from(gasParams.maxGasLimit).toHexString(),
+              });
+            }
+            value = newValue;
+          }
+          break;
+        default:
+          if (BigNumber.isBigNumber(value)) {
+            txArgs[key] = BigNumber.from(value).toString() + ' => ' + BigNumber.from(value).toHexString();
+          }
+          break;
       }
+      txArgs[key] = value;
     }
-  }
-  /*
-    'LayerZeroModule',
-    lzModule,
-    await lzModule.populateTransaction[
-      'setGasParameters(uint32[],(uint256,uint256,uint256,uint256,uint256,uint256)[])'
-    ](chainIds, gasParameters, {
-      ...(await txParams({
-        hre,
-        from: deployer,
-        to: lzModule,
-        data: lzModule.populateTransaction[
-          'setGasParameters(uint32[],(uint256,uint256,uint256,uint256,uint256,uint256)[])'
-        ](chainIds, gasParameters),
-      })),
-  */
-  if (contractName == 'LayerZeroModule') {
-    hre.deployments.log(tx);
   }
   const network: Network = networks[hre.networkName];
   const environment: Environment = getEnvironment();
