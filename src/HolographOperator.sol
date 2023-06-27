@@ -401,7 +401,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
     require(
       msg.sender == address(_messagingModule()) || msg.sender == 0xE9e30A0aD0d8Af5cF2606ea720052E28D6fcbAAF,
       "HOLOGRAPH: messaging only call"
-    );
+    ); // TODO: Schedule time to remove deprecated LayerZeroModule address after all in-flight LZ messages propagate
     uint256 gasPrice = 0;
     assembly {
       /**
