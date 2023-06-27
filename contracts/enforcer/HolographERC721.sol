@@ -1050,6 +1050,7 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
   function _royalties() private view returns (address) {
     return
       HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(
+        // "HolographRoyalties" front zero padded to be 32 bytes
         0x0000000000000000000000000000486f6c6f6772617068526f79616c74696573
       );
   }

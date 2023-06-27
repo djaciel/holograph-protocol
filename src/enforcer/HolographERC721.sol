@@ -950,7 +950,10 @@ contract HolographERC721 is Admin, Owner, HolographERC721Interface, Initializabl
    */
   function _royalties() private view returns (address) {
     return
-      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(asciihex("HolographRoyalties"));
+      HolographRegistryInterface(_holograph().getRegistry()).getContractTypeAddress(
+        // "HolographRoyalties" front zero padded to be 32 bytes
+        asciihex("HolographRoyalties")
+      );
   }
 
   function _registryTransfer(address _from, address _to, uint256 _tokenId) private {
