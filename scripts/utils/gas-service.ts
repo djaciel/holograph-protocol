@@ -1,6 +1,7 @@
 declare var global: any;
 import { formatUnits } from '@ethersproject/units';
 import { BigNumber } from '@ethersproject/bignumber';
+import { NetworkKeys, networks } from '@holographxyz/networks';
 import { Block, BlockWithTransactions, TransactionResponse } from '@ethersproject/abstract-provider';
 import { WebSocketProvider, JsonRpcProvider, Web3Provider } from '@ethersproject/providers';
 import { GasPricing, initializeGasPricing, updateGasPricing } from './gas';
@@ -102,6 +103,12 @@ export class GasService {
       else {
         this.gasPrice.gasPrice = this.gasPrice.gasPrice!.add(tx.gasPrice!).div(TWO);
       }
+    }
+    if (network === networks['localhost' as NetworkKeys].key || network === networks['localhost2' as NetworkKeys].key) {
+      this.gasPrice.nextBlockFee = ZERO;
+      this.gasPrice.maxFeePerGas = ZERO;
+      this.gasPrice.nextPriorityFee = ZERO;
+      this.gasPrice.gasPrice = ZERO;
     }
   }
 

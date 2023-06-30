@@ -89,8 +89,9 @@ contract HolographRegistry is Admin, Initializable, HolographRegistryInterface {
   }
 
   function holographableEvent(bytes calldata payload) external {
-    require(_holographedContracts[msg.sender], "HOLOGRAPH: not holographed");
-    emit HolographableContractEvent(msg.sender, payload);
+    if (_holographedContracts[msg.sender]) {
+      emit HolographableContractEvent(msg.sender, payload);
+    }
   }
 
   /**
@@ -101,7 +102,13 @@ contract HolographRegistry is Admin, Initializable, HolographRegistryInterface {
     assembly {
       contractType := extcodehash(contractAddress)
     }
-    require((contractType != 0x0 && contractType != precomputekeccak256("")), "HOLOGRAPH: empty contract");
+    require(
+      (// check that bytecode is not empty
+      contractType != 0x0 &&
+        // check that hash is not for empty bytes
+        contractType != precomputekeccak256("")),
+      "HOLOGRAPH: empty contract"
+    );
     require(_contractTypeAddresses[contractType] == address(0), "HOLOGRAPH: contract already set");
     require(!_reservedTypes[contractType], "HOLOGRAPH: reserved address type");
     _contractTypeAddresses[contractType] = contractAddress;

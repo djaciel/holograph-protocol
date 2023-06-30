@@ -121,6 +121,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       const setDropsPriceOracleTx = await MultisigAwareTx(
         hre,
         deployer,
+        'DropsPriceOracleProxy',
+        dropsPriceOracleProxy,
         await dropsPriceOracleProxy.populateTransaction.setDropsPriceOracle(futureDropsPriceOracleAddress, {
           ...(await txParams({
             hre,

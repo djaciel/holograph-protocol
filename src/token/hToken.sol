@@ -2,7 +2,7 @@
 
 /*SOLIDITY_COMPILER_VERSION*/
 
-import "../abstract/ERC20H.sol";
+import "../abstract/HLGERC20H.sol";
 
 import "../interface/ERC20.sol";
 import "../interface/HolographERC20Interface.sol";
@@ -15,7 +15,7 @@ import "../interface/HolographerInterface.sol";
  * @notice A smart contract for minting and managing Holograph's Bridgeable ERC20 Tokens.
  * @dev The entire logic and functionality of the smart contract is self-contained.
  */
-contract hToken is ERC20H {
+contract hToken is HLGERC20H {
   /**
    * @dev Sample fee for unwrapping.
    */

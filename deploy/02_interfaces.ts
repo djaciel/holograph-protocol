@@ -150,6 +150,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let tx = await MultisigAwareTx(
       hre,
       deployer,
+      'HolographInterfaces',
+      holographInterfaces,
       await holographInterfaces.populateTransaction.updateChainIdMaps(
         fromChainType,
         fromChainId,
@@ -198,6 +200,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let tx = await MultisigAwareTx(
       hre,
       deployer,
+      'HolographInterfaces',
+      holographInterfaces,
       await holographInterfaces.populateTransaction.updateUriPrepends(uriTypes, prepends, {
         ...(await txParams({
           hre,
@@ -360,6 +364,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographInterfaces',
+        holographInterfaces,
         await holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), supportedInterfaces[key], true, {
           ...(await txParams({
             hre,
@@ -393,6 +399,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         let tx = await MultisigAwareTx(
           hre,
           deployer,
+          'HolographInterfaces',
+          holographInterfaces,
           await holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), todo, true, {
             ...(await txParams({
               hre,

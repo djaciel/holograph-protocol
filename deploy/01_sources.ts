@@ -332,6 +332,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'Holograph',
+        holograph,
         await holograph.populateTransaction.setBridge(futureBridgeProxyAddress, {
           ...(await txParams({
             hre,
@@ -348,6 +350,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'Holograph',
+        holograph,
         await holograph.populateTransaction.setFactory(futureFactoryProxyAddress, {
           ...(await txParams({
             hre,
@@ -364,6 +368,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'Holograph',
+        holograph,
         await holograph.populateTransaction.setInterfaces(futureHolographInterfacesAddress, {
           ...(await txParams({
             hre,
@@ -380,6 +386,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'Holograph',
+        holograph,
         await holograph.populateTransaction.setOperator(futureOperatorProxyAddress, {
           ...(await txParams({
             hre,
@@ -396,6 +404,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'Holograph',
+        holograph,
         await holograph.populateTransaction.setRegistry(futureRegistryProxyAddress, {
           ...(await txParams({
             hre,
@@ -412,6 +422,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'Holograph',
+        holograph,
         await holograph.populateTransaction.setTreasury(futureTreasuryProxyAddress, {
           ...(await txParams({
             hre,
@@ -428,6 +440,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'Holograph',
+        holograph,
         await holograph.populateTransaction.setUtilityToken(futureHlgAddress, {
           ...(await txParams({
             hre,
@@ -496,6 +510,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographBridgeProxy',
+        holographBridgeProxy,
         await holographBridgeProxy.populateTransaction.setBridge(futureBridgeAddress, {
           ...(await txParams({
             hre,
@@ -512,6 +528,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographBridge',
+        holographBridge,
         await holographBridge.populateTransaction.setFactory(futureFactoryProxyAddress, {
           ...(await txParams({
             hre,
@@ -528,6 +546,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographBridge',
+        holographBridge,
         await holographBridge.populateTransaction.setHolograph(futureHolographAddress, {
           ...(await txParams({
             hre,
@@ -544,6 +564,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographBridge',
+        holographBridge,
         await holographBridge.populateTransaction.setOperator(futureOperatorProxyAddress, {
           ...(await txParams({
             hre,
@@ -560,6 +582,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographBridge',
+        holographBridge,
         await holographBridge.populateTransaction.setRegistry(futureRegistryProxyAddress, {
           ...(await txParams({
             hre,
@@ -628,6 +652,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographFactoryProxy',
+        holographFactoryProxy,
         await holographFactoryProxy.populateTransaction.setFactory(futureFactoryAddress, {
           ...(await txParams({
             hre,
@@ -644,6 +670,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographFactory',
+        holographFactory,
         await holographFactory.populateTransaction.setHolograph(futureHolographAddress, {
           ...(await txParams({
             hre,
@@ -660,6 +688,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographFactory',
+        holographFactory,
         await holographFactory.populateTransaction.setRegistry(futureRegistryProxyAddress, {
           ...(await txParams({
             hre,
@@ -738,6 +768,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographOperatorProxy',
+        holographOperatorProxy,
         await holographOperatorProxy.populateTransaction.setOperator(futureOperatorAddress, {
           ...(await txParams({
             hre,
@@ -754,6 +786,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographOperator',
+        holographOperator,
         await holographOperator.populateTransaction.setBridge(futureBridgeProxyAddress, {
           ...(await txParams({
             hre,
@@ -770,6 +804,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographOperator',
+        holographOperator,
         await holographOperator.populateTransaction.setHolograph(futureHolographAddress, {
           ...(await txParams({
             hre,
@@ -786,6 +822,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographOperator',
+        holographOperator,
         await holographOperator.populateTransaction.setInterfaces(futureHolographInterfacesAddress, {
           ...(await txParams({
             hre,
@@ -802,6 +840,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographOperator',
+        holographOperator,
         await holographOperator.populateTransaction.setRegistry(futureRegistryProxyAddress, {
           ...(await txParams({
             hre,
@@ -818,6 +858,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographOperator',
+        holographOperator,
         await holographOperator.populateTransaction.setUtilityToken(futureHlgAddress, {
           ...(await txParams({
             hre,
@@ -834,6 +876,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographOperator',
+        holographOperator,
         await holographOperator.populateTransaction.setMinGasPrice(GWEI.toHexString(), {
           ...(await txParams({
             hre,
@@ -892,6 +936,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographRegistry',
+        holographRegistry,
         await holographRegistry.populateTransaction.setUtilityToken(futureHlgAddress, {
           ...(await txParams({
             hre,
@@ -920,6 +966,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographRegistryProxy',
+        holographRegistryProxy,
         await holographRegistryProxy.populateTransaction.setRegistry(futureRegistryAddress, {
           ...(await txParams({
             hre,
@@ -936,6 +984,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographRegistry',
+        holographRegistry,
         await holographRegistry.populateTransaction.setHolograph(futureHolographAddress, {
           ...(await txParams({
             hre,
@@ -952,6 +1002,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographRegistry',
+        holographRegistry,
         await holographRegistry.populateTransaction.setUtilityToken(futureHlgAddress, {
           ...(await txParams({
             hre,
@@ -1023,6 +1075,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographTreasuryProxy',
+        holographTreasuryProxy,
         await holographTreasuryProxy.populateTransaction.setTreasury(futureTreasuryAddress, {
           ...(await txParams({
             hre,
@@ -1039,6 +1093,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographTreasury',
+        holographTreasury,
         await holographTreasury.populateTransaction.setBridge(futureBridgeProxyAddress, {
           ...(await txParams({
             hre,
@@ -1055,6 +1111,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographTreasury',
+        holographTreasury,
         await holographTreasury.populateTransaction.setOperator(futureOperatorProxyAddress, {
           ...(await txParams({
             hre,
@@ -1071,6 +1129,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let tx = await MultisigAwareTx(
         hre,
         deployer,
+        'HolographTreasury',
+        holographTreasury,
         await holographTreasury.populateTransaction.setRegistry(futureRegistryProxyAddress, {
           ...(await txParams({
             hre,

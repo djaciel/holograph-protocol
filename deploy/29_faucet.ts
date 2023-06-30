@@ -74,6 +74,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         const transferTx = await MultisigAwareTx(
           hre,
           deployer,
+          'HolographUtilityToken',
+          hlgContract,
           await hlgContract.populateTransaction.transfer(
             futureFaucetAddress,
             BigNumber.from('1' + '000' + '000' + '000000000000000000'),
@@ -103,6 +105,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         const tx = await MultisigAwareTx(
           hre,
           deployer,
+          'Faucet',
+          faucetContract,
           await faucetContract.populateTransaction.setToken(hlgTokenAddress, {
             ...(await txParams({
               hre,

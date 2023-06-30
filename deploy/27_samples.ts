@@ -16,7 +16,6 @@ import {
   generateInitCode,
   txParams,
 } from '../scripts/utils/helpers';
-import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import {
   HolographERC20Event,
   HolographERC721Event,

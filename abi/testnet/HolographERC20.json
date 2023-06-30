@@ -717,6 +717,24 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "target",
+        "type": "address"
+      },
+      {
+        "internalType": "bytes",
+        "name": "data",
+        "type": "bytes"
+      }
+    ],
+    "name": "sourceExternalCall",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "to",
         "type": "address"
       },
@@ -778,9 +796,14 @@
         "internalType": "address payable",
         "name": "destination",
         "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
       }
     ],
-    "name": "sourceWithdraw",
+    "name": "sourceTransfer",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"

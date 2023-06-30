@@ -3,7 +3,9 @@ declare var global: any;
 import { Transaction } from '@ethersproject/transactions';
 import { TransactionRequest, TransactionResponse, TransactionReceipt } from '@ethersproject/abstract-provider';
 import { Signer } from '@ethersproject/abstract-signer';
+import { TransactionDescription, Result } from '@ethersproject/abi';
 import { Contract, ContractTransaction } from '@ethersproject/contracts';
+import { Contract as ExtendedContract } from '@nomiclabs/hardhat-ethers';
 
 import { NetworkType, Network, networks } from '@holographxyz/networks';
 import { Environment, getEnvironment } from '@holographxyz/environment';
@@ -12,11 +14,21 @@ import { BigNumber } from '@ethersproject/bignumber';
 
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 
-import { txParams, zeroAddress } from './helpers';
+import { txParams, zeroAddress, remove0x } from './helpers';
 
 interface MultisigHandler extends ContractTransaction {
   wait(confirmations?: number): Promise<ContractReceipt>;
 }
+
+const getNetworkByHolographId = function (currentNetwork: string, holographId: number): Network {
+  let networkArray: Network[] = Object.values(networks);
+  for (network of networkArray) {
+    if (network.holographId === holographId) {
+      return network;
+    }
+  }
+  return networks[currentNetwork];
+};
 
 const pressAnyKeyToContinue = async (prompt?: string = 'Press any key to continue: '): Promise<void> => {
   return new Promise((resolve, reject): void => {
@@ -29,11 +41,138 @@ const pressAnyKeyToContinue = async (prompt?: string = 'Press any key to continu
   });
 };
 
+const zero: BigNumber = BigNumber.from('0');
+
+const hex2ascii = function (hex: string): string {
+  hex = remove0x(hex).replace(/^(00){1,}/, '');
+  let str: string = '';
+  for (let i: number = 0; i < hex.length; i += 2) {
+    str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+  }
+  return str;
+};
+
 const MultisigAwareTx = async (
   hre: HardhatRuntimeEnvironment,
   deployer: Signer,
+  contractName: string,
+  targetContract: Contract | ExtendedContract,
   futureTx: TransactionRequest
 ): Promise<MultisigHandler | ContractTransaction | TransactionResponse> => {
+  const tx: TransactionDescription = targetContract.interface.parseTransaction({ data: futureTx.data, value: zero });
+  let txArgs: { [key: string]: any } = {};
+  for (let key of Object.keys(tx.args)) {
+    if (!/\d+/.test(key)) {
+      let value = tx.args[key];
+      switch (tx.name) {
+        case 'setReservedContractTypeAddresses':
+          if (key == 'hashes') {
+            let newValue: string = [];
+            for (let hash of value as string[]) {
+              newValue.push(hex2ascii(hash));
+            }
+            value = newValue;
+          }
+          break;
+        case 'setContractTypeAddress':
+          if (key == 'contractType') {
+            value = hex2ascii(value);
+          }
+          break;
+        case 'updateChainIdMaps':
+          if (key == 'fromChainType' || key == 'toChainType') {
+            let newValue: string = [];
+            for (let chainIdType of value as number[]) {
+              let chainIdTypes: string[] = [
+                'ChainIdType.UNDEFINED',
+                'ChainIdType.EVM',
+                'ChainIdType.HOLOGRAPH',
+                'ChainIdType.LAYERZERO',
+                'ChainIdType.HYPERLANE',
+              ];
+              newValue.push(chainIdTypes[chainIdType]);
+            }
+            value = newValue;
+          }
+          break;
+        case 'updateUriPrepends':
+          if (key == 'uriTypes') {
+            let newValue: string = [];
+            for (let uriType of value as number[]) {
+              let tokenUriTypes: string[] = [
+                'TokenUriType.UNDEFINED',
+                'TokenUriType.IPFS',
+                'TokenUriType.HTTPS',
+                'TokenUriType.ARWEAVE',
+              ];
+              newValue.push(tokenUriTypes[uriType]);
+            }
+            value = newValue;
+          }
+          break;
+        case 'setGasParameters':
+          if (key == 'chainIds') {
+            let newValue: string = [];
+            for (let holographId of value as number[]) {
+              newValue.push(getNetworkByHolographId(hre.networkName, holographId).key);
+            }
+            value = newValue;
+          } else if (key == 'gasParameters') {
+            let newValue: {
+              msgBaseGas: string;
+              msgGasPerByte: string;
+              jobBaseGas: string;
+              jobGasPerByte: string;
+              minGasPrice: string;
+              maxGasLimit: string;
+            }[] = [];
+            for (let gasParams of value as {
+              msgBaseGas: string;
+              msgGasPerByte: string;
+              jobBaseGas: string;
+              jobGasPerByte: string;
+              minGasPrice: string;
+              maxGasLimit: string;
+            }[]) {
+              newValue.push({
+                msgBaseGas:
+                  BigNumber.from(gasParams.msgBaseGas).toString() +
+                  ' => ' +
+                  BigNumber.from(gasParams.msgBaseGas).toHexString(),
+                msgGasPerByte:
+                  BigNumber.from(gasParams.msgGasPerByte).toString() +
+                  ' => ' +
+                  BigNumber.from(gasParams.msgGasPerByte).toHexString(),
+                jobBaseGas:
+                  BigNumber.from(gasParams.jobBaseGas).toString() +
+                  ' => ' +
+                  BigNumber.from(gasParams.jobBaseGas).toHexString(),
+                jobGasPerByte:
+                  BigNumber.from(gasParams.jobGasPerByte).toString() +
+                  ' => ' +
+                  BigNumber.from(gasParams.jobGasPerByte).toHexString(),
+                minGasPrice:
+                  BigNumber.from(gasParams.minGasPrice).toString() +
+                  ' => ' +
+                  BigNumber.from(gasParams.minGasPrice).toHexString(),
+                maxGasLimit:
+                  BigNumber.from(gasParams.maxGasLimit).toString() +
+                  ' => ' +
+                  BigNumber.from(gasParams.maxGasLimit).toHexString(),
+              });
+            }
+            value = newValue;
+          }
+          break;
+        default:
+          if (BigNumber.isBigNumber(value)) {
+            txArgs[key] = BigNumber.from(value).toString() + ' => ' + BigNumber.from(value).toHexString();
+          }
+          break;
+      }
+      txArgs[key] = value;
+    }
+  }
   const network: Network = networks[hre.networkName];
   const environment: Environment = getEnvironment();
   let contract: Contract = await hre.ethers.getContractAt('Admin', futureTx.to, deployer);
@@ -78,10 +217,22 @@ const MultisigAwareTx = async (
                 ' multisig at address ' +
                 network.protocolMultisig,
               'The following transaction needs to be created:',
+              '',
               '\t' + '\x1b[33m' + 'Holograph(' + holograph.address + ').adminCall({',
               '\t\t' + 'target: ' + futureTx.to,
               '\t\t' + 'payload: ' + futureTx.data,
+              '\t\t' +
+                'decodedPayload: ' +
+                contractName +
+                '(' +
+                futureTx.to +
+                ').' +
+                tx.signature.split('(')[0] +
+                '(' +
+                JSON.stringify(txArgs, undefined, 2).replace(/\n/gm, '\n\t\t') +
+                ')',
               '\t' + '})' + '\x1b[89m' + '\x1b[37m\x1b[89m',
+              '',
               'In transaction builder enter the following address: 🔐 ' +
                 '\x1b[32m' +
                 holograph.address +
@@ -128,10 +279,20 @@ const MultisigAwareTx = async (
               ' multisig at address ' +
               network.protocolMultisig,
             'The following transaction needs to be created:',
-            '\t' + '\x1b[33m' + 'Contract(' + futureTx.to + ').call({',
-            '\t\t' + 'from: ' + network.protocolMultisig,
-            '\t\t' + 'payload: ' + futureTx.data,
-            '\t' + '})' + '\x1b[89m' + '\x1b[37m\x1b[89m',
+            '',
+            '\t' +
+              '\x1b[33m' +
+              contractName +
+              '(' +
+              futureTx.to +
+              ').' +
+              tx.signature.split('(')[0] +
+              '(' +
+              JSON.stringify(txArgs, undefined, 2).replace(/\n/gm, '\n\t\t') +
+              ')' +
+              '\x1b[89m' +
+              '\x1b[37m\x1b[89m',
+            '',
             'In transaction builder enter the following address: 🔐 ' +
               '\x1b[32m' +
               futureTx.to +

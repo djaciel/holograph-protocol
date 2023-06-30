@@ -20,11 +20,7 @@ abstract contract ERC1155H is Initializable {
   }
 
   modifier onlyOwner() {
-    if (msg.sender == holographer()) {
-      require(msgSender() == _getOwner(), "ERC1155: owner only function");
-    } else {
-      require(msg.sender == _getOwner(), "ERC1155: owner only function");
-    }
+    require(msgSender() == _getOwner(), "ERC1155: owner only function");
     _;
   }
 
@@ -45,9 +41,12 @@ abstract contract ERC1155H is Initializable {
   function _init(bytes memory /* initPayload*/) internal returns (bytes4) {
     require(!_isInitialized(), "ERC1155: already initialized");
     address _holographer = msg.sender;
+    address currentOwner;
     assembly {
       sstore(_holographerSlot, _holographer)
+      currentOwner := sload(_ownerSlot)
     }
+    require(currentOwner != address(0), "HOLOGRAPH: owner not set");
     _setInitialized();
     return InitializableInterface.init.selector;
   }
@@ -55,9 +54,15 @@ abstract contract ERC1155H is Initializable {
   /**
    * @dev The Holographer passes original msg.sender via calldata. This function extracts it.
    */
-  function msgSender() internal pure returns (address sender) {
+  function msgSender() internal view returns (address sender) {
     assembly {
-      sender := calldataload(sub(calldatasize(), 0x20))
+      switch eq(caller(), sload(_holographerSlot))
+      case 0 {
+        sender := caller()
+      }
+      default {
+        sender := calldataload(sub(calldatasize(), 0x20))
+      }
     }
   }
 
@@ -70,23 +75,19 @@ abstract contract ERC1155H is Initializable {
     }
   }
 
-  function supportsInterface(bytes4) external pure returns (bool) {
+  function supportsInterface(bytes4) external pure virtual returns (bool) {
     return false;
   }
 
   /**
    * @dev Address of initial creator/owner of the collection.
    */
-  function owner() external view returns (address) {
+  function owner() external view virtual returns (address) {
     return _getOwner();
   }
 
   function isOwner() external view returns (bool) {
-    if (msg.sender == holographer()) {
-      return msgSender() == _getOwner();
-    } else {
-      return msg.sender == _getOwner();
-    }
+    return (msgSender() == _getOwner());
   }
 
   function isOwner(address wallet) external view returns (bool) {
@@ -105,15 +106,24 @@ abstract contract ERC1155H is Initializable {
     }
   }
 
+  function withdraw() external virtual onlyOwner {
+    payable(_getOwner()).transfer(address(this).balance);
+  }
+
+  event FundsReceived(address indexed source, uint256 amount);
+
   /**
-   * @dev Defined here to suppress compiler warnings
+   * @dev This function emits an event to indicate native gas token receipt. Do not rely on this to work.
+   *      Please use custom payable functions for accepting native value.
    */
-  receive() external payable {}
+  receive() external payable virtual {
+    emit FundsReceived(msgSender(), msg.value);
+  }
 
   /**
    * @dev Return true for any un-implemented event hooks
    */
-  fallback() external payable {
+  fallback() external payable virtual {
     assembly {
       switch eq(sload(_holographerSlot), caller())
       case 1 {

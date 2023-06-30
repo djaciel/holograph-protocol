@@ -61,6 +61,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const lzTx = await MultisigAwareTx(
       hre,
       deployer,
+      'LayerZeroModule',
+      layerZeroModule,
       await layerZeroModule.populateTransaction.setLZEndpoint(lzEndpoint, {
         ...(await txParams({
           hre,

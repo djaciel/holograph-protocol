@@ -35,6 +35,8 @@ interface HolographERC721Interface is
 
   function sourceTransfer(address to, uint256 tokenId) external;
 
+  function sourceExternalCall(address target, bytes calldata data) external;
+
   function transfer(address to, uint256 tokenId) external payable;
 
   function contractURI() external view returns (string memory);
