@@ -264,6 +264,11 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     // Setup the owner role
     _setOwner(initializer.initialOwner);
 
+    // to enable sourceExternalCall to work on init, we set holographer here since it's only set after init
+    assembly {
+      sstore(_holographerSlot, caller())
+    }
+
     // Setup config variables
     config = Configuration({
       metadataRenderer: IMetadataRenderer(initializer.metadataRenderer),
@@ -284,10 +289,20 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
         // this is a default filter that can be used for OS royalty filtering
         // marketFilterAddress = 0x3cc6CddA760b79bAfa08dF41ECFA224f810dCeB6;
         // we just register to OS royalties and let OS handle it for us with their default filter contract
-        openseaOperatorFilterRegistry.register(address(this));
+        HolographERC721Interface(holographer()).sourceExternalCall(
+          address(openseaOperatorFilterRegistry),
+          abi.encodeWithSelector(IOperatorFilterRegistry.register.selector, holographer())
+        );
       } else {
         // allow user to specify custom filtering contract address
-        openseaOperatorFilterRegistry.registerAndSubscribe(address(this), marketFilterAddress);
+        HolographERC721Interface(holographer()).sourceExternalCall(
+          address(openseaOperatorFilterRegistry),
+          abi.encodeWithSelector(
+            IOperatorFilterRegistry.registerAndSubscribe.selector,
+            holographer(),
+            marketFilterAddress
+          )
+        );
       }
       assembly {
         sstore(_osRegistryEnabledSlot, true)
@@ -581,16 +596,12 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * @notice Requires admin permissions
    * @param args Calldata args to pass to the registry
    */
-  function updateMarketFilterSettings(bytes calldata args) external onlyOwner returns (bytes memory) {
-    (bool success, bytes memory ret) = address(openseaOperatorFilterRegistry).call(args);
-    if (!success) {
-      revert RemoteOperatorFilterRegistryCallFailed();
-    }
-    bool osRegistryEnabled = openseaOperatorFilterRegistry.isRegistered(address(this));
+  function updateMarketFilterSettings(bytes calldata args) external onlyOwner {
+    HolographERC721Interface(holographer()).sourceExternalCall(address(openseaOperatorFilterRegistry), args);
+    bool osRegistryEnabled = openseaOperatorFilterRegistry.isRegistered(holographer());
     assembly {
       sstore(_osRegistryEnabledSlot, osRegistryEnabled)
     }
-    return ret;
   }
 
   /**
@@ -598,19 +609,31 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * @param enable Enable filtering to non-royalty payout marketplaces
    */
   function manageMarketFilterSubscription(bool enable) external onlyOwner {
-    address self = address(this);
+    address self = holographer();
     if (marketFilterAddress == address(0)) {
       revert MarketFilterAddressNotSupportedForChain();
     }
     if (!openseaOperatorFilterRegistry.isRegistered(self) && enable) {
-      openseaOperatorFilterRegistry.registerAndSubscribe(self, marketFilterAddress);
+      HolographERC721Interface(self).sourceExternalCall(
+        address(openseaOperatorFilterRegistry),
+        abi.encodeWithSelector(IOperatorFilterRegistry.registerAndSubscribe.selector, self, marketFilterAddress)
+      );
     } else if (enable) {
-      openseaOperatorFilterRegistry.subscribe(self, marketFilterAddress);
+      HolographERC721Interface(self).sourceExternalCall(
+        address(openseaOperatorFilterRegistry),
+        abi.encodeWithSelector(IOperatorFilterRegistry.subscribe.selector, self, marketFilterAddress)
+      );
     } else {
-      openseaOperatorFilterRegistry.unsubscribe(self, false);
-      openseaOperatorFilterRegistry.unregister(self);
+      HolographERC721Interface(self).sourceExternalCall(
+        address(openseaOperatorFilterRegistry),
+        abi.encodeWithSelector(IOperatorFilterRegistry.unsubscribe.selector, self, false)
+      );
+      HolographERC721Interface(self).sourceExternalCall(
+        address(openseaOperatorFilterRegistry),
+        abi.encodeWithSelector(IOperatorFilterRegistry.unregister.selector, self)
+      );
     }
-    bool osRegistryEnabled = openseaOperatorFilterRegistry.isRegistered(address(this));
+    bool osRegistryEnabled = openseaOperatorFilterRegistry.isRegistered(self);
     assembly {
       sstore(_osRegistryEnabledSlot, osRegistryEnabled)
     }

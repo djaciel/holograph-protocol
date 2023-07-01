@@ -165,6 +165,11 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     // Setup the owner role
     _setOwner(initializer.initialOwner);
 
+    // to enable sourceExternalCall to work on init, we set holographer here since it's only set after init
+    assembly {
+      sstore(_holographerSlot, caller())
+    }
+
     // Setup config variables
     config = Configuration({
       metadataRenderer: IMetadataRenderer(initializer.metadataRenderer),
