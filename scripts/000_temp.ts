@@ -106,20 +106,26 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"TempHtokenFix" is already deployed.');
   }
 
-
   const tx1 = await MultisigAwareTx(
     hre,
     deployer,
     'HolographRegistry',
     holographRegistry,
-    await holographRegistry.populateTransaction.setContractTypeAddress(reservedNamespaceHashes[erc20SourceNamespaceId], futureTempHtokenFixAddress, {
-      ...(await txParams({
-        hre,
-        from: deployer,
-        to: holographRegistry,
-        data: holographRegistry.populateTransaction.setContractTypeAddress(reservedNamespaceHashes[erc20SourceNamespaceId], futureTempHtokenFixAddress)
-      })),
-    })
+    await holographRegistry.populateTransaction.setContractTypeAddress(
+      reservedNamespaceHashes[erc20SourceNamespaceId],
+      futureTempHtokenFixAddress,
+      {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holographRegistry,
+          data: holographRegistry.populateTransaction.setContractTypeAddress(
+            reservedNamespaceHashes[erc20SourceNamespaceId],
+            futureTempHtokenFixAddress
+          ),
+        })),
+      }
+    )
   );
   await tx1.wait();
 
@@ -153,14 +159,21 @@ Use the following payload for Data input field:
     deployer,
     'HolographRegistry',
     holographRegistry,
-    await holographRegistry.populateTransaction.setContractTypeAddress(reservedNamespaceHashes[erc20SourceNamespaceId], holographERC20Address, {
-      ...(await txParams({
-        hre,
-        from: deployer,
-        to: holographRegistry,
-        data: holographRegistry.populateTransaction.setContractTypeAddress(reservedNamespaceHashes[erc20SourceNamespaceId], holographERC20Address)
-      })),
-    })
+    await holographRegistry.populateTransaction.setContractTypeAddress(
+      reservedNamespaceHashes[erc20SourceNamespaceId],
+      holographERC20Address,
+      {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holographRegistry,
+          data: holographRegistry.populateTransaction.setContractTypeAddress(
+            reservedNamespaceHashes[erc20SourceNamespaceId],
+            holographERC20Address
+          ),
+        })),
+      }
+    )
   );
   await tx3.wait();
 
