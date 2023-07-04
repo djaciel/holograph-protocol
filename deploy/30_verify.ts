@@ -39,6 +39,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     arbitrumNova: 'ArbitrumNova',
     arbitrumOne: 'ArbitrumOne',
     arbitrumTestnetGoerli: 'ArbitrumTestnetGoerli',
+    mantleTestnet: 'MantleTestnet',
   };
 
   let targetDropsPriceOracle = 'DummyDropsPriceOracle';
