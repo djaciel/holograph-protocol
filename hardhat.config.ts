@@ -399,6 +399,7 @@ const config: HardhatUserConfig = {
       arbitrumOne: process.env.ARBISCAN_API_KEY || '',
       arbitrumGoerli: process.env.ARBISCAN_API_KEY || '',
       arbitrumNova: process.env.ARBISCAN_NOVA_API_KEY || '',
+      mantleTestnet: 'NO-API' || process.env.MANTLE_API_KEY,
     },
     customChains: [
       {
@@ -407,6 +408,14 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://api-nova.arbiscan.io/api',
           browserURL: 'https://nova.arbiscan.io',
+        },
+      },
+      {
+        network: 'mantleTestnet',
+        chainId: 5001,
+        urls: {
+          apiURL: 'https://explorer.testnet.mantle.xyz/api',
+          browserURL: 'https://explorer.testnet.mantle.xyz',
         },
       },
     ],

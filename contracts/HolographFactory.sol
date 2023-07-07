@@ -117,6 +117,8 @@ import "./struct/BridgeSettings.sol";
 import "./struct/DeploymentConfig.sol";
 import "./struct/Verification.sol";
 
+import "./library/Strings.sol";
+
 /**
  * @title Holograph Factory
  * @author https://github.com/holographxyz
@@ -372,6 +374,15 @@ contract HolographFactory is Admin, Initializable, Holographable, HolographFacto
      */
     return (signer != address(0) &&
       (ecrecover(keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", hash)), v, r, s) == signer ||
+        (
+          ecrecover(
+            keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n66", Strings.toHexString(uint256(hash), 32))),
+            v,
+            r,
+            s
+          )
+        ) ==
+        signer ||
         ecrecover(hash, v, r, s) == signer));
   }
 
