@@ -399,6 +399,12 @@ const config: HardhatUserConfig = {
       arbitrumOne: process.env.ARBISCAN_API_KEY || '',
       arbitrumGoerli: process.env.ARBISCAN_API_KEY || '',
       arbitrumNova: process.env.ARBISCAN_NOVA_API_KEY || '',
+      mantle: process.env.MANTLE_API_KEY || '',
+      mantleTestnet: process.env.MANTLE_API_KEY || '',
+      base: process.env.BASESCAN_API_KEY || '',
+      baseTestnetGoerli: process.env.BASESCAN_API_KEY || '',
+      zora: process.env.ZORAENERGY_API_KEY || '',
+      zoraTestnetGoerli: process.env.ZORAENERGY_API_KEY || '',
     },
     customChains: [
       {
@@ -407,6 +413,22 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://api-nova.arbiscan.io/api',
           browserURL: 'https://nova.arbiscan.io',
+        },
+      },
+      {
+        network: 'mantleTestnet',
+        chainId: 5001,
+        urls: {
+          apiURL: 'https://explorer.testnet.mantle.xyz/api',
+          browserURL: 'https://explorer.testnet.mantle.xyz',
+        },
+      },
+      {
+        network: 'baseTestnetGoerli',
+        chainId: 84531,
+        urls: {
+          apiURL: 'https://api-goerli.basescan.org/api',
+          browserURL: 'https://goerli.basescan.org',
         },
       },
     ],
