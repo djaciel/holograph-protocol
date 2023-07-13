@@ -26,7 +26,7 @@ contract DropsPriceOracleMantle is Admin, Initializable, IDropsPriceOracle {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     assembly {
       sstore(_adminSlot, origin())
-      sstore(_tokenPriceRatioSlot, 0x0000000000000000000000000000000000000000000000001bc16d674ec80000)
+      sstore(_tokenPriceRatioSlot, 0x00000000000000000000000000000000000000000000000006f05b59d3b20000)
     }
     _setInitialized();
     return Initializable.init.selector;
