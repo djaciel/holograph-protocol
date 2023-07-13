@@ -416,6 +416,14 @@ const config: HardhatUserConfig = {
         },
       },
       {
+        network: 'mantle',
+        chainId: 5000,
+        urls: {
+          apiURL: 'https://explorer.mantle.xyz/api',
+          browserURL: 'https://explorer.mantle.xyz',
+        },
+      },
+      {
         network: 'mantleTestnet',
         chainId: 5001,
         urls: {

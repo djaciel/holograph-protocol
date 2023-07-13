@@ -7,7 +7,7 @@ import {Initializable} from "../../abstract/Initializable.sol";
 
 import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
 
-contract DropsPriceOracleMantleTestnet is Admin, Initializable, IDropsPriceOracle {
+contract DropsPriceOracleMantle is Admin, Initializable, IDropsPriceOracle {
   /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.tokenPriceRatio')) - 1)
    */
@@ -26,7 +26,7 @@ contract DropsPriceOracleMantleTestnet is Admin, Initializable, IDropsPriceOracl
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     assembly {
       sstore(_adminSlot, origin())
-      sstore(_tokenPriceRatioSlot, 0x0000000000000000000000000000000000000000000000000de0b6b3a7640000)
+      sstore(_tokenPriceRatioSlot, 0x00000000000000000000000000000000000000000000000006f05b59d3b20000)
     }
     _setInitialized();
     return Initializable.init.selector;
