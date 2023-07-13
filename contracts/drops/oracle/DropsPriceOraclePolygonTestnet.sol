@@ -49,7 +49,7 @@ contract DropsPriceOraclePolygonTestnet is Admin, Initializable, IDropsPriceOrac
     // (uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdcPool.getReserves();
     uint112 _reserve0 = 185186616552407552407159;
     uint112 _reserve1 = 207981749778;
-    // x is always native token / WMATIC
+    // x is always the wrapped native token
     uint256 x = _reserve0;
     // y is always USD token / USDC
     uint256 y = _reserve1;
@@ -66,7 +66,7 @@ contract DropsPriceOraclePolygonTestnet is Admin, Initializable, IDropsPriceOrac
     // (uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdtPool.getReserves();
     uint112 _reserve0 = 13799757434002573084812;
     uint112 _reserve1 = 15484391886;
-    // x is always native token / WMATIC
+    // x is always the wrapped native token
     uint256 x = _reserve0;
     // y is always USD token / USDT
     uint256 y = _reserve1;
