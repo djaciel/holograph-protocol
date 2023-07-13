@@ -587,10 +587,10 @@
   resolved "https://registry.yarnpkg.com/@holographxyz/hardhat-holograph-contract-builder/-/hardhat-holograph-contract-builder-0.0.4.tgz#da2eb5abfbe771ce9db217671b653a38f0e7fccf"
   integrity sha512-W/vWgHT6bZWdmJoWJxdWHnUCscrpOXbL1mo2WCDVtjrHQmXivMal7aRZw+ZeDfjTpcvGQ0SBxC+nJZZGCnuVDA==
 
-"@holographxyz/holograph-genesis@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@holographxyz/holograph-genesis/-/holograph-genesis-0.0.5.tgz#dc11a32f210cb61bd08969dc11002a07eb97f0e7"
-  integrity sha512-dWpIZ+YJoSo8s/5g5PtjQSQzRRvAJLXA2zrMkmdp9Owa2dRqbW2Z3RJvMUqDwLYLZCWhEIGIqbgShUfQp5Qbbw==
+"@holographxyz/holograph-genesis@^0.0.6":
+  version "0.0.6"
+  resolved "https://registry.yarnpkg.com/@holographxyz/holograph-genesis/-/holograph-genesis-0.0.6.tgz#7837f8773f81343a07bda42debc607afb33dd00c"
+  integrity sha512-4IDL/KQV92JYr7MH57kRP7PYnZFQLCgx3KAHDUlnz+C5rBPLzjF12muv07/hv6Hbj8BsVoA11Dv/jsE0AkkrIg==
   dependencies:
     "@ethersproject/abstract-provider" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
