@@ -187,6 +187,11 @@ export function adjustBaseBlockFee(network: string, baseBlockFee: BigNumber): Bi
     baseBlockFee.lt(BigNumber.from('1500000000'))
   ) {
     return BigNumber.from('1500000000');
+  } else if (
+    (network === networks['zora' as NetworkKeys].key || network === networks['zoraTestnetGoerli' as NetworkKeys].key) &&
+    baseBlockFee.lt(BigNumber.from('1500000000'))
+  ) {
+    return BigNumber.from('1500000000');
   }
 
   return baseBlockFee;

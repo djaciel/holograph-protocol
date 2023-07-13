@@ -38,11 +38,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   ) {
     let useDeployer: boolean = false;
     if (network.protocolMultisig === undefined) {
-      if (network.type == NetworkType.mainnet) {
-        throw new Error('No multisig setup for this network');
-      } else {
-        useDeployer = true;
-      }
+      useDeployer = true;
     }
     const MULTI_SIG: string = useDeployer
       ? deployer.address.toLowerCase()
