@@ -192,6 +192,11 @@ export function adjustBaseBlockFee(network: string, baseBlockFee: BigNumber): Bi
     baseBlockFee.lt(BigNumber.from('1500000000'))
   ) {
     return BigNumber.from('1500000000');
+  } else if (
+    (network === networks['base' as NetworkKeys].key || network === networks['baseTestnetGoerli' as NetworkKeys].key) &&
+    baseBlockFee.lt(BigNumber.from('100000000'))
+  ) {
+    return BigNumber.from('100000000');
   }
 
   return baseBlockFee;

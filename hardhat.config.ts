@@ -432,6 +432,14 @@ const config: HardhatUserConfig = {
         },
       },
       {
+        network: 'base',
+        chainId: 8453,
+        urls: {
+          apiURL: 'https://api.basescan.org/api',
+          browserURL: 'https://basescan.org',
+        },
+      },
+      {
         network: 'baseTestnetGoerli',
         chainId: 84531,
         urls: {

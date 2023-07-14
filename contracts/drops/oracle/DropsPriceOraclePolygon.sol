@@ -47,7 +47,7 @@ contract DropsPriceOraclePolygon is Admin, Initializable, IDropsPriceOracle {
     // add decimal places for amount IF decimals are above 6!
     // usdAmount = usdAmount * (10**(18 - 6));
     (uint112 _reserve0, uint112 _reserve1, ) = SushiV2UsdcPool.getReserves();
-    // x is always the wrapped native token
+    // x is always native token / WMATIC
     uint256 x = _reserve0;
     // y is always USD token / USDC
     uint256 y = _reserve1;
@@ -62,7 +62,7 @@ contract DropsPriceOraclePolygon is Admin, Initializable, IDropsPriceOracle {
     // add decimal places for amount IF decimals are above 6!
     // usdAmount = usdAmount * (10**(18 - 6));
     (uint112 _reserve0, uint112 _reserve1, ) = SushiV2UsdtPool.getReserves();
-    // x is always the wrapped native token
+    // x is always native token / WMATIC
     uint256 x = _reserve0;
     // y is always USD token / USDT
     uint256 y = _reserve1;

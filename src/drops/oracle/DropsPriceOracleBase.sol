@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.13;
+/*SOLIDITY_COMPILER_VERSION*/
 
 import {Admin} from "../../abstract/Admin.sol";
 import {Initializable} from "../../abstract/Initializable.sol";
 
 import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
 
-contract DropsPriceOracleBaseTestnetGoerli is Admin, Initializable, IDropsPriceOracle {
+contract DropsPriceOracleBase is Admin, Initializable, IDropsPriceOracle {
   /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.tokenPriceRatio')) - 1)
    */
-  bytes32 constant _tokenPriceRatioSlot = 0x562ce994878444f1ca8bcf3afcea513b950965abed659462312e8fdd38c020a1;
+  bytes32 constant _tokenPriceRatioSlot = precomputeslot("eip1967.Holograph.tokenPriceRatio");
 
   /**
    * @dev Constructor is left empty and init is used instead
@@ -26,7 +26,7 @@ contract DropsPriceOracleBaseTestnetGoerli is Admin, Initializable, IDropsPriceO
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     assembly {
       sstore(_adminSlot, origin())
-      sstore(_tokenPriceRatioSlot, 0x0000000000000000000000000000000000000000000000d8d726b7177a800000)
+      sstore(_tokenPriceRatioSlot, 0x000000000000000000000000000000000000000000000077432217e683600000)
     }
     _setInitialized();
     return Initializable.init.selector;

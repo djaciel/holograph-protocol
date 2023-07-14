@@ -41,6 +41,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     arbitrumTestnetGoerli: 'ArbitrumTestnetGoerli',
     mantle: 'Mantle',
     mantleTestnet: 'MantleTestnet',
+    base: 'Base',
     baseTestnetGoerli: 'BaseTestnetGoerli',
     zora: 'Zora',
     zoraTestnetGoerli: 'ZoraTestnetGoerli',
