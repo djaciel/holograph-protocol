@@ -147,7 +147,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         deployer.address, // fundsRecipient
         0, // 1000 editions
         1000, // 10% royalty
-        true, // enableOpenSeaRoyaltyRegistry
+        false, // enableOpenSeaRoyaltyRegistry
         [0, 0, 0, 0, 0, 0, '0x' + '00'.repeat(32)], // salesConfig
         futureEditionsMetadataRendererProxyAddress, // metadataRenderer
         generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
