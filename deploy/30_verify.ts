@@ -58,7 +58,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
   if (currentNetworkType != NetworkType.local) {
     let contracts: string[] = [
-      'HolographUtilityToken',
+      /*      'HolographUtilityToken',
       'hToken',
       'Holograph',
       'HolographBridge',
@@ -67,9 +67,9 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       'HolographERC20',
       'HolographERC721',
       'HolographDropERC721',
-      'HolographDropERC721Proxy',
+      'HolographDropERC721Proxy',*/
       'HolographFactory',
-      'HolographFactoryProxy',
+      /*      'HolographFactoryProxy',
       'HolographGeneric',
       'HolographGenesis',
       'HolographOperator',
@@ -88,7 +88,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       'EditionsMetadataRendererProxy',
       'OVM_GasPriceOracle',
       'DropsPriceOracleProxy',
-      targetDropsPriceOracle,
+      targetDropsPriceOracle,*/
     ];
     for (let i: number = 0, l: number = contracts.length; i < l; i++) {
       let contract: string = contracts[i];
