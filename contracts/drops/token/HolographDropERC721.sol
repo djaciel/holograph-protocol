@@ -427,7 +427,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
   /// @notice The Holograph fee is a flat fee for each mint
   /// @dev Gets the Holograph protocol fee for amount of mints
-  function getHolographFee(uint256 quantity) public returns (uint256 fee) {
+  function getHolographFee(uint256 quantity) public view returns (uint256 fee) {
     fee = holographMintFee * quantity;
   }
 
