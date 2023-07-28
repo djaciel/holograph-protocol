@@ -475,55 +475,60 @@ contract HolographDropERC721Test is Test {
     assertEq(address(sourceContractAddress).balance, amount * nativePrice - nativeFee);
   }
 
-  // function test_PurchaseTime() public setupTestDrop(10) {
-  //   uint104 price = usd100;
-  //   uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   erc721Drop.setSaleConfiguration({
-  //     publicSaleStart: 0,
-  //     publicSaleEnd: 0,
-  //     presaleStart: 0,
-  //     presaleEnd: 0,
-  //     publicSalePrice: price,
-  //     maxSalePurchasePerAddress: 2,
-  //     presaleMerkleRoot: bytes32(0)
-  //   });
+  function test_PurchaseTime() public setupTestDrop(10) {
+    uint256 amount = 1;
+    uint104 price = usd100;
+    uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
+    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
+    uint256 totalCost = amount * (nativePrice + nativeFee);
 
-  //   assertTrue(!erc721Drop.saleDetails().publicSaleActive);
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    erc721Drop.setSaleConfiguration({
+      publicSaleStart: 0,
+      publicSaleEnd: 0,
+      presaleStart: 0,
+      presaleEnd: 0,
+      publicSalePrice: price,
+      maxSalePurchasePerAddress: 2,
+      presaleMerkleRoot: bytes32(0)
+    });
 
-  //   vm.deal(address(TEST_ACCOUNT), nativePrice);
-  //   vm.prank(address(TEST_ACCOUNT));
-  //   vm.expectRevert(IHolographDropERC721.Sale_Inactive.selector);
-  //   erc721Drop.purchase{value: nativePrice}(1);
+    assertTrue(!erc721Drop.saleDetails().publicSaleActive);
 
-  //   assertEq(erc721Drop.saleDetails().maxSupply, 10);
-  //   assertEq(erc721Drop.saleDetails().totalMinted, 0);
+    vm.deal(address(TEST_ACCOUNT), totalCost);
+    vm.prank(address(TEST_ACCOUNT));
+    vm.expectRevert(IHolographDropERC721.Sale_Inactive.selector);
+    erc721Drop.purchase{value: totalCost}(1);
 
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   erc721Drop.setSaleConfiguration({
-  //     publicSaleStart: 9 * 3600,
-  //     publicSaleEnd: 11 * 3600,
-  //     presaleStart: 0,
-  //     presaleEnd: 0,
-  //     maxSalePurchasePerAddress: 20,
-  //     publicSalePrice: price,
-  //     presaleMerkleRoot: bytes32(0)
-  //   });
+    assertEq(erc721Drop.saleDetails().maxSupply, 10);
+    assertEq(erc721Drop.saleDetails().totalMinted, 0);
 
-  //   assertTrue(!erc721Drop.saleDetails().publicSaleActive);
-  //   // jan 1st 1980
-  //   vm.warp(10 * 3600);
-  //   assertTrue(erc721Drop.saleDetails().publicSaleActive);
-  //   assertTrue(!erc721Drop.saleDetails().presaleActive);
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    erc721Drop.setSaleConfiguration({
+      publicSaleStart: 9 * 3600,
+      publicSaleEnd: 11 * 3600,
+      presaleStart: 0,
+      presaleEnd: 0,
+      maxSalePurchasePerAddress: 20,
+      publicSalePrice: price,
+      presaleMerkleRoot: bytes32(0)
+    });
 
-  //   vm.prank(address(TEST_ACCOUNT));
-  //   erc721Drop.purchase{value: nativePrice}(1);
+    assertTrue(!erc721Drop.saleDetails().publicSaleActive);
+    // jan 1st 1980
+    vm.warp(10 * 3600);
+    assertTrue(erc721Drop.saleDetails().publicSaleActive);
+    assertTrue(!erc721Drop.saleDetails().presaleActive);
 
-  //   HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+    vm.prank(address(TEST_ACCOUNT));
+    erc721Drop.purchase{value: totalCost}(1);
 
-  //   assertEq(erc721Drop.saleDetails().totalMinted, 1);
-  //   assertEq(erc721Enforcer.ownerOf(FIRST_TOKEN_ID), address(TEST_ACCOUNT));
-  // }
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+
+    assertEq(erc721Drop.saleDetails().totalMinted, 1);
+    assertEq(erc721Enforcer.ownerOf(FIRST_TOKEN_ID), address(TEST_ACCOUNT));
+  }
 
   function test_MintAdmin() public setupTestDrop(10) {
     vm.prank(DEFAULT_OWNER_ADDRESS);
