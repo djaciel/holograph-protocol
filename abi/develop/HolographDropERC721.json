@@ -192,18 +192,6 @@
         "internalType": "uint256",
         "name": "amount",
         "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "feeRecipient",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "feeAmount",
-        "type": "uint256"
       }
     ],
     "name": "FundsWithdrawn",
@@ -513,7 +501,26 @@
         "type": "uint256"
       }
     ],
-    "name": "getHolographFee",
+    "name": "getHolographFeeUsd",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "fee",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "quantity",
+        "type": "uint256"
+      }
+    ],
+    "name": "getHolographFeeWei",
     "outputs": [
       {
         "internalType": "uint256",

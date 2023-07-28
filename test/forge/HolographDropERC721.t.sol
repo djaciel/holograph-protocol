@@ -453,7 +453,7 @@ contract HolographDropERC721Test is Test {
 
     uint104 price = usd100;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
 
     vm.prank(DEFAULT_OWNER_ADDRESS);
@@ -493,7 +493,7 @@ contract HolographDropERC721Test is Test {
 
     uint104 price = 0; // Set the price to zero
     uint256 nativePrice = 0; // Set the price to zero
-    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
 
     vm.prank(DEFAULT_OWNER_ADDRESS);
@@ -526,7 +526,7 @@ contract HolographDropERC721Test is Test {
     uint256 amount = 1;
     uint104 price = usd100;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     uint256 totalCost = amount * (nativePrice + nativeFee);
 
@@ -613,7 +613,7 @@ contract HolographDropERC721Test is Test {
     uint256 amount = 2;
     uint104 price = usd100;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     uint256 totalCost = amount * (nativePrice + nativeFee);
 
@@ -656,7 +656,7 @@ contract HolographDropERC721Test is Test {
     uint256 amount = 1;
     uint104 price = usd10;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     uint256 totalCost = amount * (nativePrice + nativeFee);
 
@@ -719,7 +719,7 @@ contract HolographDropERC721Test is Test {
   function test_MintLimit(uint8 limit) public setupTestDrop(5000) {
     uint104 price = usd10;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFee(limit);
+    uint256 holographFee = erc721Drop.getHolographFeeUsd(limit);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     uint256 totalCost = limit * (nativePrice + nativeFee);
 
@@ -745,7 +745,7 @@ contract HolographDropERC721Test is Test {
 
     // Then check that we can't mint more than the limit
     uint256 overTheLimit = limit + 1;
-    holographFee = erc721Drop.getHolographFee(overTheLimit);
+    holographFee = erc721Drop.getHolographFeeUsd(overTheLimit);
     nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     totalCost = overTheLimit * (nativePrice + nativeFee);
 
@@ -810,7 +810,7 @@ contract HolographDropERC721Test is Test {
     uint amount = 3;
     uint104 price = usd10;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     uint256 totalCost = amount * (nativePrice + nativeFee);
 
@@ -836,7 +836,7 @@ contract HolographDropERC721Test is Test {
     uint amount = 3;
     uint104 price = usd10;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     uint256 totalCost = amount * (nativePrice + nativeFee);
 
@@ -881,7 +881,7 @@ contract HolographDropERC721Test is Test {
     uint256 amount = 2;
     uint104 price = usd100;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     uint256 totalCost = amount * (nativePrice + nativeFee);
 

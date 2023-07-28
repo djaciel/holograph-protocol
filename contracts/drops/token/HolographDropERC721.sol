@@ -425,10 +425,16 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       });
   }
 
-  /// @notice The Holograph fee is a flat fee for each mint
-  /// @dev Gets the Holograph protocol fee for amount of mints
-  function getHolographFee(uint256 quantity) public view returns (uint256 fee) {
+  /// @notice The Holograph fee is a flat fee for each mint in USD
+  /// @dev Gets the Holograph protocol fee for amount of mints in USD
+  function getHolographFeeUsd(uint256 quantity) public view returns (uint256 fee) {
     fee = holographMintFee * quantity;
+  }
+
+  /// @notice The Holograph fee is a flat fee for each mint in wei after conversion
+  /// @dev Gets the Holograph protocol fee for amount of mints in wei
+  function getHolographFeeWei(uint256 quantity) public returns (uint256 fee) {
+    fee = _usdToWei(holographMintFee * quantity);
   }
 
   /**
@@ -828,7 +834,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
   function _payoutHolographFee(uint256 quantity) internal {
     // Transfer protocol fee to recipient address
-    uint256 holographFee = getHolographFee(quantity);
+    uint256 holographFee = getHolographFeeUsd(quantity);
     uint256 nativeFee = _usdToWei(holographFee);
 
     // Payout Holograph fee
