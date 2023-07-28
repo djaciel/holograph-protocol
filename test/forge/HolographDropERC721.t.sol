@@ -471,11 +471,8 @@ contract HolographDropERC721Test is Test {
     assertEq(erc721Drop.saleDetails().totalMinted, amount);
 
     // First token ID is this long number due to the chain id prefix
-    require(erc721Enforcer.ownerOf(FIRST_TOKEN_ID) == address(TEST_ACCOUNT), "owner is wrong for new minted token");
-
-    // TODO: I believe it should be amount * nativePrice - nativeFee but that fails the test, but it is passing with the holograph fee in USD
-    // assertEq(address(sourceContractAddress).balance, amount * nativePrice - nativeFee);
-    assertEq(address(sourceContractAddress).balance, amount * nativePrice - holographFee);
+    require(erc721Enforcer.ownerOf(FIRST_TOKEN_ID) == address(TEST_ACCOUNT), "Owner is wrong for new minted token");
+    assertEq(address(sourceContractAddress).balance, amount * nativePrice - nativeFee);
   }
 
   // function test_PurchaseTime() public setupTestDrop(10) {

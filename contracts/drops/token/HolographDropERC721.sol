@@ -828,14 +828,15 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   function _payoutHolographFee(uint256 quantity) internal {
     // Transfer protocol fee to recipient address
     uint256 holographFee = getHolographFee(quantity);
+    uint256 nativeFee = _usdToWei(holographFee);
 
     // Payout Holograph fee
-    if (holographFee > 0) {
+    if (nativeFee > 0) {
       address payable holographFeeRecipient = payable(
         HolographInterface(HolographerInterface(holographer()).getHolograph()).getTreasury()
       );
 
-      (bool success, ) = holographFeeRecipient.call{value: holographFee, gas: 210_000}("");
+      (bool success, ) = holographFeeRecipient.call{value: nativeFee, gas: 210_000}("");
       emit MintFeePayout(holographFee, holographFeeRecipient, success);
     }
   }
