@@ -93,15 +93,7 @@ interface IHolographDropERC721 {
   /// @param withdrawnBy address that issued the withdraw
   /// @param withdrawnTo address that the funds were withdrawn to
   /// @param amount amount that was withdrawn
-  /// @param feeRecipient user getting withdraw fee (if any)
-  /// @param feeAmount amount of the fee getting sent (if any)
-  event FundsWithdrawn(
-    address indexed withdrawnBy,
-    address indexed withdrawnTo,
-    uint256 amount,
-    address feeRecipient,
-    uint256 feeAmount
-  );
+  event FundsWithdrawn(address indexed withdrawnBy, address indexed withdrawnTo, uint256 amount);
 
   /// @notice Event emitted when an open mint is finalized and further minting is closed forever on the contract.
   /// @param sender address sending close mint

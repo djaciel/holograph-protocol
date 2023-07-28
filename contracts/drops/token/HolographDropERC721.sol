@@ -769,7 +769,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     }
 
     // Emit event for indexing
-    emit FundsWithdrawn(sender, config.fundsRecipient, funds, address(0), 0);
+    emit FundsWithdrawn(sender, config.fundsRecipient, funds);
   }
 
   /**

@@ -41,15 +41,7 @@ contract HolographDropERC721Test is Test {
   /// @param withdrawnBy address that issued the withdraw
   /// @param withdrawnTo address that the funds were withdrawn to
   /// @param amount amount that was withdrawn
-  /// @param feeRecipient user getting withdraw fee (if any)
-  /// @param feeAmount amount of the fee getting sent (if any)
-  event FundsWithdrawn(
-    address indexed withdrawnBy,
-    address indexed withdrawnTo,
-    uint256 amount,
-    address feeRecipient,
-    uint256 feeAmount
-  );
+  event FundsWithdrawn(address indexed withdrawnBy, address indexed withdrawnTo, uint256 amount);
 
   address public alice;
   MockUser public mockUser;
@@ -711,13 +703,7 @@ contract HolographDropERC721Test is Test {
     // withdrawnBy and withdrawnTo are indexed in the first two positions
     vm.expectEmit(true, true, false, false);
     uint256 leftoverFunds = amount - (amount * 1) / 20;
-    emit FundsWithdrawn(
-      DEFAULT_OWNER_ADDRESS,
-      DEFAULT_FUNDS_RECIPIENT_ADDRESS,
-      leftoverFunds,
-      HOLOGRAPH_TREASURY_ADDRESS,
-      (amount * 1) / 20
-    );
+    emit FundsWithdrawn(DEFAULT_OWNER_ADDRESS, DEFAULT_FUNDS_RECIPIENT_ADDRESS, leftoverFunds);
     erc721Drop.withdraw();
 
     assertTrue(
