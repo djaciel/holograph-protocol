@@ -490,6 +490,46 @@ contract HolographDropERC721Test is Test {
     assertEq(address(sourceContractAddress).balance, amount * nativePrice - nativeFee);
   }
 
+  function test_PurchaseFree(uint64 amount) public setupTestDrop(10) {
+    // We assume that the amount is at least one and less than or equal to the edition size given in modifier
+    vm.assume(amount > 0 && amount <= 10);
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+
+    HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
+    address sourceContractAddress = holographerInterface.getSourceContract();
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+
+    uint104 price = 0; // Set the price to zero
+    uint256 nativePrice = 0; // Set the price to zero
+    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
+
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+
+    HolographDropERC721(payable(sourceContractAddress)).setSaleConfiguration({
+      publicSaleStart: 0,
+      publicSaleEnd: type(uint64).max,
+      presaleStart: 0,
+      presaleEnd: 0,
+      publicSalePrice: price,
+      maxSalePurchasePerAddress: uint32(amount),
+      presaleMerkleRoot: bytes32(0)
+    });
+
+    uint256 totalCost = amount * nativeFee; // This will be equal to the holographFee as the nativePrice is 0
+
+    vm.prank(address(TEST_ACCOUNT));
+    vm.deal(address(TEST_ACCOUNT), totalCost);
+    erc721Drop.purchase{value: totalCost}(amount);
+
+    assertEq(erc721Drop.saleDetails().maxSupply, 10);
+    assertEq(erc721Drop.saleDetails().totalMinted, amount);
+
+    // First token ID is this long number due to the chain id prefix
+    require(erc721Enforcer.ownerOf(FIRST_TOKEN_ID) == address(TEST_ACCOUNT), "Owner is wrong for new minted token");
+    assertEq(address(sourceContractAddress).balance, totalCost - nativeFee); // Expect the balance to be equal to the fee received
+  }
+
   function test_PurchaseTime() public setupTestDrop(10) {
     uint256 amount = 1;
     uint104 price = usd100;
