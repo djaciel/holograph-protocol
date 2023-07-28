@@ -71,7 +71,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   address public marketFilterAddress;
 
   /// @notice Holograph Mint Fee
-  uint256 private holographMintFee = 100000; // $0.10
+  uint256 public holographMintFee; // $0.10 USD (6 decimal places)
 
   /**
    * @notice Configuration for NFT minting contract storage
@@ -326,7 +326,8 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
   /// @notice The Holograph fee is a flat fee for each mint
   /// @dev Gets the Holograph protocol fee for amount of mints
-  function getHolographFee(uint256 quantity) public view returns (uint256 fee) {
+  function getHolographFee(uint256 quantity) public returns (uint256 fee) {
+    holographMintFee = 100000; // $0.10 USD (6 decimals)
     fee = holographMintFee * quantity;
   }
 
@@ -645,7 +646,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   }
 
   /**
-   * @notice This withdraws ETH from the contract to the contract owner.
+   * @notice This withdraws native tokens from the contract to the contract owner.
    */
   function withdraw() external override nonReentrant {
     if (config.fundsRecipient == address(0)) {
@@ -653,7 +654,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     }
     address sender = msgSender();
 
-    // Get fee amount
+    // Get the contract balance
     uint256 funds = address(this).balance;
 
     // Check if withdraw is allowed for sender
@@ -729,13 +730,16 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     // Transfer protocol fee to recipient address
     uint256 holographFee = getHolographFee(quantity);
 
+    // TODO: Convert to native token and make sure the balance matches
+    // uint256 nativeFee = _usdToWei(holographFee);
+
     // Payout Holograph fee
     if (holographFee > 0) {
       address payable holographFeeRecipient = payable(
         HolographInterface(HolographerInterface(holographer()).getHolograph()).getTreasury()
       );
 
-      (bool success, ) = holographFeeRecipient.call{value: holographFee, gas: 210_000}("");
+      (bool success, ) = holographFeeRecipient.call{value: nativeFee, gas: 210_000}("");
       emit MintFeePayout(holographFee, holographFeeRecipient, success);
     }
   }
