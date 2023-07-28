@@ -282,6 +282,8 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
     salesConfig = initializer.salesConfiguration;
 
+    holographMintFee = 100000; // $0.10 USD (6 decimals)
+
     // TODO: Need to make sure to initialize the metadata renderer
     if (initializer.metadataRenderer != address(0)) {
       IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
@@ -426,7 +428,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   /// @notice The Holograph fee is a flat fee for each mint
   /// @dev Gets the Holograph protocol fee for amount of mints
   function getHolographFee(uint256 quantity) public returns (uint256 fee) {
-    holographMintFee = 100000; // $0.10 USD (6 decimals)
     fee = holographMintFee * quantity;
   }
 

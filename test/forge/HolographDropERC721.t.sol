@@ -578,8 +578,13 @@ contract HolographDropERC721Test is Test {
   }
 
   function test_UpdatePriceMulticall() public setupTestDrop(10) {
+    uint256 amount = 2;
     uint104 price = usd100;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
+    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
+    uint256 totalCost = amount * (nativePrice + nativeFee);
+
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
     bytes[] memory calls = new bytes[](3);
     calls[0] = abi.encodeWithSelector(
@@ -607,8 +612,8 @@ contract HolographDropERC721Test is Test {
     assertEq(secondMintedId, 6);
     vm.stopPrank();
     vm.startPrank(address(0x111));
-    vm.deal(address(0x111), nativePrice * 2);
-    erc721Drop.purchase{value: nativePrice * 2}(2);
+    vm.deal(address(0x111), totalCost);
+    erc721Drop.purchase{value: totalCost}(2);
 
     HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
     assertEq(erc721Enforcer.balanceOf(address(0x111)), 2);
@@ -616,8 +621,13 @@ contract HolographDropERC721Test is Test {
   }
 
   function test_MintWrongValue() public setupTestDrop(10) {
+    uint256 amount = 1;
     uint104 price = usd10;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
+    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
+    uint256 totalCost = amount * (nativePrice + nativeFee);
+
     vm.deal(address(TEST_ACCOUNT), dummyPriceOracle.convertUsdToWei(usd1000));
 
     // First configure sale to make it inactive
@@ -647,8 +657,10 @@ contract HolographDropERC721Test is Test {
       presaleMerkleRoot: bytes32(0)
     });
     vm.prank(address(TEST_ACCOUNT));
-    vm.expectRevert(abi.encodeWithSelector(IHolographDropERC721.Purchase_WrongPrice.selector, uint256(price)));
-    erc721Drop.purchase{value: nativePrice / 2}(1);
+    vm.expectRevert(
+      abi.encodeWithSelector(IHolographDropERC721.Purchase_WrongPrice.selector, uint256(price + holographFee))
+    );
+    erc721Drop.purchase{value: totalCost / 2}(1);
   }
 
   function test_Withdraw(uint128 amount) public setupTestDrop(10) {
@@ -769,8 +781,13 @@ contract HolographDropERC721Test is Test {
   }
 
   function test_InvalidFinalizeOpenEdition() public setupTestDrop(5) {
+    uint amount = 3;
     uint104 price = usd10;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
+    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
+    uint256 totalCost = amount * (nativePrice + nativeFee);
+
     vm.prank(DEFAULT_OWNER_ADDRESS);
     erc721Drop.setSaleConfiguration({
       publicSaleStart: 0,
@@ -781,7 +798,7 @@ contract HolographDropERC721Test is Test {
       presaleMerkleRoot: bytes32(0),
       maxSalePurchasePerAddress: 5
     });
-    erc721Drop.purchase{value: nativePrice * 3}(3);
+    erc721Drop.purchase{value: totalCost}(3);
     vm.prank(DEFAULT_OWNER_ADDRESS);
     erc721Drop.adminMint(address(0x1234), 2);
     vm.prank(DEFAULT_OWNER_ADDRESS);
@@ -790,8 +807,13 @@ contract HolographDropERC721Test is Test {
   }
 
   function test_ValidFinalizeOpenEdition() public setupTestDrop(type(uint64).max) {
+    uint amount = 3;
     uint104 price = usd10;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
+    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
+    uint256 totalCost = amount * (nativePrice + nativeFee);
+
     vm.prank(DEFAULT_OWNER_ADDRESS);
     erc721Drop.setSaleConfiguration({
       publicSaleStart: 0,
@@ -802,7 +824,8 @@ contract HolographDropERC721Test is Test {
       presaleMerkleRoot: bytes32(0),
       maxSalePurchasePerAddress: 10
     });
-    erc721Drop.purchase{value: nativePrice * 3}(3);
+
+    erc721Drop.purchase{value: totalCost}(3);
     vm.prank(DEFAULT_OWNER_ADDRESS);
     erc721Drop.adminMint(address(0x1234), 2);
     vm.prank(DEFAULT_OWNER_ADDRESS);
@@ -829,8 +852,13 @@ contract HolographDropERC721Test is Test {
   //       to allow zero edition size in canMintTokens modifier
   //       This test is now testing that tokens can be minted when edition size is zero
   function test_EditionSizeZero() public setupTestDrop(0) {
-    uint104 price = usd10;
+    uint256 amount = 2;
+    uint104 price = usd100;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
+    uint256 holographFee = erc721Drop.getHolographFee(amount);
+    uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
+    uint256 totalCost = amount * (nativePrice + nativeFee);
+
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
     address minter = address(0x32402);
     erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 1);
@@ -847,9 +875,9 @@ contract HolographDropERC721Test is Test {
     });
 
     vm.stopPrank();
-    vm.deal(address(TEST_ACCOUNT), nativePrice * 2);
+    vm.deal(address(TEST_ACCOUNT), totalCost);
     vm.prank(address(TEST_ACCOUNT));
-    erc721Drop.purchase{value: nativePrice}(1);
+    erc721Drop.purchase{value: totalCost}(2);
   }
 
   function test_SoldOut() public setupTestDrop(1) {
