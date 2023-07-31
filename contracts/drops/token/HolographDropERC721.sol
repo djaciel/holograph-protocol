@@ -170,7 +170,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   address public marketFilterAddress;
 
   /// @notice Holograph Mint Fee
-  uint256 public holographMintFee; // $0.10 USD (6 decimal places)
+  uint256 public constant holographMintFee = 100000; // $0.10 USD (6 decimal places)
 
   /**
    * @notice Configuration for NFT minting contract storage
@@ -281,8 +281,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     });
 
     salesConfig = initializer.salesConfiguration;
-
-    holographMintFee = 100000; // $0.10 USD (6 decimals)
 
     // TODO: Need to make sure to initialize the metadata renderer
     if (initializer.metadataRenderer != address(0)) {
