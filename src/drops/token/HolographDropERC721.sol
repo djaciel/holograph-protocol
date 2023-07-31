@@ -489,7 +489,11 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       revert Presale_TooManyForAddress();
     }
 
+    // First mint the NFTs
     _mintNFTs(msgSender(), quantity);
+
+    // Then send the Holograph fee to the recipient (currently the Holograph Treasury)
+    _payoutHolographFee(quantity);
 
     HolographERC721Interface H721 = HolographERC721Interface(holographer());
     uint256 chainPrepend = H721.sourceGetChainPrepend();
@@ -502,6 +506,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       firstPurchasedTokenId: firstMintedTokenId
     });
 
+    // Refund any overpayment
     if (remainder > 0) {
       msgSender().call{value: remainder, gas: gasleft() > 210_000 ? 210_000 : gasleft()}("");
     }
@@ -732,17 +737,19 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   }
 
   function _payoutHolographFee(uint256 quantity) internal {
-    // Transfer protocol fee to recipient address
-    uint256 holographFee = getHolographFeeUsd(quantity);
-    uint256 nativeFee = _usdToWei(holographFee);
+    // Transfer protocol mint fee to recipient address
+    uint256 holographMintFeeWei = getHolographFeeWei(quantity);
 
     // Payout Holograph fee
     address payable holographFeeRecipient = payable(
       HolographInterface(HolographerInterface(holographer()).getHolograph()).getTreasury()
     );
 
-    (bool success, ) = holographFeeRecipient.call{value: nativeFee, gas: 210_000}("");
-    emit MintFeePayout(holographFee, holographFeeRecipient, success);
+    (bool success, ) = holographFeeRecipient.call{value: holographMintFeeWei, gas: 210_000}("");
+    if (!success) {
+      revert FeePaymentFailed();
+    }
+    emit MintFeePayout(holographMintFeeWei, holographFeeRecipient, success);
   }
 
   fallback() external payable override {

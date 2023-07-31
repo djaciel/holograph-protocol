@@ -66,7 +66,6 @@ contract HolographDropERC721Test is Test {
     115792089183396302089269705419353877679230723318366275194376439045705909141505; // large 256 bit number due to chain id prefix
 
   address public ownedSubscriptionManager;
-  uint256 private holographMintFee = 100000; // $0.10 USD (6 decimal places)
 
   struct Configuration {
     IMetadataRenderer metadataRenderer;

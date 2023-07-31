@@ -52,6 +52,8 @@ interface IHolographDropERC721 {
   error Purchase_TooManyForAddress();
   /// @notice Too many presale for address
   error Presale_TooManyForAddress();
+  /// @notice Fee payout failed
+  error FeePaymentFailed();
 
   // Admin errors
   /// @notice Royalty percentage too high
