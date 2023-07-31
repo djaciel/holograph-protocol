@@ -374,7 +374,7 @@ contract HolographDropERC721Test is Test {
   //     0x000000000000AAeB6D7670E522A718067333cd4E
   //   );
   //   vm.startPrank(address(0x666));
-  //   operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafeea3), true);
+  //   operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafe), true);
   //   vm.stopPrank();
   //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
 
@@ -384,25 +384,25 @@ contract HolographDropERC721Test is Test {
   //   customSource.manageMarketFilterSubscription(true);
   //   erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 10);
   //   HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
-  //   erc721Enforcer.setApprovalForAll(address(0xcafeea3), true);
+  //   erc721Enforcer.setApprovalForAll(address(0xcafe), true);
   //   vm.stopPrank();
-  //   vm.prank(address(0xcafeea3));
-  //   vm.expectRevert(abi.encodeWithSelector(IHolographDropERC721.OperatorNotAllowed.selector, address(0xcafeea3)));
+  //   vm.prank(address(0xcafe));
+  //   vm.expectRevert(abi.encodeWithSelector(IHolographDropERC721.OperatorNotAllowed.selector, address(0xcafe)));
   //   erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), FIRST_TOKEN_ID);
   //   vm.prank(DEFAULT_OWNER_ADDRESS);
   //   customSource.manageMarketFilterSubscription(false);
 
-  //   vm.prank(address(0xcafeea3));
+  //   vm.prank(address(0xcafe));
 
   //   /// DEBUG
   //   require(
-  //     erc721Enforcer.getApproved(FIRST_TOKEN_ID) == address(0xcafeea3) ||
-  //       erc721Enforcer.isApprovedForAll(DEFAULT_OWNER_ADDRESS, address(0xcafeea3)),
+  //     erc721Enforcer.getApproved(FIRST_TOKEN_ID) == address(0xcafe) ||
+  //       erc721Enforcer.isApprovedForAll(DEFAULT_OWNER_ADDRESS, address(0xcafe)),
   //     "Approval not set correctly"
   //   );
 
-  //   console.logBool(erc721Enforcer.getApproved(FIRST_TOKEN_ID) == address(0xcafeea3));
-  //   console.logBool(erc721Enforcer.isApprovedForAll(DEFAULT_OWNER_ADDRESS, address(0xcafeea3)));
+  //   console.logBool(erc721Enforcer.getApproved(FIRST_TOKEN_ID) == address(0xcafe));
+  //   console.logBool(erc721Enforcer.isApprovedForAll(DEFAULT_OWNER_ADDRESS, address(0xcafe)));
   //   /// END DEBUG
   //   erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), FIRST_TOKEN_ID);
   // }

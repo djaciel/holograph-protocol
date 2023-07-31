@@ -43,6 +43,11 @@
   },
   {
     "inputs": [],
+    "name": "FeePaymentFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "MarketFilterDAOAddressNotSupportedForChain",
     "type": "error"
   },
