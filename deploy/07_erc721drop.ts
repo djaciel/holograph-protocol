@@ -10,6 +10,7 @@ import {
   genesisDeriveFutureAddress,
   zeroAddress,
 } from '../scripts/utils/helpers';
+import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
@@ -79,6 +80,39 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
   } else {
     hre.deployments.log('"DropsMetadataRendererProxy" is already deployed.');
+    hre.deployments.log('Checking "DropsMetadataRendererProxy" source.');
+    if (
+      (await dropsMetadataRendererProxy.getDropsMetadataRenderer()).toLowerCase() !=
+      futureDropsMetadataRendererProxyAddress.toLowerCase()
+    ) {
+      hre.deployments.log('Need to set "DropsMetadataRendererProxy" source.');
+      const setDropsMetadataRendererTx = await MultisigAwareTx(
+        hre,
+        deployer,
+        'DropsMetadataRendererProxy',
+        dropsMetadataRendererProxy,
+        await dropsMetadataRendererProxy.populateTransaction.setDropsMetadataRenderer(
+          futureDropsMetadataRendererProxyAddress,
+          {
+            ...(await txParams({
+              hre,
+              from: deployer,
+              to: dropsMetadataRendererProxy,
+              data: await dropsMetadataRendererProxy.populateTransaction.setDropsMetadataRenderer(
+                futureDropsMetadataRendererProxyAddress
+              ),
+            })),
+          }
+        )
+      );
+      hre.deployments.log('Transaction hash:', setDropsMetadataRendererTx.hash);
+      await setDropsMetadataRendererTx.wait();
+      hre.deployments.log(
+        `Registered "DropsMetadataRenderer" to: ${await dropsMetadataRendererProxy.getDropsMetadataRenderer()}`
+      );
+    } else {
+      hre.deployments.log('"DropsMetadataRendererProxy" source is correct.');
+    }
   }
 
   // Deploy EditionsMetadataRenderer source contract
@@ -132,6 +166,39 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
   } else {
     hre.deployments.log('"EditionsMetadataRendererProxy" is already deployed.');
+    hre.deployments.log('Checking "EditionsMetadataRendererProxy" source.');
+    if (
+      (await editionsMetadataRendererProxy.getEditionsMetadataRenderer()).toLowerCase() !=
+      futureEditionsMetadataRendererAddress.toLowerCase()
+    ) {
+      hre.deployments.log('Need to set "EditionsMetadataRendererProxy" source.');
+      const setEditionsMetadataRendererTx = await MultisigAwareTx(
+        hre,
+        deployer,
+        'EditionsMetadataRendererProxy',
+        editionsMetadataRendererProxy,
+        await editionsMetadataRendererProxy.populateTransaction.setEditionsMetadataRenderer(
+          futureEditionsMetadataRendererAddress,
+          {
+            ...(await txParams({
+              hre,
+              from: deployer,
+              to: editionsMetadataRendererProxy,
+              data: await editionsMetadataRendererProxy.populateTransaction.setEditionsMetadataRenderer(
+                futureEditionsMetadataRendererAddress
+              ),
+            })),
+          }
+        )
+      );
+      hre.deployments.log('Transaction hash:', setEditionsMetadataRendererTx.hash);
+      await setEditionsMetadataRendererTx.wait();
+      hre.deployments.log(
+        `Registered "EditionsMetadataRenderer" to: ${await editionsMetadataRendererProxy.getEditionsMetadataRenderer()}`
+      );
+    } else {
+      hre.deployments.log('"EditionsMetadataRendererProxy" source is correct.');
+    }
   }
 
   // Deploy the HolographDropERC721 custom contract source

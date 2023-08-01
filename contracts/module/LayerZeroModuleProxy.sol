@@ -101,122 +101,60 @@
 
 pragma solidity 0.8.13;
 
-import "../abstract/ERC20H.sol";
+import "../abstract/Admin.sol";
+import "../abstract/Initializable.sol";
 
-import "../interface/ERC20.sol";
-import "../interface/HolographERC20Interface.sol";
-import "../interface/HolographInterface.sol";
-import "../interface/HolographerInterface.sol";
-
-/**
- * @title Holograph token (aka hToken), used to wrap and bridge native tokens across blockchains.
- * @author Holograph Foundation
- * @notice A smart contract for minting and managing Holograph's Bridgeable ERC20 Tokens.
- * @dev The entire logic and functionality of the smart contract is self-contained.
- */
-contract hToken is ERC20H {
+contract LayerZeroModuleProxy is Admin, Initializable {
   /**
-   * @dev Sample fee for unwrapping.
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.layerZeroModule')) - 1)
    */
-  uint16 private _feeBp; // 10000 == 100.00%
+  bytes32 constant _layerZeroModuleSlot = 0x7c89cf3f353cabaa2f43d6eba6b9682ecfdeedd31a3b76a8b3e17a61970fb7f0;
 
-  /**
-   * @dev List of supported Wrapped Tokens (equivalent), on current-chain.
-   */
-  mapping(address => bool) private _supportedWrappers;
-
-  /**
-   * @dev List of supported chains.
-   */
-  mapping(uint256 => bool) private _supportedChains;
-
-  /**
-   * @dev Event that is triggered when native token is converted into hToken.
-   */
-  event Deposit(address indexed from, uint256 amount);
-
-  /**
-   * @dev Event that is triggered when ERC20 token is converted into hToken.
-   */
-  event TokenDeposit(address indexed token, address indexed from, uint256 amount);
-
-  /**
-   * @dev Event that is triggered when hToken is converted into native token.
-   */
-  event Withdrawal(address indexed to, uint256 amount);
-
-  /**
-   * @dev Event that is triggered when hToken is converted into ERC20 token.
-   */
-  event TokenWithdrawal(address indexed token, address indexed to, uint256 amount);
-
-  /**
-   * @dev Constructor is left empty and init is used instead
-   */
   constructor() {}
 
-  /**
-   * @notice Used internally to initialize the contract instead of through a constructor
-   * @dev This function is called by the deployer/factory when creating a contract
-   * @param initPayload abi encoded payload to use for contract initilaization
-   */
-  function init(bytes memory initPayload) external override returns (bytes4) {
-    (address contractOwner, uint16 fee) = abi.decode(initPayload, (address, uint16));
-    _setOwner(contractOwner);
-    _feeBp = fee;
-    // run underlying initializer logic
-    return _init(initPayload);
-  }
-
-  /**
-   * @dev Send native token value, get back hToken equivalent.
-   * @param recipient Address of where to send the hToken(s) to.
-   */
-  function holographNativeToken(address recipient) external payable {
-    require(_supportedChains[block.chainid], "hToken: unsupported chain");
-    require(msg.value > 0, "hToken: no value received");
-    address sender = msgSender();
-    if (recipient == address(0)) {
-      recipient = sender;
+  function init(bytes memory data) external override returns (bytes4) {
+    require(!_isInitialized(), "HOLOGRAPH: already initialized");
+    (address layerZeroModule, bytes memory initCode) = abi.decode(data, (address, bytes));
+    assembly {
+      sstore(_adminSlot, origin())
+      sstore(_layerZeroModuleSlot, layerZeroModule)
     }
-    payable(holographer()).transfer(msg.value);
-    HolographERC20Interface(holographer()).sourceMint(recipient, msg.value);
-    emit Deposit(sender, msg.value);
+    (bool success, bytes memory returnData) = layerZeroModule.delegatecall(
+      abi.encodeWithSignature("init(bytes)", initCode)
+    );
+    bytes4 selector = abi.decode(returnData, (bytes4));
+    require(success && selector == Initializable.init.selector, "initialization failed");
+    _setInitialized();
+    return Initializable.init.selector;
   }
 
-  /**
-   * @dev Send hToken, get back native token value equivalent.
-   * @param recipient Address of where to send the native token(s) to.
-   */
-  function extractNativeToken(address payable recipient, uint256 amount) external {
-    require(_supportedChains[block.chainid], "hToken: unsupported chain");
-    address sender = msgSender();
-    require(ERC20(holographer()).balanceOf(sender) >= amount, "hToken: not enough hToken(s)");
-    require(holographer().balance >= amount, "hToken: not enough native tokens");
-    HolographERC20Interface(holographer()).sourceBurn(sender, amount);
-    uint256 fee = _feeBp == 0 ? 0 : (amount / 10000) * _feeBp;
-    if (fee > 0) {
-      HolographERC20Interface(HolographInterface(HolographerInterface(holographer()).getHolograph()).getTreasury())
-        .sourceTransfer(recipient, fee);
+  function getLayerZeroModule() external view returns (address layerZeroModule) {
+    assembly {
+      layerZeroModule := sload(_layerZeroModuleSlot)
     }
-    amount = amount - fee;
-    HolographERC20Interface(holographer()).sourceTransfer(recipient, amount);
-    emit Withdrawal(recipient, amount);
   }
 
-  function isSupportedChain(uint256 chain) external view returns (bool) {
-    return _supportedChains[chain];
+  function setLayerZeroModule(address layerZeroModule) external onlyAdmin {
+    assembly {
+      sstore(_layerZeroModuleSlot, layerZeroModule)
+    }
   }
 
-  function isSupportedWrapper(address token) external view returns (bool) {
-    return _supportedWrappers[token];
-  }
+  receive() external payable {}
 
-  function updateSupportedWrapper(address token, bool supported) external onlyOwner {
-    _supportedWrappers[token] = supported;
-  }
-
-  function updateSupportedChain(uint256 chain, bool supported) external onlyOwner {
-    _supportedChains[chain] = supported;
+  fallback() external payable {
+    assembly {
+      let layerZeroModule := sload(_layerZeroModuleSlot)
+      calldatacopy(0, 0, calldatasize())
+      let result := delegatecall(gas(), layerZeroModule, 0, calldatasize(), 0, 0)
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
+        revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
+      }
+    }
   }
 }
