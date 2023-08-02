@@ -485,13 +485,21 @@ contract HolographDropERC721Test is Test {
 
     // Check that the fee was sent to the treasury
     treasury = HolographTreasury(payable(Constants.getHolographTreasury()));
+    console.log("treasury balance", address(treasury).balance);
+    assertEq(address(treasury).balance, nativeFee);
+
+    // Get the treasury admin and keep track of what their balance is
     address treasuryAdmin = treasury.getAdmin();
-    console.logAddress(treasuryAdmin);
+    uint256 treasuryBalanceBefore = address(treasuryAdmin).balance;
     vm.prank(treasuryAdmin);
+
+    // Check that the treasury admin can withdraw the fee
     treasury.withdraw();
 
     // Is the fee we withdrew equal to the fee we expected?
-    assertEq(address(treasury).balance, nativeFee);
+    // We subtract the balance before from the balance after to get the fee that should have been transferred during the withdraw
+    uint256 treasuryBalanceAfter = address(treasuryAdmin).balance;
+    assertEq(treasuryBalanceAfter - treasuryBalanceBefore, nativeFee);
   }
 
   function test_PurchaseFree(uint64 amount) public setupTestDrop(10) {
