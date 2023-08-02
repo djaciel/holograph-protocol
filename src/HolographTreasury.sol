@@ -179,7 +179,7 @@ contract HolographTreasury is Admin, Initializable, HolographTreasuryInterface {
    */
   function withdraw() external onlyAdmin {
     uint256 balance = address(this).balance;
-    require(balance > 0, "No balance to withdraw");
+    require(balance > 0, "HOLOGRAPH: No balance to withdraw");
 
     (bool success, ) = payable(msg.sender).call{value: balance}("");
     require(success, "HOLOGRAPH: Transfer failed");
