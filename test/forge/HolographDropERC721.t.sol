@@ -11,6 +11,7 @@ import {SalesConfiguration} from "../../contracts/drops/struct/SalesConfiguratio
 import {SaleDetails} from "../../contracts/drops/struct/SaleDetails.sol";
 
 import {HolographFactory} from "../../contracts/HolographFactory.sol";
+import {HolographTreasury} from "../../contracts/HolographTreasury.sol";
 
 import {MockUser} from "./utils/MockUser.sol";
 import {Constants} from "./utils/Constants.sol";
@@ -47,6 +48,7 @@ contract HolographDropERC721Test is Test {
   MockUser public mockUser;
 
   HolographDropERC721 public erc721Drop;
+  HolographTreasury public treasury;
 
   DummyMetadataRenderer public dummyRenderer = new DummyMetadataRenderer();
   EditionsMetadataRenderer public editionsMetadataRenderer;
@@ -62,6 +64,7 @@ contract HolographDropERC721Test is Test {
   address payable public constant HOLOGRAPH_TREASURY_ADDRESS = payable(address(0x3));
   address payable constant TEST_ACCOUNT = payable(address(0x888));
   address public constant MEDIA_CONTRACT = address(0x666);
+
   uint256 public constant FIRST_TOKEN_ID =
     115792089183396302089269705419353877679230723318366275194376439045705909141505; // large 256 bit number due to chain id prefix
 
@@ -479,6 +482,16 @@ contract HolographDropERC721Test is Test {
     // First token ID is this long number due to the chain id prefix
     require(erc721Enforcer.ownerOf(FIRST_TOKEN_ID) == address(TEST_ACCOUNT), "Owner is wrong for new minted token");
     assertEq(address(sourceContractAddress).balance, amount * nativePrice - nativeFee);
+
+    // Check that the fee was sent to the treasury
+    treasury = HolographTreasury(payable(Constants.getHolographTreasury()));
+    address treasuryAdmin = treasury.getAdmin();
+    console.logAddress(treasuryAdmin);
+    vm.prank(treasuryAdmin);
+    treasury.withdraw();
+
+    // Is the fee we withdrew equal to the fee we expected?
+    assertEq(address(treasury).balance, nativeFee);
   }
 
   function test_PurchaseFree(uint64 amount) public setupTestDrop(10) {
