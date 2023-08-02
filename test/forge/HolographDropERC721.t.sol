@@ -413,7 +413,7 @@ contract HolographDropERC721Test is Test {
   function test_OnlyAdminEnableSubscription() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
     HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
     HolographDropERC721 customSource = HolographDropERC721(payable(holographerInterface.getSourceContract()));
-    vm.startPrank(address(0xcafecafe));
+    vm.startPrank(address(0xcafe));
     vm.expectRevert("ERC721: owner only function");
     customSource.manageMarketFilterSubscription(true);
     vm.stopPrank();
@@ -423,7 +423,7 @@ contract HolographDropERC721Test is Test {
     HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
     HolographDropERC721 customSource = HolographDropERC721(payable(holographerInterface.getSourceContract()));
     bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.unregister.selector, address(customSource));
-    vm.startPrank(address(0xcafecafe));
+    vm.startPrank(address(0xcafe));
     vm.expectRevert("ERC721: owner only function");
     customSource.updateMarketFilterSettings(baseCall);
     vm.stopPrank();
@@ -500,14 +500,6 @@ contract HolographDropERC721Test is Test {
     // We subtract the balance before from the balance after to get the fee that should have been transferred during the withdraw
     uint256 treasuryBalanceAfter = address(treasuryAdmin).balance;
     assertEq(treasuryBalanceAfter - treasuryBalanceBefore, nativeFee);
-  }
-
-  function test_OnlyAdminCanWithdrawFromTreasury() public {
-    treasury = HolographTreasury(payable(Constants.getHolographTreasury()));
-    vm.startPrank(address(0xcafecafe));
-    vm.expectRevert("HOLOGRAPH: admin only function");
-    treasury.withdraw();
-    vm.stopPrank();
   }
 
   function test_PurchaseFree(uint64 amount) public setupTestDrop(10) {
@@ -603,6 +595,14 @@ contract HolographDropERC721Test is Test {
 
     assertEq(erc721Drop.saleDetails().totalMinted, 1);
     assertEq(erc721Enforcer.ownerOf(FIRST_TOKEN_ID), address(TEST_ACCOUNT));
+  }
+
+  function test_OnlyAdminCanWithdrawFromTreasury() public {
+    treasury = HolographTreasury(payable(Constants.getHolographTreasury()));
+    vm.startPrank(address(0xcafe));
+    vm.expectRevert("HOLOGRAPH: admin only function");
+    treasury.withdraw();
+    vm.stopPrank();
   }
 
   function test_MintAdmin() public setupTestDrop(10) {
