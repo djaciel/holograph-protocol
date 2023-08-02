@@ -502,6 +502,14 @@ contract HolographDropERC721Test is Test {
     assertEq(treasuryBalanceAfter - treasuryBalanceBefore, nativeFee);
   }
 
+  function test_OnlyAdminCanWithdrawFromTreasury() public {
+    treasury = HolographTreasury(payable(Constants.getHolographTreasury()));
+    vm.startPrank(address(0xcafecafe));
+    vm.expectRevert("HOLOGRAPH: admin only function");
+    treasury.withdraw();
+    vm.stopPrank();
+  }
+
   function test_PurchaseFree(uint64 amount) public setupTestDrop(10) {
     // We assume that the amount is at least one and less than or equal to the edition size given in modifier
     vm.assume(amount > 0 && amount <= 10);
