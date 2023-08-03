@@ -60,6 +60,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     let contracts: string[] = [
       'HolographUtilityToken',
       'hToken',
+      'hTokenProxy',
       'Holograph',
       'HolographBridge',
       'HolographBridgeProxy',

@@ -64,6 +64,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'DropsMetadataRendererProxy',
     generateInitCode(['address', 'bytes'], [futureDropsMetadataRendererAddress, generateInitCode([], [])])
   );
+  let dropsMetadataRendererProxy = (await hre.ethers.getContractAt(
+    'DropsMetadataRendererProxy',
+    futureDropsMetadataRendererProxyAddress,
+    deployer
+  )) as Contract;
   hre.deployments.log('the future "DropsMetadataRendererProxy" address is', futureDropsMetadataRendererProxyAddress);
   let dropsMetadataRendererProxyDeployedCode: string = await hre.provider.send('eth_getCode', [
     futureDropsMetadataRendererProxyAddress,
@@ -71,7 +76,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   ]);
   if (dropsMetadataRendererProxyDeployedCode == '0x' || dropsMetadataRendererProxyDeployedCode == '') {
     hre.deployments.log('"DropsMetadataRendererProxy" bytecode not found, need to deploy"');
-    let dropsMetadataRendererProxy = await genesisDeployHelper(
+    dropsMetadataRendererProxy = await genesisDeployHelper(
       hre,
       salt,
       'DropsMetadataRendererProxy',
@@ -147,6 +152,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'EditionsMetadataRendererProxy',
     generateInitCode(['address', 'bytes'], [futureEditionsMetadataRendererAddress, generateInitCode([], [])])
   );
+  let editionsMetadataRendererProxy = (await hre.ethers.getContractAt(
+    'EditionsMetadataRendererProxy',
+    futureEditionsMetadataRendererProxyAddress,
+    deployer
+  )) as Contract;
   hre.deployments.log(
     'the future "EditionsMetadataRendererProxy" address is',
     futureEditionsMetadataRendererProxyAddress
@@ -157,7 +167,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   ]);
   if (editionsMetadataRendererProxyDeployedCode == '0x' || editionsMetadataRendererProxyDeployedCode == '') {
     hre.deployments.log('"EditionsMetadataRendererProxy" bytecode not found, need to deploy"');
-    let editionsMetadataRendererProxy = await genesisDeployHelper(
+    editionsMetadataRendererProxy = await genesisDeployHelper(
       hre,
       salt,
       'EditionsMetadataRendererProxy',

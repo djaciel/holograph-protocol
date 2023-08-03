@@ -284,7 +284,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       }
       const chain = '0x' + network.holographId.toString(16).padStart(8, '0');
       if ((await registry.getHToken(chain)) != futureHTokenAddress) {
-        hre.deployments.log('Updated "Registry" with "hToken ' + data.tokenSymbol);
+        hre.deployments.log(
+          'Updated "Registry" with "hToken ' +
+            data.tokenSymbol +
+            '" for holographChainId #' +
+            Number.parseInt(chain).toString()
+        );
         const setHTokenTx = await MultisigAwareTx(
           hre,
           deployer,
