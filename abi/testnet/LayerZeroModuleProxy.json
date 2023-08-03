@@ -54,50 +54,11 @@
   },
   {
     "inputs": [],
-    "name": "getBridge",
+    "name": "getLayerZeroModule",
     "outputs": [
       {
         "internalType": "address",
-        "name": "bridge",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getHolograph",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "holograph",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getOperator",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "operator",
-        "type": "address"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "getRegistry",
-    "outputs": [
-      {
-        "internalType": "address",
-        "name": "registry",
+        "name": "layerZeroModule",
         "type": "address"
       }
     ],
@@ -108,7 +69,7 @@
     "inputs": [
       {
         "internalType": "bytes",
-        "name": "initPayload",
+        "name": "data",
         "type": "bytes"
       }
     ],
@@ -140,57 +101,11 @@
     "inputs": [
       {
         "internalType": "address",
-        "name": "bridge",
+        "name": "layerZeroModule",
         "type": "address"
       }
     ],
-    "name": "setBridge",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "holograph",
-        "type": "address"
-      }
-    ],
-    "name": "setHolograph",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "operator",
-        "type": "address"
-      }
-    ],
-    "name": "setOperator",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "registry",
-        "type": "address"
-      }
-    ],
-    "name": "setRegistry",
-    "outputs": [],
-    "stateMutability": "nonpayable",
-    "type": "function"
-  },
-  {
-    "inputs": [],
-    "name": "withdraw",
+    "name": "setLayerZeroModule",
     "outputs": [],
     "stateMutability": "nonpayable",
     "type": "function"
