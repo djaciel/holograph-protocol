@@ -111,24 +111,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         'Deployed a "HolographUtilityToken" empty contract for block explorer verification purposes.'
       );
     }
-
-    const hToken: Contract | null = await hre.ethers.getContractOrNull('hToken', deployer);
-    if (hToken == null) {
-      await hre.deployments.deploy('hToken', {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: '0x0000000000000000000000000000000000000000',
-          gasLimit: await hre.ethers.provider.estimateGas(
-            (await hre.ethers.getContractFactory('hToken')).getDeployTransaction()
-          ),
-        })),
-        args: [],
-        log: true,
-        waitConfirmations: 1,
-      });
-      hre.deployments.log('Deployed a "hToken" empty contract for block explorer verification purposes.');
-    }
   }
 };
 

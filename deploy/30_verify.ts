@@ -84,6 +84,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       'CxipERC721Proxy',
       'Faucet',
       'LayerZeroModule',
+      'LayerZeroModuleProxy',
       'EditionsMetadataRenderer',
       'EditionsMetadataRendererProxy',
       'OVM_GasPriceOracle',
