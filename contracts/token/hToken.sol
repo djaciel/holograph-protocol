@@ -162,6 +162,12 @@ contract hToken is ERC20H {
    */
   function init(bytes memory initPayload) external override returns (bytes4) {
     (address contractOwner, uint16 fee) = abi.decode(initPayload, (address, uint16));
+    assembly {
+      /**
+       * @dev bytes32(uint256(keccak256('eip1967.Holograph.admin')) - 1)
+       */
+      sstore(0x3f106594dc74eeef980dae234cde8324dc2497b13d27a0c59e55bd2ca10a07c9, contractOwner)
+    }
     _setOwner(contractOwner);
     _feeBp = fee;
     // run underlying initializer logic
