@@ -169,6 +169,12 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    */
   address public marketFilterAddress;
 
+  /// @notice Holograph Mint Fee
+  uint256 public constant HOLOGRAPH_MINT_FEE = 100000; // $0.10 USD (6 decimal places)
+
+  /// @dev Gas limit for transferring funds
+  uint256 private constant STATIC_GAS_LIMIT = 210_000;
+
   /**
    * @notice Configuration for NFT minting contract storage
    */
@@ -420,6 +426,18 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       });
   }
 
+  /// @notice The Holograph fee is a flat fee for each mint in USD
+  /// @dev Gets the Holograph protocol fee for amount of mints in USD
+  function getHolographFeeUsd(uint256 quantity) public view returns (uint256 fee) {
+    fee = HOLOGRAPH_MINT_FEE * quantity;
+  }
+
+  /// @notice The Holograph fee is a flat fee for each mint in wei after conversion
+  /// @dev Gets the Holograph protocol fee for amount of mints in wei
+  function getHolographFeeWei(uint256 quantity) public view returns (uint256) {
+    return _usdToWei(HOLOGRAPH_MINT_FEE * quantity);
+  }
+
   /**
    * @dev Number of NFTs the user has minted per address
    * @param minter to get counts for
@@ -449,7 +467,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   }
 
   /**
-   * @notice Convert USD price to current price in native Ether
+   * @notice Convert USD price to current price in native Ether units
    */
   function getNativePrice() external view returns (uint256) {
     return _usdToWei(salesConfig.publicSalePrice);
@@ -493,9 +511,11 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     uint256 quantity
   ) external payable nonReentrant canMintTokens(quantity) onlyPublicSaleActive returns (uint256) {
     uint256 salePrice = _usdToWei(salesConfig.publicSalePrice);
+    uint256 holographMintFeeInWei = _usdToWei(HOLOGRAPH_MINT_FEE);
 
-    if (msg.value < salePrice * quantity) {
-      revert Purchase_WrongPrice(salesConfig.publicSalePrice * quantity);
+    if (msg.value < (salePrice + holographMintFeeInWei) * quantity) {
+      // The error will display the wrong price that was sent in USD
+      revert Purchase_WrongPrice((salesConfig.publicSalePrice + HOLOGRAPH_MINT_FEE) * quantity);
     }
     uint256 remainder = msg.value - (salePrice * quantity);
 
@@ -509,7 +529,11 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       revert Purchase_TooManyForAddress();
     }
 
+    // First mint the NFTs
     _mintNFTs(msgSender(), quantity);
+
+    // Then send the Holograph fee to the recipient (currently the Holograph Treasury)
+    _payoutHolographFee(quantity);
 
     HolographERC721Interface H721 = HolographERC721Interface(holographer());
     uint256 chainPrepend = H721.sourceGetChainPrepend();
@@ -522,8 +546,9 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       firstPurchasedTokenId: firstMintedTokenId
     });
 
+    // Refund any overpayment
     if (remainder > 0) {
-      msgSender().call{value: remainder, gas: gasleft() > 210_000 ? 210_000 : gasleft()}("");
+      msgSender().call{value: remainder, gas: gasleft() > STATIC_GAS_LIMIT ? STATIC_GAS_LIMIT : gasleft()}("");
     }
 
     return firstMintedTokenId;
@@ -566,7 +591,11 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       revert Presale_TooManyForAddress();
     }
 
+    // First mint the NFTs
     _mintNFTs(msgSender(), quantity);
+
+    // Then send the Holograph fee to the recipient (currently the Holograph Treasury)
+    _payoutHolographFee(quantity);
 
     HolographERC721Interface H721 = HolographERC721Interface(holographer());
     uint256 chainPrepend = H721.sourceGetChainPrepend();
@@ -579,8 +608,9 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       firstPurchasedTokenId: firstMintedTokenId
     });
 
+    // Refund any overpayment
     if (remainder > 0) {
-      msgSender().call{value: remainder, gas: gasleft() > 210_000 ? 210_000 : gasleft()}("");
+      msgSender().call{value: remainder, gas: gasleft() > STATIC_GAS_LIMIT ? STATIC_GAS_LIMIT : gasleft()}("");
     }
 
     return firstMintedTokenId;
@@ -728,7 +758,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   }
 
   /**
-   * @notice This withdraws ETH from the contract to the contract owner.
+   * @notice This withdraws native tokens from the contract to the contract owner.
    */
   function withdraw() external override nonReentrant {
     if (config.fundsRecipient == address(0)) {
@@ -736,36 +766,22 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     }
     address sender = msgSender();
 
-    // Get fee amount
+    // Get the contract balance
     uint256 funds = address(this).balance;
-    address payable feeRecipient = payable(
-      HolographInterface(HolographerInterface(holographer()).getHolograph()).getTreasury()
-    );
-    // for now set it to 0 since there is no fee
-    uint256 holographFee = 0;
 
     // Check if withdraw is allowed for sender
-    if (sender != config.fundsRecipient && sender != _getOwner() && sender != feeRecipient) {
+    if (sender != config.fundsRecipient && sender != _getOwner()) {
       revert Access_WithdrawNotAllowed();
     }
 
-    // Payout HOLOGRAPH fee
-    if (holographFee > 0) {
-      (bool successFee, ) = feeRecipient.call{value: holographFee, gas: 210_000}("");
-      if (!successFee) {
-        revert Withdraw_FundsSendFailure();
-      }
-      funds -= holographFee;
-    }
-
     // Payout recipient
-    (bool successFunds, ) = config.fundsRecipient.call{value: funds, gas: 210_000}("");
+    (bool successFunds, ) = config.fundsRecipient.call{value: funds, gas: STATIC_GAS_LIMIT}("");
     if (!successFunds) {
       revert Withdraw_FundsSendFailure();
     }
 
     // Emit event for indexing
-    emit FundsWithdrawn(sender, config.fundsRecipient, funds, feeRecipient, holographFee);
+    emit FundsWithdrawn(sender, config.fundsRecipient, funds);
   }
 
   /**
@@ -820,6 +836,22 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       H721.sourceMint(recipient, tokenId);
       // uint256 id = chainPrepend + uint256(tokenId);
     }
+  }
+
+  function _payoutHolographFee(uint256 quantity) internal {
+    // Transfer protocol mint fee to recipient address
+    uint256 holographMintFeeWei = getHolographFeeWei(quantity);
+
+    // Payout Holograph fee
+    address payable holographFeeRecipient = payable(
+      HolographInterface(HolographerInterface(holographer()).getHolograph()).getTreasury()
+    );
+
+    (bool success, ) = holographFeeRecipient.call{value: holographMintFeeWei, gas: STATIC_GAS_LIMIT}("");
+    if (!success) {
+      revert FeePaymentFailed();
+    }
+    emit MintFeePayout(holographMintFeeWei, holographFeeRecipient, success);
   }
 
   fallback() external payable override {

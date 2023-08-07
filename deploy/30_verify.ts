@@ -39,7 +39,12 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     arbitrumNova: 'ArbitrumNova',
     arbitrumOne: 'ArbitrumOne',
     arbitrumTestnetGoerli: 'ArbitrumTestnetGoerli',
+    mantle: 'Mantle',
     mantleTestnet: 'MantleTestnet',
+    base: 'Base',
+    baseTestnetGoerli: 'BaseTestnetGoerli',
+    zora: 'Zora',
+    zoraTestnetGoerli: 'ZoraTestnetGoerli',
   };
 
   let targetDropsPriceOracle = 'DummyDropsPriceOracle';
@@ -55,6 +60,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     let contracts: string[] = [
       'HolographUtilityToken',
       'hToken',
+      'hTokenProxy',
       'Holograph',
       'HolographBridge',
       'HolographBridgeProxy',
@@ -79,6 +85,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       'CxipERC721Proxy',
       'Faucet',
       'LayerZeroModule',
+      'LayerZeroModuleProxy',
       'EditionsMetadataRenderer',
       'EditionsMetadataRendererProxy',
       'OVM_GasPriceOracle',

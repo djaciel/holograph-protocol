@@ -9,6 +9,11 @@ import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
 
 contract DropsPriceOracleMantleTestnet is Admin, Initializable, IDropsPriceOracle {
   /**
+   * @dev bytes32(uint256(keccak256('eip1967.Holograph.tokenPriceRatio')) - 1)
+   */
+  bytes32 constant _tokenPriceRatioSlot = 0x562ce994878444f1ca8bcf3afcea513b950965abed659462312e8fdd38c020a1;
+
+  /**
    * @dev Constructor is left empty and init is used instead
    */
   constructor() {}
@@ -21,6 +26,7 @@ contract DropsPriceOracleMantleTestnet is Admin, Initializable, IDropsPriceOracl
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
     assembly {
       sstore(_adminSlot, origin())
+      sstore(_tokenPriceRatioSlot, 0x0000000000000000000000000000000000000000000000000de0b6b3a7640000)
     }
     _setInitialized();
     return Initializable.init.selector;
@@ -28,44 +34,41 @@ contract DropsPriceOracleMantleTestnet is Admin, Initializable, IDropsPriceOracl
 
   /**
    * @notice Convert USD value to native gas token value
-   * @dev It is important to note that different USD stablecoins use different decimal places.
    * @param usdAmount a 6 decimal places USD amount
    */
-  function convertUsdToWei(uint256 usdAmount) external pure returns (uint256 weiAmount) {
-    weiAmount = (_getUSDC(usdAmount) + _getUSDT(usdAmount)) / 2;
-  }
-
-  function _getUSDC(uint256 usdAmount) internal pure returns (uint256 weiAmount) {
-    // add decimal places for amount IF decimals are above 6!
-    // usdAmount = usdAmount * (10**(18 - 6));
-    // (uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdcPool.getReserves();
-    uint112 _reserve0 = 185186616552407552407159;
-    uint112 _reserve1 = 207981749778;
-    // x is always the wrapped native token
-    uint256 x = _reserve0;
+  function convertUsdToWei(uint256 usdAmount) external view returns (uint256 weiAmount) {
+    // USD is with 6 decimal places
+    // MNT is with 18 decimal places
+    // we add decimal places for USD to match MNT decimals
+    usdAmount = usdAmount * (10 ** (18 - 6));
+    // x is always native token / WMNT
+    // we use precision of 21
+    uint256 x = 1000000000000000000 * (10 ** 21);
     // y is always USD token / USDC
-    uint256 y = _reserve1;
+    // load token price ratio
+    uint256 tokenPriceRatio;
+    assembly {
+      tokenPriceRatio := sload(_tokenPriceRatioSlot)
+    }
+    // in our case, we use ratio for defining USD cost of 1 MNT
+    // we use precision of 21
+    uint256 y = tokenPriceRatio * (10 ** 21);
 
     uint256 numerator = (x * usdAmount) * 1000;
-    uint256 denominator = (y - usdAmount) * 997;
+    uint256 denominator = (y - usdAmount) * 1000;
 
     weiAmount = (numerator / denominator) + 1;
   }
 
-  function _getUSDT(uint256 usdAmount) internal pure returns (uint256 weiAmount) {
-    // add decimal places for amount IF decimals are above 6!
-    // usdAmount = usdAmount * (10**(18 - 6));
-    // (uint112 _reserve0, uint112 _reserve1,) = SushiV2UsdtPool.getReserves();
-    uint112 _reserve0 = 13799757434002573084812;
-    uint112 _reserve1 = 15484391886;
-    // x is always the wrapped native token
-    uint256 x = _reserve0;
-    // y is always USD token / USDT
-    uint256 y = _reserve1;
+  function getTokenPriceRatio() external view returns (uint256 tokenPriceRatio) {
+    assembly {
+      tokenPriceRatio := sload(_tokenPriceRatioSlot)
+    }
+  }
 
-    uint256 numerator = (x * usdAmount) * 1000;
-    uint256 denominator = (y - usdAmount) * 997;
-
-    weiAmount = (numerator / denominator) + 1;
+  function setTokenPriceRatio(uint256 tokenPriceRatio) external onlyAdmin {
+    assembly {
+      sstore(_tokenPriceRatioSlot, tokenPriceRatio)
+    }
   }
 }

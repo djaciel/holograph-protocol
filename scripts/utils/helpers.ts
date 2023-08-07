@@ -418,11 +418,11 @@ const getGasPrice = async function (): Promise<GasParams> {
     // loop and wait until gas price stabilizes
 
     // TODO: Disabled for now because it is causing the tx to never go through
-    // while (gasPrice.gt(global.__maxGasPrice) || bribe.gt(global.__maxGasBribe)) {
-    // await gasService.wait(1);
-    gasPrice = gasPricing.gasPrice!.mul(global.__gasPriceMultiplier).div(BigNumber.from('10000'));
-    bribe = gasPricing.isEip1559 ? gasPrice.sub(gasPricing.nextBlockFee!) : BigNumber.from('0');
-    // }
+    while (gasPrice.gt(global.__maxGasPrice) || bribe.gt(global.__maxGasBribe)) {
+      await gasService.wait(1);
+      //      gasPrice = gasPricing.gasPrice!.mul(global.__gasPriceMultiplier).div(BigNumber.from('10000'));
+      //      bribe = gasPricing.isEip1559 ? gasPrice.sub(gasPricing.nextBlockFee!) : BigNumber.from('0');
+    }
 
     if (gasPricing.isEip1559) {
       return {
