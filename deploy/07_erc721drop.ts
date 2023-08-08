@@ -10,6 +10,7 @@ import {
   genesisDeriveFutureAddress,
   zeroAddress,
 } from '../scripts/utils/helpers';
+import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
@@ -63,6 +64,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'DropsMetadataRendererProxy',
     generateInitCode(['address', 'bytes'], [futureDropsMetadataRendererAddress, generateInitCode([], [])])
   );
+  let dropsMetadataRendererProxy = (await hre.ethers.getContractAt(
+    'DropsMetadataRendererProxy',
+    futureDropsMetadataRendererProxyAddress,
+    deployer
+  )) as Contract;
   hre.deployments.log('the future "DropsMetadataRendererProxy" address is', futureDropsMetadataRendererProxyAddress);
   let dropsMetadataRendererProxyDeployedCode: string = await hre.provider.send('eth_getCode', [
     futureDropsMetadataRendererProxyAddress,
@@ -70,7 +76,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   ]);
   if (dropsMetadataRendererProxyDeployedCode == '0x' || dropsMetadataRendererProxyDeployedCode == '') {
     hre.deployments.log('"DropsMetadataRendererProxy" bytecode not found, need to deploy"');
-    let dropsMetadataRendererProxy = await genesisDeployHelper(
+    dropsMetadataRendererProxy = await genesisDeployHelper(
       hre,
       salt,
       'DropsMetadataRendererProxy',
@@ -79,6 +85,39 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
   } else {
     hre.deployments.log('"DropsMetadataRendererProxy" is already deployed.');
+    hre.deployments.log('Checking "DropsMetadataRendererProxy" source.');
+    if (
+      (await dropsMetadataRendererProxy.getDropsMetadataRenderer()).toLowerCase() !=
+      futureDropsMetadataRendererProxyAddress.toLowerCase()
+    ) {
+      hre.deployments.log('Need to set "DropsMetadataRendererProxy" source.');
+      const setDropsMetadataRendererTx = await MultisigAwareTx(
+        hre,
+        deployer,
+        'DropsMetadataRendererProxy',
+        dropsMetadataRendererProxy,
+        await dropsMetadataRendererProxy.populateTransaction.setDropsMetadataRenderer(
+          futureDropsMetadataRendererProxyAddress,
+          {
+            ...(await txParams({
+              hre,
+              from: deployer,
+              to: dropsMetadataRendererProxy,
+              data: await dropsMetadataRendererProxy.populateTransaction.setDropsMetadataRenderer(
+                futureDropsMetadataRendererProxyAddress
+              ),
+            })),
+          }
+        )
+      );
+      hre.deployments.log('Transaction hash:', setDropsMetadataRendererTx.hash);
+      await setDropsMetadataRendererTx.wait();
+      hre.deployments.log(
+        `Registered "DropsMetadataRenderer" to: ${await dropsMetadataRendererProxy.getDropsMetadataRenderer()}`
+      );
+    } else {
+      hre.deployments.log('"DropsMetadataRendererProxy" source is correct.');
+    }
   }
 
   // Deploy EditionsMetadataRenderer source contract
@@ -113,6 +152,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'EditionsMetadataRendererProxy',
     generateInitCode(['address', 'bytes'], [futureEditionsMetadataRendererAddress, generateInitCode([], [])])
   );
+  let editionsMetadataRendererProxy = (await hre.ethers.getContractAt(
+    'EditionsMetadataRendererProxy',
+    futureEditionsMetadataRendererProxyAddress,
+    deployer
+  )) as Contract;
   hre.deployments.log(
     'the future "EditionsMetadataRendererProxy" address is',
     futureEditionsMetadataRendererProxyAddress
@@ -123,7 +167,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   ]);
   if (editionsMetadataRendererProxyDeployedCode == '0x' || editionsMetadataRendererProxyDeployedCode == '') {
     hre.deployments.log('"EditionsMetadataRendererProxy" bytecode not found, need to deploy"');
-    let editionsMetadataRendererProxy = await genesisDeployHelper(
+    editionsMetadataRendererProxy = await genesisDeployHelper(
       hre,
       salt,
       'EditionsMetadataRendererProxy',
@@ -132,6 +176,39 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
   } else {
     hre.deployments.log('"EditionsMetadataRendererProxy" is already deployed.');
+    hre.deployments.log('Checking "EditionsMetadataRendererProxy" source.');
+    if (
+      (await editionsMetadataRendererProxy.getEditionsMetadataRenderer()).toLowerCase() !=
+      futureEditionsMetadataRendererAddress.toLowerCase()
+    ) {
+      hre.deployments.log('Need to set "EditionsMetadataRendererProxy" source.');
+      const setEditionsMetadataRendererTx = await MultisigAwareTx(
+        hre,
+        deployer,
+        'EditionsMetadataRendererProxy',
+        editionsMetadataRendererProxy,
+        await editionsMetadataRendererProxy.populateTransaction.setEditionsMetadataRenderer(
+          futureEditionsMetadataRendererAddress,
+          {
+            ...(await txParams({
+              hre,
+              from: deployer,
+              to: editionsMetadataRendererProxy,
+              data: await editionsMetadataRendererProxy.populateTransaction.setEditionsMetadataRenderer(
+                futureEditionsMetadataRendererAddress
+              ),
+            })),
+          }
+        )
+      );
+      hre.deployments.log('Transaction hash:', setEditionsMetadataRendererTx.hash);
+      await setEditionsMetadataRendererTx.wait();
+      hre.deployments.log(
+        `Registered "EditionsMetadataRenderer" to: ${await editionsMetadataRendererProxy.getEditionsMetadataRenderer()}`
+      );
+    } else {
+      hre.deployments.log('"EditionsMetadataRendererProxy" source is correct.');
+    }
   }
 
   // Deploy the HolographDropERC721 custom contract source
@@ -147,7 +224,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         deployer.address, // fundsRecipient
         0, // 1000 editions
         1000, // 10% royalty
-        true, // enableOpenSeaRoyaltyRegistry
+        false, // enableOpenSeaRoyaltyRegistry
         [0, 0, 0, 0, 0, 0, '0x' + '00'.repeat(32)], // salesConfig
         futureEditionsMetadataRendererProxyAddress, // metadataRenderer
         generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit

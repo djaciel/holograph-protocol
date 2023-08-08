@@ -41,7 +41,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       args: ['Wrapped ETH (MOCK)', 'WETHmock', 18, 'ERC20Mock', '1'],
       log: true,
       waitConfirmations: 1,
-    });
+    } as any);
   }
 };
 

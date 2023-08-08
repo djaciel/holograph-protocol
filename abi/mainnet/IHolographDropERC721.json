@@ -43,6 +43,11 @@
   },
   {
     "inputs": [],
+    "name": "FeePaymentFailed",
+    "type": "error"
+  },
+  {
+    "inputs": [],
     "name": "MarketFilterDAOAddressNotSupportedForChain",
     "type": "error"
   },
@@ -162,18 +167,6 @@
         "indexed": false,
         "internalType": "uint256",
         "name": "amount",
-        "type": "uint256"
-      },
-      {
-        "indexed": false,
-        "internalType": "address",
-        "name": "feeRecipient",
-        "type": "address"
-      },
-      {
-        "indexed": false,
-        "internalType": "uint256",
-        "name": "feeAmount",
         "type": "uint256"
       }
     ],
