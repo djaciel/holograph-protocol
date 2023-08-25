@@ -234,6 +234,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"OVM_GasPriceOracle" is already deployed..');
   }
 
+  // LayerZeroModule
   const futureLayerZeroModuleAddress = await genesisDeriveFutureAddress(
     hre,
     salt,
@@ -252,7 +253,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   );
   hre.deployments.log('the future "LayerZeroModule" address is', futureLayerZeroModuleAddress);
 
-  // LayerZeroModule
   let layerZeroModuleDeployedCode: string = await hre.provider.send('eth_getCode', [
     futureLayerZeroModuleAddress,
     'latest',
@@ -272,14 +272,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           'uint32[]',
           'struct(uint256,uint256,uint256,uint256,uint256,uint256)[]',
         ],
-        [
-          await holograph.getBridge(),
-          await holograph.getInterfaces(),
-          await holograph.getOperator(),
-          futureOptimismGasPriceOracleAddress,
-          chainIds,
-          gasParameters,
-        ]
+        [zeroAddress, zeroAddress, zeroAddress, zeroAddress, [], []]
       ),
       futureLayerZeroModuleAddress
     );
@@ -287,20 +280,87 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"LayerZeroModule" is already deployed..');
   }
 
+  // LayerZeroModuleProxy
+  const futureLayerZeroModuleProxyAddress = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'LayerZeroModuleProxy',
+    generateInitCode(
+      ['address', 'bytes'],
+      [
+        zeroAddress,
+        generateInitCode(
+          [
+            'address',
+            'address',
+            'address',
+            'address',
+            'uint32[]',
+            'struct(uint256,uint256,uint256,uint256,uint256,uint256)[]',
+          ],
+          [zeroAddress, zeroAddress, zeroAddress, zeroAddress, [], []]
+        ),
+      ]
+    )
+  );
+  hre.deployments.log('the future "LayerZeroModuleProxy" address is', futureLayerZeroModuleProxyAddress);
+
+  let layerZeroModuleProxyDeployedCode: string = await hre.provider.send('eth_getCode', [
+    futureLayerZeroModuleProxyAddress,
+    'latest',
+  ]);
+  if (layerZeroModuleProxyDeployedCode == '0x' || layerZeroModuleProxyDeployedCode == '') {
+    hre.deployments.log('"LayerZeroModuleProxy" bytecode not found, need to deploy"');
+    let layerZeroModuleProxy = await genesisDeployHelper(
+      hre,
+      salt,
+      'LayerZeroModuleProxy',
+      generateInitCode(
+        ['address', 'bytes'],
+        [
+          futureLayerZeroModuleAddress,
+          generateInitCode(
+            [
+              'address',
+              'address',
+              'address',
+              'address',
+              'uint32[]',
+              'struct(uint256,uint256,uint256,uint256,uint256,uint256)[]',
+            ],
+            [
+              await holograph.getBridge(),
+              await holograph.getInterfaces(),
+              await holograph.getOperator(),
+              futureOptimismGasPriceOracleAddress,
+              chainIds,
+              gasParameters,
+            ]
+          ),
+        ]
+      ),
+      futureLayerZeroModuleProxyAddress
+    );
+  } else {
+    hre.deployments.log('"LayerZeroModuleProxy" is already deployed..');
+  }
+
   const holographOperator = ((await hre.ethers.getContract('HolographOperator', deployer)) as Contract).attach(
     await holograph.getOperator()
   );
 
-  if ((await holographOperator.getMessagingModule()).toLowerCase() != futureLayerZeroModuleAddress.toLowerCase()) {
+  if ((await holographOperator.getMessagingModule()).toLowerCase() != futureLayerZeroModuleProxyAddress.toLowerCase()) {
     const lzTx = await MultisigAwareTx(
       hre,
       deployer,
-      await holographOperator.populateTransaction.setMessagingModule(futureLayerZeroModuleAddress, {
+      'HolographOperator',
+      holographOperator,
+      await holographOperator.populateTransaction.setMessagingModule(futureLayerZeroModuleProxyAddress, {
         ...(await txParams({
           hre,
           from: deployer,
           to: holographOperator,
-          data: holographOperator.populateTransaction.setMessagingModule(futureLayerZeroModuleAddress),
+          data: holographOperator.populateTransaction.setMessagingModule(futureLayerZeroModuleProxyAddress),
         })),
       })
     );
@@ -311,13 +371,17 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log(`MessagingModule is already registered to: ${await holographOperator.getMessagingModule()}`);
   }
 
-  const lzModule = (await hre.ethers.getContract('LayerZeroModule', deployer)) as Contract;
+  const lzModule = ((await hre.ethers.getContract('LayerZeroModule', deployer)) as Contract).attach(
+    futureLayerZeroModuleProxyAddress
+  );
 
   // we check that LayerZeroModule has correct OptimismGasPriceOracle set
   if ((await lzModule.getOptimismGasPriceOracle()).toLowerCase() != futureOptimismGasPriceOracleAddress.toLowerCase()) {
     const lzOpTx = await MultisigAwareTx(
       hre,
       deployer,
+      'LayerZeroModule',
+      lzModule,
       await lzModule.populateTransaction.setOptimismGasPriceOracle(futureOptimismGasPriceOracleAddress, {
         ...(await txParams({
           hre,
@@ -370,6 +434,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const lzTx = await MultisigAwareTx(
       hre,
       deployer,
+      'LayerZeroModule',
+      lzModule,
       await lzModule.populateTransaction[
         'setGasParameters(uint32[],(uint256,uint256,uint256,uint256,uint256,uint256)[])'
       ](chainIds, gasParameters, {

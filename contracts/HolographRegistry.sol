@@ -188,8 +188,9 @@ contract HolographRegistry is Admin, Initializable, HolographRegistryInterface {
   }
 
   function holographableEvent(bytes calldata payload) external {
-    require(_holographedContracts[msg.sender], "HOLOGRAPH: not holographed");
-    emit HolographableContractEvent(msg.sender, payload);
+    if (_holographedContracts[msg.sender]) {
+      emit HolographableContractEvent(msg.sender, payload);
+    }
   }
 
   /**
@@ -201,7 +202,10 @@ contract HolographRegistry is Admin, Initializable, HolographRegistryInterface {
       contractType := extcodehash(contractAddress)
     }
     require(
-      (contractType != 0x0 && contractType != 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470),
+      (// check that bytecode is not empty
+      contractType != 0x0 &&
+        // check that hash is not for empty bytes
+        contractType != 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470),
       "HOLOGRAPH: empty contract"
     );
     require(_contractTypeAddresses[contractType] == address(0), "HOLOGRAPH: contract already set");

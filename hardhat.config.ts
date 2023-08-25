@@ -18,10 +18,31 @@ import { Environment, getEnvironment } from '@holographxyz/environment';
 import { NetworkType, Network, Networks, networks } from '@holographxyz/networks';
 import { GasService } from './scripts/utils/gas-service';
 import dotenv from 'dotenv';
-import * as tenderly from '@tenderly/hardhat-tenderly';
+//import * as tenderly from '@tenderly/hardhat-tenderly';
 import { network } from 'hardhat';
-tenderly.setup();
 dotenv.config();
+
+let tenderlyNetwork = {};
+let tenderlyConfig = {};
+/*
+if (process.env.USE_TENDERLY && process.env.USE_TENDERLY == 'true') {
+  tenderly.setup();
+  tenderlyNetwork = {
+    tenderly: {
+      chainId: 5,
+      url: 'https://rpc.tenderly.co/fork/<fork-chain-id>',
+    },
+  };
+  tenderlyConfig = {
+    tenderly: {
+      project: process.env.TENDERLY_PROJECT,
+      username: process.env.TENDERLY_USERNAME,
+      privateVerification: false,
+      forkNetwork: '<fork-chain-id>',
+    },
+  };
+}
+*/
 
 function getRemappings() {
   return fs
@@ -159,9 +180,13 @@ global.__DEPLOYMENT_SALT = '0x' + DEPLOYMENT_SALT.toString(16).padStart(64, '0')
 
 // this task runs before the actual hardhat deploy task
 task('deploy', 'Deploy contracts').setAction(async (args, hre, runSuper) => {
-  //  let network: Network = networks[hre.network.name];
-  //  if (network.type === NetworkType.mainnet) {
-  //  }
+  let network: Network = networks[hre.network.name];
+  if (network.type === NetworkType.localhost) {
+    process.env.GAS_LIMIT_MULTIPLIER = '10000';
+    process.env.GAS_PRICE_MULTIPLIER = '10000';
+    process.env.MAXIMUM_GAS_PRICE = '0';
+    process.env.MAXIMUM_GAS_BRIBE = '0';
+  }
   // set gas parameters
   global.__gasLimitMultiplier = BigNumber.from(process.env.GAS_LIMIT_MULTIPLIER || '10000');
   global.__gasPriceMultiplier = BigNumber.from(process.env.GAS_PRICE_MULTIPLIER || '10000');
@@ -325,10 +350,7 @@ const config: HardhatUserConfig = {
       saveDeployments: false,
     },
     ...dynamicNetworks(),
-    tenderly: {
-      chainId: 5,
-      url: 'https://rpc.tenderly.co/fork/<fork-chain-id>',
-    },
+    ...tenderlyNetwork,
   },
   namedAccounts: {
     deployer: setDeployerKey(0),
@@ -377,6 +399,12 @@ const config: HardhatUserConfig = {
       arbitrumOne: process.env.ARBISCAN_API_KEY || '',
       arbitrumGoerli: process.env.ARBISCAN_API_KEY || '',
       arbitrumNova: process.env.ARBISCAN_NOVA_API_KEY || '',
+      mantle: process.env.MANTLE_API_KEY || '',
+      mantleTestnet: process.env.MANTLE_API_KEY || '',
+      base: process.env.BASESCAN_API_KEY || '',
+      baseTestnetGoerli: process.env.BASESCAN_API_KEY || '',
+      zora: process.env.ZORAENERGY_API_KEY || '',
+      zoraTestnetGoerli: process.env.ZORAENERGY_API_KEY || '',
     },
     customChains: [
       {
@@ -387,18 +415,45 @@ const config: HardhatUserConfig = {
           browserURL: 'https://nova.arbiscan.io',
         },
       },
+      {
+        network: 'mantle',
+        chainId: 5000,
+        urls: {
+          apiURL: 'https://explorer.mantle.xyz/api',
+          browserURL: 'https://explorer.mantle.xyz',
+        },
+      },
+      {
+        network: 'mantleTestnet',
+        chainId: 5001,
+        urls: {
+          apiURL: 'https://explorer.testnet.mantle.xyz/api',
+          browserURL: 'https://explorer.testnet.mantle.xyz',
+        },
+      },
+      {
+        network: 'base',
+        chainId: 8453,
+        urls: {
+          apiURL: 'https://api.basescan.org/api',
+          browserURL: 'https://basescan.org',
+        },
+      },
+      {
+        network: 'baseTestnetGoerli',
+        chainId: 84531,
+        urls: {
+          apiURL: 'https://api-goerli.basescan.org/api',
+          browserURL: 'https://goerli.basescan.org',
+        },
+      },
     ],
   },
   hardhatHolographContractBuilder: {
     runOnCompile: true,
     verbose: false,
   },
-  tenderly: {
-    project: 'holograph',
-    username: 'attar',
-    privateVerification: false,
-    forkNetwork: '<fork-chain-id>',
-  },
+  ...tenderlyConfig,
 };
 
 // Allow hardhat to use short network names

@@ -177,11 +177,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('reusing "HLG" at:', hlgTokenAddress);
   }
 
-  hre.deployments.log('checking Holograph UtilityToken reference');
+  hre.deployments.log('checking HolographUtilityToken reference');
   if ((await holograph.getUtilityToken()) != hlgTokenAddress) {
     const setHTokenTx = await MultisigAwareTx(
       hre,
       deployer,
+      'Holograph',
+      holograph,
       await holograph.populateTransaction.setUtilityToken(hlgTokenAddress, {
         ...(await txParams({
           hre,
@@ -199,6 +201,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const setHTokenTx2 = await MultisigAwareTx(
       hre,
       deployer,
+      'HolographRegistry',
+      holographRegistry,
       await holographRegistry.populateTransaction.setUtilityToken(hlgTokenAddress, {
         ...(await txParams({
           hre,
@@ -220,6 +224,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         const transferTx = await MultisigAwareTx(
           hre,
           deployer,
+          'HolographUtilityToken',
+          hlgContract,
           await hlgContract.populateTransaction.transfer(operatorAddress, BigNumber.from('1000000000000000000000000'), {
             ...(await txParams({
               hre,

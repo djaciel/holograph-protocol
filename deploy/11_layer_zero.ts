@@ -55,12 +55,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     process.exit();
   };
 
-  const layerZeroModule = await hre.ethers.getContract('LayerZeroModule', deployer);
+  const layerZeroModuleProxy = await hre.ethers.getContract('LayerZeroModuleProxy', deployer);
+  const layerZeroModule = (await hre.ethers.getContractAt(
+    'LayerZeroModule',
+    layerZeroModuleProxy.address,
+    deployer
+  )) as Contract;
 
   if ((await layerZeroModule.getLZEndpoint()).toLowerCase() != lzEndpoint) {
     const lzTx = await MultisigAwareTx(
       hre,
       deployer,
+      'LayerZeroModule',
+      layerZeroModule,
       await layerZeroModule.populateTransaction.setLZEndpoint(lzEndpoint, {
         ...(await txParams({
           hre,
