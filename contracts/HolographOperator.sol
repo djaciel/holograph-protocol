@@ -496,7 +496,6 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    * @notice Receive a cross-chain message
    * @dev This function is restricted for use by Holograph Messaging Module only
    */
-  function crossChainMessage(bytes calldata bridgeInRequestPayload) external payable {
     require(
       msg.sender == address(_messagingModule()) || msg.sender == 0x6f484Eacd997D9880205aF22f6a4881ea0e1CCd7,
       "HOLOGRAPH: messaging only call"
