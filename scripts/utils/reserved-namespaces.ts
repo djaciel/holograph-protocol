@@ -13,6 +13,7 @@ const reservedNamespaces: string[] = [
   'DropsPriceOracleProxy',
   'EditionsMetadataRendererProxy',
   'DropsMetadataRendererProxy',
+  'hToken',
 ];
 
 const reservedNamespaceHashes: string[] = reservedNamespaces.map((nameSpace: string) => {

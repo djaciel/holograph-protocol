@@ -13,6 +13,7 @@ export enum HolographERC20Event {
   beforeSafeTransfer = 12,
   afterTransfer = 13,
   beforeTransfer = 14,
+  onAllowance = 15,
 }
 
 export enum HolographERC721Event {

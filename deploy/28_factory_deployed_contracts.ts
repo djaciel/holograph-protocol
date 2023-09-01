@@ -5,7 +5,6 @@ import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Holographer, CxipERC721Proxy } from '../typechain-types';
 import { hreSplit, txParams } from '../scripts/utils/helpers';
-import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { NetworkType, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
@@ -68,7 +67,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     }
 
     const holographDropERC721Proxy: Contract | null = await hre.ethers.getContractOrNull(
-      'holographDropERC721Proxy',
+      'HolographDropERC721Proxy',
       deployer
     );
     if (holographDropERC721Proxy == null) {
@@ -86,7 +85,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         waitConfirmations: 1,
       });
       hre.deployments.log(
-        'Deployed a "holographDropERC721Proxy" empty contract for block explorer verification purposes.'
+        'Deployed a "HolographDropERC721Proxy" empty contract for block explorer verification purposes.'
       );
     }
 
@@ -113,22 +112,22 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       );
     }
 
-    const hToken: Contract | null = await hre.ethers.getContractOrNull('hToken', deployer);
-    if (hToken == null) {
-      await hre.deployments.deploy('hToken', {
+    const hTokenProxy: Contract | null = await hre.ethers.getContractOrNull('hTokenProxy', deployer);
+    if (hTokenProxy == null) {
+      await hre.deployments.deploy('hTokenProxy', {
         ...(await txParams({
           hre,
           from: deployer,
           to: '0x0000000000000000000000000000000000000000',
           gasLimit: await hre.ethers.provider.estimateGas(
-            (await hre.ethers.getContractFactory('hToken')).getDeployTransaction()
+            (await hre.ethers.getContractFactory('hTokenProxy')).getDeployTransaction()
           ),
         })),
         args: [],
         log: true,
         waitConfirmations: 1,
       });
-      hre.deployments.log('Deployed a "hToken" empty contract for block explorer verification purposes.');
+      hre.deployments.log('Deployed a "hTokenProxy" empty contract for block explorer verification purposes.');
     }
   }
 };

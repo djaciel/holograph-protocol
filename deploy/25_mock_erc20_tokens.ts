@@ -4,7 +4,6 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import { LeanHardhatRuntimeEnvironment, hreSplit, txParams } from '../scripts/utils/helpers';
-import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { NetworkType, networks } from '@holographxyz/networks';
 import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
@@ -42,7 +41,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       args: ['Wrapped ETH (MOCK)', 'WETHmock', 18, 'ERC20Mock', '1'],
       log: true,
       waitConfirmations: 1,
-    });
+    } as any);
   }
 };
 

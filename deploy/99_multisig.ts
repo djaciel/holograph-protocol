@@ -25,6 +25,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
   }
 
+  global.__txNonce = {} as { [key: string]: number };
+  global.__txNonce[hre.networkName] = await hre.ethers.provider.getTransactionCount(deployer.address);
+
   const network: Network = networks[hre.networkName];
 
   const environment: Environment = getEnvironment();
@@ -35,11 +38,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   ) {
     let useDeployer: boolean = false;
     if (network.protocolMultisig === undefined) {
-      if (network.type == NetworkType.mainnet) {
-        throw new Error('No multisig setup for this network');
-      } else {
-        useDeployer = true;
-      }
+      useDeployer = true;
     }
     const MULTI_SIG: string = useDeployer
       ? deployer.address.toLowerCase()
@@ -61,6 +60,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let setHolographAdminTx = await MultisigAwareTx(
         hre,
         deployer,
+        'Holograph',
+        holograph,
         await holograph.populateTransaction.setAdmin(MULTI_SIG, {
           ...(await txParams({
             hre,
@@ -81,6 +82,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         let setHolographAsAdminTx = await MultisigAwareTx(
           hre,
           deployer,
+          contractName,
+          contract,
           await contract.populateTransaction.setAdmin(holograph.address, {
             ...(await txParams({
               hre,

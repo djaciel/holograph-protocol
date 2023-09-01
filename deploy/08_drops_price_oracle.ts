@@ -1,4 +1,5 @@
 declare var global: any;
+import { BigNumber } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DeployFunction, DeployOptions } from '@holographxyz/hardhat-deploy-holographed/types';
@@ -52,6 +53,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     arbitrumNova: 'ArbitrumNova',
     arbitrumOne: 'ArbitrumOne',
     arbitrumTestnetGoerli: 'ArbitrumTestnetGoerli',
+    mantle: 'Mantle',
+    mantleTestnet: 'MantleTestnet',
+    base: 'Base',
+    baseTestnetGoerli: 'BaseTestnetGoerli',
+    zora: 'Zora',
+    zoraTestnetGoerli: 'ZoraTestnetGoerli',
   };
 
   let targetDropsPriceOracle = 'DummyDropsPriceOracle';
@@ -121,6 +128,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       const setDropsPriceOracleTx = await MultisigAwareTx(
         hre,
         deployer,
+        'DropsPriceOracleProxy',
+        dropsPriceOracleProxy,
         await dropsPriceOracleProxy.populateTransaction.setDropsPriceOracle(futureDropsPriceOracleAddress, {
           ...(await txParams({
             hre,
@@ -135,6 +144,34 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('"DropsPriceOracleProxy" reference updated.');
     } else {
       hre.deployments.log('"DropsPriceOracleProxy" references correct version of "' + targetDropsPriceOracle + '".');
+    }
+  }
+
+  if (network.key == 'mantleTestnet') {
+    hre.deployments.log('Checking token price ratio on mantle testnet');
+    const priceOracleContract = (
+      (await hre.ethers.getContract('DropsPriceOracleMantleTestnet', deployer)) as Contract
+    ).attach(futureDropsPriceOracleProxyAddress);
+    if ((await priceOracleContract.getTokenPriceRatio()).eq(BigNumber.from('0'))) {
+      hre.deployments.log('price ratio not set');
+      const priceOracleContractTx = await MultisigAwareTx(
+        hre,
+        deployer,
+        'DropsPriceOracleMantleTestnet',
+        priceOracleContract,
+        await priceOracleContract.populateTransaction.setTokenPriceRatio(BigNumber.from('1000000000000000000'), {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: priceOracleContract,
+            data: priceOracleContract.populateTransaction.setTokenPriceRatio(BigNumber.from('1000000000000000000')),
+          })),
+        })
+      );
+      hre.deployments.log('Transaction hash:', priceOracleContractTx.hash);
+      await priceOracleContractTx.wait();
+    } else {
+      hre.deployments.log('price ratio is set');
     }
   }
 

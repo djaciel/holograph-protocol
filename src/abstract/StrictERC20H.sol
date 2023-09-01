@@ -145,4 +145,13 @@ abstract contract StrictERC20H is ERC20H, HolographedERC20 {
     _success = true;
     return _success;
   }
+
+  function onAllowance(
+    address /* _owner*/,
+    address /* _to*/,
+    uint256 /* _amount*/
+  ) external virtual onlyHolographer returns (bool success) {
+    _success = false;
+    return _success;
+  }
 }

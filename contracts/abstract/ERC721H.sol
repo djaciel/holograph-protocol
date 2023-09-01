@@ -119,11 +119,7 @@ abstract contract ERC721H is Initializable {
   }
 
   modifier onlyOwner() {
-    if (msg.sender == holographer()) {
-      require(msgSender() == _getOwner(), "ERC721: owner only function");
-    } else {
-      require(msg.sender == _getOwner(), "ERC721: owner only function");
-    }
+    require(msgSender() == _getOwner(), "ERC721: owner only function");
     _;
   }
 
@@ -157,9 +153,15 @@ abstract contract ERC721H is Initializable {
   /**
    * @dev The Holographer passes original msg.sender via calldata. This function extracts it.
    */
-  function msgSender() internal pure returns (address sender) {
+  function msgSender() internal view returns (address sender) {
     assembly {
-      sender := calldataload(sub(calldatasize(), 0x20))
+      switch eq(caller(), sload(_holographerSlot))
+      case 0 {
+        sender := caller()
+      }
+      default {
+        sender := calldataload(sub(calldatasize(), 0x20))
+      }
     }
   }
 
@@ -184,11 +186,7 @@ abstract contract ERC721H is Initializable {
   }
 
   function isOwner() external view returns (bool) {
-    if (msg.sender == holographer()) {
-      return msgSender() == _getOwner();
-    } else {
-      return msg.sender == _getOwner();
-    }
+    return (msgSender() == _getOwner());
   }
 
   function isOwner(address wallet) external view returns (bool) {

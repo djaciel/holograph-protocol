@@ -20,11 +20,7 @@ abstract contract GenericH is Initializable {
   }
 
   modifier onlyOwner() {
-    if (msg.sender == holographer()) {
-      require(msgSender() == _getOwner(), "GENERIC: owner only function");
-    } else {
-      require(msg.sender == _getOwner(), "GENERIC: owner only function");
-    }
+    require(msgSender() == _getOwner(), "GENERIC: owner only function");
     _;
   }
 
@@ -58,9 +54,15 @@ abstract contract GenericH is Initializable {
   /**
    * @dev The Holographer passes original msg.sender via calldata. This function extracts it.
    */
-  function msgSender() internal pure returns (address sender) {
+  function msgSender() internal view returns (address sender) {
     assembly {
-      sender := calldataload(sub(calldatasize(), 0x20))
+      switch eq(caller(), sload(_holographerSlot))
+      case 0 {
+        sender := caller()
+      }
+      default {
+        sender := calldataload(sub(calldatasize(), 0x20))
+      }
     }
   }
 
@@ -73,23 +75,19 @@ abstract contract GenericH is Initializable {
     }
   }
 
-  function supportsInterface(bytes4) external pure returns (bool) {
+  function supportsInterface(bytes4) external pure virtual returns (bool) {
     return false;
   }
 
   /**
    * @dev Address of initial creator/owner of the contract.
    */
-  function owner() external view returns (address) {
+  function owner() external view virtual returns (address) {
     return _getOwner();
   }
 
   function isOwner() external view returns (bool) {
-    if (msg.sender == holographer()) {
-      return msgSender() == _getOwner();
-    } else {
-      return msg.sender == _getOwner();
-    }
+    return (msgSender() == _getOwner());
   }
 
   function isOwner(address wallet) external view returns (bool) {
@@ -112,18 +110,20 @@ abstract contract GenericH is Initializable {
     payable(_getOwner()).transfer(address(this).balance);
   }
 
+  event FundsReceived(address indexed source, uint256 amount);
+
   /**
-   * @dev This function is unreachable unless custom contract address is called directly.
+   * @dev This function emits an event to indicate native gas token receipt. Do not rely on this to work.
    *      Please use custom payable functions for accepting native value.
    */
-  receive() external payable {
-    revert("GENERIC: unreachable code");
+  receive() external payable virtual {
+    emit FundsReceived(msgSender(), msg.value);
   }
 
   /**
    * @dev Return true for any un-implemented event hooks
    */
-  fallback() external payable {
+  fallback() external payable virtual {
     assembly {
       switch eq(sload(_holographerSlot), caller())
       case 1 {

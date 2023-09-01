@@ -274,12 +274,27 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
     }
   }
 
-  function burnFrom(address account, uint256 amount) public returns (bool) {
-    uint256 currentAllowance = _allowances[account][msg.sender];
-    require(currentAllowance >= amount, "ERC20: amount exceeds allowance");
-    unchecked {
-      _allowances[account][msg.sender] = currentAllowance - amount;
+  function _allowance(address account, address to, uint256 amount) internal {
+    uint256 currentAllowance = _allowances[account][to];
+    if (currentAllowance >= amount) {
+      unchecked {
+        _allowances[account][to] = currentAllowance - amount;
+      }
+    } else {
+      if (_isEventRegistered(HolographERC20Event.onAllowance)) {
+        require(
+          _sourceCall(abi.encodeWithSelector(HolographedERC20.onAllowance.selector, account, to, amount)),
+          "ERC20: amount exceeds allowance"
+        );
+        _allowances[account][to] = 0;
+      } else {
+        revert("ERC20: amount exceeds allowance");
+      }
     }
+  }
+
+  function burnFrom(address account, uint256 amount) public returns (bool) {
+    _allowance(account, msg.sender, amount);
     if (_isEventRegistered(HolographERC20Event.beforeBurn)) {
       require(_sourceCall(abi.encodeWithSelector(HolographedERC20.beforeBurn.selector, account, amount)));
     }
@@ -333,11 +348,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
   ) external onlyBridge returns (bytes4 selector, bytes memory data) {
     (address from, address to, uint256 amount) = abi.decode(payload, (address, address, uint256));
     if (sender != from) {
-      uint256 currentAllowance = _allowances[from][sender];
-      require(currentAllowance >= amount, "ERC20: amount exceeds allowance");
-      unchecked {
-        _allowances[from][sender] = currentAllowance - amount;
-      }
+      _allowance(from, sender, amount);
     }
     if (_isEventRegistered(HolographERC20Event.bridgeOut)) {
       /*
@@ -522,11 +533,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
        * @dev This is intentionally enabled to remove friction when operator or bridge needs to move tokens
        */
       if (msg.sender != _holograph().getBridge() && msg.sender != _holograph().getOperator()) {
-        uint256 currentAllowance = _allowances[account][msg.sender];
-        require(currentAllowance >= amount, "ERC20: amount exceeds allowance");
-        unchecked {
-          _allowances[account][msg.sender] = currentAllowance - amount;
-        }
+        _allowance(account, msg.sender, amount);
       }
     }
     if (_isEventRegistered(HolographERC20Event.beforeSafeTransfer)) {
@@ -580,8 +587,26 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
   /**
    * @dev Allows for source smart contract to withdraw contract balance.
    */
-  function sourceWithdraw(address payable destination) external onlySource {
-    destination.transfer(address(this).balance);
+  function sourceTransfer(address payable destination, uint256 amount) external onlySource {
+    destination.transfer(amount);
+  }
+
+  /**
+   * @dev Allows for source smart contract to make calls to external contracts
+   */
+  function sourceExternalCall(address target, bytes calldata data) external onlySource {
+    assembly {
+      calldatacopy(0, data.offset, data.length)
+      let result := call(gas(), target, callvalue(), 0, data.length, 0, 0)
+      returndatacopy(0, 0, returndatasize())
+      switch result
+      case 0 {
+        revert(0, returndatasize())
+      }
+      default {
+        return(0, returndatasize())
+      }
+    }
   }
 
   function transfer(address recipient, uint256 amount) public returns (bool) {
@@ -605,11 +630,7 @@ contract HolographERC20 is Admin, Owner, Initializable, NonReentrant, EIP712, Ho
        * @dev This is intentionally enabled to remove friction when operator or bridge needs to move tokens
        */
       if (msg.sender != _holograph().getBridge() && msg.sender != _holograph().getOperator()) {
-        uint256 currentAllowance = _allowances[account][msg.sender];
-        require(currentAllowance >= amount, "ERC20: amount exceeds allowance");
-        unchecked {
-          _allowances[account][msg.sender] = currentAllowance - amount;
-        }
+        _allowance(account, msg.sender, amount);
       }
     }
     if (_isEventRegistered(HolographERC20Event.beforeTransfer)) {
