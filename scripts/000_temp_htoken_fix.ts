@@ -191,5 +191,5 @@ Use the following payload for Data input field:
 };
 
 export default func;
-func.tags = ['TEMP'];
+func.tags = ['TEMP_HTOKEN_FIX'];
 func.dependencies = [];
