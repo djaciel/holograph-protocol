@@ -128,7 +128,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   for (let i: number = 0, l: number = contracts.length; i < l; i++) {
     let contract: string = contracts[i];
     try {
-      await hre.run('verify:verify', {
+      await hre1.run('verify:verify', {
         address: (await hre.ethers.getContract(contract)).address,
         constructorArguments: [],
       });
