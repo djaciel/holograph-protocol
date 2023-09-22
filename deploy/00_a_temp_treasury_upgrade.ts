@@ -1,3 +1,54 @@
+// import { HardhatRuntimeEnvironment } from 'hardhat/types';
+// import { DeployFunction } from 'hardhat-deploy/types';
+
+// import {
+//   genesisDeriveFutureAddress,
+//   genesisDeployHelper,
+//   generateInitCode,
+//   zeroAddress,
+//   LeanHardhatRuntimeEnvironment,
+//   hreSplit,
+//   generateErc20Config,
+//   getHolographedContractHash,
+//   Signature,
+//   StrictECDSA,
+//   txParams,
+// } from '../scripts/utils/helpers';
+
+// const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+//   const { ethers } = hre;
+//   const [deployer] = await ethers.getSigners();
+
+//   // Check if HolographTreasury is already deployed
+//   let holographTreasuryFactory = await ethers.getContractFactory('HolographTreasury');
+//   let holographTreasury;
+
+//   try {
+//     holographTreasury = await holographTreasuryFactory.deploy(zeroAddress, zeroAddress, zeroAddress, zeroAddress);
+//     await holographTreasury.deployed();
+//     console.log(`"HolographTreasury" deployed to: ${holographTreasury.address}`);
+//   } catch (error) {
+//     console.error(`Failed to deploy "HolographTreasury": ${error.message}`);
+//   }
+
+//   // Verify
+//   let contracts: string[] = ['HolographTreasury'];
+//   for (let contract of contracts) {
+//     try {
+//       await hre.run('verify:verify', {
+//         address: (await ethers.getContract(contract)).address,
+//         constructorArguments: [zeroAddress, zeroAddress, zeroAddress, zeroAddress],
+//       });
+//     } catch (error) {
+//       console.error(`Failed to verify "${contract}" -> ${error}`);
+//     }
+//   }
+// };
+
+// export default func;
+// func.tags = ['TEMP_TREASURY_UPGRADE'];
+// func.dependencies = [];
+
 declare var global: any;
 import fs from 'fs';
 import Web3 from 'web3';
@@ -65,18 +116,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const accounts = await hre.ethers.getSigners();
   let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
 
-  if (global.__superColdStorage) {
-    // address, domain, authorization, ca
-    const coldStorage = global.__superColdStorage;
-    deployer = new SuperColdStorageSigner(
-      coldStorage.address,
-      'https://' + coldStorage.domain,
-      coldStorage.authorization,
-      deployer.provider,
-      coldStorage.ca
-    );
-  }
-
   const web3 = new Web3();
   const salt = hre.deploymentSalt;
 
@@ -87,23 +126,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     generateInitCode(['address', 'address', 'address', 'address'], [zeroAddress, zeroAddress, zeroAddress, zeroAddress])
   );
   hre.deployments.log('the future "HolographTreasury" address is', futureTreasuryAddress);
-
-  const futureTreasuryProxyAddress = await genesisDeriveFutureAddress(
-    hre,
-    salt,
-    'HolographTreasuryProxy',
-    generateInitCode(
-      ['address', 'bytes'],
-      [
-        zeroAddress,
-        generateInitCode(
-          ['address', 'address', 'address', 'address'],
-          [zeroAddress, zeroAddress, zeroAddress, zeroAddress]
-        ),
-      ]
-    )
-  );
-  hre.deployments.log('the future "HolographTreasuryProxy" address is', futureTreasuryProxyAddress);
 
   // HolographTreasury
   let treasuryDeployedCode: string = await hre.provider.send('eth_getCode', [futureTreasuryAddress, 'latest']);
