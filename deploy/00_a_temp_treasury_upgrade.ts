@@ -1,54 +1,3 @@
-// import { HardhatRuntimeEnvironment } from 'hardhat/types';
-// import { DeployFunction } from 'hardhat-deploy/types';
-
-// import {
-//   genesisDeriveFutureAddress,
-//   genesisDeployHelper,
-//   generateInitCode,
-//   zeroAddress,
-//   LeanHardhatRuntimeEnvironment,
-//   hreSplit,
-//   generateErc20Config,
-//   getHolographedContractHash,
-//   Signature,
-//   StrictECDSA,
-//   txParams,
-// } from '../scripts/utils/helpers';
-
-// const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-//   const { ethers } = hre;
-//   const [deployer] = await ethers.getSigners();
-
-//   // Check if HolographTreasury is already deployed
-//   let holographTreasuryFactory = await ethers.getContractFactory('HolographTreasury');
-//   let holographTreasury;
-
-//   try {
-//     holographTreasury = await holographTreasuryFactory.deploy(zeroAddress, zeroAddress, zeroAddress, zeroAddress);
-//     await holographTreasury.deployed();
-//     console.log(`"HolographTreasury" deployed to: ${holographTreasury.address}`);
-//   } catch (error) {
-//     console.error(`Failed to deploy "HolographTreasury": ${error.message}`);
-//   }
-
-//   // Verify
-//   let contracts: string[] = ['HolographTreasury'];
-//   for (let contract of contracts) {
-//     try {
-//       await hre.run('verify:verify', {
-//         address: (await ethers.getContract(contract)).address,
-//         constructorArguments: [zeroAddress, zeroAddress, zeroAddress, zeroAddress],
-//       });
-//     } catch (error) {
-//       console.error(`Failed to verify "${contract}" -> ${error}`);
-//     }
-//   }
-// };
-
-// export default func;
-// func.tags = ['TEMP_TREASURY_UPGRADE'];
-// func.dependencies = [];
-
 declare var global: any;
 import fs from 'fs';
 import Web3 from 'web3';
@@ -163,3 +112,55 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 export default func;
 func.tags = ['TEMP_TREASURY_UPGRADE'];
 func.dependencies = [];
+
+// NOTE: The example below is to deploy the contract via hardhat deploy using CREATE1 instead of deterministic CREATE2
+// import { HardhatRuntimeEnvironment } from 'hardhat/types';
+// import { DeployFunction } from 'hardhat-deploy/types';
+
+// import {
+//   genesisDeriveFutureAddress,
+//   genesisDeployHelper,
+//   generateInitCode,
+//   zeroAddress,
+//   LeanHardhatRuntimeEnvironment,
+//   hreSplit,
+//   generateErc20Config,
+//   getHolographedContractHash,
+//   Signature,
+//   StrictECDSA,
+//   txParams,
+// } from '../scripts/utils/helpers';
+
+// const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
+//   const { ethers } = hre;
+//   const [deployer] = await ethers.getSigners();
+
+//   // Check if HolographTreasury is already deployed
+//   let holographTreasuryFactory = await ethers.getContractFactory('HolographTreasury');
+//   let holographTreasury;
+
+//   try {
+//     holographTreasury = await holographTreasuryFactory.deploy(zeroAddress, zeroAddress, zeroAddress, zeroAddress);
+//     await holographTreasury.deployed();
+//     console.log(`"HolographTreasury" deployed to: ${holographTreasury.address}`);
+//   } catch (error) {
+//     console.error(`Failed to deploy "HolographTreasury": ${error.message}`);
+//   }
+
+//   // Verify
+//   let contracts: string[] = ['HolographTreasury'];
+//   for (let contract of contracts) {
+//     try {
+//       await hre.run('verify:verify', {
+//         address: (await ethers.getContract(contract)).address,
+//         constructorArguments: [zeroAddress, zeroAddress, zeroAddress, zeroAddress],
+//       });
+//     } catch (error) {
+//       console.error(`Failed to verify "${contract}" -> ${error}`);
+//     }
+//   }
+// };
+
+// export default func;
+// func.tags = ['TEMP_TREASURY_UPGRADE'];
+// func.dependencies = [];

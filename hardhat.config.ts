@@ -193,11 +193,11 @@ task('deploy', 'Deploy contracts').setAction(async (args, hre, runSuper) => {
   global.__maxGasPrice = BigNumber.from(process.env.MAXIMUM_GAS_PRICE || '0');
   global.__maxGasBribe = BigNumber.from(process.env.MAXIMUM_GAS_BRIBE || '0');
   // start gas price monitoring service
-  process.stdout.write('Loading Gas Price Service\n');
-  const gasService: GasService = new GasService(hre.network.name, hre.ethers.provider, 'DEBUG' in process.env);
-  process.stdout.write('Seeding Gas Price Service\n');
-  await gasService.init();
-  process.stdout.write('\nReady to start deployments\n');
+  // process.stdout.write('Loading Gas Price Service\n');
+  // const gasService: GasService = new GasService(hre.network.name, hre.ethers.provider, 'DEBUG' in process.env);
+  // process.stdout.write('Seeding Gas Price Service\n');
+  // await gasService.init();
+  // process.stdout.write('\nReady to start deployments\n');
   // run the actual hardhat deploy task
   return runSuper(args);
 });

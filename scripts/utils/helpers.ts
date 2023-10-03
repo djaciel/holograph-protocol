@@ -442,7 +442,7 @@ const getGasPrice = async function (): Promise<GasParams> {
     }
   } else {
     return {
-      gasPrice: BigNumber.from('0'),
+      gasPrice: BigNumber.from('10000000000'), // This can be updated to manually set a gas price. Defaulting to 100 gwei for now
       type: 0,
       maxPriorityFeePerGas: null,
       maxFeePerGas: null,
@@ -507,6 +507,9 @@ const genesisDeployHelper = async function (
       // we do nothing
     }
   }
+
+  console.log(`Holograph Genesis address: ${holographGenesis.address}`);
+
   let contract: any = await ethers.getContractOrNull(name);
   if (contract == null) {
     try {
@@ -529,7 +532,7 @@ const genesisDeployHelper = async function (
       saltHash: deployer + salt.substring(salt.length - 24),
       deployCode: deployCode,
       waitConfirmations: 1,
-    });
+    } as any);
     deployments.log('future "' + name + '" address is', contractDeterministic.address);
     await contractDeterministic.deploy();
     contract = await ethers.getContract(name);
