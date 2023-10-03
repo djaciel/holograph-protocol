@@ -280,119 +280,119 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   console.log(`Deploying...`);
 
-  // // =============================
-  // // Deploy contracts
-  // // =============================
+  // =============================
+  // Deploy contracts
+  // =============================
 
-  // // OVM_GasPriceOracle
-  // let optimismGasPriceOracleDeployedCode: string = await hre.provider.send('eth_getCode', [
-  //   futureOptimismGasPriceOracleAddress,
-  //   'latest',
-  // ]);
-  // if (optimismGasPriceOracleDeployedCode == '0x' || optimismGasPriceOracleDeployedCode == '') {
-  //   hre.deployments.log('"OVM_GasPriceOracle" bytecode not found, need to deploy"');
-  //   let optimismGasPriceOracle = await genesisDeployHelper(
-  //     hre,
-  //     salt,
-  //     'OVM_GasPriceOracle',
-  //     generateInitCode(
-  //       ['uint256', 'uint256', 'uint256', 'uint256', 'uint256'],
-  //       [
-  //         1000000, // gasPrice == 1 (since scalar is with 6 decimal places)
-  //         100000000000, // l1BaseFee == 100 GWEI
-  //         2100, // overhead
-  //         1000000, // scalar (since division does not work well in non-decimal numbers, we multiply and then divide by scalar after)
-  //         6, // decimals
-  //       ]
-  //     ),
-  //     futureOptimismGasPriceOracleAddress
-  //   );
-  // } else {
-  //   hre.deployments.log('"OVM_GasPriceOracle" is already deployed..');
-  // }
+  // OVM_GasPriceOracle
+  let optimismGasPriceOracleDeployedCode: string = await hre.provider.send('eth_getCode', [
+    futureOptimismGasPriceOracleAddress,
+    'latest',
+  ]);
+  if (optimismGasPriceOracleDeployedCode == '0x' || optimismGasPriceOracleDeployedCode == '') {
+    hre.deployments.log('"OVM_GasPriceOracle" bytecode not found, need to deploy"');
+    let optimismGasPriceOracle = await genesisDeployHelper(
+      hre,
+      salt,
+      'OVM_GasPriceOracle',
+      generateInitCode(
+        ['uint256', 'uint256', 'uint256', 'uint256', 'uint256'],
+        [
+          1000000, // gasPrice == 1 (since scalar is with 6 decimal places)
+          100000000000, // l1BaseFee == 100 GWEI
+          2100, // overhead
+          1000000, // scalar (since division does not work well in non-decimal numbers, we multiply and then divide by scalar after)
+          6, // decimals
+        ]
+      ),
+      futureOptimismGasPriceOracleAddress
+    );
+  } else {
+    hre.deployments.log('"OVM_GasPriceOracle" is already deployed..');
+  }
 
-  // // LayerZeroModule
-  // let layerZeroModuleDeployedCode: string = await hre.provider.send('eth_getCode', [
-  //   futureLayerZeroModuleAddress,
-  //   'latest',
-  // ]);
-  // if (layerZeroModuleDeployedCode == '0x' || layerZeroModuleDeployedCode == '') {
-  //   hre.deployments.log('"LayerZeroModule" bytecode not found, need to deploy"');
-  //   let layerZeroModule = await genesisDeployHelper(
-  //     hre,
-  //     salt,
-  //     'LayerZeroModule',
-  //     generateInitCode(
-  //       [
-  //         'address',
-  //         'address',
-  //         'address',
-  //         'address',
-  //         'uint32[]',
-  //         'struct(uint256,uint256,uint256,uint256,uint256,uint256)[]',
-  //       ],
-  //       [zeroAddress, zeroAddress, zeroAddress, zeroAddress, [], []]
-  //     ),
-  //     futureLayerZeroModuleAddress
-  //   );
-  // } else {
-  //   hre.deployments.log('"LayerZeroModule" is already deployed..');
-  // }
+  // LayerZeroModule
+  let layerZeroModuleDeployedCode: string = await hre.provider.send('eth_getCode', [
+    futureLayerZeroModuleAddress,
+    'latest',
+  ]);
+  if (layerZeroModuleDeployedCode == '0x' || layerZeroModuleDeployedCode == '') {
+    hre.deployments.log('"LayerZeroModule" bytecode not found, need to deploy"');
+    let layerZeroModule = await genesisDeployHelper(
+      hre,
+      salt,
+      'LayerZeroModule',
+      generateInitCode(
+        [
+          'address',
+          'address',
+          'address',
+          'address',
+          'uint32[]',
+          'struct(uint256,uint256,uint256,uint256,uint256,uint256)[]',
+        ],
+        [zeroAddress, zeroAddress, zeroAddress, zeroAddress, [], []]
+      ),
+      futureLayerZeroModuleAddress
+    );
+  } else {
+    hre.deployments.log('"LayerZeroModule" is already deployed..');
+  }
 
-  // // LayerZeroModuleProxy
-  // let layerZeroModuleProxyDeployedCode: string = await hre.provider.send('eth_getCode', [
-  //   futureLayerZeroModuleProxyAddress,
-  //   'latest',
-  // ]);
-  // if (layerZeroModuleProxyDeployedCode == '0x' || layerZeroModuleProxyDeployedCode == '') {
-  //   hre.deployments.log('"LayerZeroModuleProxy" bytecode not found, need to deploy"');
-  //   let layerZeroModuleProxy = await genesisDeployHelper(
-  //     hre,
-  //     salt,
-  //     'LayerZeroModuleProxy',
-  //     generateInitCode(
-  //       ['address', 'bytes'],
-  //       [
-  //         futureLayerZeroModuleAddress,
-  //         generateInitCode(
-  //           [
-  //             'address',
-  //             'address',
-  //             'address',
-  //             'address',
-  //             'uint32[]',
-  //             'struct(uint256,uint256,uint256,uint256,uint256,uint256)[]',
-  //           ],
-  //           [
-  //             await holograph.getBridge(),
-  //             await holograph.getInterfaces(),
-  //             await holograph.getOperator(),
-  //             futureOptimismGasPriceOracleAddress,
-  //             chainIds,
-  //             gasParameters,
-  //           ]
-  //         ),
-  //       ]
-  //     ),
-  //     futureLayerZeroModuleProxyAddress
-  //   );
-  // } else {
-  //   hre.deployments.log('"LayerZeroModuleProxy" is already deployed..');
-  // }
+  // LayerZeroModuleProxy
+  let layerZeroModuleProxyDeployedCode: string = await hre.provider.send('eth_getCode', [
+    futureLayerZeroModuleProxyAddress,
+    'latest',
+  ]);
+  if (layerZeroModuleProxyDeployedCode == '0x' || layerZeroModuleProxyDeployedCode == '') {
+    hre.deployments.log('"LayerZeroModuleProxy" bytecode not found, need to deploy"');
+    let layerZeroModuleProxy = await genesisDeployHelper(
+      hre,
+      salt,
+      'LayerZeroModuleProxy',
+      generateInitCode(
+        ['address', 'bytes'],
+        [
+          futureLayerZeroModuleAddress,
+          generateInitCode(
+            [
+              'address',
+              'address',
+              'address',
+              'address',
+              'uint32[]',
+              'struct(uint256,uint256,uint256,uint256,uint256,uint256)[]',
+            ],
+            [
+              await holograph.getBridge(),
+              await holograph.getInterfaces(),
+              await holograph.getOperator(),
+              futureOptimismGasPriceOracleAddress,
+              chainIds,
+              gasParameters,
+            ]
+          ),
+        ]
+      ),
+      futureLayerZeroModuleProxyAddress
+    );
+  } else {
+    hre.deployments.log('"LayerZeroModuleProxy" is already deployed..');
+  }
 
-  // // Verify
-  // let contracts: string[] = ['OVM_GasPriceOracle', 'LayerZeroModuleProxy', 'LayerZeroModule'];
-  // for (let i: number = 0, l: number = contracts.length; i < l; i++) {
-  //   let contract: string = contracts[i];
-  //   try {
-  //     await hre1.run('verify:verify', {
-  //       address: (await hre.ethers.getContract(contract)).address,
-  //       constructorArguments: [],
-  //     });
-  //   } catch (error) {
-  //     hre.deployments.log(`Failed to verify ""${contract}" -> ${error}`);
-  //   }
-  // }
+  // Verify
+  let contracts: string[] = ['OVM_GasPriceOracle', 'LayerZeroModuleProxy', 'LayerZeroModule'];
+  for (let i: number = 0, l: number = contracts.length; i < l; i++) {
+    let contract: string = contracts[i];
+    try {
+      await hre1.run('verify:verify', {
+        address: (await hre.ethers.getContract(contract)).address,
+        constructorArguments: [],
+      });
+    } catch (error) {
+      hre.deployments.log(`Failed to verify ""${contract}" -> ${error}`);
+    }
+  }
 };
 
 export default func;
