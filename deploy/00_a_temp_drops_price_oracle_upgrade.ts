@@ -153,6 +153,20 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('"DropsPriceOracleProxy" references correct version of "' + targetDropsPriceOracle + '".');
     }
   }
+
+  // Verify
+  let contracts: string[] = ['DropsPriceOracleProxy', 'DropsPriceOracle'];
+  for (let i: number = 0, l: number = contracts.length; i < l; i++) {
+    let contract: string = contracts[i];
+    try {
+      await hre1.run('verify:verify', {
+        address: (await hre.ethers.getContract(contract)).address,
+        constructorArguments: [],
+      });
+    } catch (error) {
+      hre.deployments.log(`Failed to verify ""${contract}" -> ${error}`);
+    }
+  }
 };
 
 export default func;

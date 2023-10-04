@@ -124,6 +124,20 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   } else {
     hre.deployments.log('"CxipERC721" is already registered');
   }
+
+  // Verify
+  let contracts: string[] = ['CxipERC721'];
+  for (let i: number = 0, l: number = contracts.length; i < l; i++) {
+    let contract: string = contracts[i];
+    try {
+      await hre1.run('verify:verify', {
+        address: (await hre.ethers.getContract(contract)).address,
+        constructorArguments: [],
+      });
+    } catch (error) {
+      hre.deployments.log(`Failed to verify ""${contract}" -> ${error}`);
+    }
+  }
 };
 
 export default func;
