@@ -380,6 +380,36 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"LayerZeroModuleProxy" is already deployed..');
   }
 
+  let lzEndpoint = networks[hre.networkName].lzEndpoint.toLowerCase();
+  const layerZeroModuleProxy = await hre.ethers.getContract('LayerZeroModuleProxy', deployer);
+  const layerZeroModule = (await hre.ethers.getContractAt(
+    'LayerZeroModule',
+    layerZeroModuleProxy.address,
+    deployer
+  )) as Contract;
+
+  if ((await layerZeroModule.getLZEndpoint()).toLowerCase() != lzEndpoint) {
+    const lzTx = await MultisigAwareTx(
+      hre,
+      deployer,
+      'LayerZeroModule',
+      layerZeroModule,
+      await layerZeroModule.populateTransaction.setLZEndpoint(lzEndpoint, {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: layerZeroModule,
+          data: layerZeroModule.populateTransaction.setLZEndpoint(lzEndpoint),
+        })),
+      })
+    );
+    hre.deployments.log('Transaction hash:', lzTx.hash);
+    await lzTx.wait();
+    hre.deployments.log(`Registered lzEndpoint to: ${await layerZeroModule.getLZEndpoint()}`);
+  } else {
+    hre.deployments.log(`lzEndpoint is already registered to: ${await layerZeroModule.getLZEndpoint()}`);
+  }
+
   // Verify
   let contracts: string[] = ['OVM_GasPriceOracle', 'LayerZeroModuleProxy', 'LayerZeroModule'];
   for (let i: number = 0, l: number = contracts.length; i < l; i++) {
