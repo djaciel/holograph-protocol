@@ -25,12 +25,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const environment: Environment = getEnvironment();
   const currentNetworkType: NetworkType = network.type;
 
-  // Salt is used for deterministic address generation
-  const salt = hre.deploymentSalt;
+  // // Salt is used for deterministic address generation
+  // const salt = hre.deploymentSalt;
 
-  // =================================
-  // Setup DropsPriceOracle
-  // =================================
+  // // =================================
+  // // Setup DropsPriceOracle
+  // // =================================
 
   const definedOracleNames = {
     avalanche: 'Avalanche',
@@ -74,7 +74,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   );
   hre.deployments.log('the future "' + targetDropsPriceOracle + '" address is', futureDropsPriceOracleAddress);
 
-  // Deploy DropsPriceOracle source contract
+  // Get DropsPriceOracle source contract code to see if it already exists
   let dropsPriceOracleDeployedCode: string = await hre.provider.send('eth_getCode', [
     futureDropsPriceOracleAddress,
     'latest',
@@ -104,7 +104,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   );
   hre.deployments.log('the future "DropsPriceOracleProxy" address is', futureDropsPriceOracleProxyAddress);
 
-  // Deploy DropsPriceOracleProxy source contract
+  // Get DropsPriceOracleProxy source contract code to see if it already exists
   let dropsPriceOracleProxyDeployedCode: string = await hre.provider.send('eth_getCode', [
     futureDropsPriceOracleProxyAddress,
     'latest',
@@ -155,12 +155,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   }
 
   // Verify
-  let contracts: string[] = ['DropsPriceOracleProxy', 'DropsPriceOracle'];
+  let contracts: string[] = ['DropsPriceOracleProxy', targetDropsPriceOracle];
   for (let i: number = 0, l: number = contracts.length; i < l; i++) {
     let contract: string = contracts[i];
     try {
       await hre1.run('verify:verify', {
         address: (await hre.ethers.getContract(contract)).address,
+        contract: targetDropsPriceOracle + '.sol:' + targetDropsPriceOracle,
         constructorArguments: [],
       });
     } catch (error) {

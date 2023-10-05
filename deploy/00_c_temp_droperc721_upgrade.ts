@@ -268,41 +268,49 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"HolographDropERC721" is already deployed.');
   }
 
-  // =====================================================
-  // Register HolographDropERC721 in HolographRegistry
-  // =====================================================
+  // ================================================================================================
+  // Register HolographDropERC721 in HolographRegistry | NOTE: THIS WILL ONLY WORK ON DEVELOP
+  // ================================================================================================
 
-  const HolographDropERC721Hash = '0x' + web3.utils.asciiToHex('HolographDropERC721').substring(2).padStart(64, '0');
-  if ((await holographRegistry.getContractTypeAddress(HolographDropERC721Hash)) != futureHolographDropERC721Address) {
-    const erc721DropTx = await MultisigAwareTx(
-      hre,
-      deployer,
-      'HolographRegistry',
-      holographRegistry,
-      await holographRegistry.populateTransaction.setContractTypeAddress(
-        HolographDropERC721Hash,
-        futureHolographDropERC721Address,
-        {
-          ...(await txParams({
-            hre,
-            from: deployer,
-            to: holographRegistry,
-            data: holographRegistry.populateTransaction.setContractTypeAddress(
-              HolographDropERC721Hash,
-              futureHolographDropERC721Address
-            ),
-          })),
-        }
-      )
-    );
-    hre.deployments.log('Transaction hash:', erc721DropTx.hash);
-    await erc721DropTx.wait();
-    hre.deployments.log(
-      `Registered "HolographDropERC721" to: ${await holographRegistry.getContractTypeAddress(HolographDropERC721Hash)}`
-    );
-  } else {
-    hre.deployments.log('"HolographDropERC721" is already registered');
-  }
+  // console.log('Registering "HolographDropERC721" in "HolographRegistry" at address:', holographRegistry.address);
+
+  // const HolographDropERC721Hash = '0x' + web3.utils.asciiToHex('HolographDropERC721').substring(2).padStart(64, '0');
+  // const currentContractTypeAddress = await holographRegistry.getContractTypeAddress(HolographDropERC721Hash);
+
+  // console.log(
+  //   `HolographDropERC721Hash: ${HolographDropERC721Hash}\nholographRegistry.getContractTypeAddress(HolographDropERC721Hash) ${currentContractTypeAddress}`
+  // );
+
+  // if ((await holographRegistry.getContractTypeAddress(HolographDropERC721Hash)) != futureHolographDropERC721Address) {
+  //   const erc721DropTx = await MultisigAwareTx(
+  //     hre,
+  //     deployer,
+  //     'HolographRegistry',
+  //     holographRegistry,
+  //     await holographRegistry.populateTransaction.setContractTypeAddress(
+  //       HolographDropERC721Hash,
+  //       futureHolographDropERC721Address,
+  //       {
+  //         ...(await txParams({
+  //           hre,
+  //           from: deployer,
+  //           to: holographRegistry,
+  //           data: holographRegistry.populateTransaction.setContractTypeAddress(
+  //             HolographDropERC721Hash,
+  //             futureHolographDropERC721Address
+  //           ),
+  //         })),
+  //       }
+  //     )
+  //   );
+  //   hre.deployments.log('Transaction hash:', erc721DropTx.hash);
+  //   await erc721DropTx.wait();
+  //   hre.deployments.log(
+  //     `Registered "HolographDropERC721" to: ${await holographRegistry.getContractTypeAddress(HolographDropERC721Hash)}`
+  //   );
+  // } else {
+  //   hre.deployments.log('"HolographDropERC721" is already registered');
+  // }
 
   // Verify
   let contracts: string[] = [
