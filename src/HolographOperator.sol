@@ -399,7 +399,7 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    */
   function crossChainMessage(bytes calldata bridgeInRequestPayload) external payable {
     require(
-      msg.sender == address(_messagingModule()) || msg.sender == 0x5F18bB9c606D8C5220a61018eEBE55565F35D0C1,
+      msg.sender == address(_messagingModule()) || msg.sender == 0xa534C5D756b0b7Cb5dec153FA64351459a28eB98,
       "HOLOGRAPH: messaging only call"
     );
     uint256 gasPrice = 0;
