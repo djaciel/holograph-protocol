@@ -60,20 +60,29 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // ================================================================================================
 
   // const cxipErc721Hash = '0x' + web3.utils.asciiToHex('CxipERC721').substring(2).padStart(64, '0');
-  // if ((await holographRegistry.getContractTypeAddress(cxipErc721Hash)) != futureCxipErc721Address) {
+  // if (
+  //   (await holographRegistry.getContractTypeAddress(cxipErc721Hash)) != '0x229Dd60CC74c43661C46D27938043C88021696C5'
+  // ) {
   //   const cxipErc721Tx = await MultisigAwareTx(
   //     hre,
   //     deployer,
   //     'HolographRegistry',
   //     holographRegistry,
-  //     await holographRegistry.populateTransaction.setContractTypeAddress(cxipErc721Hash, futureCxipErc721Address, {
-  //       ...(await txParams({
-  //         hre,
-  //         from: deployer,
-  //         to: holographRegistry,
-  //         data: holographRegistry.populateTransaction.setContractTypeAddress(cxipErc721Hash, futureCxipErc721Address),
-  //       })),
-  //     })
+  //     await holographRegistry.populateTransaction.setContractTypeAddress(
+  //       cxipErc721Hash,
+  //       '0x229Dd60CC74c43661C46D27938043C88021696C5',
+  //       {
+  //         ...(await txParams({
+  //           hre,
+  //           from: deployer,
+  //           to: holographRegistry,
+  //           data: holographRegistry.populateTransaction.setContractTypeAddress(
+  //             cxipErc721Hash,
+  //             '0x229Dd60CC74c43661C46D27938043C88021696C5'
+  //           ),
+  //         })),
+  //       }
+  //     )
   //   );
   //   hre.deployments.log('Transaction hash:', cxipErc721Tx.hash);
   //   await cxipErc721Tx.wait();

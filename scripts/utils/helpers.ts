@@ -444,7 +444,7 @@ const getGasPrice = async function (): Promise<GasParams> {
     }
   } else {
     return {
-      gasPrice: BigNumber.from('10000000000'), // This can be updated to manually set a gas price. Defaulting to 100 gwei for now
+      gasPrice: BigNumber.from('100000000000'), // This can be updated to manually set a gas price. Defaulting to 100 gwei for now
       type: 0,
       maxPriorityFeePerGas: null,
       maxFeePerGas: null,

@@ -281,7 +281,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   //   `HolographDropERC721Hash: ${HolographDropERC721Hash}\nholographRegistry.getContractTypeAddress(HolographDropERC721Hash) ${currentContractTypeAddress}`
   // );
 
-  // if ((await holographRegistry.getContractTypeAddress(HolographDropERC721Hash)) != futureHolographDropERC721Address) {
+  // // TODO: Update these to use futureHolographDropERC721Address instead of hardcoded later
+
+  // if (
+  //   (await holographRegistry.getContractTypeAddress(HolographDropERC721Hash)) !=
+  //   '0x5FaEE7F363C2809c3316B9374479B368620065b0'
+  // ) {
   //   const erc721DropTx = await MultisigAwareTx(
   //     hre,
   //     deployer,
@@ -289,7 +294,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   //     holographRegistry,
   //     await holographRegistry.populateTransaction.setContractTypeAddress(
   //       HolographDropERC721Hash,
-  //       futureHolographDropERC721Address,
+  //       '0x5FaEE7F363C2809c3316B9374479B368620065b0',
   //       {
   //         ...(await txParams({
   //           hre,
@@ -297,7 +302,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   //           to: holographRegistry,
   //           data: holographRegistry.populateTransaction.setContractTypeAddress(
   //             HolographDropERC721Hash,
-  //             futureHolographDropERC721Address
+  //             '0x5FaEE7F363C2809c3316B9374479B368620065b0'
   //           ),
   //         })),
   //       }
