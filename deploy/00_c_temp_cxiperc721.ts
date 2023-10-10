@@ -32,80 +32,80 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     holographRegistryProxy.address
   );
 
-  const futureCxipErc721Address = await genesisDeriveFutureAddress(
-    hre,
-    salt,
-    'CxipERC721',
-    generateInitCode(['address'], [deployer.address])
-  );
-  hre.deployments.log('the future "CxipERC721" address is', futureCxipErc721Address);
+  // const futureCxipErc721Address = await genesisDeriveFutureAddress(
+  //   hre,
+  //   salt,
+  //   'CxipERC721',
+  //   generateInitCode(['address'], [deployer.address])
+  // );
+  // hre.deployments.log('the future "CxipERC721" address is', futureCxipErc721Address);
 
-  // CxipERC721
-  let cxipErc721DeployedCode: string = await hre.provider.send('eth_getCode', [futureCxipErc721Address, 'latest']);
-  if (cxipErc721DeployedCode == '0x' || cxipErc721DeployedCode == '') {
-    hre.deployments.log('"CxipERC721" bytecode not found, need to deploy"');
-    let cxipErc721 = await genesisDeployHelper(
-      hre,
-      salt,
-      'CxipERC721',
-      generateInitCode(['address'], [deployer.address]),
-      futureCxipErc721Address
-    );
-  } else {
-    hre.deployments.log('"CxipERC721" is already deployed.');
-  }
+  // // CxipERC721
+  // let cxipErc721DeployedCode: string = await hre.provider.send('eth_getCode', [futureCxipErc721Address, 'latest']);
+  // if (cxipErc721DeployedCode == '0x' || cxipErc721DeployedCode == '') {
+  //   hre.deployments.log('"CxipERC721" bytecode not found, need to deploy"');
+  //   let cxipErc721 = await genesisDeployHelper(
+  //     hre,
+  //     salt,
+  //     'CxipERC721',
+  //     generateInitCode(['address'], [deployer.address]),
+  //     futureCxipErc721Address
+  //   );
+  // } else {
+  //   hre.deployments.log('"CxipERC721" is already deployed.');
+  // }
 
   // ================================================================================================
   // Register CxipERC721 in HolographRegistry | NOTE: THIS WILL ONLY WORK ON DEVELOP
   // ================================================================================================
 
-  // const cxipErc721Hash = '0x' + web3.utils.asciiToHex('CxipERC721').substring(2).padStart(64, '0');
-  // if (
-  //   (await holographRegistry.getContractTypeAddress(cxipErc721Hash)) != '0x229Dd60CC74c43661C46D27938043C88021696C5'
-  // ) {
-  //   const cxipErc721Tx = await MultisigAwareTx(
-  //     hre,
-  //     deployer,
-  //     'HolographRegistry',
-  //     holographRegistry,
-  //     await holographRegistry.populateTransaction.setContractTypeAddress(
-  //       cxipErc721Hash,
-  //       '0x229Dd60CC74c43661C46D27938043C88021696C5',
-  //       {
-  //         ...(await txParams({
-  //           hre,
-  //           from: deployer,
-  //           to: holographRegistry,
-  //           data: holographRegistry.populateTransaction.setContractTypeAddress(
-  //             cxipErc721Hash,
-  //             '0x229Dd60CC74c43661C46D27938043C88021696C5'
-  //           ),
-  //         })),
-  //       }
-  //     )
-  //   );
-  //   hre.deployments.log('Transaction hash:', cxipErc721Tx.hash);
-  //   await cxipErc721Tx.wait();
-  //   hre.deployments.log(
-  //     `Registered "CxipERC721" to: ${await holographRegistry.getContractTypeAddress(cxipErc721Hash)}`
-  //   );
-  // } else {
-  //   hre.deployments.log('"CxipERC721" is already registered');
-  // }
+  const cxipErc721Hash = '0x' + web3.utils.asciiToHex('CxipERC721').substring(2).padStart(64, '0');
+  if (
+    (await holographRegistry.getContractTypeAddress(cxipErc721Hash)) != '0x8E3C5d09964Cb965232Ad5b2c3B5Fb05556F5d9c'
+  ) {
+    const cxipErc721Tx = await MultisigAwareTx(
+      hre,
+      deployer,
+      'HolographRegistry',
+      holographRegistry,
+      await holographRegistry.populateTransaction.setContractTypeAddress(
+        cxipErc721Hash,
+        '0x8E3C5d09964Cb965232Ad5b2c3B5Fb05556F5d9c',
+        {
+          ...(await txParams({
+            hre,
+            from: deployer,
+            to: holographRegistry,
+            data: holographRegistry.populateTransaction.setContractTypeAddress(
+              cxipErc721Hash,
+              '0x8E3C5d09964Cb965232Ad5b2c3B5Fb05556F5d9c'
+            ),
+          })),
+        }
+      )
+    );
+    hre.deployments.log('Transaction hash:', cxipErc721Tx.hash);
+    await cxipErc721Tx.wait();
+    hre.deployments.log(
+      `Registered "CxipERC721" to: ${await holographRegistry.getContractTypeAddress(cxipErc721Hash)}`
+    );
+  } else {
+    hre.deployments.log('"CxipERC721" is already registered');
+  }
 
   // Verify
-  let contracts: string[] = ['CxipERC721'];
-  for (let i: number = 0, l: number = contracts.length; i < l; i++) {
-    let contract: string = contracts[i];
-    try {
-      await hre1.run('verify:verify', {
-        address: (await hre.ethers.getContract(contract)).address,
-        constructorArguments: [],
-      });
-    } catch (error) {
-      hre.deployments.log(`Failed to verify ""${contract}" -> ${error}`);
-    }
-  }
+  // let contracts: string[] = ['CxipERC721'];
+  // for (let i: number = 0, l: number = contracts.length; i < l; i++) {
+  //   let contract: string = contracts[i];
+  //   try {
+  //     await hre1.run('verify:verify', {
+  //       address: (await hre.ethers.getContract(contract)).address,
+  //       constructorArguments: [],
+  //     });
+  //   } catch (error) {
+  //     hre.deployments.log(`Failed to verify ""${contract}" -> ${error}`);
+  //   }
+  // }
 };
 
 export default func;
