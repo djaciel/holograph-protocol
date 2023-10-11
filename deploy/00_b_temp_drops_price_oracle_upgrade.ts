@@ -25,12 +25,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const environment: Environment = getEnvironment();
   const currentNetworkType: NetworkType = network.type;
 
-  // // Salt is used for deterministic address generation
+  // Salt is used for deterministic address generation
   const salt = hre.deploymentSalt;
 
-  // // =================================
-  // // Setup DropsPriceOracle
-  // // =================================
+  // =================================
+  // Setup DropsPriceOracle
+  // =================================
 
   const definedOracleNames = {
     avalanche: 'Avalanche',
