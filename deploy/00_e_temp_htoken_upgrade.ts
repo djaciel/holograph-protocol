@@ -29,37 +29,42 @@ interface HTokenData {
   supportedNetworks: Network[];
 }
 
+const MAX_RETRIES = 3; // Number of maximum retries for the "already known" error.
+const RETRY_DELAY = 2000; // Delay between retries in milliseconds.
+const GAS_PRICE_INCREMENT_PERCENT = 20; // Increment the gas price by 20% for retries.
+
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
   const accounts = await hre.ethers.getSigners();
   let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
 
   const web3 = new Web3();
-
   const salt = hre.deploymentSalt;
 
-  // const futureHTokenAddress = await genesisDeriveFutureAddress(
-  //   hre,
-  //   salt,
-  //   'hToken',
-  //   generateInitCode(['address', 'uint16'], [deployer.address, 0])
-  // );
-  // hre.deployments.log('the future "hToken" address is', futureHTokenAddress);
+  // HToken Address is the address of the hToken contract
+  // while HolographedAddress is the address of the holographed token contract such as hETH
+  const futureHTokenAddress = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'hToken',
+    generateInitCode(['address', 'uint16'], [deployer.address, 0])
+  );
+  hre.deployments.log('the future "hToken" address is', futureHTokenAddress);
 
   // hToken
-  // let hTokenDeployedCode: string = await hre.provider.send('eth_getCode', [futureHTokenAddress, 'latest']);
-  // if (hTokenDeployedCode == '0x' || hTokenDeployedCode == '') {
-  //   hre.deployments.log('"hToken" bytecode not found, need to deploy"');
-  //   let holographErc20 = await genesisDeployHelper(
-  //     hre,
-  //     salt,
-  //     'hToken',
-  //     generateInitCode(['address', 'uint16'], [deployer.address, 0]),
-  //     futureHTokenAddress
-  //   );
-  // } else {
-  //   hre.deployments.log('"hToken" is already deployed.');
-  // }
+  let hTokenDeployedCode: string = await hre.provider.send('eth_getCode', [futureHTokenAddress, 'latest']);
+  if (hTokenDeployedCode == '0x' || hTokenDeployedCode == '') {
+    hre.deployments.log('"hToken" bytecode not found, need to deploy"');
+    let holographErc20 = await genesisDeployHelper(
+      hre,
+      salt,
+      'hToken',
+      generateInitCode(['address', 'uint16'], [deployer.address, 0]),
+      futureHTokenAddress
+    );
+  } else {
+    hre.deployments.log('"hToken" is already deployed.');
+  }
 
   const network = networks[hre.networkName];
 
@@ -78,11 +83,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   )) as Contract;
 
   const holographerBytecode: BytesLike = (await hre.ethers.getContractFactory('Holographer')).bytecode;
-
-  const error = function (err: string) {
-    hre.deployments.log(err);
-    process.exit();
-  };
 
   const currentNetworkType: NetworkType = network.type;
   let hTokens: HTokenData[] = [];
@@ -178,125 +178,157 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     holographerBytecode: BytesLike,
     data: HTokenData
   ) {
-    // const hTokenHash = '0x' + web3.utils.asciiToHex('hToken').substring(2).padStart(64, '0');
-    // const chainId = '0x' + data.primaryNetwork.holographId.toString(16).padStart(8, '0');
-    // let { erc20Config, erc20ConfigHash, erc20ConfigHashBytes } = await generateErc20Config(
-    //   data.primaryNetwork,
-    //   deployer.address,
-    //   'hTokenProxy',
-    //   'Holographed ' + data.tokenSymbol,
-    //   'h' + data.tokenSymbol,
-    //   'Holographed ' + data.tokenSymbol,
-    //   '1',
-    //   18,
-    //   ConfigureEvents([]),
-    //   generateInitCode(
-    //     ['bytes32', 'address', 'bytes'],
-    //     [hTokenHash, registry.address, generateInitCode(['address', 'uint16'], [deployer.address, 0])]
-    //   ),
-    //   salt
-    // );
-
-    // const futureHTokenAddress = hre.ethers.utils.getCreate2Address(
-    //   factory.address,
-    //   erc20ConfigHash,
-    //   hre.ethers.utils.keccak256(holographerBytecode)
-    // );
-    // hre.deployments.log('the future "hToken ' + data.tokenSymbol + '" address is', futureHTokenAddress);
-
-    // let hTokenDeployedCode: string = await hre.provider.send('eth_getCode', [futureHTokenAddress, 'latest']);
-    // if (hTokenDeployedCode == '0x' || hTokenDeployedCode == '') {
-    //   hre.deployments.log('need to deploy "hToken ' + data.tokenSymbol + '"');
-
-    //   const sig = await deployer.signMessage(erc20ConfigHashBytes);
-    //   const signature: Signature = StrictECDSA({
-    //     r: '0x' + sig.substring(2, 66),
-    //     s: '0x' + sig.substring(66, 130),
-    //     v: '0x' + sig.substring(130, 132),
-    //   } as Signature);
-
-    //   const deployTx = await factory.deployHolographableContract(erc20Config, signature, deployer.address, {
-    //     ...(await txParams({
-    //       hre,
-    //       from: deployer,
-    //       to: factory,
-    //       data: factory.populateTransaction.deployHolographableContract(erc20Config, signature, deployer.address),
-    //     })),
-    //   });
-    //   const deployResult = await deployTx.wait();
-    //   let eventIndex: number = 0;
-    //   let eventFound: boolean = false;
-    //   for (let i = 0, l = deployResult.events.length; i < l; i++) {
-    //     let e = deployResult.events[i];
-    //     if (e.event == 'BridgeableContractDeployed') {
-    //       eventFound = true;
-    //       eventIndex = i;
-    //       break;
-    //     }
-    //   }
-    //   if (!eventFound) {
-    //     throw new Error('BridgeableContractDeployed event not fired');
-    //   }
-    //   let hTokenAddress = deployResult.events[eventIndex].args[0];
-    //   if (hTokenAddress != futureHTokenAddress) {
-    //     throw new Error(
-    //       `Seems like hTokenAddress ${hTokenAddress} and futureHTokenAddress ${futureHTokenAddress} do not match!`
-    //     );
-    //   }
-    //   hre.deployments.log('deployed "hToken ' + data.tokenSymbol + '" at:', hTokenAddress);
-    // } else {
-    //   hre.deployments.log('reusing "hToken ' + data.tokenSymbol + '" at:', futureHTokenAddress);
-    // }
-
-    const hToken = ((await hre.ethers.getContract('hToken', deployer)) as Contract).attach(
-      '0x28d9160288E99E119B2Cb8f4387edeF8782d7770'
+    console.log(`Deploying hToken for ${data.tokenSymbol} on ${data.primaryNetwork.name}`);
+    const hTokenHash = '0x' + web3.utils.asciiToHex('hToken').substring(2).padStart(64, '0');
+    const chainId = '0x' + data.primaryNetwork.holographId.toString(16).padStart(8, '0');
+    let { erc20Config, erc20ConfigHash, erc20ConfigHashBytes } = await generateErc20Config(
+      data.primaryNetwork,
+      deployer.address,
+      'hTokenProxy',
+      'Holographed ' + data.tokenSymbol,
+      'h' + data.tokenSymbol,
+      'Holographed ' + data.tokenSymbol,
+      '1',
+      18,
+      ConfigureEvents([]),
+      generateInitCode(
+        ['bytes32', 'address', 'bytes'],
+        [hTokenHash, registry.address, generateInitCode(['address', 'uint16'], [deployer.address, 0])]
+      ),
+      salt
     );
 
+    const futureHolographedTokenAddress = hre.ethers.utils.getCreate2Address(
+      factory.address,
+      erc20ConfigHash,
+      hre.ethers.utils.keccak256(holographerBytecode)
+    );
+    hre.deployments.log('the future "hToken ' + data.tokenSymbol + '" address is', futureHolographedTokenAddress);
+
+    let hTokenDeployedCode: string = await hre.provider.send('eth_getCode', [futureHolographedTokenAddress, 'latest']);
+    if (hTokenDeployedCode == '0x' || hTokenDeployedCode == '') {
+      hre.deployments.log('need to deploy "hToken ' + data.tokenSymbol + '"');
+
+      const sig = await deployer.signMessage(erc20ConfigHashBytes);
+      const signature: Signature = StrictECDSA({
+        r: '0x' + sig.substring(2, 66),
+        s: '0x' + sig.substring(66, 130),
+        v: '0x' + sig.substring(130, 132),
+      } as Signature);
+
+      const deployTx = await factory.deployHolographableContract(erc20Config, signature, deployer.address, {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: factory,
+          data: factory.populateTransaction.deployHolographableContract(erc20Config, signature, deployer.address),
+        })),
+      });
+      const deployResult = await deployTx.wait();
+      let eventIndex: number = 0;
+      let eventFound: boolean = false;
+      for (let i = 0, l = deployResult.events.length; i < l; i++) {
+        let e = deployResult.events[i];
+        if (e.event == 'BridgeableContractDeployed') {
+          eventFound = true;
+          eventIndex = i;
+          break;
+        }
+      }
+      if (!eventFound) {
+        throw new Error('BridgeableContractDeployed event not fired');
+      }
+      let hTokenAddress = deployResult.events[eventIndex].args[0];
+      if (hTokenAddress != futureHolographedTokenAddress) {
+        throw new Error(
+          `Seems like hTokenAddress ${hTokenAddress} and futureHolographedTokenAddress ${futureHolographedTokenAddress} do not match!`
+        );
+      }
+      hre.deployments.log('deployed "hToken ' + data.tokenSymbol + '" at:', hTokenAddress);
+    } else {
+      hre.deployments.log('reusing "hToken ' + data.tokenSymbol + '" at:', futureHolographedTokenAddress);
+    }
+
+    const hToken = ((await hre.ethers.getContract('hToken', deployer)) as Contract).attach(
+      futureHolographedTokenAddress
+    );
+
+    // NOTE: Since the factory is the owner of the contract we bypass the multisig aware tx and use the signer directly.
     for (let network of data.supportedNetworks) {
-      // if (!(await hToken.isSupportedChain(network.chain))) {
-      //   hre.deployments.log('Need to add ' + network.chain.toString() + ' as supported chain');
-      //   const setSupportedChainTx = await MultisigAwareTx(
+      console.log(`Checking if ${network.chain.toString()} is supported`);
+      let nonce = await hre.ethers.provider.getTransactionCount(deployer.address, 'latest');
+      let retries = 0;
+      let gasPrice = await hre.ethers.provider.getGasPrice();
+
+      while (retries < MAX_RETRIES) {
+        try {
+          // Your original logic...
+          if (!(await hToken.isSupportedChain(network.chain))) {
+            hre.deployments.log('Need to add ' + network.chain.toString() + ' as supported chain');
+            const hTokenWithSigner = hToken.connect(deployer);
+            const tx = await hTokenWithSigner.updateSupportedChain(network.chain, true, {
+              nonce: nonce,
+              gasPrice: gasPrice,
+            });
+            await tx.wait();
+            hre.deployments.log(`Transaction mined: ${tx.hash}`);
+            hre.deployments.log('Set ' + network.chain.toString() + ' as supported chain');
+            break;
+          } else {
+            hre.deployments.log('Chain ' + network.chain.toString() + ' is already supported');
+            break;
+          }
+        } catch (error) {
+          if (error.message.includes('replacement fee too low')) {
+            hre.deployments.log('Encountered "replacement fee too low" error. Retrying with higher gas price...');
+            retries++;
+
+            // Increase the gas price by a certain percentage for the next attempt.
+            gasPrice = gasPrice.add(gasPrice.mul(GAS_PRICE_INCREMENT_PERCENT).div(100));
+            await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY)); // Wait before retrying.
+          } else if (error.message.includes('already known')) {
+            // Handle the "already known" error as previously discussed.
+            hre.deployments.log('Encountered "already known" error. Retrying with incremented nonce...');
+            retries++;
+            nonce++;
+            await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+          } else {
+            // For any other errors, you might want to throw or handle them differently.
+            throw error;
+          }
+        }
+      }
+
+      if (retries === MAX_RETRIES) {
+        throw new Error('Max retries reached without success.');
+      }
+
+      // NOTE: This can only be done on develop, but must switch to testnet deployer key.
+      // On other networks this must be a multisig tx
+      // const chain = '0x' + network.holographId.toString(16).padStart(8, '0');
+      // if ((await registry.getHToken(chain)) != futureHolographedTokenAddress) {
+      //   hre.deployments.log(
+      //     'Updated "Registry" with "hToken ' +
+      //       data.tokenSymbol +
+      //       '" for holographChainId #' +
+      //       Number.parseInt(chain).toString()
+      //   );
+      //   const setHTokenTx = await MultisigAwareTx(
       //     hre,
       //     deployer,
-      //     'hToken',
-      //     hToken,
-      //     await hToken.populateTransaction.updateSupportedChain(network.chain, true, {
+      //     'HolographRegistry',
+      //     registry,
+      //     await registry.populateTransaction.setHToken(chain, futureHolographedTokenAddress, {
       //       ...(await txParams({
       //         hre,
       //         from: deployer,
-      //         to: hToken,
-      //         data: hToken.populateTransaction.updateSupportedChain(network.chain, true),
+      //         to: registry,
+      //         data: registry.populateTransaction.setHToken(chain, futureHolographedTokenAddress),
       //       })),
       //     })
       //   );
-      //   await setSupportedChainTx.wait();
-      //   hre.deployments.log('Set ' + network.chain.toString() + ' as supported chain');
+      //   await setHTokenTx.wait();
       // }
-
-      const chain = '0x' + network.holographId.toString(16).padStart(8, '0');
-      if ((await registry.getHToken(chain)) != '0x28d9160288E99E119B2Cb8f4387edeF8782d7770') {
-        hre.deployments.log(
-          'Updated "Registry" with "hToken ' +
-            data.tokenSymbol +
-            '" for holographChainId #' +
-            Number.parseInt(chain).toString()
-        );
-        const setHTokenTx = await MultisigAwareTx(
-          hre,
-          deployer,
-          'HolographRegistry',
-          registry,
-          await registry.populateTransaction.setHToken(chain, '0x28d9160288E99E119B2Cb8f4387edeF8782d7770', {
-            ...(await txParams({
-              hre,
-              from: deployer,
-              to: registry,
-              data: registry.populateTransaction.setHToken(chain, '0x28d9160288E99E119B2Cb8f4387edeF8782d7770'),
-            })),
-          })
-        );
-        await setHTokenTx.wait();
-      }
     }
   };
 
