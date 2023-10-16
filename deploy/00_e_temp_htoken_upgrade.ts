@@ -183,7 +183,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const chainId = '0x' + data.primaryNetwork.holographId.toString(16).padStart(8, '0');
     let { erc20Config, erc20ConfigHash, erc20ConfigHashBytes } = await generateErc20Config(
       data.primaryNetwork,
-      deployer.address,
+      `0x21Ab3Aa7053A3615E02d4aC517B7075b45BF524f`, // NOTE: This is the hot wallet deployer
       'hTokenProxy',
       'Holographed ' + data.tokenSymbol,
       'h' + data.tokenSymbol,
@@ -193,7 +193,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ConfigureEvents([]),
       generateInitCode(
         ['bytes32', 'address', 'bytes'],
-        [hTokenHash, registry.address, generateInitCode(['address', 'uint16'], [deployer.address, 0])]
+        [
+          hTokenHash,
+          registry.address,
+          generateInitCode(
+            ['address', 'uint16'],
+            [`0x21Ab3Aa7053A3615E02d4aC517B7075b45BF524f` /*  // NOTE: This is the hot wallet deployer */, 0]
+          ),
+        ]
       ),
       salt
     );
@@ -203,7 +210,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       erc20ConfigHash,
       hre.ethers.utils.keccak256(holographerBytecode)
     );
-    hre.deployments.log('the future "hToken ' + data.tokenSymbol + '" address is', futureHolographedTokenAddress);
+    hre.deployments.log('the future "h' + data.tokenSymbol + '" address is', futureHolographedTokenAddress);
 
     let hTokenDeployedCode: string = await hre.provider.send('eth_getCode', [futureHolographedTokenAddress, 'latest']);
     if (hTokenDeployedCode == '0x' || hTokenDeployedCode == '') {
@@ -328,7 +335,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       //     })
       //   );
       //   await setHTokenTx.wait();
-      // }
     }
   };
 
