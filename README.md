@@ -96,6 +96,16 @@ The Interfaces contract is used to store and share standardized data. It acts as
 
 Custom contract is any type of smart contract that was developed outside of Holograph Protocol, and is used to create a _Holographed_ contract. This empowers developers to build their projects however they want. The requirements for enabling a custom contract to be Holograph-able are minimal, and allow for even novice-level developers to implement. Any current and future fungible and non-fungible token type contracts can easily be made Holograph-able.
 
+#### H Tokens
+
+##### Mainnet
+
+hETH, Address: 0xb1d6C3fA214DD406d9eB8aef44c7b19A72b3de9D
+hBNB, Address: 0xA10f0c9EAd97149a1Bb57543c2837fa31e05610b
+hAVAX, Address: 0x286d2f689403B3C31500FE027678516649b2bC40
+hMATIC: Address: 0xBd7113A84ead397397Fe40046f0d84486d32ac34
+hMNT: Mantle, Address: 0xdE4494D3CD37C165bA70c1F6C2119CC78EfB64aa
+
 ## Important Flows
 
 ### Bridging NFTs

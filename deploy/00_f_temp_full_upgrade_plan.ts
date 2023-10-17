@@ -884,7 +884,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const holographerBytecode: BytesLike = (await hre.ethers.getContractFactory('Holographer')).bytecode;
 
-  // const currentNetworkType: NetworkType = network.type;
   let hTokens: HTokenData[] = [];
   let primaryNetwork: Network;
   if (currentNetworkType == NetworkType.local) {
@@ -1012,46 +1011,68 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
     hre.deployments.log('the future "h' + data.tokenSymbol + '" address is', futureHolographedTokenAddress);
 
+    // Check if we need to deploy the holographed token
     let hTokenDeployedCode: string = await hre.provider.send('eth_getCode', [futureHolographedTokenAddress, 'latest']);
     if (hTokenDeployedCode == '0x' || hTokenDeployedCode == '') {
       hre.deployments.log('need to deploy "hToken ' + data.tokenSymbol + '"');
 
-      const sig = await deployer.signMessage(erc20ConfigHashBytes);
-      const signature: Signature = StrictECDSA({
-        r: '0x' + sig.substring(2, 66),
-        s: '0x' + sig.substring(66, 130),
-        v: '0x' + sig.substring(130, 132),
-      } as Signature);
+      // Closure to retry deployment with higher nonce if needed
+      async function deployContract(nonce: number) {
+        for (let retries = 0; retries < MAX_RETRIES; retries++) {
+          try {
+            const sig = await deployer.signMessage(erc20ConfigHashBytes);
+            const signature: Signature = StrictECDSA({
+              r: '0x' + sig.substring(2, 66),
+              s: '0x' + sig.substring(66, 130),
+              v: '0x' + sig.substring(130, 132),
+            } as Signature);
 
-      const deployTx = await factory.deployHolographableContract(erc20Config, signature, deployer.address, {
-        ...(await txParams({
-          hre,
-          from: deployer,
-          to: factory,
-          data: factory.populateTransaction.deployHolographableContract(erc20Config, signature, deployer.address),
-        })),
-      });
-      const deployResult = await deployTx.wait();
-      let eventIndex: number = 0;
-      let eventFound: boolean = false;
-      for (let i = 0, l = deployResult.events.length; i < l; i++) {
-        let e = deployResult.events[i];
-        if (e.event == 'BridgeableContractDeployed') {
-          eventFound = true;
-          eventIndex = i;
-          break;
+            const deployTx = await factory.deployHolographableContract(erc20Config, signature, deployer.address, {
+              ...(await txParams({
+                hre,
+                from: deployer,
+                to: factory,
+                data: factory.populateTransaction.deployHolographableContract(erc20Config, signature, deployer.address),
+                nonce,
+              })),
+            });
+            const deployResult = await deployTx.wait();
+            let eventIndex: number = 0;
+            let eventFound: boolean = false;
+            for (let i = 0, l = deployResult.events.length; i < l; i++) {
+              let e = deployResult.events[i];
+              if (e.event == 'BridgeableContractDeployed') {
+                eventFound = true;
+                eventIndex = i;
+                break;
+              }
+            }
+            if (!eventFound) {
+              throw new Error('BridgeableContractDeployed event not fired');
+            }
+            let hTokenAddress = deployResult.events[eventIndex].args[0];
+            if (hTokenAddress != futureHolographedTokenAddress) {
+              throw new Error(
+                `Seems like hTokenAddress ${hTokenAddress} and futureHolographedTokenAddress ${futureHolographedTokenAddress} do not match!`
+              );
+            }
+            hre.deployments.log('deployed "hToken ' + data.tokenSymbol + '" at:', hTokenAddress);
+
+            return deployResult; // Return the result if deployment is successful
+          } catch (error) {
+            if (error.message.includes('nonce has already been used')) {
+              hre.deployments.log('Encountered "nonce has already been used" error. Retrying with higher nonce...');
+              nonce = await hre.ethers.provider.getTransactionCount(deployer.address, 'pending');
+            } else {
+              throw error; // If it's not a nonce error, re-throw it to handle it outside the loop
+            }
+          }
         }
+        throw new Error('Max retries reached without success.'); // Throw an error if max retries are reached
       }
-      if (!eventFound) {
-        throw new Error('BridgeableContractDeployed event not fired');
-      }
-      let hTokenAddress = deployResult.events[eventIndex].args[0];
-      if (hTokenAddress != futureHolographedTokenAddress) {
-        throw new Error(
-          `Seems like hTokenAddress ${hTokenAddress} and futureHolographedTokenAddress ${futureHolographedTokenAddress} do not match!`
-        );
-      }
-      hre.deployments.log('deployed "hToken ' + data.tokenSymbol + '" at:', hTokenAddress);
+
+      let nonce = await hre.ethers.provider.getTransactionCount(deployer.address, 'pending');
+      await deployContract(nonce); // Call the deployContract function with the initial nonce
     } else {
       hre.deployments.log('reusing "hToken ' + data.tokenSymbol + '" at:', futureHolographedTokenAddress);
     }
@@ -1060,56 +1081,61 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureHolographedTokenAddress
     );
 
-    // NOTE: Since the factory is the owner of the contract we bypass the multisig aware tx and use the signer directly.
+    // Initialize a resolved Promise to act as a lock
+    let lock = Promise.resolve();
+    let nonce = await hre.ethers.provider.getTransactionCount(deployer.address, 'pending');
+
     for (let network of data.supportedNetworks) {
       console.log(`Checking if ${network.chain.toString()} is supported`);
-      let nonce = await hre.ethers.provider.getTransactionCount(deployer.address, 'latest');
-      let retries = 0;
-      let gasPrice = await hre.ethers.provider.getGasPrice();
 
-      while (retries < MAX_RETRIES) {
-        try {
-          // Your original logic...
-          if (!(await hToken.isSupportedChain(network.chain))) {
-            hre.deployments.log('Need to add ' + network.chain.toString() + ' as supported chain');
-            const hTokenWithSigner = hToken.connect(deployer);
-            const tx = await hTokenWithSigner.updateSupportedChain(network.chain, true, {
-              nonce: nonce,
-              gasPrice: gasPrice,
-            });
-            await tx.wait();
-            hre.deployments.log(`Transaction mined: ${tx.hash}`);
-            hre.deployments.log('Set ' + network.chain.toString() + ' as supported chain');
-            break;
-          } else {
-            hre.deployments.log('Chain ' + network.chain.toString() + ' is already supported');
-            break;
-          }
-        } catch (error) {
-          if (error.message.includes('replacement fee too low')) {
-            hre.deployments.log('Encountered "replacement fee too low" error. Retrying with higher gas price...');
-            retries++;
+      lock = lock.then(async () => {
+        let retries = 0;
+        let gasPrice = await hre.ethers.provider.getGasPrice();
 
-            // Increase the gas price by a certain percentage for the next attempt.
-            gasPrice = gasPrice.add(gasPrice.mul(GAS_PRICE_INCREMENT_PERCENT).div(100));
-            await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY)); // Wait before retrying.
-          } else if (error.message.includes('already known')) {
-            // Handle the "already known" error as previously discussed.
-            hre.deployments.log('Encountered "already known" error. Retrying with incremented nonce...');
-            retries++;
-            nonce++;
-            await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
-          } else {
-            // For any other errors, you might want to throw or handle them differently.
-            throw error;
+        while (retries < MAX_RETRIES) {
+          try {
+            if (!(await hToken.isSupportedChain(network.chain))) {
+              hre.deployments.log('Need to add ' + network.chain.toString() + ' as supported chain');
+              const hTokenWithSigner = hToken.connect(deployer);
+              const tx = await hTokenWithSigner.updateSupportedChain(network.chain, true, {
+                gasPrice: gasPrice,
+                nonce: nonce, // Set the nonce manually
+              });
+              hre.deployments.log(`Sending transaction with gas price: ${gasPrice.toString()} and nonce: ${nonce}`);
+              await tx.wait();
+              hre.deployments.log(`Transaction mined: ${tx.hash}`);
+              hre.deployments.log('Set ' + network.chain.toString() + ' as supported chain');
+              nonce++; // Increment the nonce for the next transaction
+              break;
+            } else {
+              hre.deployments.log('Chain ' + network.chain.toString() + ' is already supported');
+              break;
+            }
+          } catch (error) {
+            hre.deployments.log(`Error: ${error.message}`);
+            if (error.message.includes('replacement fee too low')) {
+              hre.deployments.log('Encountered "replacement fee too low" error. Retrying with higher gas price...');
+              retries++;
+              gasPrice = gasPrice.add(gasPrice.mul(GAS_PRICE_INCREMENT_PERCENT).div(100));
+              await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+            } else if (error.message.includes('nonce has already been used')) {
+              hre.deployments.log('Encountered "nonce has already been used" error. Retrying with higher nonce...');
+              retries++;
+              nonce = await hre.ethers.provider.getTransactionCount(deployer.address, 'pending'); // Fetch the correct nonce again
+              await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY));
+            } else {
+              throw error;
+            }
           }
         }
-      }
 
-      if (retries === MAX_RETRIES) {
-        throw new Error('Max retries reached without success.');
-      }
+        if (retries === MAX_RETRIES) {
+          throw new Error('Max retries reached without success.');
+        }
+      });
     }
+
+    await lock; // Ensure all transactions have been processed before continuing
   };
 
   // Deploy all the h wrapped tokens
