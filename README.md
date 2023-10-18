@@ -24,7 +24,7 @@ Holograph provides infrastructure for real world asset (RWA) tokenization. Holog
 
 ## Specification
 
-Please reference the [documentation](https://docs.holograph.xyz/holograph-protocol/technical-specification) for the full technical specification of the protocol.
+Please reference the [documentation](https://docs.holograph.xyz/about/protocol-specification) for the full technical specification of the protocol.
 
 ## Architecture
 
@@ -324,7 +324,6 @@ Read through [CONTRIBUTING.md](./CONTRIBUTING.md) for a general overview of our 
 - [Docs](https://docs.holograph.xyz)
 - [Discord](https://discord.com/invite/holograph)
 - [Twitter](https://twitter.com/holographxyz)
-- [Mirror](https://mirror.xyz/holographxyz.eth)
 
 ## License
 
