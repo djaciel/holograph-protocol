@@ -20,7 +20,7 @@
 
 ## Description
 
-Holograph provides omnichain NFT infrastructure for the web3 ecosystem. Holograph Protocol enables the creation, deployment, minting, and bridging of omnichain NFTs with complete data integrity.
+Holograph provides infrastructure for real world asset (RWA) tokenization. Holograph achieves this with holographic assets, which are fungible and non-fungible token standards specifically designed for RWA tokenization.
 
 ## Specification
 
