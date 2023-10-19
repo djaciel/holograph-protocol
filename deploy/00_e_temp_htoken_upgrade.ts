@@ -370,6 +370,35 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   for (let hToken of hTokens) {
     await hTokenDeployer(holograph, factory, registry, holographerBytecode, hToken);
   }
+
+  const holographRegistryProxy = await hre.ethers.getContract('HolographRegistryProxy', deployer);
+  const holographRegistry = ((await hre.ethers.getContract('HolographRegistry', deployer)) as Contract).attach(
+    holographRegistryProxy.address
+  );
+
+  // Register hToken
+  const hTokenHash = '0x' + web3.utils.asciiToHex('hToken').substring(2).padStart(64, '0');
+  if ((await holographRegistry.getContractTypeAddress(hTokenHash)) != futureHTokenAddress) {
+    const hTokenTx = await MultisigAwareTx(
+      hre,
+      deployer,
+      'HolographRegistry',
+      holographRegistry,
+      await holographRegistry.populateTransaction.setContractTypeAddress(hTokenHash, futureHTokenAddress, {
+        ...(await txParams({
+          hre,
+          from: deployer,
+          to: holographRegistry,
+          data: holographRegistry.populateTransaction.setContractTypeAddress(hTokenHash, futureHTokenAddress),
+        })),
+      })
+    );
+    hre.deployments.log('Transaction hash:', hTokenTx.hash);
+    await hTokenTx.wait();
+    hre.deployments.log(`Registered "hToken" to: ${await holographRegistry.getContractTypeAddress(hTokenHash)}`);
+  } else {
+    hre.deployments.log('"hToken" is already registered');
+  }
 };
 
 export default func;
