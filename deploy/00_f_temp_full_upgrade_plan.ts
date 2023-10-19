@@ -639,7 +639,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('Checking "DropsMetadataRendererProxy" source.');
     if (
       (await dropsMetadataRendererProxy.getDropsMetadataRenderer()).toLowerCase() !=
-      futureDropsMetadataRendererProxyAddress.toLowerCase()
+      futureDropsMetadataRendererAddress.toLowerCase()
     ) {
       hre.deployments.log('Need to set "DropsMetadataRendererProxy" source.');
       const setDropsMetadataRendererTx = await MultisigAwareTx(
@@ -648,14 +648,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         'DropsMetadataRendererProxy',
         dropsMetadataRendererProxy,
         await dropsMetadataRendererProxy.populateTransaction.setDropsMetadataRenderer(
-          futureDropsMetadataRendererProxyAddress,
+          futureDropsMetadataRendererAddress,
           {
             ...(await txParams({
               hre,
               from: deployer,
               to: dropsMetadataRendererProxy,
               data: await dropsMetadataRendererProxy.populateTransaction.setDropsMetadataRenderer(
-                futureDropsMetadataRendererProxyAddress
+                futureDropsMetadataRendererAddress
               ),
             })),
           }
