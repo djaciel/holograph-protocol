@@ -982,7 +982,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const chainId = '0x' + data.primaryNetwork.holographId.toString(16).padStart(8, '0');
     let { erc20Config, erc20ConfigHash, erc20ConfigHashBytes } = await generateErc20Config(
       data.primaryNetwork,
-      `0x21Ab3Aa7053A3615E02d4aC517B7075b45BF524f`, // NOTE: This is the hot wallet deployer
+      `0x21Ab3Aa7053A3615E02d4aC517B7075b45BF524f`, // NOTE: This is the holograph wallet deployer
       'hTokenProxy',
       'Holographed ' + data.tokenSymbol,
       'h' + data.tokenSymbol,
@@ -997,7 +997,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           registry.address,
           generateInitCode(
             ['address', 'uint16'],
-            [`0x21Ab3Aa7053A3615E02d4aC517B7075b45BF524f` /*  // NOTE: This is the hot wallet deployer */, 0]
+            [`0x21Ab3Aa7053A3615E02d4aC517B7075b45BF524f` /*  // NOTE: This is the holograph wallet deployer */, 0]
           ),
         ]
       ),
