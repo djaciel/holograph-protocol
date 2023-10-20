@@ -20,7 +20,7 @@
 
 ## Description
 
-Holograph provides infrastructure for real world asset (RWA) tokenization. Holograph achieves this with holographic assets, which are fungible and non-fungible token standards specifically designed for RWA tokenization.
+Holograph provides infrastructure for digital asset tokenization. Holograph enables asset issuers to mint holographic assets, which are fungible and non-fungible tokens that exist natively on any public or private blockchain.
 
 ## Specification
 
