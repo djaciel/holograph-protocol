@@ -239,10 +239,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         tokenSymbol: 'ETH',
         supportedNetworks: [
           networks.arbitrumTestnetGoerli,
-          networks.baseTestnetGoerli,
+          // networks.baseTestnetGoerli,
           networks.ethereumTestnetGoerli,
           networks.optimismTestnetGoerli,
-          networks.zoraTestnetGoerli,
+          // networks.zoraTestnetGoerli,
         ],
       },
       {
@@ -274,11 +274,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         tokenSymbol: 'ETH',
         supportedNetworks: [
           networks.arbitrumOne,
-          networks.arbitrumNova,
-          networks.base,
+          // networks.arbitrumNova,
+          // networks.base,
           networks.ethereum,
           networks.optimism,
-          networks.zora,
+          // networks.zora,
         ],
       },
       {
