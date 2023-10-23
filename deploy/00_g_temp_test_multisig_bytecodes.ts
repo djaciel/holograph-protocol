@@ -275,10 +275,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         supportedNetworks: [
           networks.arbitrumOne,
           // networks.arbitrumNova,
-          // networks.base,
+          networks.base,
           networks.ethereum,
           networks.optimism,
-          // networks.zora,
+          networks.zora,
         ],
       },
       {
@@ -386,6 +386,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const hToken = ((await hre.ethers.getContract('hToken', deployer)) as Contract).attach(futureHTokenAddress);
 
     for (let network of data.supportedNetworks) {
+      console.log(`Network ${network.name}`);
       if (!(await hToken.isSupportedChain(network.chain))) {
         hre.deployments.log('Need to add ' + network.chain.toString() + ' as supported chain');
         const setSupportedChainTx = await MultisigAwareTx(
