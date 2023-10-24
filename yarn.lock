@@ -629,10 +629,10 @@
     dotenv "^10.0.0"
     path "^0.12.7"
 
-"@holographxyz/networks@0.1.35":
-  version "0.1.35"
-  resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.1.35.tgz#ff4c5a474dba3596266ebc2c712248adda05053b"
-  integrity sha512-ka6L7NgbVWRn8tNQWNxZkXJaARCbCTKb1pJ0Vr+AfIrnaA9aLB9nWjG2CEwrAdroPxfrWH7IxtUGYfQScLm+cQ==
+"@holographxyz/networks@0.1.36":
+  version "0.1.36"
+  resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.1.36.tgz#005750e26df74c8c47fae75b35f8804087c3cac8"
+  integrity sha512-LmGiAqhlBxxxVGGYprGW7OnDWaOFpNJ9Bzqk+yFm4k7ozLeqztUfFnt12WoiqNhGtgPig3zNZShwYXnmPzq8cA==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@holographxyz/environment" "0.1.10"

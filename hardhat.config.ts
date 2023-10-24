@@ -13,13 +13,14 @@ import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from 'hardhat/builtin-tasks/ta
 
 import { types, task, HardhatUserConfig } from 'hardhat/config';
 import '@holographxyz/hardhat-holograph-contract-builder';
-import { BigNumber } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { Environment, getEnvironment } from '@holographxyz/environment';
 import { NetworkType, Network, Networks, networks } from '@holographxyz/networks';
 import { GasService } from './scripts/utils/gas-service';
 import dotenv from 'dotenv';
 //import * as tenderly from '@tenderly/hardhat-tenderly';
 import { network } from 'hardhat';
+import { HardhatRuntimeEnvironment } from 'hardhat/types';
 dotenv.config();
 
 let tenderlyNetwork = {};
@@ -193,14 +194,44 @@ task('deploy', 'Deploy contracts').setAction(async (args, hre, runSuper) => {
   global.__maxGasPrice = BigNumber.from(process.env.MAXIMUM_GAS_PRICE || '0');
   global.__maxGasBribe = BigNumber.from(process.env.MAXIMUM_GAS_BRIBE || '0');
   // start gas price monitoring service
-  process.stdout.write('Loading Gas Price Service\n');
-  const gasService: GasService = new GasService(hre.network.name, hre.ethers.provider, 'DEBUG' in process.env);
-  process.stdout.write('Seeding Gas Price Service\n');
-  await gasService.init();
-  process.stdout.write('\nReady to start deployments\n');
+  // process.stdout.write('Loading Gas Price Service\n');
+  // const gasService: GasService = new GasService(hre.network.name, hre.ethers.provider, 'DEBUG' in process.env);
+  // process.stdout.write('Seeding Gas Price Service\n');
+  // await gasService.init();
+  // process.stdout.write('\nReady to start deployments\n');
   // run the actual hardhat deploy task
   return runSuper(args);
 });
+
+/**
+ * Task to get the native token from the hToken contract
+ * @param contract The address of the hToken contract
+ * @param recipient The address of the recipient
+ * @param amount The amount of hTokens to extract
+ *
+ * Run this task with:
+ * npx hardhat extractNativeToken --contract [hTokenContractAddress] --recipient [recipientAddress] --amount [amount] --network [networkName]
+ */
+
+task('extractNativeToken', 'Calls the extractNativeToken function in the hToken contract')
+  .addParam('contract', 'The address of the hToken contract')
+  .addParam('recipient', 'The address of the recipient')
+  .addParam('amount', 'The amount of hTokens to extract')
+  .setAction(async ({ contract, recipient, amount }, hre: HardhatRuntimeEnvironment) => {
+    const signer = (await hre.ethers.getSigners())[0]; // Get the first signer
+    // Get the contract's ABI from the compiled artifacts
+    const hTokenArtifact = await hre.artifacts.readArtifact('hToken');
+    const hTokenContract = new ethers.Contract(contract, hTokenArtifact.abi, signer);
+
+    // Convert amount to wei (or the equivalent smallest unit for other tokens)
+    const amountInWei = ethers.utils.parseEther(amount);
+
+    const tx = await hTokenContract.extractNativeToken(recipient, amountInWei);
+    console.log(`Transaction hash: ${tx.hash}`);
+
+    await tx.wait(); // Wait for the transaction to be mined
+    console.log(`Transaction confirmed in block: ${tx.blockNumber}`);
+  });
 
 task('deploymentsPrettier', 'Adds EOF new line to prevent prettier to change files').setAction(async (args) => {
   if (!fs.existsSync('./deployments')) {

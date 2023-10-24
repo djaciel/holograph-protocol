@@ -20,11 +20,11 @@
 
 ## Description
 
-Holograph provides omnichain NFT infrastructure for the web3 ecosystem. Holograph Protocol enables the creation, deployment, minting, and bridging of omnichain NFTs with complete data integrity.
+Holograph provides infrastructure for digital asset tokenization. Holograph enables asset issuers to mint holographic assets, which are fungible and non-fungible tokens that exist natively on any public or private blockchain.
 
 ## Specification
 
-Please reference the [documentation](https://docs.holograph.xyz/holograph-protocol/technical-specification) for the full technical specification of the protocol.
+Please reference the [documentation](https://docs.holograph.xyz/about/protocol-specification) for the full technical specification of the protocol.
 
 ## Architecture
 
@@ -95,6 +95,24 @@ The Interfaces contract is used to store and share standardized data. It acts as
 #### Custom Contract
 
 Custom contract is any type of smart contract that was developed outside of Holograph Protocol, and is used to create a _Holographed_ contract. This empowers developers to build their projects however they want. The requirements for enabling a custom contract to be Holograph-able are minimal, and allow for even novice-level developers to implement. Any current and future fungible and non-fungible token type contracts can easily be made Holograph-able.
+
+#### H Tokens
+
+##### Mainnet
+
+hETH, Address: 0xb1d6C3fA214DD406d9eB8aef44c7b19A72b3de9D
+hBNB, Address: 0xA10f0c9EAd97149a1Bb57543c2837fa31e05610b
+hAVAX, Address: 0x286d2f689403B3C31500FE027678516649b2bC40
+hMATIC: Address: 0xBd7113A84ead397397Fe40046f0d84486d32ac34
+hMNT: Mantle, Address: 0xdE4494D3CD37C165bA70c1F6C2119CC78EfB64aa
+
+##### Testnet
+
+hETH, Address: 0x2Bfe63b4a763ea122FC9CAdfa7fa1416873cE340
+hBNB, Address: 0x810A8021833dd403090eA9E5da8Da0c87552EdBf
+hAVAX, Address: 0x4cd67fEF6B79aB50928210e1B10Dc075B305954D
+hMATIC: Address: 0x39fFA772c0Aa6fD6Ab113DC11e5e30De39aC5A5E
+hMNT: Mantle, Address: 0xfE4d339eeD994E2e058fb66ABeC306A7e33Ab691
 
 ## Important Flows
 
@@ -324,7 +342,6 @@ Read through [CONTRIBUTING.md](./CONTRIBUTING.md) for a general overview of our 
 - [Docs](https://docs.holograph.xyz)
 - [Discord](https://discord.com/invite/holograph)
 - [Twitter](https://twitter.com/holographxyz)
-- [Mirror](https://mirror.xyz/holographxyz.eth)
 
 ## License
 
