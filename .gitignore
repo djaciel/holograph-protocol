@@ -25,3 +25,5 @@ editor.bbprojectd
 yarn-error.log
 
 tenderly.yaml
+
+.vscode

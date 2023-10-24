@@ -281,7 +281,20 @@ contract HolographTreasury is Admin, Initializable, HolographTreasuryInterface {
     require(balance > 0, "HOLOGRAPH: No balance to withdraw");
 
     (bool success, ) = payable(msg.sender).call{value: balance}("");
-    require(success, "HOLOGRAPH: Transfer failed");
+    require(success, "HOLOGRAPH: Withdraw failed");
+  }
+
+  /**
+   * @notice Withdraws native tokens from the contract to a specified address
+   * @dev Can only be called by the admin
+   * @param recipient The address to send the withdrawn funds to
+   */
+  function withdrawTo(address payable recipient) external onlyAdmin {
+    uint256 balance = address(this).balance;
+    require(balance > 0, "HOLOGRAPH: No balance to withdraw");
+
+    (bool success, ) = recipient.call{value: balance}("");
+    require(success, "HOLOGRAPH: Withdraw failed");
   }
 
   /**
