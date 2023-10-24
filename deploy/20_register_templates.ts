@@ -39,11 +39,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const salt = hre.deploymentSalt;
 
-  const error = function (err: string) {
-    hre.deployments.log(err);
-    process.exit();
-  };
-
   const holographRegistryProxy = await hre.ethers.getContract('HolographRegistryProxy', deployer);
   const holographRegistry = ((await hre.ethers.getContract('HolographRegistry', deployer)) as Contract).attach(
     holographRegistryProxy.address

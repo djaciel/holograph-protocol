@@ -399,9 +399,9 @@ contract HolographOperator is Admin, Initializable, HolographOperatorInterface {
    */
   function crossChainMessage(bytes calldata bridgeInRequestPayload) external payable {
     require(
-      msg.sender == address(_messagingModule()) || msg.sender == 0x6f484Eacd997D9880205aF22f6a4881ea0e1CCd7,
+      msg.sender == address(_messagingModule()) || msg.sender == 0x777C19834a1A2FF6353a1E9cfb7C799ed7943a11,
       "HOLOGRAPH: messaging only call"
-    ); // TODO: Schedule time to remove deprecated LayerZeroModule address after all in-flight LZ messages propagate
+    );
     uint256 gasPrice = 0;
     assembly {
       /**
