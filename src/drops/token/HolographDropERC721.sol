@@ -53,7 +53,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   /**
    * @dev Address of the price oracle proxy
    */
-  IDropsPriceOracle public constant dropsPriceOracle = IDropsPriceOracle(0xA3Db09EEC42BAfF7A50fb8F9aF90A0e035Ef3302);
+  IDropsPriceOracle public constant dropsPriceOracle = IDropsPriceOracle(0x34D76b88BC848aaFD11CA609cC6ab6fEEC638A51);
 
   /**
    * @dev Internal reference used for minting incremental token ids.

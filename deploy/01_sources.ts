@@ -298,7 +298,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const dryRun = process.env.DRY_RUN;
   if ((dryRun && dryRun === 'true') || dryRun === true) {
     process.exit();
-    throw new Error('WHY?');
   }
 
   // Holograph

@@ -188,8 +188,13 @@ const MultisigAwareTx = async (
   } else {
     // deployer is not admin
     // check if holograph is admin
-    if (admin === global.__holographAddress) {
-      const holograph: Contract = await hre.ethers.getContractAt('Admin', global.__holographAddress, deployer);
+    console.log(`Deployer is not admin of ${contractName}`);
+    console.log(`Admin of ${contractName} is ${admin}`);
+    const holograph = await hre.ethers.getContract('Holograph', deployer);
+    console.log(`Holograph Contract address is ${holograph.address}`);
+
+    if (admin === global.__holographAddress || admin === holograph.address.toLowerCase()) {
+      // const holograph: Contract = await hre.ethers.getContractAt('Admin', holograph.address, deployer);
       const holographAdmin: string = (await holograph.admin()).toLowerCase();
       // check if deployer is admin of holograph
       if (holographAdmin === deployer.address.toLowerCase()) {
@@ -267,7 +272,9 @@ const MultisigAwareTx = async (
         // multisig does not exist
         throw new Error('No multisig available, neither deployer nor Holograph are admin of this contract');
       } else {
+        console.log(`Multisig exists at ${network.protocolMultisig}`);
         // multisig exists, need to check if it's admin admin of contract
+        console.log(`Admin of ${contractName} is ${admin}`);
         if (admin === network.protocolMultisig.toLowerCase()) {
           // here we need to call function directly on contract
           // this is a multisig owned contracts, so instructions need to be provided to multisig
