@@ -1,4 +1,6 @@
 declare var global: any;
+import path from 'path';
+
 import { BigNumber, Contract } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
@@ -13,31 +15,16 @@ import {
   LeanHardhatRuntimeEnvironment,
   hreSplit,
   gweiToWei,
+  getDeployer,
 } from '../scripts/utils/helpers';
 import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
-import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
+  console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
+
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-  const accounts = await hre.ethers.getSigners();
-  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
-
-  if (global.__superColdStorage) {
-    // address, domain, authorization, ca
-    const coldStorage = global.__superColdStorage;
-    deployer = new SuperColdStorageSigner(
-      coldStorage.address,
-      'https://' + coldStorage.domain,
-      coldStorage.authorization,
-      deployer.provider,
-      coldStorage.ca
-    );
-  }
-
-  const error = function (err: string) {
-    hre.deployments.log(err);
-    process.exit();
-  };
+  const deployer = await getDeployer(hre);
+  const deployerAddress = await deployer.signer.getAddress();
 
   const subOneWei = function (input: BigNumber): BigNumber {
     return input.sub(BigNumber.from('1'));
@@ -70,12 +57,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       subOneWei(gweiToWei(BigNumber.from('40'))), // MIN_GAS_PRICE, // 40 GWEI
       GAS_LIMIT,
     ],
-    ethereumTestnetGoerli: [
+    ethereumTestnetSepolia: [
       MSG_BASE_GAS,
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      subOneWei(gweiToWei(BigNumber.from('5'))), // MIN_GAS_PRICE, // 5 GWEI
+      subOneWei(gweiToWei(BigNumber.from('50'))), // MIN_GAS_PRICE, // 50 GWEI
       GAS_LIMIT,
     ],
 
@@ -138,7 +125,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       subOneWei(BigNumber.from('10000000')), // MIN_GAS_PRICE, // 0.01 GWEI
       GAS_LIMIT,
     ],
-    optimismTestnetGoerli: [
+    optimismTestnetSepolia: [
       MSG_BASE_GAS,
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
@@ -155,7 +142,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       subOneWei(BigNumber.from('100000000')), // MIN_GAS_PRICE, // 0.1 GWEI
       GAS_LIMIT,
     ],
-    arbitrumTestnetGoerli: [
+    arbitrumTestnetSepolia: [
       MSG_BASE_GAS,
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
@@ -197,7 +184,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     }
   }
 
-  const holograph = await hre.ethers.getContract('Holograph', deployer);
+  const holograph = await hre.ethers.getContract('Holograph', deployerAddress);
 
   const futureOptimismGasPriceOracleAddress = await genesisDeriveFutureAddress(
     hre,
@@ -345,20 +332,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"LayerZeroModuleProxy" is already deployed..');
   }
 
-  const holographOperator = ((await hre.ethers.getContract('HolographOperator', deployer)) as Contract).attach(
+  const holographOperator = ((await hre.ethers.getContract('HolographOperator', deployerAddress)) as Contract).attach(
     await holograph.getOperator()
   );
 
   if ((await holographOperator.getMessagingModule()).toLowerCase() != futureLayerZeroModuleProxyAddress.toLowerCase()) {
     const lzTx = await MultisigAwareTx(
       hre,
-      deployer,
       'HolographOperator',
       holographOperator,
       await holographOperator.populateTransaction.setMessagingModule(futureLayerZeroModuleProxyAddress, {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: holographOperator,
           data: holographOperator.populateTransaction.setMessagingModule(futureLayerZeroModuleProxyAddress),
         })),
@@ -371,7 +357,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log(`MessagingModule is already registered to: ${await holographOperator.getMessagingModule()}`);
   }
 
-  const lzModule = ((await hre.ethers.getContract('LayerZeroModule', deployer)) as Contract).attach(
+  const lzModule = ((await hre.ethers.getContract('LayerZeroModule', deployerAddress)) as Contract).attach(
     futureLayerZeroModuleProxyAddress
   );
 
@@ -379,13 +365,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if ((await lzModule.getOptimismGasPriceOracle()).toLowerCase() != futureOptimismGasPriceOracleAddress.toLowerCase()) {
     const lzOpTx = await MultisigAwareTx(
       hre,
-      deployer,
       'LayerZeroModule',
       lzModule,
       await lzModule.populateTransaction.setOptimismGasPriceOracle(futureOptimismGasPriceOracleAddress, {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: lzModule,
           data: lzModule.populateTransaction.setOptimismGasPriceOracle(futureOptimismGasPriceOracleAddress),
         })),
@@ -433,7 +418,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('Found some gas parameter inconsistencies');
     const lzTx = await MultisigAwareTx(
       hre,
-      deployer,
       'LayerZeroModule',
       lzModule,
       await lzModule.populateTransaction[
@@ -441,7 +425,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ](chainIds, gasParameters, {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: lzModule,
           data: lzModule.populateTransaction[
             'setGasParameters(uint32[],(uint256,uint256,uint256,uint256,uint256,uint256)[])'
@@ -453,6 +437,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     await lzTx.wait();
     hre.deployments.log('Updated LayerZero GasParameters');
   }
+
+  console.log(`Exiting script: ${__filename} ✅\n`);
 };
 
 export default func;

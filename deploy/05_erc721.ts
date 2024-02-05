@@ -1,4 +1,6 @@
 declare var global: any;
+import path from 'path';
+
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
@@ -11,27 +13,16 @@ import {
   zeroAddress,
   getGasPrice,
   getGasLimit,
+  getDeployer,
 } from '../scripts/utils/helpers';
 import { HolographERC721Event, ConfigureEvents } from '../scripts/utils/events';
-import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
+  console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
+
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-  const accounts = await hre.ethers.getSigners();
-  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
-
-  if (global.__superColdStorage) {
-    // address, domain, authorization, ca
-    const coldStorage = global.__superColdStorage;
-    deployer = new SuperColdStorageSigner(
-      coldStorage.address,
-      'https://' + coldStorage.domain,
-      coldStorage.authorization,
-      deployer.provider,
-      coldStorage.ca
-    );
-  }
-
+  const deployer = await getDeployer(hre);
+  const deployerAddress = await deployer.signer.getAddress();
   const salt = hre.deploymentSalt;
 
   const futureErc721Address = await genesisDeriveFutureAddress(
@@ -46,7 +37,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         1000, // contractBps == 0%
         ConfigureEvents([]), // eventConfig
         true, // skipInit
-        generateInitCode(['address'], [deployer.address]), // initCode
+        generateInitCode(['address'], [deployerAddress]), // initCode
       ]
     )
   );
@@ -68,7 +59,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           1000, // contractBps == 0%
           ConfigureEvents([]), // eventConfig
           true, // skipInit
-          generateInitCode(['address'], [deployer.address]), // initCode
+          generateInitCode(['address'], [deployerAddress]), // initCode
         ]
       ),
       futureErc721Address
@@ -81,7 +72,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre,
     salt,
     'CxipERC721',
-    generateInitCode(['address'], [deployer.address])
+    generateInitCode(['address'], [deployerAddress])
   );
   hre.deployments.log('the future "CxipERC721" address is', futureCxipErc721Address);
 
@@ -93,12 +84,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre,
       salt,
       'CxipERC721',
-      generateInitCode(['address'], [deployer.address]),
+      generateInitCode(['address'], [deployerAddress]),
       futureCxipErc721Address
     );
   } else {
     hre.deployments.log('"CxipERC721" is already deployed.');
   }
+
+  console.log(`Exiting script: ${__filename} ✅\n`);
 };
 
 export default func;

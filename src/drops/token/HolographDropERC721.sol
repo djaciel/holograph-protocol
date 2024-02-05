@@ -53,7 +53,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   /**
    * @dev Address of the price oracle proxy
    */
-  IDropsPriceOracle public constant dropsPriceOracle = IDropsPriceOracle(0x34D76b88BC848aaFD11CA609cC6ab6fEEC638A51);
+  IDropsPriceOracle public constant dropsPriceOracle = IDropsPriceOracle(0xeA7f4C52cbD4CF1036CdCa8B16AcA11f5b09cF6E);
 
   /**
    * @dev Internal reference used for minting incremental token ids.
@@ -71,7 +71,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   address public marketFilterAddress;
 
   /// @notice Holograph Mint Fee
-  uint256 public constant HOLOGRAPH_MINT_FEE = 100000; // $0.10 USD (6 decimal places)
+  uint256 public constant HOLOGRAPH_MINT_FEE = 1000000; // $1.00 USD (6 decimal places)
 
   /// @dev Gas limit for transferring funds
   uint256 private constant STATIC_GAS_LIMIT = 210_000;

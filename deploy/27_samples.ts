@@ -1,4 +1,6 @@
 declare var global: any;
+import path from 'path';
+
 import fs from 'fs';
 import Web3 from 'web3';
 import { BigNumberish, BytesLike, ContractFactory, Contract } from 'ethers';
@@ -15,6 +17,7 @@ import {
   generateErc721Config,
   generateInitCode,
   txParams,
+  getDeployer,
 } from '../scripts/utils/helpers';
 import {
   HolographERC20Event,
@@ -23,25 +26,13 @@ import {
   ConfigureEvents,
 } from '../scripts/utils/events';
 import { NetworkType, networks } from '@holographxyz/networks';
-import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
+  console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
+
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-  const accounts = await hre.ethers.getSigners();
-  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
-
-  if (global.__superColdStorage) {
-    // address, domain, authorization, ca
-    const coldStorage = global.__superColdStorage;
-    deployer = new SuperColdStorageSigner(
-      coldStorage.address,
-      'https://' + coldStorage.domain,
-      coldStorage.authorization,
-      deployer.provider,
-      coldStorage.ca
-    );
-  }
-
+  const deployer = await getDeployer(hre);
+  const deployerAddress = await deployer.signer.getAddress();
   const network = networks[hre.networkName];
 
   const currentNetworkType: NetworkType = networks[hre.networkName].type;
@@ -49,20 +40,15 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if (currentNetworkType == NetworkType.local) {
     const web3 = new Web3();
 
-    const error = function (err: string) {
-      hre.deployments.log(err);
-      process.exit();
-    };
-
     const salt = hre.deploymentSalt;
 
-    const holographFactoryProxy = await hre.ethers.getContract('HolographFactoryProxy', deployer);
-    const holographFactory = ((await hre.ethers.getContract('HolographFactory', deployer)) as Contract).attach(
+    const holographFactoryProxy = await hre.ethers.getContract('HolographFactoryProxy', deployerAddress);
+    const holographFactory = ((await hre.ethers.getContract('HolographFactory', deployerAddress)) as Contract).attach(
       holographFactoryProxy.address
     );
 
-    const holographRegistryProxy = await hre.ethers.getContract('HolographRegistryProxy', deployer);
-    const holographRegistry = ((await hre.ethers.getContract('HolographRegistry', deployer)) as Contract).attach(
+    const holographRegistryProxy = await hre.ethers.getContract('HolographRegistryProxy', deployerAddress);
+    const holographRegistry = ((await hre.ethers.getContract('HolographRegistry', deployerAddress)) as Contract).attach(
       holographRegistryProxy.address
     );
 
@@ -70,7 +56,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
     let sampleErc20Config = await generateErc20Config(
       network,
-      deployer.address,
+      deployerAddress,
       'SampleERC20',
       'Sample ERC20 Token (' + hre.networkName + ')',
       'SMPL',
@@ -78,31 +64,34 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       '1',
       18,
       ConfigureEvents([HolographERC20Event.bridgeIn, HolographERC20Event.bridgeOut]),
-      generateInitCode(['address', 'uint16'], [deployer.address, 0]),
+      generateInitCode(['address', 'uint16'], [deployerAddress, 0]),
       salt
     );
     let sampleErc20Address = await holographRegistry.getHolographedHashAddress(sampleErc20Config.erc20ConfigHash);
     if (sampleErc20Address == zeroAddress) {
       hre.deployments.log('need to deploy "SampleERC20" for chain:', chainId);
-      const sig = await deployer.signMessage(sampleErc20Config.erc20ConfigHashBytes);
+      const sig = await deployer.signer.signMessage(sampleErc20Config.erc20ConfigHashBytes);
       const signature: Signature = StrictECDSA({
         r: '0x' + sig.substring(2, 66),
         s: '0x' + sig.substring(66, 130),
         v: '0x' + sig.substring(130, 132),
       } as Signature);
-      const deployTx = await holographFactory.deployHolographableContract(
+
+      const factoryWithSigner = holographFactory.connect(deployer.signer);
+
+      const deployTx = await factoryWithSigner.deployHolographableContract(
         sampleErc20Config.erc20Config,
         signature,
-        deployer.address,
+        deployerAddress,
         {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographFactory,
             data: holographFactory.populateTransaction.deployHolographableContract(
               sampleErc20Config.erc20Config,
               signature,
-              deployer.address
+              deployerAddress
             ),
           })),
         }
@@ -122,19 +111,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
     let sampleErc721Config = await generateErc721Config(
       network,
-      deployer.address,
+      deployerAddress,
       'SampleERC721',
       'Sample ERC721 Contract (' + hre.networkName + ')',
       'SMPLR',
       1000,
       ConfigureEvents([HolographERC721Event.bridgeIn, HolographERC721Event.bridgeOut, HolographERC721Event.afterBurn]),
-      generateInitCode(['address'], [deployer.address]),
+      generateInitCode(['address'], [deployerAddress]),
       salt
     );
     let sampleErc721Address = await holographRegistry.getHolographedHashAddress(sampleErc721Config.erc721ConfigHash);
     if (sampleErc721Address == zeroAddress) {
       hre.deployments.log('need to deploy "SampleERC721" for chain:', chainId);
-      const sig = await deployer.signMessage(sampleErc721Config.erc721ConfigHashBytes);
+      const sig = await deployer.signer.signMessage(sampleErc721Config.erc721ConfigHashBytes);
       const signature: Signature = StrictECDSA({
         r: '0x' + sig.substring(2, 66),
         s: '0x' + sig.substring(66, 130),
@@ -143,16 +132,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       const deployTx = await holographFactory.deployHolographableContract(
         sampleErc721Config.erc721Config,
         signature,
-        deployer.address,
+        deployerAddress,
         {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographFactory,
             data: holographFactory.populateTransaction.deployHolographableContract(
               sampleErc721Config.erc721Config,
               signature,
-              deployer.address
+              deployerAddress
             ),
           })),
         }
@@ -172,7 +161,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
     let cxipErc721Config = await generateErc721Config(
       network,
-      deployer.address,
+      deployerAddress,
       'CxipERC721Proxy',
       'CXIP ERC721 Collection (' + hre.networkName + ')',
       'CXIP',
@@ -183,7 +172,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         [
           '0x' + web3.utils.asciiToHex('CxipERC721').substring(2).padStart(64, '0'),
           holographRegistry.address,
-          generateInitCode(['address'], [deployer.address]),
+          generateInitCode(['address'], [deployerAddress]),
         ]
       ),
       salt
@@ -191,7 +180,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let cxipErc721Address = await holographRegistry.getHolographedHashAddress(cxipErc721Config.erc721ConfigHash);
     if (cxipErc721Address == zeroAddress) {
       hre.deployments.log('need to deploy "CxipERC721Proxy" for chain:', chainId);
-      const sig = await deployer.signMessage(cxipErc721Config.erc721ConfigHashBytes);
+      const sig = await deployer.signer.signMessage(cxipErc721Config.erc721ConfigHashBytes);
       const signature: Signature = StrictECDSA({
         r: '0x' + sig.substring(2, 66),
         s: '0x' + sig.substring(66, 130),
@@ -200,16 +189,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       const deployTx = await holographFactory.deployHolographableContract(
         cxipErc721Config.erc721Config,
         signature,
-        deployer.address,
+        deployerAddress,
         {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographFactory,
             data: holographFactory.populateTransaction.deployHolographableContract(
               cxipErc721Config.erc721Config,
               signature,
-              deployer.address
+              deployerAddress
             ),
           })),
         }
@@ -227,6 +216,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('reusing "CxipERC721Proxy" at:', cxipErc721Address);
     }
   }
+
+  console.log(`Exiting script: ${__filename} ✅\n`);
 };
 
 export default func;

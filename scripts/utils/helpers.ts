@@ -40,11 +40,12 @@ import {
   getUnnamedSigners,
 } from '@nomiclabs/hardhat-ethers/internal/helpers';
 import type * as ProviderProxyT from '@nomiclabs/hardhat-ethers/internal/provider-proxy';
-import { NetworkType, Network, Networks, networks } from '@holographxyz/networks';
-import { SuperColdStorageSigner } from 'super-cold-storage-signer';
+import { Network, networks } from '@holographxyz/networks';
 import { PreTest } from '../../test/utils/index';
 import { GasService } from './gas-service';
 import { GasPricing } from './gas';
+import { getNamedAccounts } from 'hardhat';
+import { LedgerSigner } from '@anders-t/ethers-ledger';
 
 export type DeploymentConfigStruct = {
   contractType: BytesLike;
@@ -101,6 +102,78 @@ const randomHex = function (bytes: number, prepend: boolean = true): string {
   }
   return (prepend ? '0x' : '') + text;
 };
+
+/**
+ * Logs a message to the console if the DEBUG environment variable is set to true.
+ * @param message - The message to log.
+ * @returns void
+ */
+function logDebug(message: string): void {
+  if (process.env.DEBUG === 'true') {
+    console.log(message);
+  }
+}
+
+/**
+ * Retrieves the deployer and signer for use in deployment scripts.
+ * The deployer is used for deploying contracts, while the signer is
+ * used for sending transactions that are not deployments.
+ *
+ * When HARDWARE_WALLET_ENABLED is true, the deployer is a SignerWithAddress
+ * and the signer is a LedgerSigner. This allows for deployments from a
+ * standard account and transaction signing via a hardware wallet.
+ *
+ * When HARDWARE_WALLET_ENABLED is false, both deployer and signer
+ * are the same standard account.
+ *
+ * @param hre - The Hardhat Runtime Environment.
+ * @returns An object containing both the deployer and signer.
+ */
+export async function getDeployer(
+  hre: HardhatRuntimeEnvironment
+): Promise<{ deployer: SignerWithAddress; signer: SignerWithAddress | LedgerSigner }> {
+  logDebug('Starting getDeployer function');
+
+  const hardwareWalletEnabled = process.env.HARDWARE_WALLET_ENABLED === 'true';
+  logDebug(`Hardware Wallet Enabled: ${hardwareWalletEnabled}`);
+
+  if (hardwareWalletEnabled) {
+    let { deployer } = await getNamedAccounts();
+    logDebug(`Deployer (named account): ${deployer}`);
+
+    if (!global.ledgerSigner) {
+      logDebug('Initializing LedgerSigner');
+      // Initialize and store the LedgerSigner globally if it doesn't exist
+      const provider = hre.ethers.provider;
+      global.ledgerSigner = new LedgerSigner(provider);
+      logDebug('LedgerSigner initialized and stored globally');
+    } else {
+      logDebug('LedgerSigner already initialized');
+    }
+
+    // Create a dummy JsonRpcSigner
+    const provider = hre.ethers.provider;
+    logDebug('Provider obtained from Hardhat runtime environment');
+
+    // Wrap the dummy signer in SignerWithAddress
+    const dummySigner = provider.getSigner(deployer);
+    const signerWithAddress = await SignerWithAddress.create(dummySigner);
+    logDebug(`Signer with address created: ${signerWithAddress.address}`);
+
+    // Use the global ledgerSigner
+    const ledgerSigner = global.ledgerSigner;
+    logDebug('Using global LedgerSigner');
+
+    return { deployer: signerWithAddress, signer: ledgerSigner };
+  } else {
+    logDebug('Hardware wallet not enabled, getting signers from Hardhat environment');
+    const accounts = await hre.ethers.getSigners();
+    let deployer = accounts[0];
+    logDebug(`Deployer (first signer): ${deployer.address}`);
+
+    return { deployer: deployer, signer: deployer };
+  }
+}
 
 const StrictECDSA = function (signature: Signature): Signature {
   const validator: BigNumber = BigNumber.from('0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF5D576E7357A4501DDFE92F46681B20A0');
@@ -276,7 +349,13 @@ const generateInitCode = function (vars: string[], vals: any[]): string {
   return web3.eth.abi.encodeParameters(vars, vals);
 };
 
-const generateDeployCode = function (chainId: string, salt: string, byteCode: string, initCode: string): string {
+const generateDeployCode = function (
+  chainId: string,
+  salt: string,
+  secret: string,
+  byteCode: string,
+  initCode: string
+): string {
   return web3.eth.abi.encodeFunctionCall(
     {
       name: 'deploy',
@@ -291,6 +370,10 @@ const generateDeployCode = function (chainId: string, salt: string, byteCode: st
           name: 'saltHash',
         },
         {
+          type: 'bytes20',
+          name: 'secret',
+        },
+        {
           type: 'bytes',
           name: 'sourceCode',
         },
@@ -303,6 +386,7 @@ const generateDeployCode = function (chainId: string, salt: string, byteCode: st
     [
       chainId, // uint256 chainId
       '0x' + salt.substring(salt.length - 24), // bytes12 sourceCode
+      secret,
       byteCode, // bytes memory sourceCode
       initCode, // bytes memory initCode
     ]
@@ -330,7 +414,10 @@ const genesisDeriveFutureAddress = async function (
   const chainId: string = BigNumber.from(networks[hre.networkName].chain).toHexString();
   const { deployments, getNamedAccounts, ethers } = hre;
   const { deploy, deterministicCustom } = deployments;
-  const { deployer } = await getNamedAccounts();
+  const deployer = await getDeployer(hre);
+  const deployerAddress = await deployer.deployer.getAddress();
+  const secret = generateDeployerSecretHash();
+
   let holographGenesis: any = await ethers.getContractOrNull('HolographGenesis');
   if (holographGenesis == null) {
     try {
@@ -341,19 +428,19 @@ const genesisDeriveFutureAddress = async function (
   }
   const contractBytecode: BytesLike = ((await ethers.getContractFactory(name)) as ContractFactory).bytecode;
   const contractDeterministic = await deterministicCustom(name, {
-    from: deployer,
+    from: deployerAddress,
     args: [],
     log: true,
     deployerAddress: holographGenesis?.address,
-    saltHash: deployer + salt.substring(salt.length - 24),
-    deployCode: generateDeployCode(chainId, salt, contractBytecode, initCode),
+    saltHash: secret + salt.substring(salt.length - 24),
+    deployCode: generateDeployCode(chainId, salt, secret, contractBytecode, initCode),
   });
   return contractDeterministic.address;
 };
 
 const getGasLimit = async function (
   hre: LeanHardhatRuntimeEnvironment,
-  from: string | SignerWithAddress | SuperColdStorageSigner,
+  from: string | SignerWithAddress,
   to: string,
   data: Promise<UnsignedTransaction> | BytesLike = '',
   value: BigNumberish = 0,
@@ -396,7 +483,7 @@ type GasParams = {
 
 type TransactionParams = {
   hre: LeanHardhatRuntimeEnvironment;
-  from: string | SignerWithAddress | SuperColdStorageSigner;
+  from: string | SignerWithAddress;
   to: string | Contract;
   data?: Promise<UnsignedTransaction> | BytesLike;
   value?: BigNumberish;
@@ -422,8 +509,8 @@ const getGasPrice = async function (): Promise<GasParams> {
     // TODO: Disabled for now because it is causing the tx to never go through
     while (gasPrice.gt(global.__maxGasPrice) || bribe.gt(global.__maxGasBribe)) {
       await gasService.wait(1);
-      //      gasPrice = gasPricing.gasPrice!.mul(global.__gasPriceMultiplier).div(BigNumber.from('10000'));
-      //      bribe = gasPricing.isEip1559 ? gasPrice.sub(gasPricing.nextBlockFee!) : BigNumber.from('0');
+      // gasPrice = gasPricing.gasPrice!.mul(global.__gasPriceMultiplier).div(BigNumber.from('10000'));
+      // bribe = gasPricing.isEip1559 ? gasPrice.sub(gasPricing.nextBlockFee!) : BigNumber.from('0');
     }
 
     if (gasPricing.isEip1559) {
@@ -444,7 +531,7 @@ const getGasPrice = async function (): Promise<GasParams> {
     }
   } else {
     return {
-      gasPrice: BigNumber.from('25000000000'), // This can be updated to manually set a gas price. Defaulting to 25 gwei for now
+      gasPrice: BigNumber.from('1' + '000000000'), // This can be updated to manually set a gas price. Defaulting to 25 gwei for now
       type: 0,
       maxPriorityFeePerGas: null,
       maxFeePerGas: null,
@@ -482,6 +569,7 @@ const txParams = async function ({
         : gasLimit
       : await getGasLimit(hre, from as string, to as string, data, BigNumber.from(value), true),
     ...(await getGasPrice()),
+    // gasLimit: 1000000,
     nonce: nonce === undefined ? global.__txNonce[hre.networkName] : nonce,
   };
   if (nonce === undefined) {
@@ -500,17 +588,21 @@ const genesisDeployHelper = async function (
   const chainId: string = BigNumber.from(networks[hre.networkName].chain).toHexString();
   const { deployments, getNamedAccounts, ethers } = hre;
   const { deploy, deterministicCustom } = deployments;
-  const { deployer } = await getNamedAccounts();
+  const deployer = await getDeployer(hre);
+  const deployerAddress = await deployer.deployer.getAddress();
+
+  const secret = generateDeployerSecretHash();
+
   let holographGenesis: any = await ethers.getContractOrNull('HolographGenesis');
   if (holographGenesis == null) {
     try {
       holographGenesis = await deployments.get('HolographGenesis');
     } catch (ex: any) {
-      // we do nothing
+      console.log(`Not deploying ${name} because HolographGenesis is not deployed.`);
     }
   }
 
-  console.log(`Holograph Genesis address: ${holographGenesis.address}`);
+  // console.log(`Holograph Genesis address: ${holographGenesis.address}`);
 
   let contract: any = await ethers.getContractOrNull(name);
   if (contract == null) {
@@ -525,13 +617,13 @@ const genesisDeployHelper = async function (
     (contract != null && (contract.address as string).toLowerCase() != contractAddress.toLowerCase())
   ) {
     const contractBytecode: BytesLike = ((await ethers.getContractFactory(name)) as ContractFactory).bytecode;
-    const deployCode: BytesLike = generateDeployCode(chainId, salt, contractBytecode, initCode);
+    const deployCode: BytesLike = generateDeployCode(chainId, salt, secret, contractBytecode, initCode);
     const contractDeterministic = await deterministicCustom(name, {
-      ...(await txParams({ hre, from: deployer, to: holographGenesis?.address, data: deployCode })),
+      ...(await txParams({ hre, from: deployerAddress, to: holographGenesis?.address, data: deployCode })),
       args: [],
       log: true,
       deployerAddress: holographGenesis?.address,
-      saltHash: deployer + salt.substring(salt.length - 24),
+      saltHash: secret + salt.substring(salt.length - 24),
       deployCode: deployCode,
       waitConfirmations: 1,
     } as any);
@@ -940,6 +1032,19 @@ function askQuestion(query: string): Promise<string> {
   });
 }
 
+function generateDeployerSecretHash(): string {
+  const secretString = process.env.DEPLOYER_SECRET;
+
+  if (!secretString) {
+    throw new Error(`Secret is required`);
+  }
+
+  const hashedString = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(secretString));
+  const bytes20Hash = hashedString.slice(0, 42); // 2 characters for '0x' and 40 characters for 20 bytes
+  // console.log(`Secret: ${secretString} = Hash: ${bytes20Hash}`);
+  return bytes20Hash;
+}
+
 export {
   web3,
   executeJobGas,
@@ -981,4 +1086,5 @@ export {
   HASH,
   gweiToWei,
   askQuestion,
+  generateDeployerSecretHash,
 };

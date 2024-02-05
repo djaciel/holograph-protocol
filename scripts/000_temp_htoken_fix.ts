@@ -23,34 +23,18 @@ import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { reservedNamespaces, reservedNamespaceHashes } from '../scripts/utils/reserved-namespaces';
 import { HolographERC20Event, ConfigureEvents, AllEventsEnabled } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
-import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
   const accounts = await hre.ethers.getSigners();
-  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
-
-  if (global.__superColdStorage) {
-    // address, domain, authorization, ca
-    const coldStorage = global.__superColdStorage;
-    deployer = new SuperColdStorageSigner(
-      coldStorage.address,
-      'https://' + coldStorage.domain,
-      coldStorage.authorization,
-      deployer.provider,
-      coldStorage.ca
-    );
-  }
+  let deployer: SignerWithAddress = accounts[0];
 
   global.__txNonce = {} as { [key: string]: number };
   global.__txNonce[hre.networkName] = await hre.ethers.provider.getTransactionCount(deployer.address);
 
   const web3 = new Web3();
-
   const salt = hre.deploymentSalt;
-
   const network = networks[hre.networkName];
-
   const holograph = await hre.ethers.getContract('Holograph', deployer);
 
   global.__holographAddress = holograph.address.toLowerCase();
@@ -108,7 +92,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const tx1 = await MultisigAwareTx(
     hre,
-    deployer,
     'HolographRegistry',
     holographRegistry,
     await holographRegistry.populateTransaction.setContractTypeAddress(
@@ -156,7 +139,6 @@ Use the following payload for Data input field:
 
   const tx3 = await MultisigAwareTx(
     hre,
-    deployer,
     'HolographRegistry',
     holographRegistry,
     await holographRegistry.populateTransaction.setContractTypeAddress(

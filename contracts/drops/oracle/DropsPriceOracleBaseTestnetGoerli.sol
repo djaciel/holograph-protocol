@@ -7,7 +7,7 @@ import {Initializable} from "../../abstract/Initializable.sol";
 
 import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
 
-contract DropsPriceOracleBaseTestnetGoerli is Admin, Initializable, IDropsPriceOracle {
+contract DropsPriceOracleBaseTestnetSepolia is Admin, Initializable, IDropsPriceOracle {
   /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.tokenPriceRatio')) - 1)
    */

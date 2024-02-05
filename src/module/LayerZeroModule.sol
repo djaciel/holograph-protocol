@@ -196,9 +196,9 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
     /*
      * @dev toChain is a ChainIdType.HOLOGRAPH, which can be found at https://github.com/holographxyz/networks/blob/main/src/networks.ts
      *      chainId 7 == optimism
-     *      chainId 4000000015 == optimismTestnetGoerli
+     *      chainId 4000000015 == optimismTestnetSepolia
      */
-    if (toChain == uint32(7) || toChain == uint32(4000000015)) {
+    if (toChain == uint32(7) || toChain == uint32(4000000074)) {
       hlgFee += (_optimismGasPriceOracle().getL1Fee(crossChainPayload) * dstPriceRatio) / (10 ** 20);
     }
     msgFee = nativeFee;
@@ -231,9 +231,9 @@ contract LayerZeroModule is Admin, Initializable, CrossChainMessageInterface, La
     /*
      * @dev toChain is a ChainIdType.HOLOGRAPH, which can be found at https://github.com/holographxyz/networks/blob/main/src/networks.ts
      *      chainId 7 == optimism
-     *      chainId 4000000015 == optimismTestnetGoerli
+     *      chainId 4000000015 == optimismTestnetSepolia
      */
-    if (toChain == uint32(7) || toChain == uint32(4000000015)) {
+    if (toChain == uint32(7) || toChain == uint32(4000000074)) {
       hlgFee += (_optimismGasPriceOracle().getL1Fee(crossChainPayload) * dstPriceRatio) / (10 ** 20);
     }
   }

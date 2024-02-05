@@ -3,39 +3,30 @@ import { Contract } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DeployFunction, Deployment } from '@holographxyz/hardhat-deploy-holographed/types';
-import { LeanHardhatRuntimeEnvironment, hreSplit, txParams } from '../scripts/utils/helpers';
-import { SuperColdStorageSigner } from 'super-cold-storage-signer';
+import { LeanHardhatRuntimeEnvironment, getDeployer, hreSplit, txParams } from '../scripts/utils/helpers';
+import path from 'path';
 
+// NOTE: Disabled as the genesis code already handles this
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
-  let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-  const accounts = await hre.ethers.getSigners();
-  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
-
-  if (global.__superColdStorage) {
-    // address, domain, authorization, ca
-    const coldStorage = global.__superColdStorage;
-    deployer = new SuperColdStorageSigner(
-      coldStorage.address,
-      'https://' + coldStorage.domain,
-      coldStorage.authorization,
-      deployer.provider,
-      coldStorage.ca
-    );
-  }
-
-  let holographGenesis: Contract = await hre.ethers.getContract('HolographGenesis', deployer);
-
-  if (!(await holographGenesis.isApprovedDeployer('0xa198FA5db682a2A828A90b42D3Cd938DAcc01ADE'))) {
-    let tx = await holographGenesis.approveDeployer('0xa198FA5db682a2A828A90b42D3Cd938DAcc01ADE', true, {
-      ...(await txParams({
-        hre,
-        from: deployer,
-        to: holographGenesis,
-        data: holographGenesis.populateTransaction.approveDeployer('0xa198FA5db682a2A828A90b42D3Cd938DAcc01ADE', true),
-      })),
-    });
-    let receipt = await tx.wait();
-  }
+  // console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
+  // let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
+  // const deployer = await getDeployer(hre);
+  // const deployerAddress = await deployer.signer.getAddress();
+  // let holographGenesis: Contract = await hre.ethers.getContract('HolographGenesis', deployer.signer);
+  // if (!(await holographGenesis.isApprovedDeployer('TODO'))) {
+  //   let tx = await holographGenesis.approveDeployer('TODO', true, {
+  //     ...(await txParams({
+  //       hre,
+  //       from: deployerAddress,
+  //       to: holographGenesis,
+  //       data: holographGenesis.populateTransaction.approveDeployer('TODO', true),
+  //     })),
+  //   });
+  //   let receipt = await tx.wait();
+  // } else {
+  //   console.log('Deployer TODO is already approved');
+  // }
+  // console.log(`Exiting script: ${__filename} ✅\n`);
 };
 
 export default func;
