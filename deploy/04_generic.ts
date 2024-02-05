@@ -1,4 +1,6 @@
 declare var global: any;
+import path from 'path';
+
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
@@ -8,27 +10,16 @@ import {
   genesisDeriveFutureAddress,
   generateInitCode,
   txParams,
+  getDeployer,
 } from '../scripts/utils/helpers';
 import { ConfigureEvents } from '../scripts/utils/events';
-import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
+  console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
+
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-  const accounts = await hre.ethers.getSigners();
-  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
-
-  if (global.__superColdStorage) {
-    // address, domain, authorization, ca
-    const coldStorage = global.__superColdStorage;
-    deployer = new SuperColdStorageSigner(
-      coldStorage.address,
-      'https://' + coldStorage.domain,
-      coldStorage.authorization,
-      deployer.provider,
-      coldStorage.ca
-    );
-  }
-
+  const deployer = await getDeployer(hre);
+  const deployerAddress = await deployer.signer.getAddress();
   const salt = hre.deploymentSalt;
 
   const futureGenericAddress = await genesisDeriveFutureAddress(
@@ -67,6 +58,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   } else {
     hre.deployments.log('"HolographGeneric" is already deployed.');
   }
+
+  console.log(`Exiting script: ${__filename} ✅\n`);
 };
 
 export default func;

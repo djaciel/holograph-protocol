@@ -1,4 +1,6 @@
 declare var global: any;
+import path from 'path';
+
 import fs from 'fs';
 import Web3 from 'web3';
 import { BigNumberish, BytesLike, ContractFactory, Contract } from 'ethers';
@@ -17,11 +19,11 @@ import {
   genesisDeriveFutureAddress,
   remove0x,
   txParams,
+  getDeployer,
 } from '../scripts/utils/helpers';
 import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { HolographERC20Event, ConfigureEvents, AllEventsEnabled } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
-import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 interface HTokenData {
   primaryNetwork: Network;
@@ -30,21 +32,11 @@ interface HTokenData {
 }
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
-  let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-  const accounts = await hre.ethers.getSigners();
-  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
+  console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
 
-  if (global.__superColdStorage) {
-    // address, domain, authorization, ca
-    const coldStorage = global.__superColdStorage;
-    deployer = new SuperColdStorageSigner(
-      coldStorage.address,
-      'https://' + coldStorage.domain,
-      coldStorage.authorization,
-      deployer.provider,
-      coldStorage.ca
-    );
-  }
+  let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
+  const deployer = await getDeployer(hre);
+  const deployerAddress = await deployer.signer.getAddress();
 
   const web3 = new Web3();
 
@@ -54,7 +46,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre,
     salt,
     'hToken',
-    generateInitCode(['address', 'uint16'], [deployer.address, 0])
+    generateInitCode(['address', 'uint16'], [deployerAddress, 0])
   );
   hre.deployments.log('the future "hToken" address is', futureHTokenAddress);
 
@@ -66,7 +58,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre,
       salt,
       'hToken',
-      generateInitCode(['address', 'uint16'], [deployer.address, 0]),
+      generateInitCode(['address', 'uint16'], [deployerAddress, 0]),
       futureHTokenAddress
     );
   } else {
@@ -75,18 +67,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const network = networks[hre.networkName];
 
-  const holograph = await hre.ethers.getContract('Holograph', deployer);
+  const holograph = await hre.ethers.getContract('Holograph', deployerAddress);
 
   const factory = (await hre.ethers.getContractAt(
     'HolographFactory',
     await holograph.getFactory(),
-    deployer
+    deployerAddress
   )) as Contract;
 
   const registry = (await hre.ethers.getContractAt(
     'HolographRegistry',
     await holograph.getRegistry(),
-    deployer
+    deployerAddress
   )) as Contract;
 
   const holographerBytecode: BytesLike = (await hre.ethers.getContractFactory('Holographer')).bytecode;
@@ -109,17 +101,17 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       },
     ];
   } else if (currentNetworkType == NetworkType.testnet) {
-    primaryNetwork = networks.ethereumTestnetGoerli;
+    primaryNetwork = networks.ethereumTestnetSepolia;
     hTokens = [
       {
-        primaryNetwork: networks.ethereumTestnetGoerli,
+        primaryNetwork: networks.ethereumTestnetSepolia,
         tokenSymbol: 'ETH',
         supportedNetworks: [
-          networks.arbitrumTestnetGoerli,
-          networks.baseTestnetGoerli,
-          networks.ethereumTestnetGoerli,
-          networks.optimismTestnetGoerli,
-          networks.zoraTestnetGoerli,
+          networks.arbitrumTestnetSepolia,
+          networks.baseTestnetSepolia,
+          networks.ethereumTestnetSepolia,
+          networks.optimismTestnetSepolia,
+          networks.zoraTestnetSepolia,
         ],
       },
       {
@@ -192,9 +184,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   ) {
     const hTokenHash = '0x' + web3.utils.asciiToHex('hToken').substring(2).padStart(64, '0');
     const chainId = '0x' + data.primaryNetwork.holographId.toString(16).padStart(8, '0');
+
+    // NOTE: At the moment the hToken contract's address is reliant on the deployerAddress which prevents multiple approved deployers from deploying the same address. This is a temporary solution until the hToken contract is upgraded to allow any deployerAddress to be used.
     let { erc20Config, erc20ConfigHash, erc20ConfigHashBytes } = await generateErc20Config(
       data.primaryNetwork,
-      deployer.address,
+      '0xBB566182f35B9E5Ae04dB02a5450CC156d2f89c1', // TODO: Upgrade the hToken contract so that any deployerAddress can be used
       'hTokenProxy',
       'Holographed ' + data.tokenSymbol,
       'h' + data.tokenSymbol,
@@ -204,7 +198,17 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ConfigureEvents([]),
       generateInitCode(
         ['bytes32', 'address', 'bytes'],
-        [hTokenHash, registry.address, generateInitCode(['address', 'uint16'], [deployer.address, 0])]
+        [
+          hTokenHash,
+          registry.address,
+          generateInitCode(
+            ['address', 'uint16'],
+            [
+              '0xBB566182f35B9E5Ae04dB02a5450CC156d2f89c1' /* TODO: Upgrade the hToken contract so that any deployerAddress can be used */,
+              0,
+            ]
+          ),
+        ]
       ),
       salt
     );
@@ -220,22 +224,25 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     if (hTokenDeployedCode == '0x' || hTokenDeployedCode == '') {
       hre.deployments.log('need to deploy "hToken ' + data.tokenSymbol + '"');
 
-      const sig = await deployer.signMessage(erc20ConfigHashBytes);
+      const sig = await deployer.signer.signMessage(erc20ConfigHashBytes);
       const signature: Signature = StrictECDSA({
         r: '0x' + sig.substring(2, 66),
         s: '0x' + sig.substring(66, 130),
         v: '0x' + sig.substring(130, 132),
       } as Signature);
 
-      const deployTx = await factory.deployHolographableContract(erc20Config, signature, deployer.address, {
+      const factoryWithSigner = factory.connect(deployer.signer);
+
+      const deployTx = await factoryWithSigner.deployHolographableContract(erc20Config, signature, deployerAddress, {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: factory,
-          data: factory.populateTransaction.deployHolographableContract(erc20Config, signature, deployer.address),
+          data: factory.populateTransaction.deployHolographableContract(erc20Config, signature, deployerAddress),
         })),
       });
       const deployResult = await deployTx.wait();
+
       let eventIndex: number = 0;
       let eventFound: boolean = false;
       for (let i = 0, l = deployResult.events.length; i < l; i++) {
@@ -260,20 +267,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('reusing "hToken ' + data.tokenSymbol + '" at:', futureHTokenAddress);
     }
 
-    const hToken = ((await hre.ethers.getContract('hToken', deployer)) as Contract).attach(futureHTokenAddress);
+    const hToken = ((await hre.ethers.getContract('hToken', deployerAddress)) as Contract).attach(futureHTokenAddress);
 
     for (let network of data.supportedNetworks) {
       if (!(await hToken.isSupportedChain(network.chain))) {
         hre.deployments.log('Need to add ' + network.chain.toString() + ' as supported chain');
         const setSupportedChainTx = await MultisigAwareTx(
           hre,
-          deployer,
           'hToken',
           hToken,
           await hToken.populateTransaction.updateSupportedChain(network.chain, true, {
             ...(await txParams({
               hre,
-              from: deployer,
+              from: deployerAddress,
               to: hToken,
               data: hToken.populateTransaction.updateSupportedChain(network.chain, true),
             })),
@@ -292,13 +298,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         );
         const setHTokenTx = await MultisigAwareTx(
           hre,
-          deployer,
           'HolographRegistry',
           registry,
           await registry.populateTransaction.setHToken(chain, futureHTokenAddress, {
             ...(await txParams({
               hre,
-              from: deployer,
+              from: deployerAddress,
               to: registry,
               data: registry.populateTransaction.setHToken(chain, futureHTokenAddress),
             })),
@@ -312,6 +317,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   for (let hToken of hTokens) {
     await hTokenDeployer(holograph, factory, registry, holographerBytecode, hToken);
   }
+
+  console.log(`Exiting script: ${__filename} ✅\n`);
 };
 
 export default func;

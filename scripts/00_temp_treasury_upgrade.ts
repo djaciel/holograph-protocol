@@ -51,7 +51,6 @@ import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { reservedNamespaceHashes } from '../scripts/utils/reserved-namespaces';
 import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
-import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 import { Environment, getEnvironment } from '@holographxyz/environment';
 
 import dotenv from 'dotenv';
@@ -63,7 +62,7 @@ const ZERO: BigNumber = BigNumber.from('0');
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
   const accounts = await hre.ethers.getSigners();
-  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
+  let deployer: SignerWithAddress = accounts[0];
 
   const web3 = new Web3();
   const salt = hre.deploymentSalt;

@@ -1,4 +1,6 @@
 declare var global: any;
+import path from 'path';
+
 import fs from 'fs';
 import Web3 from 'web3';
 import { BytesLike, ContractFactory, Contract } from 'ethers';
@@ -12,35 +14,25 @@ import {
   genesisDeriveFutureAddress,
   zeroAddress,
   txParams,
+  getDeployer,
 } from '../scripts/utils/helpers';
 import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { reservedNamespaces, reservedNamespaceHashes } from '../scripts/utils/reserved-namespaces';
 import { ConfigureEvents } from '../scripts/utils/events';
-import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
-  let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-  const accounts = await hre.ethers.getSigners();
-  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
+  console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
 
-  if (global.__superColdStorage) {
-    // address, domain, authorization, ca
-    const coldStorage = global.__superColdStorage;
-    deployer = new SuperColdStorageSigner(
-      coldStorage.address,
-      'https://' + coldStorage.domain,
-      coldStorage.authorization,
-      deployer.provider,
-      coldStorage.ca
-    );
-  }
+  let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
+  const deployer = await getDeployer(hre);
+  const deployerAddress = await deployer.signer.getAddress();
+  console.log('Deployer address:', deployerAddress);
 
   const web3 = new Web3();
-
   const salt = hre.deploymentSalt;
 
-  const holographRegistryProxy = await hre.ethers.getContract('HolographRegistryProxy', deployer);
-  const holographRegistry = ((await hre.ethers.getContract('HolographRegistry', deployer)) as Contract).attach(
+  const holographRegistryProxy = await hre.ethers.getContract('HolographRegistryProxy', deployerAddress);
+  const holographRegistry = ((await hre.ethers.getContract('HolographRegistry', deployerAddress)) as Contract).attach(
     holographRegistryProxy.address
   );
 
@@ -85,13 +77,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     }) as bool[];
     const setReservedContractTypeAddressesTx = await MultisigAwareTx(
       hre,
-      deployer,
       'HolographRegistry',
       holographRegistry,
       await holographRegistry.populateTransaction.setReservedContractTypeAddresses(hashArray, reserveArray, {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: holographRegistry,
           data: holographRegistry.populateTransaction.setReservedContractTypeAddresses(hashArray, reserveArray),
         })),
@@ -119,7 +110,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   ) {
     const dropsPriceOracleProxyTx = await MultisigAwareTx(
       hre,
-      deployer,
       'HolographRegistry',
       holographRegistry,
       await holographRegistry.populateTransaction.setContractTypeAddress(
@@ -128,7 +118,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographRegistry,
             data: await holographRegistry.populateTransaction.setContractTypeAddress(
               dropsPriceOracleProxyHash,
@@ -172,7 +162,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   ) {
     const dropsMetadataRendererProxyTx = await MultisigAwareTx(
       hre,
-      deployer,
       'HolographRegistry',
       holographRegistry,
       await holographRegistry.populateTransaction.setContractTypeAddress(
@@ -181,7 +170,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographRegistry,
             data: holographRegistry.populateTransaction.setContractTypeAddress(
               dropsMetadataRendererProxyHash,
@@ -228,7 +217,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   ) {
     const editionsMetadataRendererProxyTx = await MultisigAwareTx(
       hre,
-      deployer,
       'HolographRegistry',
       holographRegistry,
       await holographRegistry.populateTransaction.setContractTypeAddress(
@@ -237,7 +225,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographRegistry,
             data: holographRegistry.populateTransaction.setContractTypeAddress(
               editionsMetadataRendererProxyHash,
@@ -278,13 +266,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if ((await holographRegistry.getContractTypeAddress(genericHash)) != futureGenericAddress) {
     const genericTx = await MultisigAwareTx(
       hre,
-      deployer,
       'HolographRegistry',
       holographRegistry,
       await holographRegistry.populateTransaction.setContractTypeAddress(genericHash, futureGenericAddress, {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: holographRegistry,
           data: holographRegistry.populateTransaction.setContractTypeAddress(genericHash, futureGenericAddress),
         })),
@@ -312,7 +299,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         1000, // contractBps == 0%
         ConfigureEvents([]), // eventConfig
         true, // skipInit
-        generateInitCode(['address'], [deployer.address]), // initCode
+        generateInitCode(['address'], [deployerAddress]), // initCode
       ]
     )
   );
@@ -322,13 +309,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if ((await holographRegistry.getContractTypeAddress(erc721Hash)) != futureErc721Address) {
     const erc721Tx = await MultisigAwareTx(
       hre,
-      deployer,
       'HolographRegistry',
       holographRegistry,
       await holographRegistry.populateTransaction.setContractTypeAddress(erc721Hash, futureErc721Address, {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: holographRegistry,
           data: holographRegistry.populateTransaction.setContractTypeAddress(erc721Hash, futureErc721Address),
         })),
@@ -344,18 +330,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   }
 
   // Register HolographDropERC721
-  const futureEditionsMetadataRendererAddress = await genesisDeriveFutureAddress(
-    hre,
-    salt,
-    'EditionsMetadataRenderer',
-    generateInitCode([], [])
-  );
-  const futureEditionsMetadataRendererProxyAddress = await genesisDeriveFutureAddress(
-    hre,
-    salt,
-    'EditionsMetadataRendererProxy',
-    generateInitCode(['address', 'bytes'], [futureEditionsMetadataRendererAddress, generateInitCode([], [])])
-  );
   const HolographDropERC721InitCode = generateInitCode(
     [
       'tuple(address,address,address,address,uint64,uint16,bool,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)',
@@ -364,8 +338,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       [
         '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
         '0x0000000000000000000000000000000000000000', // marketFilterAddress (opensea)
-        deployer.address, // initialOwner
-        deployer.address, // fundsRecipient
+        deployerAddress, // initialOwner
+        deployerAddress, // fundsRecipient
         0, // 1000 editions
         1000, // 10% royalty
         false, // enableOpenSeaRoyaltyRegistry
@@ -386,7 +360,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if ((await holographRegistry.getContractTypeAddress(HolographDropERC721Hash)) != futureHolographDropERC721Address) {
     const erc721DropTx = await MultisigAwareTx(
       hre,
-      deployer,
       'HolographRegistry',
       holographRegistry,
       await holographRegistry.populateTransaction.setContractTypeAddress(
@@ -395,7 +368,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographRegistry,
             data: holographRegistry.populateTransaction.setContractTypeAddress(
               HolographDropERC721Hash,
@@ -427,13 +400,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if ((await holographRegistry.getContractTypeAddress(cxipErc721Hash)) != futureCxipErc721Address) {
     const cxipErc721Tx = await MultisigAwareTx(
       hre,
-      deployer,
       'HolographRegistry',
       holographRegistry,
       await holographRegistry.populateTransaction.setContractTypeAddress(cxipErc721Hash, futureCxipErc721Address, {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: holographRegistry,
           data: holographRegistry.populateTransaction.setContractTypeAddress(cxipErc721Hash, futureCxipErc721Address),
         })),
@@ -473,13 +445,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if ((await holographRegistry.getContractTypeAddress(erc20Hash)) != futureErc20Address) {
     const erc20Tx = await MultisigAwareTx(
       hre,
-      deployer,
       'HolographRegistry',
       holographRegistry,
       await holographRegistry.populateTransaction.setContractTypeAddress(erc20Hash, futureErc20Address, {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: holographRegistry,
           data: holographRegistry.populateTransaction.setContractTypeAddress(erc20Hash, futureErc20Address),
         })),
@@ -505,13 +476,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if ((await holographRegistry.getContractTypeAddress(pa1dHash)) != futureRoyaltiesAddress) {
     const pa1dTx = await MultisigAwareTx(
       hre,
-      deployer,
       'HolographRegistry',
       holographRegistry,
       await holographRegistry.populateTransaction.setContractTypeAddress(pa1dHash, futureRoyaltiesAddress, {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: holographRegistry,
           data: holographRegistry.populateTransaction.setContractTypeAddress(pa1dHash, futureRoyaltiesAddress),
         })),
@@ -531,7 +501,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre,
     salt,
     'hToken',
-    generateInitCode(['address', 'uint16'], [deployer.address, 0])
+    generateInitCode(['address', 'uint16'], [deployerAddress, 0])
   );
   hre.deployments.log('the future "hToken" address is', futureHTokenAddress);
 
@@ -539,13 +509,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if ((await holographRegistry.getContractTypeAddress(hTokenHash)) != futureHTokenAddress) {
     const hTokenTx = await MultisigAwareTx(
       hre,
-      deployer,
       'HolographRegistry',
       holographRegistry,
       await holographRegistry.populateTransaction.setContractTypeAddress(hTokenHash, futureHTokenAddress, {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: holographRegistry,
           data: holographRegistry.populateTransaction.setContractTypeAddress(hTokenHash, futureHTokenAddress),
         })),
@@ -557,16 +526,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   } else {
     hre.deployments.log('"hToken" is already registered');
   }
+
+  console.log(`Exiting script: ${__filename} ✅\n`);
 };
 
 export default func;
 func.tags = ['RegisterTemplates'];
 func.dependencies = [
   'HolographGenesis',
-  //  'DeploySources',
-  //  'DeployGeneric',
-  //  'DeployERC20',
-  //  'DeployERC721',
-  //  'HolographDropERC721',
-  //  'DeployERC1155',
+  'DeploySources',
+  'DeployGeneric',
+  'DeployERC20',
+  'DeployERC721',
+  'HolographDropERC721',
+  'DeployERC1155',
 ];

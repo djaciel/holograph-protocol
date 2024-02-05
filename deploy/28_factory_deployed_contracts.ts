@@ -1,41 +1,30 @@
 declare var global: any;
+import path from 'path';
+
 import { BigNumber, Contract } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { Holographer, CxipERC721Proxy } from '../typechain-types';
-import { hreSplit, txParams } from '../scripts/utils/helpers';
+import { getDeployer, hreSplit, txParams } from '../scripts/utils/helpers';
 import { NetworkType, networks } from '@holographxyz/networks';
-import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
+  console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
+
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-  const accounts = await hre.ethers.getSigners();
-  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
-
-  if (global.__superColdStorage) {
-    // address, domain, authorization, ca
-    const coldStorage = global.__superColdStorage;
-    deployer = new SuperColdStorageSigner(
-      coldStorage.address,
-      'https://' + coldStorage.domain,
-      coldStorage.authorization,
-      deployer.provider,
-      coldStorage.ca
-    );
-  }
-
+  const deployer = await getDeployer(hre);
+  const deployerAddress = await deployer.signer.getAddress();
   const salt = hre.deploymentSalt;
-
   const currentNetworkType: NetworkType = networks[hre.networkName].type;
 
   if (currentNetworkType != NetworkType.local) {
-    const holographer: Contract | null = await hre.ethers.getContractOrNull('Holographer', deployer);
+    const holographer: Contract | null = await hre.ethers.getContractOrNull('Holographer', deployerAddress);
     if (holographer == null) {
       await hre.deployments.deploy('Holographer', {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: '0x0000000000000000000000000000000000000000',
           gasLimit: await hre.ethers.provider.estimateGas(
             (await hre.ethers.getContractFactory('Holographer')).getDeployTransaction()
@@ -44,16 +33,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         args: [],
         log: true,
         waitConfirmations: 1,
-      });
+      } as any);
       hre.deployments.log('Deployed a "Holographer" empty contract for block explorer verification purposes.');
     }
 
-    const cxipERC721Proxy: Contract | null = await hre.ethers.getContractOrNull('CxipERC721Proxy', deployer);
+    const cxipERC721Proxy: Contract | null = await hre.ethers.getContractOrNull('CxipERC721Proxy', deployerAddress);
     if (cxipERC721Proxy == null) {
       await hre.deployments.deploy('CxipERC721Proxy', {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: '0x0000000000000000000000000000000000000000',
           gasLimit: await hre.ethers.provider.estimateGas(
             (await hre.ethers.getContractFactory('CxipERC721Proxy')).getDeployTransaction()
@@ -62,19 +51,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         args: [],
         log: true,
         waitConfirmations: 1,
-      });
+      } as any);
       hre.deployments.log('Deployed a "CxipERC721Proxy" empty contract for block explorer verification purposes.');
     }
 
     const holographDropERC721Proxy: Contract | null = await hre.ethers.getContractOrNull(
       'HolographDropERC721Proxy',
-      deployer
+      deployerAddress
     );
     if (holographDropERC721Proxy == null) {
       await hre.deployments.deploy('HolographDropERC721Proxy', {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: '0x0000000000000000000000000000000000000000',
           gasLimit: await hre.ethers.provider.estimateGas(
             (await hre.ethers.getContractFactory('HolographDropERC721Proxy')).getDeployTransaction()
@@ -83,7 +72,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         args: [],
         log: true,
         waitConfirmations: 1,
-      });
+      } as any);
       hre.deployments.log(
         'Deployed a "HolographDropERC721Proxy" empty contract for block explorer verification purposes.'
       );
@@ -91,13 +80,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
     const holographUtilityToken: Contract | null = await hre.ethers.getContractOrNull(
       'HolographUtilityToken',
-      deployer
+      deployerAddress
     );
     if (holographUtilityToken == null) {
       await hre.deployments.deploy('HolographUtilityToken', {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: '0x0000000000000000000000000000000000000000',
           gasLimit: await hre.ethers.provider.estimateGas(
             (await hre.ethers.getContractFactory('HolographUtilityToken')).getDeployTransaction()
@@ -106,18 +95,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         args: [],
         log: true,
         waitConfirmations: 1,
-      });
+      } as any);
       hre.deployments.log(
         'Deployed a "HolographUtilityToken" empty contract for block explorer verification purposes.'
       );
     }
 
-    const hTokenProxy: Contract | null = await hre.ethers.getContractOrNull('hTokenProxy', deployer);
+    const hTokenProxy: Contract | null = await hre.ethers.getContractOrNull('hTokenProxy', deployerAddress);
     if (hTokenProxy == null) {
       await hre.deployments.deploy('hTokenProxy', {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: '0x0000000000000000000000000000000000000000',
           gasLimit: await hre.ethers.provider.estimateGas(
             (await hre.ethers.getContractFactory('hTokenProxy')).getDeployTransaction()
@@ -126,10 +115,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         args: [],
         log: true,
         waitConfirmations: 1,
-      });
+      } as any);
       hre.deployments.log('Deployed a "hTokenProxy" empty contract for block explorer verification purposes.');
     }
   }
+
+  console.log(`Exiting script: ${__filename} ✅\n`);
 };
 
 export default func;

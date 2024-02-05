@@ -22,6 +22,10 @@
 
 Holograph provides infrastructure for digital asset tokenization. Holograph enables asset issuers to mint holographic assets, which are fungible and non-fungible tokens that exist natively on any public or private blockchain.
 
+## Version
+
+The Holograph Protocol has been upgraded to version 2. For version 1 please see the [v1](https://github.com/holographxyz/holograph-protocol/tree/holograph-v1)
+
 ## Specification
 
 Please reference the [documentation](https://docs.holograph.xyz/about/protocol-specification) for the full technical specification of the protocol.
@@ -98,21 +102,21 @@ Custom contract is any type of smart contract that was developed outside of Holo
 
 #### H Tokens
 
-##### Mainnet
-
-hETH, Address: 0xb1d6C3fA214DD406d9eB8aef44c7b19A72b3de9D
-hBNB, Address: 0xA10f0c9EAd97149a1Bb57543c2837fa31e05610b
-hAVAX, Address: 0x286d2f689403B3C31500FE027678516649b2bC40
-hMATIC: Address: 0xBd7113A84ead397397Fe40046f0d84486d32ac34
-hMNT: Mantle, Address: 0xdE4494D3CD37C165bA70c1F6C2119CC78EfB64aa
-
 ##### Testnet
 
-hETH, Address: 0x2Bfe63b4a763ea122FC9CAdfa7fa1416873cE340
-hBNB, Address: 0x810A8021833dd403090eA9E5da8Da0c87552EdBf
-hAVAX, Address: 0x4cd67fEF6B79aB50928210e1B10Dc075B305954D
-hMATIC: Address: 0x39fFA772c0Aa6fD6Ab113DC11e5e30De39aC5A5E
-hMNT: Mantle, Address: 0xfE4d339eeD994E2e058fb66ABeC306A7e33Ab691
+hETH, Address: 0xB019322549D380C6bC7CbC6628ff29455fe4C1cC
+hBNB, Address: 0xA1a98BCE0BDb2770dAfb3588d4457887f5E19434
+hAVAX, Address: 0x9dA278F042213B5E8a8e18499CB3B5073d585660
+hMATIC: Address: 0x4Fd9Be1a583F4da78362aCf92942d01C46269dF0
+hMNT: Mantle, Address: 0xcF26eb593C244fa62E35b08DaD45136b75690841
+
+##### Mainnet
+
+hETH: 0x82904Fa267EC9588E5cD5A91Ec28ea11EA69182F
+hAvax: 0xA84C9B6bA6Fb90EA29AA5391AbB313483AAD1fB5
+hBNB: 0x6B3498725726C1D5925015CF19bd79A22C55b330
+hMNT: 0x614dcA9aCE2ceA0a89320B0C8C43549848498BD6
+hMatic: 0x37fD830b1219b88e845ac76fC397948d48A4eA02
 
 ## Important Flows
 
@@ -305,6 +309,8 @@ Our primary experimentation branch is [`experimental`](https://github.com/hologr
 
 ## Deployment Process
 
+##### NOTE: If you are deploying with a hardware wallet there is an environment variable HARDWARE_WALLET_ENABLED that MUST be set to true and HARDWARE_WALLET_DEPLOYER must be set to your deployer's address
+
 1. Validate env variables are correct
    1. Check Salts
    2. Check RPCS
@@ -316,19 +322,7 @@ Our primary experimentation branch is [`experimental`](https://github.com/hologr
    1. run `yarn clean-compile`
    2. run `yarn ganache-x2` - terminal 1
    3. run `yarn deploy` - terminal 2
-5. Run Deployments per environment, check gas chane per network again, and save output
-   1. avalanche
-      1. Check price envs
-      2. Save output to deploymentHistory. NOTE remove directory info.
-   2. mumbai
-      1. Check price envs
-      2. Save output to deploymentHistory. NOTE remove directory info.
-   3. goerli
-      1. Check price envs
-      2. Save output to deploymentHistory. NOTE remove directory info.
-   4. binance
-      1. Check price envs
-      2. Save output to deploymentHistory. NOTE remove directory info.
+5. Run Deployments per environment, per supported network
 6. Validate Contracts on each network
 
 ## Contributing

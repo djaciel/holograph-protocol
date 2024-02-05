@@ -1,20 +1,14 @@
 declare var global: any;
 
-import { Transaction } from '@ethersproject/transactions';
 import { TransactionRequest, TransactionResponse, TransactionReceipt } from '@ethersproject/abstract-provider';
-import { Signer } from '@ethersproject/abstract-signer';
-import { TransactionDescription, Result } from '@ethersproject/abi';
+import { TransactionDescription } from '@ethersproject/abi';
 import { Contract, ContractTransaction } from '@ethersproject/contracts';
 import { Contract as ExtendedContract } from '@nomiclabs/hardhat-ethers';
-
-import { NetworkType, Network, networks } from '@holographxyz/networks';
+import { Network, networks } from '@holographxyz/networks';
 import { Environment, getEnvironment } from '@holographxyz/environment';
-
 import { BigNumber } from '@ethersproject/bignumber';
-
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-
-import { txParams, zeroAddress, remove0x } from './helpers';
+import { txParams, zeroAddress, remove0x, getDeployer } from './helpers';
 
 interface MultisigHandler extends ContractTransaction {
   wait(confirmations?: number): Promise<ContractReceipt>;
@@ -37,7 +31,7 @@ const pressAnyKeyToContinue = async (prompt?: string = 'Press any key to continu
     process.stdin.once('data', (data: any): void => {
       resolve();
     });
-    //process.stdin.once('error', reject);
+    // process.stdin.once('error', reject);
   });
 };
 
@@ -54,11 +48,13 @@ const hex2ascii = function (hex: string): string {
 
 const MultisigAwareTx = async (
   hre: HardhatRuntimeEnvironment,
-  deployer: Signer,
   contractName: string,
   targetContract: Contract | ExtendedContract,
   futureTx: TransactionRequest
 ): Promise<MultisigHandler | ContractTransaction | TransactionResponse> => {
+  const deployer = await getDeployer(hre);
+  const deployerAddress = await deployer.signer.getAddress();
+
   const tx: TransactionDescription = targetContract.interface.parseTransaction({ data: futureTx.data, value: zero });
   let txArgs: { [key: string]: any } = {};
   for (let key of Object.keys(tx.args)) {
@@ -175,34 +171,41 @@ const MultisigAwareTx = async (
   }
   const network: Network = networks[hre.networkName];
   const environment: Environment = getEnvironment();
-  let contract: Contract = await hre.ethers.getContractAt('Admin', futureTx.to, deployer);
+  let contract: Contract = await hre.ethers.getContractAt('Admin', futureTx.to, deployerAddress);
   let admin: string = (await contract.admin()).toLowerCase(); // just in case, get it, in case?
   // accomodate factory deployed contracts, which use owner storage slot instead of admin
   if (admin === global.__holographFactoryAddress) {
-    contract = await hre.ethers.getContractAt('Owner', futureTx.to, deployer);
+    contract = await hre.ethers.getContractAt('Owner', futureTx.to, deployerAddress);
     admin = (await contract.owner()).toLowerCase();
   }
   // check if deployer is admin
-  if (admin === deployer.address.toLowerCase()) {
-    return (await deployer.sendTransaction(futureTx)) as ContractTransaction;
+  if (admin === deployerAddress.toLowerCase()) {
+    futureTx.from = deployerAddress;
+    return (await deployer.signer.sendTransaction(futureTx)) as ContractTransaction;
   } else {
     // deployer is not admin
     // check if holograph is admin
     console.log(`Deployer is not admin of ${contractName}`);
     console.log(`Admin of ${contractName} is ${admin}`);
-    const holograph = await hre.ethers.getContract('Holograph', deployer);
+    const holograph = await hre.ethers.getContract('Holograph', deployerAddress);
     console.log(`Holograph Contract address is ${holograph.address}`);
 
     if (admin === global.__holographAddress || admin === holograph.address.toLowerCase()) {
       // const holograph: Contract = await hre.ethers.getContractAt('Admin', holograph.address, deployer);
       const holographAdmin: string = (await holograph.admin()).toLowerCase();
       // check if deployer is admin of holograph
-      if (holographAdmin === deployer.address.toLowerCase()) {
+      if (holographAdmin === deployerAddress.toLowerCase()) {
+        console.log(`Deployer is admin of Holograph`);
+
+        // NOTE: This is required to connect to the contract with the deployer signer
+        //       otherwise the call will fail with an error that the signer is not connected to the node
+        const holographWithSigner = holograph.connect(deployer.signer);
+
         global.__txNonce[hre.networkName] -= 1;
-        return (await holograph.adminCall(futureTx.to, futureTx.data, {
+        return (await holographWithSigner.adminCall(futureTx.to, futureTx.data, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holograph,
             data: holograph.populateTransaction.adminCall(futureTx.to, futureTx.data),
           })),

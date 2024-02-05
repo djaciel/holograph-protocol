@@ -1,4 +1,5 @@
 declare var global: any;
+import path from 'path';
 import fs from 'fs';
 import Web3 from 'web3';
 import { BytesLike, ContractFactory, Contract } from 'ethers';
@@ -13,6 +14,7 @@ import {
   genesisDeriveFutureAddress,
   zeroAddress,
   txParams,
+  getDeployer,
 } from '../scripts/utils/helpers';
 import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { ConfigureEvents } from '../scripts/utils/events';
@@ -31,7 +33,6 @@ import {
   InitializableInterface,
   HolographRoyaltiesInterface,
 } from '../typechain-types';
-import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const web3 = new Web3();
 
@@ -61,29 +62,14 @@ const XOR = function (hashes: string[]): string {
 };
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
+  console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
+
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-  const accounts = await hre.ethers.getSigners();
-  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
-
-  if (global.__superColdStorage) {
-    // address, domain, authorization, ca
-    const coldStorage = global.__superColdStorage;
-    deployer = new SuperColdStorageSigner(
-      coldStorage.address,
-      'https://' + coldStorage.domain,
-      coldStorage.authorization,
-      deployer.provider,
-      coldStorage.ca
-    );
-  }
-
+  const deployer = await getDeployer(hre);
+  const deployerAddress = await deployer.signer.getAddress();
   const salt = hre.deploymentSalt;
 
-  const error = function (err: string) {
-    hre.deployments.log(err);
-    process.exit();
-  };
-
+  // Deploy HolographInterfaces
   const futureHolographInterfacesAddress = await genesisDeriveFutureAddress(
     hre,
     salt,
@@ -95,8 +81,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const holographInterfaces: HolographInterfaces = (await hre.ethers.getContractAt(
     'HolographInterfaces',
     futureHolographInterfacesAddress,
-    deployer
+    deployerAddress
   )) as HolographInterfaces;
+
   const network: Network = networks[hre.networkName];
   const networkType: NetworkType = network.type;
   const networkKeys: string[] = Object.keys(networks);
@@ -104,52 +91,98 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let supportedNetworkNames: string[] = [];
   let supportedNetworks: Network[] = [];
   let needToMap: number[][] = [];
+
   for (let i = 0, l = networkKeys.length; i < l; i++) {
+    // Retrieve the key (network name) and its corresponding value (network details).
     const key: string = networkKeys[i];
     const value: Network = networkValues[i];
+
+    // Check if the network type matches the current network type.
     if (value.type == networkType) {
+      // Add the network key and value to their respective arrays.
       supportedNetworkNames.push(key);
       supportedNetworks.push(value);
+
+      // Check if the network has a valid holograph ID.
       if (value.holographId > 0) {
+        // Retrieve and convert the chain ID mapping from EVM to Holograph.
         let evm2hlg: number = (await holographInterfaces.getChainId(1, value.chain, 2)).toNumber();
+        // Check if the retrieved mapping doesn't match the expected holograph ID.
         if (evm2hlg != value.holographId) {
+          // Add mapping details to needToMap array.
           needToMap.push([1, value.chain, 2, value.holographId]);
+          // Log this mapping requirement in a human-readable format.
+          console.log(
+            `Mapping required: EVM (${key}) chain ID ${value.chain} to Holograph chain ID ${value.holographId}`
+          );
         }
+
+        // Retrieve and convert the chain ID mapping from Holograph to EVM.
         let hlg2evm: number = (await holographInterfaces.getChainId(2, value.holographId, 1)).toNumber();
+        // Check if the retrieved mapping doesn't match the expected EVM chain ID.
         if (hlg2evm != value.chain) {
+          // Add mapping details to needToMap array.
           needToMap.push([2, value.holographId, 1, value.chain]);
+          // Log this mapping requirement in a human-readable format.
+          console.log(
+            `Mapping required: Holograph chain ID ${value.holographId} to EVM (${key}) chain ID ${value.chain}`
+          );
         }
+
+        // Check if the network has a valid LayerZero ID.
         if (value.lzId > 0) {
+          // Retrieve and convert the chain ID mapping from LayerZero to Holograph.
           let lz2hlg: number = (await holographInterfaces.getChainId(3, value.lzId, 2)).toNumber();
+          // Check if the retrieved mapping doesn't match the expected holograph ID.
           if (lz2hlg != value.holographId) {
+            // Add mapping details to needToMap array.
             needToMap.push([3, value.lzId, 2, value.holographId]);
+            // Log this mapping requirement in a human-readable format.
+            console.log(`Mapping required: LayerZero ID ${value.lzId} to Holograph chain ID ${value.holographId}`);
           }
+
+          // Retrieve and convert the chain ID mapping from Holograph to LayerZero.
           let hlg2lz: number = (await holographInterfaces.getChainId(2, value.holographId, 3)).toNumber();
+          // Check if the retrieved mapping doesn't match the expected LayerZero ID.
           if (hlg2lz != value.lzId) {
+            // Add mapping details to needToMap array.
             needToMap.push([2, value.holographId, 3, value.lzId]);
+            // Log this mapping requirement in a human-readable format.
+            console.log(`Mapping required: Holograph chain ID ${value.holographId} to LayerZero ID ${value.lzId}`);
           }
         }
       }
     }
   }
+
+  // Check if there are any mappings needed by examining the length of the needToMap array.
   if (needToMap.length == 0) {
+    // If no mappings are needed, log a message indicating all networks are currently supported.
     hre.deployments.log('HolographInterfaces supports all currently configured networks');
   } else {
+    // If mappings are needed, log a message indicating some networks need configuration.
     hre.deployments.log('HolographInterfaces needs to have some network support configured');
+    // Log the details of the mappings needed in a JSON format for review.
     hre.deployments.log(JSON.stringify(needToMap));
+
+    // Initialize arrays to hold the mapping details for the chain types and IDs.
     let fromChainType: number[] = [];
     let fromChainId: number[] = [];
     let toChainType: number[] = [];
     let toChainId: number[] = [];
+
+    // Iterate over each mapping requirement in needToMap.
     for (let chainMap of needToMap) {
-      fromChainType.push(chainMap[0]);
-      fromChainId.push(chainMap[1]);
-      toChainType.push(chainMap[2]);
-      toChainId.push(chainMap[3]);
+      // Populate the arrays with the specific details of each mapping requirement.
+      fromChainType.push(chainMap[0]); // Type of the source chain
+      fromChainId.push(chainMap[1]); // ID of the source chain
+      toChainType.push(chainMap[2]); // Type of the destination chain
+      toChainId.push(chainMap[3]); // ID of the destination chain
     }
+
+    // Prepare and execute a transaction to update the chain ID mappings as required.
     let tx = await MultisigAwareTx(
       hre,
-      deployer,
       'HolographInterfaces',
       holographInterfaces,
       await holographInterfaces.populateTransaction.updateChainIdMaps(
@@ -158,10 +191,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         toChainType,
         toChainId,
         {
+          // Use txParams to get any additional transaction parameters needed (e.g., gas limit, gas price).
           ...(await txParams({
             hre,
-            from: deployer,
-            to: holographInterfaces,
+            from: deployerAddress, // Specify the deployer address as the transaction initiator.
+            to: holographInterfaces, // Specify the HolographInterfaces contract as the transaction recipient.
             data: holographInterfaces.populateTransaction.updateChainIdMaps(
               fromChainType,
               fromChainId,
@@ -169,9 +203,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
               toChainId
             ),
           })),
-        }
+        } as any
       )
     );
+    // Wait for the transaction to be mined and finalized.
     await tx.wait();
   }
 
@@ -199,17 +234,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     }
     let tx = await MultisigAwareTx(
       hre,
-      deployer,
       'HolographInterfaces',
       holographInterfaces,
       await holographInterfaces.populateTransaction.updateUriPrepends(uriTypes, prepends, {
         ...(await txParams({
           hre,
-          from: deployer,
+          from: deployerAddress,
           to: holographInterfaces,
           data: holographInterfaces.populateTransaction.updateUriPrepends(uriTypes, prepends),
         })),
-      })
+      } as any)
     );
     await tx.wait();
   }
@@ -363,13 +397,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     for (let key of Object.keys(supportedInterfaces)) {
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographInterfaces',
         holographInterfaces,
         await holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), supportedInterfaces[key], true, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographInterfaces,
             data: holographInterfaces.populateTransaction.updateInterfaces(
               parseInt(key),
@@ -377,7 +410,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
               true
             ),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -387,6 +420,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let interfaces: string[] = supportedInterfaces[key];
       let todo: string[] = [];
       for (let i of interfaces) {
+        console.log('Checking if HolographInterfaces supports', i);
         if (!(await holographInterfaces.supportsInterface(parseInt(key), i))) {
           // we need to add support
           todo.push(i);
@@ -398,22 +432,23 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         hre.deployments.log('Found missing interfaces in HolographInterfaces for InterfaceType[' + key + ']');
         let tx = await MultisigAwareTx(
           hre,
-          deployer,
           'HolographInterfaces',
           holographInterfaces,
           await holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), todo, true, {
             ...(await txParams({
               hre,
-              from: deployer,
+              from: deployerAddress,
               to: holographInterfaces,
               data: holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), todo, true),
             })),
-          })
+          } as any)
         );
         await tx.wait();
       }
     }
   }
+
+  console.log(`Exiting script: ${__filename} ✅\n`);
 };
 
 export default func;

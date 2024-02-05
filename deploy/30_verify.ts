@@ -1,50 +1,39 @@
 declare var global: any;
+import path from 'path';
+
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import { NetworkType, networks } from '@holographxyz/networks';
 import { Environment, getEnvironment } from '@holographxyz/environment';
-import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
-  const accounts = await hre.ethers.getSigners();
-  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
-
-  if (global.__superColdStorage) {
-    // address, domain, authorization, ca
-    const coldStorage = global.__superColdStorage;
-    deployer = new SuperColdStorageSigner(
-      coldStorage.address,
-      'https://' + coldStorage.domain,
-      coldStorage.authorization,
-      deployer.provider,
-      coldStorage.ca
-    );
-  }
+  console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
 
   const network = networks[hre.network.name];
   const environment: Environment = getEnvironment();
   const currentNetworkType: NetworkType = network.type;
 
+  // TODO: Goerli testnet should be deprecated and removed once Sepolia is ready
   const definedOracleNames = {
     avalanche: 'Avalanche',
     avalancheTestnet: 'AvalancheTestnet',
     binanceSmartChain: 'BinanceSmartChain',
     binanceSmartChainTestnet: 'BinanceSmartChainTestnet',
     ethereum: 'Ethereum',
-    ethereumTestnetGoerli: 'EthereumTestnetGoerli',
+    ethereumTestnetSepolia: 'EthereumTestnetSepolia',
     polygon: 'Polygon',
     polygonTestnet: 'PolygonTestnet',
     optimism: 'Optimism',
-    optimismTestnetGoerli: 'OptimismTestnetGoerli',
+    optimismTestnetSepolia: 'OptimismTestnetSepolia',
     arbitrumNova: 'ArbitrumNova',
     arbitrumOne: 'ArbitrumOne',
-    arbitrumTestnetGoerli: 'ArbitrumTestnetGoerli',
+    arbitrumTestnetSepolia: 'ArbitrumTestnetSepolia',
     mantle: 'Mantle',
     mantleTestnet: 'MantleTestnet',
     base: 'Base',
-    baseTestnetGoerli: 'BaseTestnetGoerli',
+    baseTestnetSepolia: 'BaseTestnetSepolia',
     zora: 'Zora',
-    zoraTestnetGoerli: 'ZoraTestnetGoerli',
+    zoraTestnetSepolia: 'ZoraTestnetSepolia',
   };
 
   let targetDropsPriceOracle = 'DummyDropsPriceOracle';
@@ -90,22 +79,35 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
       'EditionsMetadataRendererProxy',
       'OVM_GasPriceOracle',
       'DropsPriceOracleProxy',
+      'DropsMetadataRenderer',
+      'DropsMetadataRendererProxy',
+      'EditionsMetadataRenderer',
+      'EditionsMetadataRendererProxy',
       targetDropsPriceOracle,
     ];
-    for (let i: number = 0, l: number = contracts.length; i < l; i++) {
-      let contract: string = contracts[i];
+    for (let i = 0, l = contracts.length; i < l; i++) {
+      let contract = contracts[i];
       try {
-        await hre.run('verify:verify', {
+        let options = {
           address: (await hre.ethers.getContract(contract)).address,
           constructorArguments: [],
-        });
+        };
+
+        if (contract.includes('DropsPriceOracle') && contract !== 'DropsPriceOracleProxy') {
+          const contractFullName = `contracts/drops/oracle/${contract}.sol:${contract}`;
+          options['contract'] = contractFullName;
+        }
+
+        await hre.run('verify:verify', options);
       } catch (error) {
-        hre.deployments.log(`Failed to verify ""${contract}" -> ${error}`);
+        hre.deployments.log(`Failed to verify "${contract}" -> ${error}`);
       }
     }
   } else {
     hre.deployments.log('Not verifying contracts on localhost networks.');
   }
+
+  console.log(`Exiting script: ${__filename} ✅\n`);
 };
 export default func;
 func.tags = ['Verify'];

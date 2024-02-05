@@ -18,32 +18,31 @@ import { Environment, getEnvironment } from '@holographxyz/environment';
 import { NetworkType, Network, Networks, networks } from '@holographxyz/networks';
 import { GasService } from './scripts/utils/gas-service';
 import dotenv from 'dotenv';
-//import * as tenderly from '@tenderly/hardhat-tenderly';
+// import * as tenderly from '@tenderly/hardhat-tenderly';
 import { network } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 dotenv.config();
 
 let tenderlyNetwork = {};
 let tenderlyConfig = {};
-/*
-if (process.env.USE_TENDERLY && process.env.USE_TENDERLY == 'true') {
-  tenderly.setup();
-  tenderlyNetwork = {
-    tenderly: {
-      chainId: 5,
-      url: 'https://rpc.tenderly.co/fork/<fork-chain-id>',
-    },
-  };
-  tenderlyConfig = {
-    tenderly: {
-      project: process.env.TENDERLY_PROJECT,
-      username: process.env.TENDERLY_USERNAME,
-      privateVerification: false,
-      forkNetwork: '<fork-chain-id>',
-    },
-  };
-}
-*/
+
+// if (process.env.USE_TENDERLY && process.env.USE_TENDERLY == 'true') {
+//   tenderly.setup();
+//   tenderlyNetwork = {
+//     tenderly: {
+//       chainId: 5,
+//       url: 'https://rpc.tenderly.co/fork/<fork-chain-id>',
+//     },
+//   };
+//   tenderlyConfig = {
+//     tenderly: {
+//       project: process.env.TENDERLY_PROJECT,
+//       username: process.env.TENDERLY_USERNAME,
+//       privateVerification: false,
+//       forkNetwork: '<fork-chain-id>',
+//     },
+//   };
+// }
 
 function getRemappings() {
   return fs
@@ -73,29 +72,16 @@ process.stdout.write(`\n👉 Environment: ${currentEnvironment}\n\n`);
 
 const SOLIDITY_VERSION = process.env.SOLIDITY_VERSION || '0.8.13';
 
-const MNEMONIC = process.env.MNEMONIC || 'test '.repeat(11) + 'junk';
-const DEPLOYER = process.env.DEPLOYER || '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80';
-
-if (
-  process.env.SUPER_COLD_STORAGE_ENABLED &&
-  process.env.SUPER_COLD_STORAGE_ENABLED == 'true' &&
-  process.env.npm_lifecycle_event == 'deploy'
-) {
-  global.__superColdStorage = {
-    address: process.env.SUPER_COLD_STORAGE_ADDRESS,
-    domain: process.env.SUPER_COLD_STORAGE_DOMAIN,
-    authorization: process.env.SUPER_COLD_STORAGE_AUTHORIZATION, // String.fromCharCode.apply(null, hex2buffer(process.env.SUPER_COLD_STORAGE_AUTHORIZATION)),
-    ca: String.fromCharCode.apply(null, hex2buffer(process.env.SUPER_COLD_STORAGE_CA)),
-  };
-}
-
 const setDeployerKey = function (fallbackKey: string | number): string | number {
-  if ('__superColdStorage' in global) {
-    return ('super-cold-storage://' + global.__superColdStorage.address) as string;
-  } else {
-    return fallbackKey;
+  if (process.env.HARDWARE_WALLET_ENABLED == 'true' && process.env.HARDWARE_WALLET_DEPLOYER != undefined) {
+    return `ledger://${process.env.HARDWARE_WALLET_DEPLOYER}`;
   }
+  console.log(`Setting deployer key to ${fallbackKey} as fallback`);
+  return fallbackKey;
 };
+
+const MNEMONIC = process.env.MNEMONIC || 'test '.repeat(11) + 'junk';
+const DEPLOYER = process.env.DEPLOYER || '0x0';
 
 const dynamicNetworks = function (skipLocalhost: boolean = true): unknown {
   let output = {};
@@ -121,16 +107,6 @@ const dynamicExternalDeployments = function (): unknown {
   }
   return output;
 };
-
-const AVALANCHE_PRIVATE_KEY = process.env.AVALANCHE_PRIVATE_KEY || DEPLOYER;
-const AVALANCHE_TESTNET_PRIVATE_KEY = process.env.AVALANCHE_TESTNET_PRIVATE_KEY || DEPLOYER;
-const BINANCE_SMART_CHAIN_PRIVATE_KEY = process.env.BINANCE_SMART_CHAIN_PRIVATE_KEY || DEPLOYER;
-const BINANCE_SMART_CHAIN_TESTNET_PRIVATE_KEY = process.env.BINANCE_SMART_CHAIN_TESTNET_PRIVATE_KEY || DEPLOYER;
-const ETHEREUM_PRIVATE_KEY = process.env.ETHEREUM_PRIVATE_KEY || DEPLOYER;
-const ETHEREUM_TESTNET_GOERLI_PRIVATE_KEY = process.env.ETHEREUM_TESTNET_GOERLI_PRIVATE_KEY || DEPLOYER;
-const ETHEREUM_TESTNET_RINKEBY_PRIVATE_KEY = process.env.ETHEREUM_TESTNET_RINKEBY_PRIVATE_KEY || DEPLOYER;
-const POLYGON_PRIVATE_KEY = process.env.POLYGON_PRIVATE_KEY || DEPLOYER;
-const POLYGON_TESTNET_PRIVATE_KEY = process.env.POLYGON_TESTNET_PRIVATE_KEY || DEPLOYER;
 
 const selectDeploymentSalt = (): number => {
   let salt;
@@ -166,20 +142,10 @@ const selectDeploymentSalt = (): number => {
 };
 
 const DEPLOYMENT_SALT = selectDeploymentSalt();
-
 const DEPLOYMENT_PATH = process.env.DEPLOYMENT_PATH || 'deployments';
-
 global.__DEPLOYMENT_SALT = '0x' + DEPLOYMENT_SALT.toString(16).padStart(64, '0');
 
-// This subtask runs before the actual hardhat compile task
-// THis is used to filter out the contracts/drops folder from compilation since those are handled by foundry
-// TODO: Disabled for now
-// subtask(TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS).setAction(async (_, __, runSuper) => {
-//   const paths = await runSuper();
-//   return paths.filter((p) => !p.includes('contracts/drops/'));
-// });
-
-// this task runs before the actual hardhat deploy task
+// This task runs before the actual hardhat deploy task
 task('deploy', 'Deploy contracts').setAction(async (args, hre, runSuper) => {
   let network: Network = networks[hre.network.name];
   if (network.type === NetworkType.localhost) {
@@ -193,7 +159,9 @@ task('deploy', 'Deploy contracts').setAction(async (args, hre, runSuper) => {
   global.__gasPriceMultiplier = BigNumber.from(process.env.GAS_PRICE_MULTIPLIER || '10000');
   global.__maxGasPrice = BigNumber.from(process.env.MAXIMUM_GAS_PRICE || '0');
   global.__maxGasBribe = BigNumber.from(process.env.MAXIMUM_GAS_BRIBE || '0');
-  // start gas price monitoring service
+  // NOTE: Gas price monitor service is disabled for now
+  // Please look to utils/helpers.ts and search for "manual" to see how to adjust gas prices manually
+  // Start gas price monitoring service
   // process.stdout.write('Loading Gas Price Service\n');
   // const gasService: GasService = new GasService(hre.network.name, hre.ethers.provider, 'DEBUG' in process.env);
   // process.stdout.write('Seeding Gas Price Service\n');
@@ -419,6 +387,7 @@ const config: HardhatUserConfig = {
     apiKey: {
       mainnet: process.env.ETHERSCAN_API_KEY || '',
       goerli: process.env.ETHERSCAN_API_KEY || '',
+      sepolia: process.env.ETHERSCAN_API_KEY || '',
       avalanche: process.env.SNOWTRACE_API_KEY || '',
       avalancheFujiTestnet: process.env.SNOWTRACE_API_KEY || '',
       polygon: process.env.POLYGONSCAN_API_KEY || '',
@@ -427,23 +396,65 @@ const config: HardhatUserConfig = {
       bscTestnet: process.env.BSCSCAN_API_KEY || '',
       optimisticEthereum: process.env.OPTIMISTIC_API_KEY || process.env.OPTIMISM_API_KEY || '',
       optimisticGoerli: process.env.OPTIMISTIC_API_KEY || process.env.OPTIMISM_API_KEY || '',
+      optimismTestnetSepolia: process.env.OPTIMISTIC_API_KEY || process.env.OPTIMISM_API_KEY || '',
       arbitrumOne: process.env.ARBISCAN_API_KEY || '',
       arbitrumGoerli: process.env.ARBISCAN_API_KEY || '',
+      arbitrumTestnetSepolia: process.env.ARBISCAN_API_KEY || '',
       arbitrumNova: process.env.ARBISCAN_NOVA_API_KEY || '',
       mantle: process.env.MANTLE_API_KEY || '',
       mantleTestnet: process.env.MANTLE_API_KEY || '',
       base: process.env.BASESCAN_API_KEY || '',
-      baseTestnetGoerli: process.env.BASESCAN_API_KEY || '',
-      zora: process.env.ZORAENERGY_API_KEY || '',
-      zoraTestnetGoerli: process.env.ZORAENERGY_API_KEY || '',
+      baseTestnetSepolia: process.env.BASESCAN_API_KEY || '',
+      zora: process.env.ZORAENERGY_API_KEY || '---', // blank string does not work for blockscout
+      zoraTestnetSepolia: process.env.ZORAENERGY_API_KEY || '---', // blank string does not work for blockscout
     },
     customChains: [
+      {
+        network: 'optimismTestnetSepolia',
+        chainId: 11155420,
+        urls: {
+          apiURL: 'https://api-sepolia-optimistic.etherscan.io/api',
+          browserURL: 'https://sepolia-optimism.etherscan.io/',
+        },
+      },
+      {
+        network: 'baseTestnetSepolia',
+        chainId: 84532,
+        urls: {
+          apiURL: 'https://api-sepolia.basescan.org/api',
+          browserURL: 'https://sepolia.basescan.org',
+        },
+      },
+      {
+        network: 'zora',
+        chainId: 7777777,
+        urls: {
+          apiURL: 'https://explorer.zora.energy/api',
+          browserURL: 'https://explorer.zora.energy/',
+        },
+      },
+      {
+        network: 'zoraTestnetSepolia',
+        chainId: 999999999,
+        urls: {
+          apiURL: 'https://sepolia.explorer.zora.energy/api',
+          browserURL: 'https://explorer.zora.energy/',
+        },
+      },
       {
         network: 'arbitrumNova',
         chainId: 42170,
         urls: {
           apiURL: 'https://api-nova.arbiscan.io/api',
           browserURL: 'https://nova.arbiscan.io',
+        },
+      },
+      {
+        network: 'arbitrumTestnetSepolia',
+        chainId: 421614,
+        urls: {
+          apiURL: 'https://api-sepolia.arbiscan.io/api',
+          browserURL: 'https://sepolia.arbiscan.io',
         },
       },
       {
@@ -471,11 +482,11 @@ const config: HardhatUserConfig = {
         },
       },
       {
-        network: 'baseTestnetGoerli',
+        network: 'baseTestnetSepolia',
         chainId: 84531,
         urls: {
-          apiURL: 'https://api-goerli.basescan.org/api',
-          browserURL: 'https://goerli.basescan.org',
+          apiURL: 'https://api-sepolia.basescan.org/api',
+          browserURL: 'https://sepolia.basescan.org',
         },
       },
     ],

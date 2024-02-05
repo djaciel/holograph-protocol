@@ -1,4 +1,5 @@
 declare var global: any;
+import path from 'path';
 import fs from 'fs';
 import Web3 from 'web3';
 import { BigNumber, BytesLike } from 'ethers';
@@ -46,12 +47,12 @@ import {
   Signature,
   StrictECDSA,
   txParams,
+  getDeployer,
 } from '../scripts/utils/helpers';
 import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { reservedNamespaceHashes } from '../scripts/utils/reserved-namespaces';
 import { HolographERC20Event, ConfigureEvents } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
-import { SuperColdStorageSigner } from 'super-cold-storage-signer';
 import { Environment, getEnvironment } from '@holographxyz/environment';
 
 import dotenv from 'dotenv';
@@ -61,21 +62,12 @@ const GWEI: BigNumber = BigNumber.from('1000000000');
 const ZERO: BigNumber = BigNumber.from('0');
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
-  let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
-  const accounts = await hre.ethers.getSigners();
-  let deployer: SignerWithAddress | SuperColdStorageSigner = accounts[0];
+  console.log(`Starting deploy script: ${path.basename(__filename)} 👇\n`);
 
-  if (global.__superColdStorage) {
-    // address, domain, authorization, ca
-    const coldStorage = global.__superColdStorage;
-    deployer = new SuperColdStorageSigner(
-      coldStorage.address,
-      'https://' + coldStorage.domain,
-      coldStorage.authorization,
-      deployer.provider,
-      coldStorage.ca
-    );
-  }
+  let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
+  const deployer = await getDeployer(hre);
+  const deployerAddress = await deployer.signer.getAddress();
+  console.log('Deployer address:', deployerAddress);
 
   const web3 = new Web3();
 
@@ -239,7 +231,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   let tokenAmount: BigNumber = BigNumber.from('100' + '000' + '000' + '000000000000000000');
   let targetChain: BigNumber = BigNumber.from('0');
-  let tokenRecipient: string = deployer.address;
+  let tokenRecipient: string = deployerAddress;
 
   // Future Holograph Utility Token
   const currentNetworkType: NetworkType = network.type;
@@ -251,11 +243,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   } else if (currentNetworkType == NetworkType.testnet) {
     // one hundred million tokens minted per network on testnets
     tokenAmount = BigNumber.from('100' + '000' + '000' + '000000000000000000');
-    primaryNetwork = networks.ethereumTestnetGoerli;
+    primaryNetwork = networks.ethereumTestnetSepolia;
     if (environment == Environment.testnet) {
       tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
-      targetChain = BigNumber.from(networks.ethereumTestnetGoerli.chain);
-      tokenRecipient = networks.ethereumTestnetGoerli.protocolMultisig;
+      targetChain = BigNumber.from(networks.ethereumTestnetSepolia.chain);
+      tokenRecipient = networks.ethereumTestnetSepolia.protocolMultisig!;
     }
   } else if (currentNetworkType == NetworkType.mainnet) {
     // ten billion tokens minted on ethereum on mainnet
@@ -264,7 +256,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     targetChain = BigNumber.from(networks.ethereum.chain);
     // protocol multisig is the recipient
     // This is the hardcoded Gnosis Safe address of Holograph Research
-    tokenRecipient = '0xfC40b4233f8Ce60461e1D5FE50b3DDF0C50AE0b4'; //networks.ethereum.protocolMultisig;
+    tokenRecipient = '0x0a7aa3d5855272Df5B2677C7F0E5161ae77D5260'; //networks.ethereum.protocolMultisig;
     primaryNetwork = networks.ethereum;
   } else {
     throw new Error('cannot identity current NetworkType');
@@ -272,7 +264,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   let { erc20Config, erc20ConfigHash, erc20ConfigHashBytes } = await generateErc20Config(
     primaryNetwork,
-    deployer.address,
+    deployerAddress,
     'HolographUtilityToken',
     'Holograph Utility Token',
     'HLG',
@@ -282,7 +274,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     ConfigureEvents([]),
     generateInitCode(
       ['address', 'uint256', 'uint256', 'address'],
-      [deployer.address, tokenAmount.toHexString(), targetChain.toHexString(), tokenRecipient]
+      [deployerAddress, tokenAmount.toHexString(), targetChain.toHexString(), tokenRecipient]
     ),
     salt
   );
@@ -296,7 +288,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   hre.deployments.log('the future "HolographUtilityToken" address is', futureHlgAddress);
 
   const dryRun = process.env.DRY_RUN;
-  if ((dryRun && dryRun === 'true') || dryRun === true) {
+  if (dryRun && dryRun === 'true') {
+    hre.deployments.log('Dry run complete, exiting.');
     process.exit();
   }
 
@@ -325,22 +318,21 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
   } else {
     hre.deployments.log('"Holograph" is already deployed. Checking configs.');
-    let holograph = (await hre.ethers.getContractAt('Holograph', futureHolographAddress, deployer)) as Holograph;
+    let holograph = (await hre.ethers.getContractAt('Holograph', futureHolographAddress, deployerAddress)) as Holograph;
     if ((await holograph.getBridge()) != futureBridgeProxyAddress) {
       hre.deployments.log('Updating Bridge reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'Holograph',
         holograph,
         await holograph.populateTransaction.setBridge(futureBridgeProxyAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holograph,
             data: holograph.populateTransaction.setBridge(futureBridgeProxyAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -348,17 +340,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Factory reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'Holograph',
         holograph,
         await holograph.populateTransaction.setFactory(futureFactoryProxyAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holograph,
             data: holograph.setFactory(futureFactoryProxyAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -366,17 +357,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating HolographInterfaces reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'Holograph',
         holograph,
         await holograph.populateTransaction.setInterfaces(futureHolographInterfacesAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holograph,
             data: holograph.populateTransaction.setInterfaces(futureHolographInterfacesAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -384,17 +374,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Operator reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'Holograph',
         holograph,
         await holograph.populateTransaction.setOperator(futureOperatorProxyAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holograph,
             data: holograph.populateTransaction.setOperator(futureOperatorProxyAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -402,17 +391,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Registry reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'Holograph',
         holograph,
         await holograph.populateTransaction.setRegistry(futureRegistryProxyAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holograph,
             data: holograph.populateTransaction.setRegistry(futureRegistryProxyAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -420,17 +408,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Treasury reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'Holograph',
         holograph,
         await holograph.populateTransaction.setTreasury(futureTreasuryProxyAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holograph,
             data: holograph.populateTransaction.setTreasury(futureTreasuryProxyAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -438,17 +425,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating UtilityToken reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'Holograph',
         holograph,
         await holograph.populateTransaction.setUtilityToken(futureHlgAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holograph,
             data: holograph.populateTransaction.setUtilityToken(futureHlgAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -497,28 +483,27 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let holographBridgeProxy = (await hre.ethers.getContractAt(
       'HolographBridgeProxy',
       futureBridgeProxyAddress,
-      deployer
+      deployerAddress
     )) as HolographBridgeProxy;
     let holographBridge = (await hre.ethers.getContractAt(
       'HolographBridge',
       futureBridgeProxyAddress,
-      deployer
+      deployerAddress
     )) as HolographBridge;
     if ((await holographBridgeProxy.getBridge()) != futureBridgeAddress) {
       hre.deployments.log('Updating Bridge reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographBridgeProxy',
         holographBridgeProxy,
         await holographBridgeProxy.populateTransaction.setBridge(futureBridgeAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographBridgeProxy,
             data: holographBridgeProxy.populateTransaction.setBridge(futureBridgeAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -526,17 +511,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Factory reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographBridge',
         holographBridge,
         await holographBridge.populateTransaction.setFactory(futureFactoryProxyAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographBridge,
             data: holographBridge.populateTransaction.setFactory(futureFactoryProxyAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -544,17 +528,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Holograph reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographBridge',
         holographBridge,
         await holographBridge.populateTransaction.setHolograph(futureHolographAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographBridge,
             data: holographBridge.populateTransaction.setHolograph(futureHolographAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -562,17 +545,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Operator reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographBridge',
         holographBridge,
         await holographBridge.populateTransaction.setOperator(futureOperatorProxyAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographBridge,
             data: holographBridge.populateTransaction.setOperator(futureOperatorProxyAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -580,17 +562,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Registry reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographBridge',
         holographBridge,
         await holographBridge.populateTransaction.setRegistry(futureRegistryProxyAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographBridge,
             data: holographBridge.populateTransaction.setRegistry(futureRegistryProxyAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -639,28 +620,27 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let holographFactoryProxy = (await hre.ethers.getContractAt(
       'HolographFactoryProxy',
       futureFactoryProxyAddress,
-      deployer
+      deployerAddress
     )) as HolographFactoryProxy;
     let holographFactory = (await hre.ethers.getContractAt(
       'HolographFactory',
       futureFactoryProxyAddress,
-      deployer
+      deployerAddress
     )) as HolographFactory;
     if ((await holographFactoryProxy.getFactory()) != futureFactoryAddress) {
       hre.deployments.log('Updating Factory reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographFactoryProxy',
         holographFactoryProxy,
         await holographFactoryProxy.populateTransaction.setFactory(futureFactoryAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographFactoryProxy,
             data: holographFactoryProxy.populateTransaction.setFactory(futureFactoryAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -668,17 +648,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Holograph reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographFactory',
         holographFactory,
         await holographFactory.populateTransaction.setHolograph(futureHolographAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographFactory,
             data: holographFactory.populateTransaction.setHolograph(futureHolographAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -686,17 +665,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Registry reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographFactory',
         holographFactory,
         await holographFactory.populateTransaction.setRegistry(futureRegistryProxyAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographFactory,
             data: holographFactory.populateTransaction.setRegistry(futureRegistryProxyAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -755,28 +733,27 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let holographOperatorProxy = (await hre.ethers.getContractAt(
       'HolographOperatorProxy',
       futureOperatorProxyAddress,
-      deployer
+      deployerAddress
     )) as HolographOperatorProxy;
     let holographOperator = (await hre.ethers.getContractAt(
       'HolographOperator',
       futureOperatorProxyAddress,
-      deployer
+      deployerAddress
     )) as HolographOperator;
     if ((await holographOperatorProxy.getOperator()) != futureOperatorAddress) {
       hre.deployments.log('Updating Operator reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographOperatorProxy',
         holographOperatorProxy,
         await holographOperatorProxy.populateTransaction.setOperator(futureOperatorAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographOperatorProxy,
             data: holographOperatorProxy.populateTransaction.setOperator(futureOperatorAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -784,17 +761,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Bridge reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographOperator',
         holographOperator,
         await holographOperator.populateTransaction.setBridge(futureBridgeProxyAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographOperator,
             data: holographOperator.populateTransaction.setBridge(futureBridgeProxyAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -802,17 +778,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Holograph reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographOperator',
         holographOperator,
         await holographOperator.populateTransaction.setHolograph(futureHolographAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographOperator,
             data: holographOperator.populateTransaction.setHolograph(futureHolographAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -820,17 +795,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating HolographInterfaces reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographOperator',
         holographOperator,
         await holographOperator.populateTransaction.setInterfaces(futureHolographInterfacesAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographOperator,
             data: holographOperator.populateTransaction.setInterfaces(futureHolographInterfacesAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -838,17 +812,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Registry reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographOperator',
         holographOperator,
         await holographOperator.populateTransaction.setRegistry(futureRegistryProxyAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographOperator,
             data: holographOperator.populateTransaction.setRegistry(futureRegistryProxyAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -856,17 +829,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating UtilityToken reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographOperator',
         holographOperator,
         await holographOperator.populateTransaction.setUtilityToken(futureHlgAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographOperator,
             data: holographOperator.populateTransaction.setUtilityToken(futureHlgAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -874,17 +846,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating MinGasPrice reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographOperator',
         holographOperator,
         await holographOperator.populateTransaction.setMinGasPrice(GWEI.toHexString(), {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographOperator,
             data: holographOperator.populateTransaction.setMinGasPrice(GWEI.toHexString()),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -928,23 +899,22 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let holographRegistry = (await hre.ethers.getContractAt(
       'HolographRegistry',
       futureRegistryProxyAddress,
-      deployer
+      deployerAddress
     )) as HolographRegistry;
     if ((await holographRegistry.getUtilityToken()) != futureHlgAddress) {
       hre.deployments.log('Updating UtilityToken reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographRegistry',
         holographRegistry,
         await holographRegistry.populateTransaction.setUtilityToken(futureHlgAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographRegistry,
             data: holographRegistry.populateTransaction.setUtilityToken(futureHlgAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -953,28 +923,27 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let holographRegistryProxy = (await hre.ethers.getContractAt(
       'HolographRegistryProxy',
       futureRegistryProxyAddress,
-      deployer
+      deployerAddress
     )) as HolographRegistryProxy;
     let holographRegistry = (await hre.ethers.getContractAt(
       'HolographRegistry',
       futureRegistryProxyAddress,
-      deployer
+      deployerAddress
     )) as HolographRegistry;
     if ((await holographRegistryProxy.getRegistry()) != futureRegistryAddress) {
       hre.deployments.log('Updating Registry reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographRegistryProxy',
         holographRegistryProxy,
         await holographRegistryProxy.populateTransaction.setRegistry(futureRegistryAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographRegistryProxy,
             data: holographRegistryProxy.populateTransaction.setRegistry(futureRegistryAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -982,17 +951,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Holograph reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographRegistry',
         holographRegistry,
         await holographRegistry.populateTransaction.setHolograph(futureHolographAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographRegistry,
             data: holographRegistry.populateTransaction.setHolograph(futureHolographAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -1000,17 +968,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating UtilityToken reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographRegistry',
         holographRegistry,
         await holographRegistry.populateTransaction.setUtilityToken(futureHlgAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographRegistry,
             data: holographRegistry.populateTransaction.setUtilityToken(futureHlgAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -1062,28 +1029,27 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let holographTreasuryProxy = (await hre.ethers.getContractAt(
       'HolographTreasuryProxy',
       futureTreasuryProxyAddress,
-      deployer
+      deployerAddress
     )) as HolographTreasuryProxy;
     let holographTreasury = (await hre.ethers.getContractAt(
       'HolographTreasury',
       futureTreasuryProxyAddress,
-      deployer
+      deployerAddress
     )) as HolographTreasury;
     if ((await holographTreasuryProxy.getTreasury()) != futureTreasuryAddress) {
       hre.deployments.log('Updating Treasury reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographTreasuryProxy',
         holographTreasuryProxy,
         await holographTreasuryProxy.populateTransaction.setTreasury(futureTreasuryAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographTreasuryProxy,
             data: holographTreasuryProxy.populateTransaction.setTreasury(futureTreasuryAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -1091,17 +1057,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Bridge reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographTreasury',
         holographTreasury,
         await holographTreasury.populateTransaction.setBridge(futureBridgeProxyAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographTreasury,
             data: holographTreasury.populateTransaction.setBridge(futureBridgeProxyAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -1109,17 +1074,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Operator reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographTreasury',
         holographTreasury,
         await holographTreasury.populateTransaction.setOperator(futureOperatorProxyAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographTreasury,
             data: holographTreasury.populateTransaction.setOperator(futureOperatorProxyAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -1127,17 +1091,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre.deployments.log('Updating Registry reference');
       let tx = await MultisigAwareTx(
         hre,
-        deployer,
         'HolographTreasury',
         holographTreasury,
         await holographTreasury.populateTransaction.setRegistry(futureRegistryProxyAddress, {
           ...(await txParams({
             hre,
-            from: deployer,
+            from: deployerAddress,
             to: holographTreasury,
             data: holographTreasury.populateTransaction.setRegistry(futureRegistryProxyAddress),
           })),
-        })
+        } as any)
       );
       await tx.wait();
     }
@@ -1154,7 +1117,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       hre,
       salt,
       'HolographInterfaces',
-      generateInitCode(['address'], [deployer.address]),
+      generateInitCode(['address'], [deployerAddress]),
       futureHolographInterfacesAddress
     );
     global.__deployedHolographInterfaces = true;
@@ -1177,6 +1140,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   } else {
     hre.deployments.log('"HolographRoyalties" is already deployed..');
   }
+
+  console.log(`Finished deploying Holograph source contracts`);
+  console.log(`Exiting script: ${__filename} ✅\n`);
 };
 
 export default func;
