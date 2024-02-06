@@ -1,7 +1,7 @@
 <div align="center">
   <a href="https://holograph.xyz"><img alt="Holograph" src="https://user-images.githubusercontent.com/21043504/188220186-9c7f55e0-143a-41b4-a6b8-90e8bd54bfd9.png" width=600></a>
   <br />
-  <h1>Holograph Protocol</h1>
+  <h1>Holograph Protocol V2</h1>
 </div>
 <p align="center">
 </p>
@@ -24,7 +24,7 @@ Holograph provides infrastructure for digital asset tokenization. Holograph enab
 
 ## Version
 
-The Holograph Protocol has been upgraded to version 2. For version 1 please see the [v1](https://github.com/holographxyz/holograph-protocol/tree/holograph-v1)
+Holograph Protocol has been upgraded to V2. For V1 please see [Holograph Protocol V1](https://github.com/holographxyz/holograph-protocol/tree/holograph-v1).
 
 ## Specification
 
