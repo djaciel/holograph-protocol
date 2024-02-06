@@ -76,7 +76,14 @@ const setDeployerKey = function (fallbackKey: string | number): string | number 
   if (process.env.HARDWARE_WALLET_ENABLED == 'true' && process.env.HARDWARE_WALLET_DEPLOYER != undefined) {
     return `ledger://${process.env.HARDWARE_WALLET_DEPLOYER}`;
   }
-  console.log(`Setting deployer key to ${fallbackKey} as fallback`);
+
+  // Create a Wallet instance from the private key
+  const wallet = new ethers.Wallet(fallbackKey as any);
+
+  // Get the address from the wallet
+  const address = wallet.address;
+
+  console.log(`Setting deployer key to ${address} as fallback`);
   return fallbackKey;
 };
 
@@ -352,7 +359,7 @@ const config: HardhatUserConfig = {
     ...tenderlyNetwork,
   },
   namedAccounts: {
-    deployer: setDeployerKey(0),
+    deployer: setDeployerKey(DEPLOYER),
     lzEndpoint: 10,
   },
   solidity: {

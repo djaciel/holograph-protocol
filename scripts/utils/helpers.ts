@@ -531,7 +531,7 @@ const getGasPrice = async function (): Promise<GasParams> {
     }
   } else {
     return {
-      gasPrice: BigNumber.from('1' + '000000000'), // This can be updated to manually set a gas price. Defaulting to 25 gwei for now
+      gasPrice: BigNumber.from('30' + '000000000'), // This can be updated to manually set a gas price. Defaulting to 25 gwei for now
       type: 0,
       maxPriorityFeePerGas: null,
       maxFeePerGas: null,
@@ -1041,7 +1041,7 @@ function generateDeployerSecretHash(): string {
 
   const hashedString = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(secretString));
   const bytes20Hash = hashedString.slice(0, 42); // 2 characters for '0x' and 40 characters for 20 bytes
-  // console.log(`Secret: ${secretString} = Hash: ${bytes20Hash}`);
+  logDebug(`Secret: ${secretString} = Hash: ${bytes20Hash}`);
   return bytes20Hash;
 }
 
