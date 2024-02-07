@@ -530,8 +530,17 @@ const getGasPrice = async function (): Promise<GasParams> {
       };
     }
   } else {
+    // This is a manual override for the gas price
+    const gasPriceOverride = process.env.GAS_PRICE_OVERRIDE;
+
+    // Convert the base number from gwei to wei
+    const gasPriceOverrideWei = ethers.utils.parseUnits(gasPriceOverride || '0', 'gwei');
+
+    console.log(
+      `The gas price has been manually overriden to be ${gasPriceOverride} gwei which is ${gasPriceOverrideWei.toString()} in wei`
+    );
     return {
-      gasPrice: BigNumber.from('1' + '000000000'), // This can be updated to manually set a gas price. Defaulting to 25 gwei for now
+      gasPrice: gasPriceOverrideWei, // This can be updated to manually set a gas price (set GAS_PRICE_OVERRIDE in .env)
       type: 0,
       maxPriorityFeePerGas: null,
       maxFeePerGas: null,
@@ -1041,7 +1050,7 @@ function generateDeployerSecretHash(): string {
 
   const hashedString = ethers.utils.keccak256(ethers.utils.toUtf8Bytes(secretString));
   const bytes20Hash = hashedString.slice(0, 42); // 2 characters for '0x' and 40 characters for 20 bytes
-  // console.log(`Secret: ${secretString} = Hash: ${bytes20Hash}`);
+  logDebug(`Secret: ${secretString} = Hash: ${bytes20Hash}`);
   return bytes20Hash;
 }
 

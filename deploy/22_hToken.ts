@@ -24,6 +24,7 @@ import {
 import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { HolographERC20Event, ConfigureEvents, AllEventsEnabled } from '../scripts/utils/events';
 import { NetworkType, Network, networks } from '@holographxyz/networks';
+import { Environment, getEnvironment } from '@holographxyz/environment';
 
 interface HTokenData {
   primaryNetwork: Network;
@@ -185,10 +186,21 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const hTokenHash = '0x' + web3.utils.asciiToHex('hToken').substring(2).padStart(64, '0');
     const chainId = '0x' + data.primaryNetwork.holographId.toString(16).padStart(8, '0');
 
-    // NOTE: At the moment the hToken contract's address is reliant on the deployerAddress which prevents multiple approved deployers from deploying the same address. This is a temporary solution until the hToken contract is upgraded to allow any deployerAddress to be used.
+    // NOTICE: At the moment the hToken contract's address is reliant on the deployerAddress which prevents multiple approved deployers from deploying the same address. This is a temporary solution until the hToken contract is upgraded to allow any deployerAddress to be used.
+    // NOTE: Use hardcoded version of deployerAddress from Ledger hardware only for testnet and mainnet envs
+    // If environment is develop use the signers deployerAddress
+    let erc20DeployerAddress = '0xBB566182f35B9E5Ae04dB02a5450CC156d2f89c1'; // Ledger deployerAddress
+    const environment: Environment = getEnvironment();
+    console.log(`Environment: ${environment}`);
+
+    if (environment == Environment.develop) {
+      hre.deployments.log(`Using deployerAddress from signer ${deployerAddress}`);
+      erc20DeployerAddress = deployerAddress;
+    }
+
     let { erc20Config, erc20ConfigHash, erc20ConfigHashBytes } = await generateErc20Config(
       data.primaryNetwork,
-      '0xBB566182f35B9E5Ae04dB02a5450CC156d2f89c1', // TODO: Upgrade the hToken contract so that any deployerAddress can be used
+      erc20DeployerAddress, // TODO: Upgrade the hToken contract so that any deployerAddress can be used
       'hTokenProxy',
       'Holographed ' + data.tokenSymbol,
       'h' + data.tokenSymbol,
@@ -203,10 +215,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           registry.address,
           generateInitCode(
             ['address', 'uint16'],
-            [
-              '0xBB566182f35B9E5Ae04dB02a5450CC156d2f89c1' /* TODO: Upgrade the hToken contract so that any deployerAddress can be used */,
-              0,
-            ]
+            [erc20DeployerAddress /* TODO: Upgrade the hToken contract so that any deployerAddress can be used */, 0]
           ),
         ]
       ),

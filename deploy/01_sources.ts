@@ -48,6 +48,7 @@ import {
   StrictECDSA,
   txParams,
   getDeployer,
+  askQuestion,
 } from '../scripts/utils/helpers';
 import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { reservedNamespaceHashes } from '../scripts/utils/reserved-namespaces';
@@ -67,11 +68,21 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let { hre, hre2 } = await hreSplit(hre1, global.__companionNetwork);
   const deployer = await getDeployer(hre);
   const deployerAddress = await deployer.signer.getAddress();
-  console.log('Deployer address:', deployerAddress);
-
   const web3 = new Web3();
-
   const salt = hre.deploymentSalt;
+
+  console.log('Deployer address:', deployerAddress);
+  console.log(`Deploying to network: ${hre1.network!.name}`);
+  console.log(`The deployment salt is: ${BigNumber.from(salt).toString()}`);
+  console.log(`We are in dry run mode? ${process.env.DRY_RUN === 'true'}`);
+
+  const answer = await askQuestion(`Continue? (y/n)\n`);
+  if (answer !== 'y') {
+    console.log(`Exiting...`);
+    process.exit();
+  }
+
+  console.log(`Continuing...`);
 
   const futureHolographAddress = await genesisDeriveFutureAddress(
     hre,
