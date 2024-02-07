@@ -171,7 +171,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if (network.key in ['localhost', 'localhost2', 'hardhat']) {
     // set it at address in VM
     let acountByteCodeSet: boolean = await hre.provider.send('evm_setAccountCode', [
-      '0xA3Db09EEC42BAfF7A50fb8F9aF90A0e035Ef3302',
+      '0xeA7f4C52cbD4CF1036CdCa8B16AcA11f5b09cF6E',
       [
         '0x',
         '6080604052600436106100745760003560e01c80638808abf81161004e578063',
@@ -268,7 +268,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ].join(''),
     ]);
     let acountStorageSet: boolean = await hre.provider.send('evm_setAccountStorageAt', [
-      '0xA3Db09EEC42BAfF7A50fb8F9aF90A0e035Ef3302',
+      '0xeA7f4C52cbD4CF1036CdCa8B16AcA11f5b09cF6E',
       '0x26600f0171e5a2b86874be26285c66444b2a6fa5f62114757214d5e732aded36',
       futureDropsPriceOracleAddress,
     ]);

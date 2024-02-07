@@ -25,18 +25,6 @@ interface IHolographDropERC721 {
   /// @notice Call to external metadata renderer failed.
   error ExternalMetadataRenderer_CallFailed();
 
-  /// @notice Thrown when the operator for the contract is not allowed
-  /// @dev Used when strict enforcement of marketplaces for creator royalties is desired.
-  error OperatorNotAllowed(address operator);
-
-  /// @notice Thrown when there is no active market filter DAO address supported for the current chain
-  /// @dev Used for enabling and disabling filter for the given chain.
-  error MarketFilterDAOAddressNotSupportedForChain();
-
-  /// @notice Used when the operator filter registry external call fails
-  /// @dev Used for bubbling error up to clients.
-  error RemoteOperatorFilterRegistryCallFailed();
-
   // Sale/Purchase errors
   /// @notice Sale is inactive
   error Sale_Inactive();

@@ -118,7 +118,6 @@ import {Address} from "../library/Address.sol";
 import {MerkleProof} from "../library/MerkleProof.sol";
 
 import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
-import {IOperatorFilterRegistry} from "../interface/IOperatorFilterRegistry.sol";
 import {IHolographDropERC721} from "../interface/IHolographDropERC721.sol";
 
 import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
@@ -139,17 +138,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    */
 
   /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.osRegistryEnabled')) - 1)
-   */
-  bytes32 constant _osRegistryEnabledSlot = 0x5c835f3b6bd322d9a084ffdeac746df2b96cce308e7f0612f4ff4f9c490734cc;
-
-  /**
-   * @dev Address of the operator filter registry
-   */
-  IOperatorFilterRegistry public constant openseaOperatorFilterRegistry =
-    IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
-
-  /**
    * @dev Address of the price oracle proxy
    */
   IDropsPriceOracle public constant dropsPriceOracle = IDropsPriceOracle(0xeA7f4C52cbD4CF1036CdCa8B16AcA11f5b09cF6E);
@@ -163,11 +151,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * @dev HOLOGRAPH transfer helper address for auto-approval
    */
   address public erc721TransferHelper;
-
-  /**
-   * @dev Address of the market filter registry
-   */
-  address public marketFilterAddress;
 
   /// @notice Holograph Mint Fee
   uint256 public constant HOLOGRAPH_MINT_FEE = 1000000; // $1.00 USD (6 decimal places)
@@ -198,12 +181,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   /**
    * CUSTOM ERRORS
    */
-
-  /**
-   * @notice Thrown when there is no active market filter address supported for the current chain
-   * @dev Used for enabling and disabling filter for the given chain.
-   */
-  error MarketFilterAddressNotSupportedForChain();
 
   /**
    * MODIFIERS
@@ -263,9 +240,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     DropsInitializer memory initializer = abi.decode(initPayload, (DropsInitializer));
 
     erc721TransferHelper = initializer.erc721TransferHelper;
-    if (initializer.marketFilterAddress != address(0)) {
-      marketFilterAddress = initializer.marketFilterAddress;
-    }
 
     // Setup the owner role
     _setOwner(initializer.initialOwner);
@@ -285,34 +259,9 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
     salesConfig = initializer.salesConfiguration;
 
-    // TODO: Need to make sure to initialize the metadata renderer
+    // Initialize metadata renderer
     if (initializer.metadataRenderer != address(0)) {
       IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
-    }
-
-    if (initializer.enableOpenSeaRoyaltyRegistry && Address.isContract(address(openseaOperatorFilterRegistry))) {
-      if (marketFilterAddress == address(0)) {
-        // this is a default filter that can be used for OS royalty filtering
-        // marketFilterAddress = 0x3cc6CddA760b79bAfa08dF41ECFA224f810dCeB6;
-        // we just register to OS royalties and let OS handle it for us with their default filter contract
-        HolographERC721Interface(holographer()).sourceExternalCall(
-          address(openseaOperatorFilterRegistry),
-          abi.encodeWithSelector(IOperatorFilterRegistry.register.selector, holographer())
-        );
-      } else {
-        // allow user to specify custom filtering contract address
-        HolographERC721Interface(holographer()).sourceExternalCall(
-          address(openseaOperatorFilterRegistry),
-          abi.encodeWithSelector(
-            IOperatorFilterRegistry.registerAndSubscribe.selector,
-            holographer(),
-            marketFilterAddress
-          )
-        );
-      }
-      assembly {
-        sstore(_osRegistryEnabledSlot, true)
-      }
     }
 
     setStatus(1);
@@ -331,6 +280,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * @return version string representing the version of the contract
    */
   function version() external pure returns (string memory) {
+    // TODO: Should this be updated to be an uint
     return "1.0.0";
   }
 
@@ -349,56 +299,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
   function isAdmin(address user) external view returns (bool) {
     return (_getOwner() == user);
-  }
-
-  function beforeSafeTransfer(
-    address _from,
-    address /* _to*/,
-    uint256 /* _tokenId*/,
-    bytes calldata /* _data*/
-  ) external view returns (bool) {
-    if (
-      _from != address(0) && // skip on mints
-      _from != msgSender() // skip on transfers from sender
-    ) {
-      bool osRegistryEnabled;
-      assembly {
-        osRegistryEnabled := sload(_osRegistryEnabledSlot)
-      }
-      if (osRegistryEnabled) {
-        try openseaOperatorFilterRegistry.isOperatorAllowed(address(this), msgSender()) returns (bool allowed) {
-          return allowed;
-        } catch {
-          revert OperatorNotAllowed(msgSender());
-        }
-      }
-    }
-    return true;
-  }
-
-  function beforeTransfer(
-    address _from,
-    address /* _to*/,
-    uint256 /* _tokenId*/,
-    bytes calldata /* _data*/
-  ) external view returns (bool) {
-    if (
-      _from != address(0) && // skip on mints
-      _from != msgSender() // skip on transfers from sender
-    ) {
-      bool osRegistryEnabled;
-      assembly {
-        osRegistryEnabled := sload(_osRegistryEnabledSlot)
-      }
-      if (osRegistryEnabled) {
-        try openseaOperatorFilterRegistry.isOperatorAllowed(address(this), msgSender()) returns (bool allowed) {
-          return allowed;
-        } catch {
-          revert OperatorNotAllowed(msgSender());
-        }
-      }
-    }
-    return true;
   }
 
   function onIsApprovedForAll(address /* _wallet*/, address _operator) external view returns (bool approved) {
@@ -622,58 +522,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    */
 
   /**
-   * @notice Proxy to update market filter settings in the main registry contracts
-   * @notice Requires admin permissions
-   * @param args Calldata args to pass to the registry
-   */
-  function updateMarketFilterSettings(bytes calldata args) external onlyOwner {
-    HolographERC721Interface(holographer()).sourceExternalCall(address(openseaOperatorFilterRegistry), args);
-    bool osRegistryEnabled = openseaOperatorFilterRegistry.isRegistered(holographer());
-    assembly {
-      sstore(_osRegistryEnabledSlot, osRegistryEnabled)
-    }
-  }
-
-  /**
-   * @notice Manage subscription for marketplace filtering based off royalty payouts.
-   * @param enable Enable filtering to non-royalty payout marketplaces
-   */
-  function manageMarketFilterSubscription(bool enable) external onlyOwner {
-    address self = holographer();
-    if (marketFilterAddress == address(0)) {
-      revert MarketFilterAddressNotSupportedForChain();
-    }
-    if (!openseaOperatorFilterRegistry.isRegistered(self) && enable) {
-      HolographERC721Interface(self).sourceExternalCall(
-        address(openseaOperatorFilterRegistry),
-        abi.encodeWithSelector(IOperatorFilterRegistry.registerAndSubscribe.selector, self, marketFilterAddress)
-      );
-    } else if (enable) {
-      HolographERC721Interface(self).sourceExternalCall(
-        address(openseaOperatorFilterRegistry),
-        abi.encodeWithSelector(IOperatorFilterRegistry.subscribe.selector, self, marketFilterAddress)
-      );
-    } else {
-      HolographERC721Interface(self).sourceExternalCall(
-        address(openseaOperatorFilterRegistry),
-        abi.encodeWithSelector(IOperatorFilterRegistry.unsubscribe.selector, self, false)
-      );
-      HolographERC721Interface(self).sourceExternalCall(
-        address(openseaOperatorFilterRegistry),
-        abi.encodeWithSelector(IOperatorFilterRegistry.unregister.selector, self)
-      );
-    }
-    bool osRegistryEnabled = openseaOperatorFilterRegistry.isRegistered(self);
-    assembly {
-      sstore(_osRegistryEnabledSlot, osRegistryEnabled)
-    }
-  }
-
-  function modifyMarketFilterAddress(address newMarketFilterAddress) external onlyOwner {
-    marketFilterAddress = newMarketFilterAddress;
-  }
-
-  /**
    * @notice Admin mint tokens to a recipient for free
    * @param recipient recipient to mint to
    * @param quantity quantity to mint
@@ -834,6 +682,8 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       }
       tokenId = _currentTokenId;
       H721.sourceMint(recipient, tokenId);
+
+      // TODO: Should we emit this id?
       // uint256 id = chainPrepend + uint256(tokenId);
     }
   }

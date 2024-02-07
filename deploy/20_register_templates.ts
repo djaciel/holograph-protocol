@@ -332,17 +332,15 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // Register HolographDropERC721
   const HolographDropERC721InitCode = generateInitCode(
     [
-      'tuple(address,address,address,address,uint64,uint16,bool,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)',
+      'tuple(address,address,address,uint64,uint16,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)',
     ],
     [
       [
         '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
-        '0x0000000000000000000000000000000000000000', // marketFilterAddress (opensea)
         deployerAddress, // initialOwner
         deployerAddress, // fundsRecipient
         0, // 1000 editions
         1000, // 10% royalty
-        false, // enableOpenSeaRoyaltyRegistry
         [0, 0, 0, 0, 0, 0, '0x' + '00'.repeat(32)], // salesConfig
         futureEditionsMetadataRendererProxyAddress, // metadataRenderer
         generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit

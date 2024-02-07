@@ -18,19 +18,14 @@ import {Constants} from "./utils/Constants.sol";
 import {Utils} from "./utils/Utils.sol";
 import {HolographerInterface} from "../../contracts/interface/HolographerInterface.sol";
 import {IHolographDropERC721} from "../../contracts/drops/interface/IHolographDropERC721.sol";
-import {IOperatorFilterRegistry} from "../../contracts/drops/interface/IOperatorFilterRegistry.sol";
 
 import {HolographERC721} from "../../contracts/enforcer/HolographERC721.sol";
 import {HolographDropERC721} from "../../contracts/drops/token/HolographDropERC721.sol";
 import {HolographDropERC721Proxy} from "../../contracts/drops/proxy/HolographDropERC721Proxy.sol";
 
-import {OwnedSubscriptionManager} from "./filter/OwnedSubscriptionManager.sol";
-
 import {IMetadataRenderer} from "../../contracts/drops/interface/IMetadataRenderer.sol";
 import {MockMetadataRenderer} from "./metadata/MockMetadataRenderer.sol";
 import {DummyMetadataRenderer} from "./utils/DummyMetadataRenderer.sol";
-import {OperatorFilterRegistry} from "./filter/OperatorFilterRegistry.sol";
-import {OperatorFilterRegistryErrorsAndEvents} from "./filter/OperatorFilterRegistryErrorsAndEvents.sol";
 import {DropsMetadataRenderer} from "../../contracts/drops/metadata/DropsMetadataRenderer.sol";
 import {EditionsMetadataRenderer} from "../../contracts/drops/metadata/EditionsMetadataRenderer.sol";
 
@@ -95,12 +90,10 @@ contract HolographDropERC721Test is Test {
       dummyRenderer = new DummyMetadataRenderer();
       DropsInitializer memory initializer = DropsInitializer({
         erc721TransferHelper: address(0x1234),
-        marketFilterAddress: address(0x0),
         initialOwner: DEFAULT_OWNER_ADDRESS,
         fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
         editionSize: editionSize,
         royaltyBPS: 800,
-        enableOpenSeaRoyaltyRegistry: true,
         salesConfiguration: saleConfig,
         metadataRenderer: address(dummyRenderer),
         metadataRendererInit: ""
@@ -136,77 +129,7 @@ contract HolographDropERC721Test is Test {
       vm.recordLogs();
       factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
       Vm.Log[] memory entries = vm.getRecordedLogs();
-      address newDropAddress = address(uint160(uint256(entries[2].topics[1])));
-
-      // Connect the drop implementation to the drop proxy address
-      erc721Drop = HolographDropERC721(payable(newDropAddress));
-    }
-
-    _;
-  }
-
-  // TODO: Determine if this functionality is needed
-  modifier factoryWithSubscriptionAddress(address subscriptionAddress) {
-    uint64 editionSize = 10;
-    // Wrap in brackets to remove from stack in functions that use this modifier
-    // Avoids stack to deep errors
-    {
-      // Setup sale config for edition
-      SalesConfiguration memory saleConfig = SalesConfiguration({
-        publicSaleStart: 0, // starts now
-        publicSaleEnd: type(uint64).max, // never ends
-        presaleStart: 0, // never starts
-        presaleEnd: 0, // never ends
-        publicSalePrice: usd100,
-        maxSalePurchasePerAddress: 0, // no limit
-        presaleMerkleRoot: bytes32(0) // no presale
-      });
-
-      dummyRenderer = new DummyMetadataRenderer();
-      DropsInitializer memory initializer = DropsInitializer({
-        erc721TransferHelper: address(0x1234),
-        marketFilterAddress: address(subscriptionAddress),
-        initialOwner: DEFAULT_OWNER_ADDRESS,
-        fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
-        editionSize: editionSize,
-        royaltyBPS: 800,
-        enableOpenSeaRoyaltyRegistry: true,
-        salesConfiguration: saleConfig,
-        metadataRenderer: address(dummyRenderer),
-        metadataRendererInit: ""
-      });
-
-      // Get deployment config, hash it, and then sign it
-      DeploymentConfig memory config = getDeploymentConfig(
-        "Test NFT", // contractName
-        "TNFT", // contractSymbol
-        1000, // contractBps
-        Constants.getDropsEventConfig(), // eventConfig
-        false, // skipInit
-        initializer
-      );
-      bytes32 hash = keccak256(
-        abi.encodePacked(
-          config.contractType,
-          config.chainType,
-          config.salt,
-          keccak256(config.byteCode),
-          keccak256(config.initCode),
-          alice
-        )
-      );
-
-      (uint8 v, bytes32 r, bytes32 s) = vm.sign(1, hash);
-      Verification memory signature = Verification(r, s, v);
-      address signer = ecrecover(hash, v, r, s);
-
-      HolographFactory factory = HolographFactory(payable(Constants.getHolographFactory()));
-
-      // Deploy the drop / edition
-      vm.recordLogs();
-      factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
-      Vm.Log[] memory entries = vm.getRecordedLogs();
-      address newDropAddress = address(uint160(uint256(entries[3].topics[1])));
+      address newDropAddress = address(uint160(uint256(entries[1].topics[1])));
 
       // Connect the drop implementation to the drop proxy address
       erc721Drop = HolographDropERC721(payable(newDropAddress));
@@ -229,7 +152,6 @@ contract HolographDropERC721Test is Test {
     alice = vm.addr(1);
 
     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
-    vm.etch(address(Constants.getOpenseaRoyaltiesRegistry()), address(new OperatorFilterRegistry()).code);
 
     dummyPriceOracle = new DummyDropsPriceOracle();
     // we deploy DropsPriceOracleProxy at specific address
@@ -241,7 +163,6 @@ contract HolographDropERC721Test is Test {
       bytes32(abi.encode(address(dummyPriceOracle)))
     );
 
-    ownedSubscriptionManager = address(new OwnedSubscriptionManager(address(0x666)));
     dropsMetadataRenderer = new DropsMetadataRenderer();
   }
 
@@ -260,12 +181,10 @@ contract HolographDropERC721Test is Test {
     // Create initializer
     DropsInitializer memory initializer = DropsInitializer({
       erc721TransferHelper: address(0),
-      marketFilterAddress: address(0),
       initialOwner: payable(DEFAULT_OWNER_ADDRESS),
       fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
       editionSize: 100,
       royaltyBPS: 1000,
-      enableOpenSeaRoyaltyRegistry: true,
       salesConfiguration: saleConfig,
       metadataRenderer: address(dropsMetadataRenderer),
       metadataRendererInit: abi.encode("description", "imageURI", "animationURI")
@@ -298,11 +217,13 @@ contract HolographDropERC721Test is Test {
 
     HolographFactory factory = HolographFactory(payable(Constants.getHolographFactory()));
 
+    console.logString("Deploying Holographable contract");
+
     // Deploy the drop / edition
     vm.recordLogs();
     factory.deployHolographableContract(config, signature, alice); // Pass the payload hash, with the signature, and signer's address
     Vm.Log[] memory entries = vm.getRecordedLogs();
-    address newDropAddress = address(uint160(uint256(entries[3].topics[1])));
+    address newDropAddress = address(uint160(uint256(entries[2].topics[1])));
 
     // Connect the drop implementation to the drop proxy address
     erc721Drop = HolographDropERC721(payable(newDropAddress));
@@ -347,12 +268,10 @@ contract HolographDropERC721Test is Test {
     vm.expectRevert("HOLOGRAPHER: already initialized");
     DropsInitializer memory initializer = DropsInitializer({
       erc721TransferHelper: address(0x1234),
-      marketFilterAddress: address(0x0),
       initialOwner: DEFAULT_OWNER_ADDRESS,
       fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
       editionSize: editionSize,
       royaltyBPS: 800,
-      enableOpenSeaRoyaltyRegistry: true,
       salesConfiguration: salesConfig,
       metadataRenderer: address(dummyRenderer),
       metadataRendererInit: ""
@@ -366,83 +285,6 @@ contract HolographDropERC721Test is Test {
 
     erc721Drop.init(abi.encode(contractName, contractSymbol, contractBps, eventConfig, skipInit, initCode));
   }
-
-  // TODO: Fix this test. It's failing with the error [FAIL. Reason: ERC721: not approved sender] test_SubscriptionEnabled() (gas: 4685864)
-  //       instead of the expected revert.
-  // function test_SubscriptionEnabled() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
-  //   HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
-  //   HolographDropERC721 customSource = HolographDropERC721(payable(holographerInterface.getSourceContract()));
-
-  //   IOperatorFilterRegistry operatorFilterRegistry = IOperatorFilterRegistry(
-  //     0x000000000000AAeB6D7670E522A718067333cd4E
-  //   );
-  //   vm.startPrank(address(0x666));
-  //   operatorFilterRegistry.updateOperator(ownedSubscriptionManager, address(0xcafe), true);
-  //   vm.stopPrank();
-  //   vm.startPrank(DEFAULT_OWNER_ADDRESS);
-
-  //   // It should already be registered so turn it off first
-  //   customSource.manageMarketFilterSubscription(false);
-  //   // Then turn it on
-  //   customSource.manageMarketFilterSubscription(true);
-  //   erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 10);
-  //   HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
-  //   erc721Enforcer.setApprovalForAll(address(0xcafe), true);
-  //   vm.stopPrank();
-  //   vm.prank(address(0xcafe));
-  //   vm.expectRevert(abi.encodeWithSelector(IHolographDropERC721.OperatorNotAllowed.selector, address(0xcafe)));
-  //   erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), FIRST_TOKEN_ID);
-  //   vm.prank(DEFAULT_OWNER_ADDRESS);
-  //   customSource.manageMarketFilterSubscription(false);
-
-  //   vm.prank(address(0xcafe));
-
-  //   /// DEBUG
-  //   require(
-  //     erc721Enforcer.getApproved(FIRST_TOKEN_ID) == address(0xcafe) ||
-  //       erc721Enforcer.isApprovedForAll(DEFAULT_OWNER_ADDRESS, address(0xcafe)),
-  //     "Approval not set correctly"
-  //   );
-
-  //   console.logBool(erc721Enforcer.getApproved(FIRST_TOKEN_ID) == address(0xcafe));
-  //   console.logBool(erc721Enforcer.isApprovedForAll(DEFAULT_OWNER_ADDRESS, address(0xcafe)));
-  //   /// END DEBUG
-  //   erc721Enforcer.transferFrom(DEFAULT_OWNER_ADDRESS, address(0x666), FIRST_TOKEN_ID);
-  // }
-
-  function test_OnlyAdminEnableSubscription() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
-    HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
-    HolographDropERC721 customSource = HolographDropERC721(payable(holographerInterface.getSourceContract()));
-    vm.startPrank(address(0xcafe));
-    vm.expectRevert("ERC721: owner only function");
-    customSource.manageMarketFilterSubscription(true);
-    vm.stopPrank();
-  }
-
-  function test_ProxySubscriptionAccessOnlyAdmin() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
-    HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
-    HolographDropERC721 customSource = HolographDropERC721(payable(holographerInterface.getSourceContract()));
-    bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.unregister.selector, address(customSource));
-    vm.startPrank(address(0xcafe));
-    vm.expectRevert("ERC721: owner only function");
-    customSource.updateMarketFilterSettings(baseCall);
-    vm.stopPrank();
-  }
-
-  // TODO: Fix this test. I belive it's failing because the default owner is not the owner of the source contract
-  // function test_ProxySubscriptionAccess() public factoryWithSubscriptionAddress(ownedSubscriptionManager) {
-  //   vm.startPrank(address(DEFAULT_OWNER_ADDRESS));
-  //   HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
-  //   HolographDropERC721 customSource = HolographDropERC721(payable(holographerInterface.getSourceContract()));
-  //   bytes memory preBaseCall = abi.encodeWithSelector(
-  //     IOperatorFilterRegistry.unregister.selector,
-  //     address(customSource)
-  //   );
-  //   customSource.updateMarketFilterSettings(preBaseCall);
-  //   bytes memory baseCall = abi.encodeWithSelector(IOperatorFilterRegistry.register.selector, address(customSource));
-  //   customSource.updateMarketFilterSettings(baseCall);
-  //   vm.stopPrank();
-  // }
 
   function test_Purchase(uint64 amount) public setupTestDrop(10) {
     // We assume that the amount is at least one and less than or equal to the edition size given in modifier
