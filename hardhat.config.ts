@@ -337,7 +337,7 @@ const config: HardhatUserConfig = {
         // https://github.com/wighawag/hardhat-deploy#companionnetworks
         l2: 'localhost2',
       },
-      saveDeployments: false,
+      saveDeployments: true,
     },
     localhost2: {
       url: networks.localhost2.rpc,
@@ -353,7 +353,7 @@ const config: HardhatUserConfig = {
         // https://github.com/wighawag/hardhat-deploy#companionnetworks
         l2: 'localhost',
       },
-      saveDeployments: false,
+      saveDeployments: true,
     },
     ...dynamicNetworks(),
     ...tenderlyNetwork,

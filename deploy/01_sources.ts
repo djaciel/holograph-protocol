@@ -327,6 +327,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ),
       futureHolographAddress
     );
+
+    console.log('***1*****');
+    await holograph.getFactory();
+    console.log('***2*****');
   } else {
     hre.deployments.log('"Holograph" is already deployed. Checking configs.');
     let holograph = (await hre.ethers.getContractAt('Holograph', futureHolographAddress, deployerAddress)) as Holograph;
@@ -347,6 +351,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       );
       await tx.wait();
     }
+
     if ((await holograph.getFactory()) != futureFactoryProxyAddress) {
       hre.deployments.log('Updating Factory reference');
       let tx = await MultisigAwareTx(
@@ -450,6 +455,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
   }
+
+  console.log('*********');
 
   // HolographBridge
   let bridgeDeployedCode: string = await hre.provider.send('eth_getCode', [futureBridgeAddress, 'latest']);

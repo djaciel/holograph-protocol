@@ -418,22 +418,28 @@ const genesisDeriveFutureAddress = async function (
   const deployerAddress = await deployer.deployer.getAddress();
   const secret = generateDeployerSecretHash();
 
-  let holographGenesis: any = await ethers.getContractOrNull('HolographGenesis');
+  // Use HolographGenesisLocal if on localhost or localhost2, otherwise use HolographGenesis
+  const contractName = ['localhost', 'localhost2'].includes(hre.networkName)
+    ? 'HolographGenesisLocal'
+    : 'HolographGenesis';
+
+  let holographGenesis: any = await ethers.getContractOrNull(contractName);
   if (holographGenesis == null) {
     try {
-      holographGenesis = await deployments.get('HolographGenesis');
+      holographGenesis = await deployments.get(contractName);
     } catch (ex: any) {
-      throw new Error('We need to have HolographGenesis deployed.');
+      throw new Error(`We need to have ${contractName} deployed.`);
     }
   }
   const contractBytecode: BytesLike = ((await ethers.getContractFactory(name)) as ContractFactory).bytecode;
+  const deployCode: BytesLike = generateDeployCode(chainId, salt, secret, contractBytecode, initCode);
   const contractDeterministic = await deterministicCustom(name, {
     from: deployerAddress,
     args: [],
     log: true,
     deployerAddress: holographGenesis?.address,
     saltHash: secret + salt.substring(salt.length - 24),
-    deployCode: generateDeployCode(chainId, salt, secret, contractBytecode, initCode),
+    deployCode: deployCode,
   });
   return contractDeterministic.address;
 };
@@ -536,7 +542,7 @@ const getGasPrice = async function (): Promise<GasParams> {
     // Convert the base number from gwei to wei
     const gasPriceOverrideWei = ethers.utils.parseUnits(gasPriceOverride || '0', 'gwei');
 
-    console.log(
+    logDebug(
       `The gas price has been manually overriden to be ${gasPriceOverride} gwei which is ${gasPriceOverrideWei.toString()} in wei`
     );
     return {
@@ -602,23 +608,27 @@ const genesisDeployHelper = async function (
 
   const secret = generateDeployerSecretHash();
 
-  let holographGenesis: any = await ethers.getContractOrNull('HolographGenesis');
+  // Use HolographGenesisLocal if on localhost or localhost2, otherwise use HolographGenesis
+  const contractName = ['localhost', 'localhost2'].includes(hre.networkName)
+    ? 'HolographGenesisLocal'
+    : 'HolographGenesis';
+
+  let holographGenesis: any = await ethers.getContractOrNull(contractName);
   if (holographGenesis == null) {
     try {
-      holographGenesis = await deployments.get('HolographGenesis');
+      holographGenesis = await deployments.get(contractName);
     } catch (ex: any) {
-      console.log(`Not deploying ${name} because HolographGenesis is not deployed.`);
+      console.log(`Not deploying ${name} because ${contractName} is not deployed.`);
+      return {} as Contract; // Early return if the Genesis contract is not deployed
     }
   }
-
-  // console.log(`Holograph Genesis address: ${holographGenesis.address}`);
 
   let contract: any = await ethers.getContractOrNull(name);
   if (contract == null) {
     try {
       contract = await deployments.get(name);
     } catch (ex: any) {
-      // we do nothing
+      // We do nothing if the contract is not found
     }
   }
   if (
@@ -642,11 +652,8 @@ const genesisDeployHelper = async function (
   } else {
     deployments.log('reusing "' + name + '" at', contract?.address);
   }
-  if (contract == null) {
-    return {} as Contract;
-  } else {
-    return contract as Contract;
-  }
+
+  return contract ? (contract as Contract) : ({} as Contract);
 };
 
 const utf8ToBytes32 = function (str: string): string {
