@@ -72,27 +72,19 @@ process.stdout.write(`\n👉 Environment: ${currentEnvironment}\n\n`);
 
 const SOLIDITY_VERSION = process.env.SOLIDITY_VERSION || '0.8.13';
 
-// const setDeployerKey = function (fallbackKey: string | number): string | number {
-//   if (process.env.HARDWARE_WALLET_ENABLED == 'true' && process.env.HARDWARE_WALLET_DEPLOYER != undefined) {
-//     return `ledger://${process.env.HARDWARE_WALLET_DEPLOYER}`;
-//   }
-
-//   // Create a Wallet instance from the private key
-//   const wallet = new ethers.Wallet(fallbackKey as any);
-
-//   // Get the address from the wallet
-//   const address = wallet.address;
-
-//   console.log(`Setting deployer key to ${address} as fallback`);
-//   return fallbackKey;
-// };
-
 const setDeployerKey = function (fallbackKey: string | number): string | number {
-  if ('__superColdStorage' in global) {
-    return ('super-cold-storage://' + global.__superColdStorage.address) as string;
-  } else {
-    return fallbackKey;
+  if (process.env.HARDWARE_WALLET_ENABLED == 'true' && process.env.HARDWARE_WALLET_DEPLOYER != undefined) {
+    return `ledger://${process.env.HARDWARE_WALLET_DEPLOYER}`;
   }
+
+  // Create a Wallet instance from the private key
+  const wallet = new ethers.Wallet(fallbackKey as any);
+
+  // Get the address from the wallet
+  const address = wallet.address;
+
+  console.log(`Setting deployer key to ${address} as fallback`);
+  return fallbackKey;
 };
 
 const MNEMONIC = process.env.MNEMONIC || 'test '.repeat(11) + 'junk';
@@ -367,8 +359,7 @@ const config: HardhatUserConfig = {
     ...tenderlyNetwork,
   },
   namedAccounts: {
-    // deployer: setDeployerKey(DEPLOYER),
-    deployer: setDeployerKey(0),
+    deployer: setDeployerKey(DEPLOYER),
     lzEndpoint: 10,
   },
   solidity: {
