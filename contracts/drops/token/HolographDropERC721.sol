@@ -280,8 +280,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * @return version string representing the version of the contract
    */
   function version() external pure returns (string memory) {
-    // TODO: Should this be updated to be an uint
-    return "1.0.0";
+    return "2.0.0";
   }
 
   function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {

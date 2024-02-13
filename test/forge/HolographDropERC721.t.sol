@@ -226,7 +226,7 @@ contract HolographDropERC721Test is Test {
     // Connect the drop implementation to the drop proxy address
     erc721Drop = HolographDropERC721(payable(newDropAddress));
 
-    assertEq(erc721Drop.version(), "1.0.0");
+    assertEq(erc721Drop.version(), "2.0.0");
   }
 
   function test_Init() public setupTestDrop(10) {
