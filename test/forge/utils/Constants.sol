@@ -6,33 +6,39 @@ pragma solidity 0.8.13;
 //         HOLOGRAPH_ENVIRONMENT="develop"
 //         DEVELOP_DEPLOYMENT_SALT=1000
 //         DEPLOYER=0xff22437ccbedfffafa93a9f1da2e8c19c1711052799acf3b58ae5bebb5c6bd7b
+//
+// These addresses are for the develop environment ONLY on localhost and are not meant to be used in production.
+// They are generated from a localhost deployment using the custom HolographGenesisLocal.sol contract that is a modified version of the HolographGenesis.sol contract.
+// The reason we use a custom version of the HolographGenesis.sol contract is because the original contract has dedicated approved deployers that do not include local test accounts. This allows us to test the Holograph Protocol on localhost without having to modify the original HolographGenesis.sol contract.
 library Constants {
+  // TODO: Update these addresses to the correct ones for the Holograph Protocol on localhost for V2
+  //       Make sure the function names reflect which contracts addresses are proxies
   function getHolographGenesis() internal pure returns (address) {
-    return address(0x0C8aF56F7650a6E3685188d212044338c21d3F73);
+    return address(0x4c3BA951A7ea09b5BB57230F63a89D36A07B2992);
   }
 
   function getHolograph() internal pure returns (address) {
-    return address(0xd752b07E796b2C7A6dA24d660822C7bc51802DCa);
+    return address(0xB437D70130A322754Db56558416355e059f3de27);
   }
 
   function getHolographBridge() internal pure returns (address) {
     return address(0xD0a093f5cCCf592eEb5B8E4c09d75706E80596DF);
   }
 
-  function getHolographFactory() internal pure returns (address) {
-    return address(0x5Db4dB97fDfFB29cD85eA5484C3722095c413fc7);
+  function getHolographFactoryProxy() internal pure returns (address) {
+    return address(0x25e262fEB323AcB483D7b238b0F7670391Bc1905);
   }
 
   function getHolographOperator() internal pure returns (address) {
     return address(0x8a859b477678ff4eb5a6e9e169A31107785Ed1E0);
   }
 
-  function getHolographRegistry() internal pure returns (address) {
-    return address(0x7650afc7E875c1FCC987AB437967fF707f1b600f);
+  function getHolographRegistryProxy() internal pure returns (address) {
+    return address(0x1d56d0aa75C583F995745437F0E14aF82e5807b7);
   }
 
-  function getHolographTreasury() internal pure returns (address) {
-    return address(0x3A4fb9f77789f8cdbae9B13D5f733A150ac5ca09);
+  function getHolographTreasuryProxy() internal pure returns (address) {
+    return address(0x3c26247540919827E6CcfE901F345259a090eCe8);
   }
 
   function getHolographInterfaces() internal pure returns (address) {
@@ -45,10 +51,6 @@ library Constants {
 
   function getHolographUtilityToken() internal pure returns (address) {
     return address(0xe92664b2a60541b4c24512091374FC036d8Cb738);
-  }
-
-  function getOpenseaRoyaltiesRegistry() internal pure returns (address) {
-    return address(0x000000000000AAeB6D7670E522A718067333cd4E);
   }
 
   function getDropsPriceOracleProxy() internal pure returns (address) {

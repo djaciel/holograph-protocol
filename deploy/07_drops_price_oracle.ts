@@ -169,6 +169,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // we manually inject drops price oracle proxy on local deployments
   // this is to accomodate the fact that drops price oracle proxy is hardcoded in the contract
   if (network.key in ['localhost', 'localhost2', 'hardhat']) {
+    hre.deployments.log('Injecting DropsPriceOracleProxy on local deployments');
     // set it at address in VM
     let acountByteCodeSet: boolean = await hre.provider.send('evm_setAccountCode', [
       '0xeA7f4C52cbD4CF1036CdCa8B16AcA11f5b09cF6E',

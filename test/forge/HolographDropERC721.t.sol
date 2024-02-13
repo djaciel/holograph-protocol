@@ -123,7 +123,7 @@ contract HolographDropERC721Test is Test {
       Verification memory signature = Verification(r, s, v);
       address signer = ecrecover(hash, v, r, s);
 
-      HolographFactory factory = HolographFactory(payable(Constants.getHolographFactory()));
+      HolographFactory factory = HolographFactory(payable(Constants.getHolographFactoryProxy()));
 
       // Deploy the drop / edition
       vm.recordLogs();
@@ -215,9 +215,7 @@ contract HolographDropERC721Test is Test {
     address signer = ecrecover(hash, v, r, s);
     require(signer == alice, "Invalid signature");
 
-    HolographFactory factory = HolographFactory(payable(Constants.getHolographFactory()));
-
-    console.logString("Deploying Holographable contract");
+    HolographFactory factory = HolographFactory(payable(Constants.getHolographFactoryProxy()));
 
     // Deploy the drop / edition
     vm.recordLogs();
@@ -279,7 +277,7 @@ contract HolographDropERC721Test is Test {
 
     bytes memory initCode = abi.encode(
       bytes32(0x00000000000000000000000000486F6C6F677261706844726F70455243373231), // Source contract type HolographDropERC721
-      address(Constants.getHolographRegistry()), // address of registry (to get source contract address from)
+      address(Constants.getHolographRegistryProxy()), // address of registry (to get source contract address from)
       abi.encode(initializer) // actual init code for source contract (HolographDropERC721)
     );
 
@@ -326,7 +324,7 @@ contract HolographDropERC721Test is Test {
     assertEq(address(sourceContractAddress).balance, amount * nativePrice - nativeFee);
 
     // Check that the fee was sent to the treasury
-    treasury = HolographTreasury(payable(Constants.getHolographTreasury()));
+    treasury = HolographTreasury(payable(Constants.getHolographTreasuryProxy()));
     console.log("treasury balance", address(treasury).balance);
     assertEq(address(treasury).balance, nativeFee);
 
@@ -440,7 +438,7 @@ contract HolographDropERC721Test is Test {
   }
 
   function test_OnlyAdminCanWithdrawFromTreasury() public {
-    treasury = HolographTreasury(payable(Constants.getHolographTreasury()));
+    treasury = HolographTreasury(payable(Constants.getHolographTreasuryProxy()));
     vm.startPrank(address(0xcafe));
     vm.expectRevert("HOLOGRAPH: admin only function");
     treasury.withdraw();
@@ -893,7 +891,7 @@ contract HolographDropERC721Test is Test {
     bytes memory bytecode = abi.encodePacked(vm.getCode("HolographDropERC721Proxy.sol:HolographDropERC721Proxy"));
     bytes memory initCode = abi.encode(
       bytes32(0x00000000000000000000000000486F6C6F677261706844726F70455243373231), // Source contract type HolographDropERC721
-      address(Constants.getHolographRegistry()), // address of registry (to get source contract address from)
+      address(Constants.getHolographRegistryProxy()), // address of registry (to get source contract address from)
       abi.encode(initializer) // actual init code for source contract (HolographDropERC721)
     );
 
