@@ -8,11 +8,13 @@ pragma solidity 0.8.13;
 //         DEPLOYER=0xff22437ccbedfffafa93a9f1da2e8c19c1711052799acf3b58ae5bebb5c6bd7b
 //
 // These addresses are for the develop environment ONLY on localhost and are not meant to be used in production.
-// They are generated from a localhost deployment using the custom HolographGenesisLocal.sol contract that is a modified version of the HolographGenesis.sol contract.
-// The reason we use a custom version of the HolographGenesis.sol contract is because the original contract has dedicated approved deployers that do not include local test accounts. This allows us to test the Holograph Protocol on localhost without having to modify the original HolographGenesis.sol contract.
+// They are generated from a localhost deployment using the custom HolographGenesisLocal.sol contract that is a
+// modified version of the HolographGenesis.sol contract.
+//
+// The reason we use a custom version of the HolographGenesis.sol contract is because the original contract has
+// dedicated approved deployers that do not include local test accounts. This allows us to test the Holograph Protocol
+//  on localhost without having to modify the original HolographGenesis.sol contract.
 library Constants {
-  // TODO: Update these addresses to the correct ones for the Holograph Protocol on localhost for V2
-  //       Make sure the function names reflect which contracts addresses are proxies
   function getHolographGenesis() internal pure returns (address) {
     return address(0x4c3BA951A7ea09b5BB57230F63a89D36A07B2992);
   }
@@ -21,16 +23,16 @@ library Constants {
     return address(0xB437D70130A322754Db56558416355e059f3de27);
   }
 
-  function getHolographBridge() internal pure returns (address) {
-    return address(0xD0a093f5cCCf592eEb5B8E4c09d75706E80596DF);
+  function getHolographBridgeProxy() internal pure returns (address) {
+    return address(0x84bdA3bd21D89cFA5F3419aEdFD83673be5D0840);
   }
 
   function getHolographFactoryProxy() internal pure returns (address) {
     return address(0x25e262fEB323AcB483D7b238b0F7670391Bc1905);
   }
 
-  function getHolographOperator() internal pure returns (address) {
-    return address(0x8a859b477678ff4eb5a6e9e169A31107785Ed1E0);
+  function getHolographOperatorProxy() internal pure returns (address) {
+    return address(0x47D450c263FeC68dc46c4684Ca6A8f76736aa8d8);
   }
 
   function getHolographRegistryProxy() internal pure returns (address) {
