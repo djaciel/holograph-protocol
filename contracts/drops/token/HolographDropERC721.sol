@@ -104,14 +104,13 @@ pragma solidity 0.8.13;
 import {ERC721H} from "../../abstract/ERC721H.sol";
 import {NonReentrant} from "../../abstract/NonReentrant.sol";
 
-import {HolographTreasury} from "../../HolographTreasury.sol";
-
 import {HolographERC721Interface} from "../../interface/HolographERC721Interface.sol";
 import {HolographerInterface} from "../../interface/HolographerInterface.sol";
 import {HolographInterface} from "../../interface/HolographInterface.sol";
 import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
 import {IHolographDropERC721} from "../interface/IHolographDropERC721.sol";
 import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
+import {HolographTreasuryInterface} from "../../interface/HolographTreasuryInterface.sol";
 
 import {AddressMintDetails} from "../struct/AddressMintDetails.sol";
 import {Configuration} from "../struct/Configuration.sol";
@@ -411,7 +410,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
     if (msg.value < (salePrice + holographMintFeeInWei) * quantity) {
       // The error will display the wrong price that was sent in USD
-      revert Purchase_WrongPrice((salesConfig.publicSalePrice + _getHolographMintFee()) * quantity);
+      revert Purchase_WrongPrice((salesConfig.publicSalePrice + holographMintFeeInWei) * quantity);
     }
     uint256 remainder = msg.value - (salePrice * quantity);
 
@@ -689,8 +688,8 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       HolographInterface(HolographerInterface(holographer()).getHolograph()).getTreasury()
     );
 
-    HolographTreasury treasury = HolographTreasury(treasuryProxyAddress);
-    return treasury.holographMintFee();
+    HolographTreasuryInterface treasury = HolographTreasuryInterface(treasuryProxyAddress);
+    return treasury.getHolographMintFee();
   }
 
   function _payoutHolographFee(uint256 quantity) internal {
