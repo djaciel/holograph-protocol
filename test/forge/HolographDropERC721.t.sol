@@ -63,8 +63,6 @@ contract HolographDropERC721Test is Test {
   uint256 public constant FIRST_TOKEN_ID =
     115792089183396302089269705419353877679230723318366275194376439045705909141505; // large 256 bit number due to chain id prefix
 
-  address public ownedSubscriptionManager;
-
   struct Configuration {
     IMetadataRenderer metadataRenderer;
     uint64 editionSize;
@@ -282,6 +280,27 @@ contract HolographDropERC721Test is Test {
     );
 
     erc721Drop.init(abi.encode(contractName, contractSymbol, contractBps, eventConfig, skipInit, initCode));
+  }
+
+  function test_HolographMintFee(uint256 fee) public {
+    vm.prank(DEFAULT_OWNER_ADDRESS);
+    treasury = HolographTreasury(payable(Constants.getHolographTreasuryProxy()));
+
+    // Get the treasury admins to set the mint fee
+    address treasuryAdmin = treasury.getAdmin();
+
+    // Check that the treasury admin can set the mint fee
+    uint256 mintFeeBefore = treasury.getHolographMintFee();
+
+    // Check that non-admins cannot set the mint fee
+    vm.expectRevert("HOLOGRAPH: admin only function");
+    treasury.setHolographMintFee(fee);
+
+    // Check that the treasury admin can set the mint fee
+    vm.startPrank(treasuryAdmin);
+    assertEq(mintFeeBefore, 1000000);
+    treasury.setHolographMintFee(fee);
+    assertEq(treasury.holographMintFee(), fee);
   }
 
   function test_Purchase(uint64 amount) public setupTestDrop(10) {

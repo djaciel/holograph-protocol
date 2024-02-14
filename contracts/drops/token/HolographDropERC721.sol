@@ -104,9 +104,14 @@ pragma solidity 0.8.13;
 import {ERC721H} from "../../abstract/ERC721H.sol";
 import {NonReentrant} from "../../abstract/NonReentrant.sol";
 
+import {HolographTreasury} from "../../HolographTreasury.sol";
+
 import {HolographERC721Interface} from "../../interface/HolographERC721Interface.sol";
 import {HolographerInterface} from "../../interface/HolographerInterface.sol";
 import {HolographInterface} from "../../interface/HolographInterface.sol";
+import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
+import {IHolographDropERC721} from "../interface/IHolographDropERC721.sol";
+import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
 
 import {AddressMintDetails} from "../struct/AddressMintDetails.sol";
 import {Configuration} from "../struct/Configuration.sol";
@@ -116,11 +121,6 @@ import {SalesConfiguration} from "../struct/SalesConfiguration.sol";
 
 import {Address} from "../library/Address.sol";
 import {MerkleProof} from "../library/MerkleProof.sol";
-
-import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
-import {IHolographDropERC721} from "../interface/IHolographDropERC721.sol";
-
-import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
 
 /**
  * @dev This contract subscribes to the following HolographERC721 events:
@@ -151,9 +151,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * @dev HOLOGRAPH transfer helper address for auto-approval
    */
   address public erc721TransferHelper;
-
-  /// @notice Holograph Mint Fee
-  uint256 public constant HOLOGRAPH_MINT_FEE = 1000000; // $1.00 USD (6 decimal places)
 
   /// @dev Gas limit for transferring funds
   uint256 private constant STATIC_GAS_LIMIT = 210_000;
@@ -328,13 +325,13 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   /// @notice The Holograph fee is a flat fee for each mint in USD
   /// @dev Gets the Holograph protocol fee for amount of mints in USD
   function getHolographFeeUsd(uint256 quantity) public view returns (uint256 fee) {
-    fee = HOLOGRAPH_MINT_FEE * quantity;
+    fee = _getHolographMintFee() * quantity;
   }
 
   /// @notice The Holograph fee is a flat fee for each mint in wei after conversion
   /// @dev Gets the Holograph protocol fee for amount of mints in wei
   function getHolographFeeWei(uint256 quantity) public view returns (uint256) {
-    return _usdToWei(HOLOGRAPH_MINT_FEE * quantity);
+    return _usdToWei(_getHolographMintFee() * quantity);
   }
 
   /**
@@ -410,11 +407,11 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     uint256 quantity
   ) external payable nonReentrant canMintTokens(quantity) onlyPublicSaleActive returns (uint256) {
     uint256 salePrice = _usdToWei(salesConfig.publicSalePrice);
-    uint256 holographMintFeeInWei = _usdToWei(HOLOGRAPH_MINT_FEE);
+    uint256 holographMintFeeInWei = _usdToWei(_getHolographMintFee());
 
     if (msg.value < (salePrice + holographMintFeeInWei) * quantity) {
       // The error will display the wrong price that was sent in USD
-      revert Purchase_WrongPrice((salesConfig.publicSalePrice + HOLOGRAPH_MINT_FEE) * quantity);
+      revert Purchase_WrongPrice((salesConfig.publicSalePrice + _getHolographMintFee()) * quantity);
     }
     uint256 remainder = msg.value - (salePrice * quantity);
 
@@ -682,9 +679,18 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       tokenId = _currentTokenId;
       H721.sourceMint(recipient, tokenId);
 
-      // TODO: Should we emit this id?
-      // uint256 id = chainPrepend + uint256(tokenId);
+      uint256 id = chainPrepend + uint256(tokenId);
+      emit NFTMinted(recipient, tokenId, id);
     }
+  }
+
+  function _getHolographMintFee() public view returns (uint256) {
+    address payable treasuryProxyAddress = payable(
+      HolographInterface(HolographerInterface(holographer()).getHolograph()).getTreasury()
+    );
+
+    HolographTreasury treasury = HolographTreasury(treasuryProxyAddress);
+    return treasury.holographMintFee();
   }
 
   function _payoutHolographFee(uint256 quantity) internal {

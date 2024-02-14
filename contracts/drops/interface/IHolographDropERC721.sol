@@ -95,6 +95,12 @@ interface IHolographDropERC721 {
   /// @param renderer new metadata renderer address
   event UpdatedMetadataRenderer(address sender, IMetadataRenderer renderer);
 
+  /// @notice Event emitted when an nfs is minted
+  /// @param recipient address that the nft was minted to
+  /// @param tokenId id of the minted nft
+  /// @param id id of the minted nft with chain id prefix
+  event NFTMinted(address indexed recipient, uint256 indexed tokenId, uint256 id);
+
   /// @notice Admin function to update the sales configuration settings
   /// @param publicSalePrice public sale price in ether
   /// @param maxSalePurchasePerAddress Max # of purchases (public) per address allowed
