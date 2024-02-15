@@ -595,8 +595,9 @@ contract HolographDropERC721Test is Test {
       maxSalePurchasePerAddress: 2,
       presaleMerkleRoot: bytes32(0)
     });
-    vm.prank(address(TEST_ACCOUNT));
+    vm.startPrank(address(TEST_ACCOUNT));
     vm.expectRevert();
+    erc721Drop.purchase{value: totalCost / 2}(amount);
     vm.stopPrank();
   }
 
