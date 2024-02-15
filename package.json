@@ -63,6 +63,7 @@
     "@holographxyz/hardhat-holograph-contract-builder": "^0.0.4",
     "@holographxyz/holograph-genesis": "^0.0.7",
     "@holographxyz/networks": "^0.2.0",
+    "@types/yargs": "^17.0.32",
     "chai-ethers": "^0.0.1",
     "ganache": "^7.8.0",
     "hardhat-preprocessor": "^0.1.5",
@@ -111,6 +112,7 @@
     "solhint-plugin-prettier": "^0.0.5",
     "ts-node": "^10.9.1",
     "typechain": "^8.1.1",
-    "typescript": "^4.3.5"
+    "typescript": "^4.3.5",
+    "yargs": "^17.7.2"
   }
 }

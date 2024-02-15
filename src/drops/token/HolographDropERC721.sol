@@ -24,8 +24,6 @@ import {MerkleProof} from "../library/MerkleProof.sol";
 
 /**
  * @dev This contract subscribes to the following HolographERC721 events:
- *       - beforeSafeTransfer
- *       - beforeTransfer
  *       - onIsApprovedForAll
  *       - customContractURI
  *
