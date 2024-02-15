@@ -406,11 +406,12 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     uint256 quantity
   ) external payable nonReentrant canMintTokens(quantity) onlyPublicSaleActive returns (uint256) {
     uint256 salePrice = _usdToWei(salesConfig.publicSalePrice);
-    uint256 holographMintFeeInWei = _usdToWei(_getHolographMintFee());
+    uint256 holographMintFeeUsd = _getHolographMintFee();
+    uint256 holographMintFeeInWei = _usdToWei(holographMintFeeUsd);
 
     if (msg.value < (salePrice + holographMintFeeInWei) * quantity) {
-      // The error will display the wrong price that was sent in USD
-      revert Purchase_WrongPrice((salesConfig.publicSalePrice + holographMintFeeInWei) * quantity);
+      // The error will display what the correct price should be
+      revert Purchase_WrongPrice((salesConfig.publicSalePrice + holographMintFeeUsd) * quantity);
     }
     uint256 remainder = msg.value - (salePrice * quantity);
 

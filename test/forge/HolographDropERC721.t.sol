@@ -596,7 +596,9 @@ contract HolographDropERC721Test is Test {
       presaleMerkleRoot: bytes32(0)
     });
     vm.startPrank(address(TEST_ACCOUNT));
-    vm.expectRevert();
+    vm.expectRevert(
+      abi.encodeWithSelector(IHolographDropERC721.Purchase_WrongPrice.selector, uint256(price + holographFee))
+    );
     erc721Drop.purchase{value: totalCost / 2}(amount);
     vm.stopPrank();
   }
