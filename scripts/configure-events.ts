@@ -78,9 +78,42 @@ async function main() {
     process.exit(1);
   }
 
-  const configuredEvents = ConfigureEvents(events as any);
-  console.log('Events configured:', configuredEvents);
+  const eventConfigHex = ConfigureEvents(events as any);
+  console.log('Events configured:', eventConfigHex);
+
+  for (const eventEnumValue of events) {
+    const eventName = getEventNameByValue(eventEnumValue, true); // Assuming true for HolographERC721Event
+    const isRegistered = isEventRegistered(eventConfigHex, eventEnumValue);
+    if (eventName) {
+      console.log(`${eventName} is ${isRegistered ? 'registered' : 'not registered'}.`);
+    } else {
+      console.log(`Event with enum value ${eventEnumValue} is not recognized.`);
+    }
+  }
+
   console.log('Events configured successfully.');
+}
+
+// Define a reverse lookup function for event enum values to names
+function getEventNameByValue(eventValue: number, isERC721: boolean): string | undefined {
+  for (const [key, value] of Object.entries(eventNameToEnumValue)) {
+    if (value === eventValue && key.startsWith(isERC721 ? 'HolographERC721Event' : 'HolographERC20Event')) {
+      return key;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Checks if an event is registered in the event configuration.
+ * @param eventConfigHex The event configuration in hexadecimal string format.
+ * @param eventName The event name as a value from the HolographERC721Event enum.
+ * @returns {boolean} True if the event is registered; otherwise, false.
+ */
+function isEventRegistered(eventConfigHex: string, eventName: HolographERC721Event | HolographERC20Event): boolean {
+  const eventConfig: bigint = BigInt(eventConfigHex);
+  // No need to subtract 1 if your enums are zero-based
+  return ((eventConfig >> BigInt(eventName)) & BigInt(1)) === BigInt(1);
 }
 
 main()
