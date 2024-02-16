@@ -120,13 +120,38 @@ function getEventNameByValue(eventValue: number, isERC721: boolean): string | un
 }
 
 /**
- * Checks if an event is registered in the event configuration.
- * @param eventConfigHex The event configuration in hexadecimal string format.
- * @param eventName The event name as a value from the HolographERC721Event enum.
- * @returns {boolean} True if the event is registered; otherwise, false.
+ * Checks if a specific event is registered within a given event configuration.
+ *
+ * This function performs bitwise operations on a hexadecimal string representing
+ * the event configuration. Each bit in this configuration corresponds to the registration
+ * status (registered or not registered) of an event, where a bit set to 1 indicates the event
+ * is registered, and a bit set to 0 indicates it is not registered.
+ *
+ * @param {string} eventConfigHex - The event configuration in hexadecimal string format.
+ *                                  This string is converted to a bigint to perform bitwise operations.
+ * @param {HolographERC721Event | HolographERC20Event} eventName - The enum value of the event,
+ *                                  which also represents the position of the event's bit in the configuration.
+ * @returns {boolean} - True if the event is registered (its corresponding bit is set to 1); otherwise, false.
  */
 function isEventRegistered(eventConfigHex: string, eventName: HolographERC721Event | HolographERC20Event): boolean {
+  // Convert the hexadecimal string to a bigint to perform bitwise operations.
   const eventConfig: bigint = BigInt(eventConfigHex);
+
+  // Perform a right bitwise shift (>>) on eventConfig by the numeric value of eventName.
+  // This operation shifts the bits of eventConfig to the right by the number of positions specified by eventName.
+  // The effect is to isolate the bit corresponding to the specified event at the least significant bit position (rightmost bit).
+  //
+  // Example:
+  // If eventName is 2, and eventConfig binary representation is ...100 (4 in decimal),
+  // shifting right by 2 positions results in ...001 (1 in decimal).
+  //
+  // Then, perform a bitwise AND (&) with BigInt(1).
+  // This operation compares the isolated bit (the least significant bit after the shift) to 1.
+  // If the isolated bit is 1 (meaning the event is registered), the result of the AND operation will be 1 (true).
+  // If the isolated bit is 0 (the event is not registered), the result will be 0 (false).
+  //
+  // Finally, compare the result of the AND operation to BigInt(1) to determine if the event is registered.
+  // If the comparison is true, the specified event is registered; otherwise, it is not.
   return ((eventConfig >> BigInt(eventName)) & BigInt(1)) === BigInt(1);
 }
 
