@@ -94,13 +94,28 @@ async function main() {
   console.log('Events configured successfully.');
 }
 
-// Define a reverse lookup function for event enum values to names
+/**
+ * Retrieves the event name based on its numeric value and a flag indicating the event type.
+ *
+ * This function iterates over the `eventNameToEnumValue` mapping, which associates event names with their numeric values and types.
+ * It attempts to find an event name that matches both the provided numeric value and the type indicated by `isERC721`.
+ * If such an event name is found, it is returned; otherwise, the function returns `undefined`.
+ *
+ * @param {number} eventValue - The numeric value of the event to search for. This value corresponds to the enum value of the event.
+ * @param {boolean} isERC721 - A boolean flag indicating whether to search for an ERC721 event. If `true`, the function looks for an ERC721 event; if `false`, it looks for an ERC20 event.
+ * @returns {string | undefined} - The name of the event if found, otherwise `undefined`.
+ */
 function getEventNameByValue(eventValue: number, isERC721: boolean): string | undefined {
+  // Iterate over each entry in the eventNameToEnumValue mapping
   for (const [key, value] of Object.entries(eventNameToEnumValue)) {
+    // Check if the current entry's value matches the provided eventValue
+    // and if the key (event name) starts with the appropriate prefix based on isERC721
     if (value === eventValue && key.startsWith(isERC721 ? 'HolographERC721Event' : 'HolographERC20Event')) {
+      // If a matching entry is found, return the event name
       return key;
     }
   }
+  // If no matching entry is found, return undefined
   return undefined;
 }
 
@@ -112,7 +127,6 @@ function getEventNameByValue(eventValue: number, isERC721: boolean): string | un
  */
 function isEventRegistered(eventConfigHex: string, eventName: HolographERC721Event | HolographERC20Event): boolean {
   const eventConfig: bigint = BigInt(eventConfigHex);
-  // No need to subtract 1 if your enums are zero-based
   return ((eventConfig >> BigInt(eventName)) & BigInt(1)) === BigInt(1);
 }
 
