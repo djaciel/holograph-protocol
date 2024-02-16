@@ -4,7 +4,6 @@
 
 import {SalesConfiguration} from "./SalesConfiguration.sol";
 
-/// @param erc721TransferHelper Transfer helper contract
 /// @param initialOwner User that owns and can mint the edition, gets royalty and sales payouts and can update the base url if needed.
 /// @param fundsRecipient Wallet/user that receives funds from sale
 /// @param editionSize Number of editions that can be minted in total. If type(uint64).max, unlimited editions can be minted as an open edition.
@@ -13,7 +12,6 @@ import {SalesConfiguration} from "./SalesConfiguration.sol";
 /// @param metadataRenderer Renderer contract to use
 /// @param metadataRendererInit Renderer data initial contract
 struct DropsInitializer {
-  address erc721TransferHelper;
   address initialOwner;
   address payable fundsRecipient;
   uint64 editionSize;

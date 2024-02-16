@@ -87,7 +87,6 @@ contract HolographDropERC721Test is Test {
 
       dummyRenderer = new DummyMetadataRenderer();
       DropsInitializer memory initializer = DropsInitializer({
-        erc721TransferHelper: address(0x1234),
         initialOwner: DEFAULT_OWNER_ADDRESS,
         fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
         editionSize: editionSize,
@@ -178,7 +177,6 @@ contract HolographDropERC721Test is Test {
 
     // Create initializer
     DropsInitializer memory initializer = DropsInitializer({
-      erc721TransferHelper: address(0),
       initialOwner: payable(DEFAULT_OWNER_ADDRESS),
       fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
       editionSize: 100,
@@ -263,7 +261,6 @@ contract HolographDropERC721Test is Test {
 
     vm.expectRevert("HOLOGRAPHER: already initialized");
     DropsInitializer memory initializer = DropsInitializer({
-      erc721TransferHelper: address(0x1234),
       initialOwner: DEFAULT_OWNER_ADDRESS,
       fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
       editionSize: editionSize,

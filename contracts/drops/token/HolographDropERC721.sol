@@ -123,12 +123,9 @@ import {MerkleProof} from "../library/MerkleProof.sol";
 
 /**
  * @dev This contract subscribes to the following HolographERC721 events:
- *       - beforeSafeTransfer
- *       - beforeTransfer
- *       - onIsApprovedForAll
  *       - customContractURI
  *
- *       Do not enable or subscribe to any other events unless you modified your source code for them.
+ *       Do not enable or subscribe to any other events unless you modified the source code for them.
  */
 contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   /**
@@ -145,11 +142,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * @dev Internal reference used for minting incremental token ids.
    */
   uint224 private _currentTokenId;
-
-  /**
-   * @dev HOLOGRAPH transfer helper address for auto-approval
-   */
-  address public erc721TransferHelper;
 
   /// @dev Gas limit for transferring funds
   uint256 private constant STATIC_GAS_LIMIT = 210_000;
@@ -235,8 +227,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
     DropsInitializer memory initializer = abi.decode(initPayload, (DropsInitializer));
 
-    erc721TransferHelper = initializer.erc721TransferHelper;
-
     // Setup the owner role
     _setOwner(initializer.initialOwner);
 
@@ -294,10 +284,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
   function isAdmin(address user) external view returns (bool) {
     return (_getOwner() == user);
-  }
-
-  function onIsApprovedForAll(address /* _wallet*/, address _operator) external view returns (bool approved) {
-    approved = (erc721TransferHelper != address(0) && _operator == erc721TransferHelper);
   }
 
   /**

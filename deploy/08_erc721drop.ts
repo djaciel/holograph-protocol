@@ -205,12 +205,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // Deploy the HolographDropERC721 custom contract source
   const HolographDropERC721InitCode = generateInitCode(
-    [
-      'tuple(address,address,address,uint64,uint16,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)',
-    ],
+    ['tuple(address,address,uint64,uint16,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)'],
     [
       [
-        zeroAddress, // holographERC721TransferHelper
         deployerAddress, // initialOwner
         deployerAddress, // fundsRecipient
         0, // 1000 editions
