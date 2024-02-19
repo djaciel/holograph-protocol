@@ -20,7 +20,7 @@
 
 ## Description
 
-Holograph provides infrastructure for digital asset tokenization. Holograph enables asset issuers to mint holographic assets, which are fungible and non-fungible tokens that exist natively on any public or private blockchain.
+Holograph is an omnichain tokenization protocol. Issuers use Holograph to mint natively composable tokens that can be transferred across blockchains without wrapping. Holograph works by burning tokens on the source chain, sending a message via a messaging protocol to the destination chain, and then reminting the same number of tokens to the same contract address. This unifies liquidity, eliminates slippage, and reserves fungibility across blockchains.
 
 ## Version
 
