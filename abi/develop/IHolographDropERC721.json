@@ -48,28 +48,12 @@
   },
   {
     "inputs": [],
-    "name": "MarketFilterDAOAddressNotSupportedForChain",
-    "type": "error"
-  },
-  {
-    "inputs": [],
     "name": "MintFee_FundsSendFailure",
     "type": "error"
   },
   {
     "inputs": [],
     "name": "Mint_SoldOut",
-    "type": "error"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "operator",
-        "type": "address"
-      }
-    ],
-    "name": "OperatorNotAllowed",
     "type": "error"
   },
   {
@@ -101,11 +85,6 @@
       }
     ],
     "name": "Purchase_WrongPrice",
-    "type": "error"
-  },
-  {
-    "inputs": [],
-    "name": "RemoteOperatorFilterRegistryCallFailed",
     "type": "error"
   },
   {
@@ -196,6 +175,31 @@
       }
     ],
     "name": "MintFeePayout",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "recipient",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "uint256",
+        "name": "tokenId",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "id",
+        "type": "uint256"
+      }
+    ],
+    "name": "NFTMinted",
     "type": "event"
   },
   {
