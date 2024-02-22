@@ -6,7 +6,7 @@ import {console} from "forge-std/console.sol";
 
 import {DeploymentConfig} from "../../contracts/struct/DeploymentConfig.sol";
 import {Verification} from "../../contracts/struct/Verification.sol";
-import {DropsInitializer} from "../../contracts/drops/struct/DropsInitializer.sol";
+import {DropsInitializerV2} from "../../contracts/drops/struct/DropsInitializerV2.sol";
 import {SalesConfiguration} from "../../contracts/drops/struct/SalesConfiguration.sol";
 import {SaleDetails} from "../../contracts/drops/struct/SaleDetails.sol";
 
@@ -17,10 +17,10 @@ import {MockUser} from "./utils/MockUser.sol";
 import {Constants} from "./utils/Constants.sol";
 import {Utils} from "./utils/Utils.sol";
 import {HolographerInterface} from "../../contracts/interface/HolographerInterface.sol";
-import {IHolographDropERC721} from "../../contracts/drops/interface/IHolographDropERC721.sol";
+import {IHolographDropERC721V2} from "../../contracts/drops/interface/IHolographDropERC721V2.sol";
 
 import {HolographERC721} from "../../contracts/enforcer/HolographERC721.sol";
-import {HolographDropERC721} from "../../contracts/drops/token/HolographDropERC721.sol";
+import {HolographDropERC721V2} from "../../contracts/drops/token/HolographDropERC721V2.sol";
 import {HolographDropERC721Proxy} from "../../contracts/drops/proxy/HolographDropERC721Proxy.sol";
 
 import {IMetadataRenderer} from "../../contracts/drops/interface/IMetadataRenderer.sol";
@@ -42,7 +42,7 @@ contract HolographDropERC721Test is Test {
   address public alice;
   MockUser public mockUser;
 
-  HolographDropERC721 public erc721Drop;
+  HolographDropERC721V2 public erc721DropV2;
   HolographTreasury public treasury;
 
   DummyMetadataRenderer public dummyRenderer = new DummyMetadataRenderer();
@@ -86,7 +86,7 @@ contract HolographDropERC721Test is Test {
       });
 
       dummyRenderer = new DummyMetadataRenderer();
-      DropsInitializer memory initializer = DropsInitializer({
+      DropsInitializerV2 memory initializer = DropsInitializerV2({
         initialOwner: DEFAULT_OWNER_ADDRESS,
         fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
         editionSize: editionSize,
@@ -129,7 +129,7 @@ contract HolographDropERC721Test is Test {
       address newDropAddress = address(uint160(uint256(entries[1].topics[1])));
 
       // Connect the drop implementation to the drop proxy address
-      erc721Drop = HolographDropERC721(payable(newDropAddress));
+      erc721DropV2 = HolographDropERC721V2(payable(newDropAddress));
     }
 
     _;
@@ -176,7 +176,7 @@ contract HolographDropERC721Test is Test {
     });
 
     // Create initializer
-    DropsInitializer memory initializer = DropsInitializer({
+    DropsInitializerV2 memory initializer = DropsInitializerV2({
       initialOwner: payable(DEFAULT_OWNER_ADDRESS),
       fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
       editionSize: 100,
@@ -220,14 +220,14 @@ contract HolographDropERC721Test is Test {
     address newDropAddress = address(uint160(uint256(entries[2].topics[1])));
 
     // Connect the drop implementation to the drop proxy address
-    erc721Drop = HolographDropERC721(payable(newDropAddress));
+    erc721DropV2 = HolographDropERC721V2(payable(newDropAddress));
 
-    assertEq(erc721Drop.version(), "2.0.0");
+    assertEq(erc721DropV2.version(), 2);
   }
 
   function test_Init() public setupTestDrop(10) {
-    require(erc721Drop.owner() == DEFAULT_OWNER_ADDRESS, "Default owner set wrong");
-    (IMetadataRenderer renderer, uint64 editionSize, uint16 royaltyBPS, address payable fundsRecipient) = erc721Drop
+    require(erc721DropV2.owner() == DEFAULT_OWNER_ADDRESS, "Default owner set wrong");
+    (IMetadataRenderer renderer, uint64 editionSize, uint16 royaltyBPS, address payable fundsRecipient) = erc721DropV2
       .config();
     require(address(renderer) == address(dummyRenderer), "Renderer is wrong");
     require(editionSize == 10, "EditionSize is wrong");
@@ -246,10 +246,10 @@ contract HolographDropERC721Test is Test {
       presaleMerkleRoot: bytes32(0) // no presale
     });
 
-    HolographERC721 erc721Drop = HolographERC721(payable(address(erc721Drop)));
+    HolographERC721 erc721DropV2 = HolographERC721(payable(address(erc721DropV2)));
 
-    string memory name = erc721Drop.name();
-    string memory symbol = erc721Drop.symbol();
+    string memory name = erc721DropV2.name();
+    string memory symbol = erc721DropV2.symbol();
     require(keccak256(bytes(name)) == keccak256(bytes("Test NFT")));
     require(keccak256(bytes(symbol)) == keccak256(bytes("TNFT")));
 
@@ -260,7 +260,7 @@ contract HolographDropERC721Test is Test {
     bool skipInit = false;
 
     vm.expectRevert("HOLOGRAPHER: already initialized");
-    DropsInitializer memory initializer = DropsInitializer({
+    DropsInitializerV2 memory initializer = DropsInitializerV2({
       initialOwner: DEFAULT_OWNER_ADDRESS,
       fundsRecipient: payable(DEFAULT_FUNDS_RECIPIENT_ADDRESS),
       editionSize: editionSize,
@@ -276,7 +276,7 @@ contract HolographDropERC721Test is Test {
       abi.encode(initializer) // actual init code for source contract (HolographDropERC721)
     );
 
-    erc721Drop.init(abi.encode(contractName, contractSymbol, contractBps, eventConfig, skipInit, initCode));
+    erc721DropV2.init(abi.encode(contractName, contractSymbol, contractBps, eventConfig, skipInit, initCode));
   }
 
   function test_HolographMintFeeCanBeSet(uint256 fee) public {
@@ -325,18 +325,18 @@ contract HolographDropERC721Test is Test {
     vm.assume(amount > 0 && amount <= 10);
     vm.prank(DEFAULT_OWNER_ADDRESS);
 
-    HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
+    HolographerInterface holographerInterface = HolographerInterface(address(erc721DropV2));
     address sourceContractAddress = holographerInterface.getSourceContract();
-    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721DropV2)));
 
     uint104 price = usd100;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
+    uint256 holographFee = erc721DropV2.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
 
     vm.prank(DEFAULT_OWNER_ADDRESS);
 
-    HolographDropERC721(payable(sourceContractAddress)).setSaleConfiguration({
+    HolographDropERC721V2(payable(sourceContractAddress)).setSaleConfiguration({
       publicSaleStart: 0,
       publicSaleEnd: type(uint64).max,
       presaleStart: 0,
@@ -350,10 +350,10 @@ contract HolographDropERC721Test is Test {
 
     vm.prank(address(TEST_ACCOUNT));
     vm.deal(address(TEST_ACCOUNT), totalCost);
-    erc721Drop.purchase{value: totalCost}(amount);
+    erc721DropV2.purchase{value: totalCost}(amount);
 
-    assertEq(erc721Drop.saleDetails().maxSupply, 10);
-    assertEq(erc721Drop.saleDetails().totalMinted, amount);
+    assertEq(erc721DropV2.saleDetails().maxSupply, 10);
+    assertEq(erc721DropV2.saleDetails().totalMinted, amount);
 
     // First token ID is this long number due to the chain id prefix
     require(erc721Enforcer.ownerOf(FIRST_TOKEN_ID) == address(TEST_ACCOUNT), "Owner is wrong for new minted token");
@@ -383,18 +383,18 @@ contract HolographDropERC721Test is Test {
     vm.assume(amount > 0 && amount <= 10);
     vm.prank(DEFAULT_OWNER_ADDRESS);
 
-    HolographerInterface holographerInterface = HolographerInterface(address(erc721Drop));
+    HolographerInterface holographerInterface = HolographerInterface(address(erc721DropV2));
     address sourceContractAddress = holographerInterface.getSourceContract();
-    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721DropV2)));
 
     uint104 price = 0; // Set the price to zero
     uint256 nativePrice = 0; // Set the price to zero
-    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
+    uint256 holographFee = erc721DropV2.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
 
     vm.prank(DEFAULT_OWNER_ADDRESS);
 
-    HolographDropERC721(payable(sourceContractAddress)).setSaleConfiguration({
+    HolographDropERC721V2(payable(sourceContractAddress)).setSaleConfiguration({
       publicSaleStart: 0,
       publicSaleEnd: type(uint64).max,
       presaleStart: 0,
@@ -408,10 +408,10 @@ contract HolographDropERC721Test is Test {
 
     vm.prank(address(TEST_ACCOUNT));
     vm.deal(address(TEST_ACCOUNT), totalCost);
-    erc721Drop.purchase{value: totalCost}(amount);
+    erc721DropV2.purchase{value: totalCost}(amount);
 
-    assertEq(erc721Drop.saleDetails().maxSupply, 10);
-    assertEq(erc721Drop.saleDetails().totalMinted, amount);
+    assertEq(erc721DropV2.saleDetails().maxSupply, 10);
+    assertEq(erc721DropV2.saleDetails().totalMinted, amount);
 
     // First token ID is this long number due to the chain id prefix
     require(erc721Enforcer.ownerOf(FIRST_TOKEN_ID) == address(TEST_ACCOUNT), "Owner is wrong for new minted token");
@@ -422,12 +422,12 @@ contract HolographDropERC721Test is Test {
     uint256 amount = 1;
     uint104 price = usd100;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
+    uint256 holographFee = erc721DropV2.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     uint256 totalCost = amount * (nativePrice + nativeFee);
 
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.setSaleConfiguration({
+    erc721DropV2.setSaleConfiguration({
       publicSaleStart: 0,
       publicSaleEnd: 0,
       presaleStart: 0,
@@ -437,18 +437,18 @@ contract HolographDropERC721Test is Test {
       presaleMerkleRoot: bytes32(0)
     });
 
-    assertTrue(!erc721Drop.saleDetails().publicSaleActive);
+    assertTrue(!erc721DropV2.saleDetails().publicSaleActive);
 
     vm.deal(address(TEST_ACCOUNT), totalCost);
     vm.prank(address(TEST_ACCOUNT));
-    vm.expectRevert(IHolographDropERC721.Sale_Inactive.selector);
-    erc721Drop.purchase{value: totalCost}(1);
+    vm.expectRevert(IHolographDropERC721V2.Sale_Inactive.selector);
+    erc721DropV2.purchase{value: totalCost}(1);
 
-    assertEq(erc721Drop.saleDetails().maxSupply, 10);
-    assertEq(erc721Drop.saleDetails().totalMinted, 0);
+    assertEq(erc721DropV2.saleDetails().maxSupply, 10);
+    assertEq(erc721DropV2.saleDetails().totalMinted, 0);
 
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.setSaleConfiguration({
+    erc721DropV2.setSaleConfiguration({
       publicSaleStart: 9 * 3600,
       publicSaleEnd: 11 * 3600,
       presaleStart: 0,
@@ -458,18 +458,18 @@ contract HolographDropERC721Test is Test {
       presaleMerkleRoot: bytes32(0)
     });
 
-    assertTrue(!erc721Drop.saleDetails().publicSaleActive);
+    assertTrue(!erc721DropV2.saleDetails().publicSaleActive);
     // jan 1st 1980
     vm.warp(10 * 3600);
-    assertTrue(erc721Drop.saleDetails().publicSaleActive);
-    assertTrue(!erc721Drop.saleDetails().presaleActive);
+    assertTrue(erc721DropV2.saleDetails().publicSaleActive);
+    assertTrue(!erc721DropV2.saleDetails().presaleActive);
 
     vm.prank(address(TEST_ACCOUNT));
-    erc721Drop.purchase{value: totalCost}(1);
+    erc721DropV2.purchase{value: totalCost}(1);
 
-    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721DropV2)));
 
-    assertEq(erc721Drop.saleDetails().totalMinted, 1);
+    assertEq(erc721DropV2.saleDetails().totalMinted, 1);
     assertEq(erc721Enforcer.ownerOf(FIRST_TOKEN_ID), address(TEST_ACCOUNT));
   }
 
@@ -483,21 +483,21 @@ contract HolographDropERC721Test is Test {
 
   function test_MintAdmin() public setupTestDrop(10) {
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 1);
-    assertEq(erc721Drop.saleDetails().maxSupply, 10);
-    assertEq(erc721Drop.saleDetails().totalMinted, 1);
+    erc721DropV2.adminMint(DEFAULT_OWNER_ADDRESS, 1);
+    assertEq(erc721DropV2.saleDetails().maxSupply, 10);
+    assertEq(erc721DropV2.saleDetails().totalMinted, 1);
 
-    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721DropV2)));
     require(erc721Enforcer.ownerOf(FIRST_TOKEN_ID) == DEFAULT_OWNER_ADDRESS, "Owner is wrong for new minted token");
   }
 
   function test_MintMulticall() public setupTestDrop(10) {
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
     bytes[] memory calls = new bytes[](3);
-    calls[0] = abi.encodeWithSelector(IHolographDropERC721.adminMint.selector, DEFAULT_OWNER_ADDRESS, 5);
-    calls[1] = abi.encodeWithSelector(IHolographDropERC721.adminMint.selector, address(0x123), 3);
-    calls[2] = abi.encodeWithSelector(IHolographDropERC721.saleDetails.selector);
-    bytes[] memory results = erc721Drop.multicall(calls);
+    calls[0] = abi.encodeWithSelector(IHolographDropERC721V2.adminMint.selector, DEFAULT_OWNER_ADDRESS, 5);
+    calls[1] = abi.encodeWithSelector(IHolographDropERC721V2.adminMint.selector, address(0x123), 3);
+    calls[2] = abi.encodeWithSelector(IHolographDropERC721V2.saleDetails.selector);
+    bytes[] memory results = erc721DropV2.multicall(calls);
 
     (bool saleActive, bool presaleActive, uint256 publicSalePrice, , , , , , , , ) = abi.decode(
       results[2],
@@ -517,14 +517,14 @@ contract HolographDropERC721Test is Test {
     uint256 amount = 2;
     uint104 price = usd100;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
+    uint256 holographFee = erc721DropV2.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     uint256 totalCost = amount * (nativePrice + nativeFee);
 
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
     bytes[] memory calls = new bytes[](3);
     calls[0] = abi.encodeWithSelector(
-      IHolographDropERC721.setSaleConfiguration.selector,
+      IHolographDropERC721V2.setSaleConfiguration.selector,
       price,
       2,
       0,
@@ -533,11 +533,11 @@ contract HolographDropERC721Test is Test {
       0,
       bytes32(0)
     );
-    calls[1] = abi.encodeWithSelector(IHolographDropERC721.adminMint.selector, address(0x999), 3);
-    calls[2] = abi.encodeWithSelector(IHolographDropERC721.adminMint.selector, address(0x123), 3);
-    bytes[] memory results = erc721Drop.multicall(calls);
+    calls[1] = abi.encodeWithSelector(IHolographDropERC721V2.adminMint.selector, address(0x999), 3);
+    calls[2] = abi.encodeWithSelector(IHolographDropERC721V2.adminMint.selector, address(0x123), 3);
+    bytes[] memory results = erc721DropV2.multicall(calls);
 
-    SaleDetails memory saleDetails = erc721Drop.saleDetails();
+    SaleDetails memory saleDetails = erc721DropV2.saleDetails();
 
     assertTrue(saleDetails.publicSaleActive);
     assertTrue(!saleDetails.presaleActive);
@@ -549,9 +549,9 @@ contract HolographDropERC721Test is Test {
     vm.stopPrank();
     vm.startPrank(address(0x111));
     vm.deal(address(0x111), totalCost);
-    erc721Drop.purchase{value: totalCost}(2);
+    erc721DropV2.purchase{value: totalCost}(2);
 
-    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721DropV2)));
     assertEq(erc721Enforcer.balanceOf(address(0x111)), 2);
     vm.stopPrank();
   }
@@ -560,7 +560,7 @@ contract HolographDropERC721Test is Test {
     uint256 amount = 1;
     uint104 price = usd10;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
+    uint256 holographFee = erc721DropV2.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     uint256 totalCost = amount * (nativePrice + nativeFee);
 
@@ -568,7 +568,7 @@ contract HolographDropERC721Test is Test {
 
     // First configure sale to make it inactive
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.setSaleConfiguration({
+    erc721DropV2.setSaleConfiguration({
       publicSaleStart: type(uint64).max,
       publicSaleEnd: type(uint64).max,
       presaleStart: 0,
@@ -578,12 +578,12 @@ contract HolographDropERC721Test is Test {
       presaleMerkleRoot: bytes32(0)
     });
     vm.prank(address(TEST_ACCOUNT));
-    vm.expectRevert(IHolographDropERC721.Sale_Inactive.selector);
-    erc721Drop.purchase{value: nativePrice}(1);
+    vm.expectRevert(IHolographDropERC721V2.Sale_Inactive.selector);
+    erc721DropV2.purchase{value: nativePrice}(1);
 
     // Then configure sale to make it active but with wrong price
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.setSaleConfiguration({
+    erc721DropV2.setSaleConfiguration({
       publicSaleStart: 0,
       publicSaleEnd: type(uint64).max,
       presaleStart: 0,
@@ -594,22 +594,22 @@ contract HolographDropERC721Test is Test {
     });
     vm.startPrank(address(TEST_ACCOUNT));
     vm.expectRevert(
-      abi.encodeWithSelector(IHolographDropERC721.Purchase_WrongPrice.selector, uint256(price + holographFee))
+      abi.encodeWithSelector(IHolographDropERC721V2.Purchase_WrongPrice.selector, uint256(price + holographFee))
     );
-    erc721Drop.purchase{value: totalCost / 2}(amount);
+    erc721DropV2.purchase{value: totalCost / 2}(amount);
     vm.stopPrank();
   }
 
   function test_Withdraw(uint128 amount) public setupTestDrop(10) {
     vm.assume(amount > 0.01 ether);
-    vm.deal(address(erc721Drop), amount);
+    vm.deal(address(erc721DropV2), amount);
     vm.prank(DEFAULT_OWNER_ADDRESS);
 
     // withdrawnBy and withdrawnTo are indexed in the first two positions
     vm.expectEmit(true, true, false, false);
     uint256 leftoverFunds = amount - (amount * 1) / 20;
     emit FundsWithdrawn(DEFAULT_OWNER_ADDRESS, DEFAULT_FUNDS_RECIPIENT_ADDRESS, leftoverFunds);
-    erc721Drop.withdraw();
+    erc721DropV2.withdraw();
 
     assertTrue(
       HOLOGRAPH_TREASURY_ADDRESS.balance < ((uint256(amount) * 1_000 * 5) / 100000) + 2 ||
@@ -624,14 +624,14 @@ contract HolographDropERC721Test is Test {
   function test_MintLimit(uint8 limit) public setupTestDrop(5000) {
     uint104 price = usd10;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFeeUsd(limit);
+    uint256 holographFee = erc721DropV2.getHolographFeeUsd(limit);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     uint256 totalCost = limit * (nativePrice + nativeFee);
 
     // set limit to speed up tests
     vm.assume(limit > 0 && limit < 50);
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.setSaleConfiguration({
+    erc721DropV2.setSaleConfiguration({
       publicSaleStart: 0,
       publicSaleEnd: type(uint64).max,
       presaleStart: 0,
@@ -644,31 +644,31 @@ contract HolographDropERC721Test is Test {
     // First check that we can mint up to the limit
     vm.deal(address(TEST_ACCOUNT), 1_000_000 ether);
     vm.prank(address(TEST_ACCOUNT));
-    erc721Drop.purchase{value: totalCost}(limit);
+    erc721DropV2.purchase{value: totalCost}(limit);
 
-    assertEq(erc721Drop.saleDetails().totalMinted, limit);
+    assertEq(erc721DropV2.saleDetails().totalMinted, limit);
 
     // Then check that we can't mint more than the limit
     uint256 overTheLimit = limit + 1;
-    holographFee = erc721Drop.getHolographFeeUsd(overTheLimit);
+    holographFee = erc721DropV2.getHolographFeeUsd(overTheLimit);
     nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     totalCost = overTheLimit * (nativePrice + nativeFee);
 
     vm.deal(address(0x444), 1_000_000 ether);
     vm.prank(address(0x444));
 
-    vm.expectRevert(IHolographDropERC721.Purchase_TooManyForAddress.selector); // 0x220ae94c
-    erc721Drop.purchase{value: totalCost}(overTheLimit);
+    vm.expectRevert(IHolographDropERC721V2.Purchase_TooManyForAddress.selector); // 0x220ae94c
+    erc721DropV2.purchase{value: totalCost}(overTheLimit);
 
     // Make sure that no extra tokens were minted
-    assertEq(erc721Drop.saleDetails().totalMinted, limit);
+    assertEq(erc721DropV2.saleDetails().totalMinted, limit);
   }
 
   function testSetSalesConfiguration() public setupTestDrop(10) {
     uint104 price = usd10;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.setSaleConfiguration({
+    erc721DropV2.setSaleConfiguration({
       publicSaleStart: 0,
       publicSaleEnd: type(uint64).max,
       presaleStart: 0,
@@ -678,11 +678,11 @@ contract HolographDropERC721Test is Test {
       presaleMerkleRoot: bytes32(0)
     });
 
-    (, , , , , uint64 presaleEndLookup, ) = erc721Drop.salesConfig();
+    (, , , , , uint64 presaleEndLookup, ) = erc721DropV2.salesConfig();
     assertEq(presaleEndLookup, 100);
 
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.setSaleConfiguration({
+    erc721DropV2.setSaleConfiguration({
       publicSaleStart: 0,
       publicSaleEnd: type(uint64).max,
       presaleStart: 100,
@@ -692,7 +692,7 @@ contract HolographDropERC721Test is Test {
       presaleMerkleRoot: bytes32(0)
     });
 
-    (, , , , uint64 presaleStartLookup2, uint64 presaleEndLookup2, ) = erc721Drop.salesConfig();
+    (, , , , uint64 presaleStartLookup2, uint64 presaleEndLookup2, ) = erc721DropV2.salesConfig();
     assertEq(presaleEndLookup2, 0);
     assertEq(presaleStartLookup2, 100);
   }
@@ -701,26 +701,26 @@ contract HolographDropERC721Test is Test {
     // Set assume to a more reasonable number to speed up tests
     vm.assume(limit > 0 && limit < 10);
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, limit);
-    vm.expectRevert(IHolographDropERC721.Mint_SoldOut.selector);
-    erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 1);
+    erc721DropV2.adminMint(DEFAULT_OWNER_ADDRESS, limit);
+    vm.expectRevert(IHolographDropERC721V2.Mint_SoldOut.selector);
+    erc721DropV2.adminMint(DEFAULT_OWNER_ADDRESS, 1);
   }
 
   function test_WithdrawNotAllowed() public setupTestDrop(10) {
-    vm.expectRevert(IHolographDropERC721.Access_WithdrawNotAllowed.selector);
-    erc721Drop.withdraw();
+    vm.expectRevert(IHolographDropERC721V2.Access_WithdrawNotAllowed.selector);
+    erc721DropV2.withdraw();
   }
 
   function test_InvalidFinalizeOpenEdition() public setupTestDrop(5) {
     uint amount = 3;
     uint104 price = usd10;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
+    uint256 holographFee = erc721DropV2.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     uint256 totalCost = amount * (nativePrice + nativeFee);
 
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.setSaleConfiguration({
+    erc721DropV2.setSaleConfiguration({
       publicSaleStart: 0,
       publicSaleEnd: type(uint64).max,
       presaleStart: 0,
@@ -729,24 +729,24 @@ contract HolographDropERC721Test is Test {
       presaleMerkleRoot: bytes32(0),
       maxSalePurchasePerAddress: 5
     });
-    erc721Drop.purchase{value: totalCost}(3);
+    erc721DropV2.purchase{value: totalCost}(3);
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.adminMint(address(0x1234), 2);
+    erc721DropV2.adminMint(address(0x1234), 2);
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    vm.expectRevert(IHolographDropERC721.Admin_UnableToFinalizeNotOpenEdition.selector);
-    erc721Drop.finalizeOpenEdition();
+    vm.expectRevert(IHolographDropERC721V2.Admin_UnableToFinalizeNotOpenEdition.selector);
+    erc721DropV2.finalizeOpenEdition();
   }
 
   function test_ValidFinalizeOpenEdition() public setupTestDrop(type(uint64).max) {
     uint amount = 3;
     uint104 price = usd10;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
+    uint256 holographFee = erc721DropV2.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     uint256 totalCost = amount * (nativePrice + nativeFee);
 
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.setSaleConfiguration({
+    erc721DropV2.setSaleConfiguration({
       publicSaleStart: 0,
       publicSaleEnd: type(uint64).max,
       presaleStart: 0,
@@ -756,27 +756,27 @@ contract HolographDropERC721Test is Test {
       maxSalePurchasePerAddress: 10
     });
 
-    erc721Drop.purchase{value: totalCost}(3);
+    erc721DropV2.purchase{value: totalCost}(3);
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.adminMint(address(0x1234), 2);
+    erc721DropV2.adminMint(address(0x1234), 2);
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.finalizeOpenEdition();
-    vm.expectRevert(IHolographDropERC721.Mint_SoldOut.selector);
+    erc721DropV2.finalizeOpenEdition();
+    vm.expectRevert(IHolographDropERC721V2.Mint_SoldOut.selector);
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.adminMint(address(0x1234), 2);
-    vm.expectRevert(IHolographDropERC721.Mint_SoldOut.selector);
-    erc721Drop.purchase{value: nativePrice * 3}(3);
+    erc721DropV2.adminMint(address(0x1234), 2);
+    vm.expectRevert(IHolographDropERC721V2.Mint_SoldOut.selector);
+    erc721DropV2.purchase{value: nativePrice * 3}(3);
   }
 
   function test_AdminMint() public setupTestDrop(10) {
     address minter = address(0x32402);
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 1);
-    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+    erc721DropV2.adminMint(DEFAULT_OWNER_ADDRESS, 1);
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721DropV2)));
     require(erc721Enforcer.balanceOf(DEFAULT_OWNER_ADDRESS) == 1, "Wrong balance");
-    erc721Drop.adminMint(minter, 1);
+    erc721DropV2.adminMint(minter, 1);
     require(erc721Enforcer.balanceOf(minter) == 1, "Wrong balance");
-    assertEq(erc721Drop.saleDetails().totalMinted, 2);
+    assertEq(erc721DropV2.saleDetails().totalMinted, 2);
   }
 
   // NOTE: This test functions differently than previously because change
@@ -786,16 +786,16 @@ contract HolographDropERC721Test is Test {
     uint256 amount = 2;
     uint104 price = usd100;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
-    uint256 holographFee = erc721Drop.getHolographFeeUsd(amount);
+    uint256 holographFee = erc721DropV2.getHolographFeeUsd(amount);
     uint256 nativeFee = dummyPriceOracle.convertUsdToWei(holographFee);
     uint256 totalCost = amount * (nativePrice + nativeFee);
 
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
     address minter = address(0x32402);
-    erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 1);
-    erc721Drop.adminMint(minter, 1);
+    erc721DropV2.adminMint(DEFAULT_OWNER_ADDRESS, 1);
+    erc721DropV2.adminMint(minter, 1);
 
-    erc721Drop.setSaleConfiguration({
+    erc721DropV2.setSaleConfiguration({
       publicSaleStart: 0,
       publicSaleEnd: type(uint64).max,
       presaleStart: 0,
@@ -808,19 +808,19 @@ contract HolographDropERC721Test is Test {
     vm.stopPrank();
     vm.deal(address(TEST_ACCOUNT), totalCost);
     vm.prank(address(TEST_ACCOUNT));
-    erc721Drop.purchase{value: totalCost}(2);
+    erc721DropV2.purchase{value: totalCost}(2);
   }
 
   function test_SoldOut() public setupTestDrop(1) {
     uint104 price = usd10;
     uint256 nativePrice = dummyPriceOracle.convertUsdToWei(price);
     vm.prank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 1);
+    erc721DropV2.adminMint(DEFAULT_OWNER_ADDRESS, 1);
 
     vm.deal(address(TEST_ACCOUNT), nativePrice * 2);
     vm.prank(address(TEST_ACCOUNT));
-    vm.expectRevert(IHolographDropERC721.Mint_SoldOut.selector);
-    erc721Drop.purchase{value: nativePrice}(1);
+    vm.expectRevert(IHolographDropERC721V2.Mint_SoldOut.selector);
+    erc721DropV2.purchase{value: nativePrice}(1);
   }
 
   // test Admin airdrop
@@ -831,10 +831,10 @@ contract HolographDropERC721Test is Test {
     toMint[1] = address(0x11);
     toMint[2] = address(0x12);
     toMint[3] = address(0x13);
-    erc721Drop.adminMintAirdrop(toMint);
+    erc721DropV2.adminMintAirdrop(toMint);
 
-    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
-    assertEq(erc721Drop.saleDetails().totalMinted, 4);
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721DropV2)));
+    assertEq(erc721DropV2.saleDetails().totalMinted, 4);
     assertEq(erc721Enforcer.balanceOf(address(0x10)), 1);
     assertEq(erc721Enforcer.balanceOf(address(0x11)), 1);
     assertEq(erc721Enforcer.balanceOf(address(0x12)), 1);
@@ -849,23 +849,23 @@ contract HolographDropERC721Test is Test {
     toMint[2] = address(0x12);
     toMint[3] = address(0x13);
     vm.expectRevert("ERC721: owner only function");
-    erc721Drop.adminMintAirdrop(toMint);
+    erc721DropV2.adminMintAirdrop(toMint);
   }
 
   // test admin mint non-admin permissions
   function test_AdminMintBatch() public setupTestDrop(1000) {
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
-    erc721Drop.adminMint(DEFAULT_OWNER_ADDRESS, 100);
+    erc721DropV2.adminMint(DEFAULT_OWNER_ADDRESS, 100);
 
-    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
-    assertEq(erc721Drop.saleDetails().totalMinted, 100);
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721DropV2)));
+    assertEq(erc721DropV2.saleDetails().totalMinted, 100);
     assertEq(erc721Enforcer.balanceOf(DEFAULT_OWNER_ADDRESS), 100);
   }
 
   function test_AdminMintBatchFails() public setupTestDrop(1000) {
     vm.startPrank(address(0x10));
     vm.expectRevert("ERC721: owner only function");
-    erc721Drop.adminMint(address(0x10), 100);
+    erc721DropV2.adminMint(address(0x10), 100);
   }
 
   function test_Burn() public setupTestDrop(10) {
@@ -875,11 +875,11 @@ contract HolographDropERC721Test is Test {
     address[] memory airdrop = new address[](1);
     airdrop[0] = minter;
 
-    erc721Drop.adminMintAirdrop(airdrop);
+    erc721DropV2.adminMintAirdrop(airdrop);
     vm.stopPrank();
 
     vm.startPrank(minter);
-    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721DropV2)));
     erc721Enforcer.burn(FIRST_TOKEN_ID);
     vm.stopPrank();
   }
@@ -889,11 +889,11 @@ contract HolographDropERC721Test is Test {
     vm.startPrank(DEFAULT_OWNER_ADDRESS);
     address[] memory airdrop = new address[](1);
     airdrop[0] = minter;
-    erc721Drop.adminMintAirdrop(airdrop);
+    erc721DropV2.adminMintAirdrop(airdrop);
     vm.stopPrank();
 
     vm.prank(address(0x1));
-    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721Drop)));
+    HolographERC721 erc721Enforcer = HolographERC721(payable(address(erc721DropV2)));
     vm.expectRevert("ERC721: not approved sender");
     erc721Enforcer.burn(FIRST_TOKEN_ID);
   }
@@ -901,16 +901,16 @@ contract HolographDropERC721Test is Test {
   // TODO: Add test burn failure state for users that don't own the token
 
   function test_EIP165() public setupTestDrop(10) {
-    require(erc721Drop.supportsInterface(0x01ffc9a7), "supports 165");
-    require(erc721Drop.supportsInterface(0x80ac58cd), "supports 721");
-    require(erc721Drop.supportsInterface(0x5b5e139f), "supports 721-metdata");
-    require(erc721Drop.supportsInterface(0x2a55205a), "supports 2981");
-    require(!erc721Drop.supportsInterface(0x0000000), "doesnt allow non-interface");
+    require(erc721DropV2.supportsInterface(0x01ffc9a7), "supports 165");
+    require(erc721DropV2.supportsInterface(0x80ac58cd), "supports 721");
+    require(erc721DropV2.supportsInterface(0x5b5e139f), "supports 721-metdata");
+    require(erc721DropV2.supportsInterface(0x2a55205a), "supports 2981");
+    require(!erc721DropV2.supportsInterface(0x0000000), "doesnt allow non-interface");
   }
 
   function test_Fallback() public setupTestDrop(10) {
     bytes4 functionSignature = bytes4(keccak256("nonExistentFunction()"));
-    (bool success, bytes memory result) = address(erc721Drop).call(abi.encodeWithSelector(functionSignature));
+    (bool success, bytes memory result) = address(erc721DropV2).call(abi.encodeWithSelector(functionSignature));
 
     require(!success, "Function call should fail");
     console.log(string(result));
@@ -923,13 +923,13 @@ contract HolographDropERC721Test is Test {
     uint16 contractBps,
     uint256 eventConfig,
     bool skipInit,
-    DropsInitializer memory initializer
+    DropsInitializerV2 memory initializer
   ) public returns (DeploymentConfig memory) {
     bytes memory bytecode = abi.encodePacked(vm.getCode("HolographDropERC721Proxy.sol:HolographDropERC721Proxy"));
     bytes memory initCode = abi.encode(
-      bytes32(0x00000000000000000000000000486F6C6F677261706844726F70455243373231), // Source contract type HolographDropERC721
+      bytes32(0x00000000000000000000000000486F6C6F677261706844726F70455243373231), // Source contract type HolographDropERC721V2
       address(Constants.getHolographRegistryProxy()), // address of registry (to get source contract address from)
-      abi.encode(initializer) // actual init code for source contract (HolographDropERC721)
+      abi.encode(initializer) // actual init code for source contract (HolographDropERC721V2)
     );
 
     return

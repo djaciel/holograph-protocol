@@ -203,55 +203,50 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     }
   }
 
-  // Deploy the HolographDropERC721 custom contract source
-  const HolographDropERC721InitCode = generateInitCode(
-    [
-      'tuple(address,address,address,address,uint64,uint16,bool,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)',
-    ],
+  // Deploy the HolographDropERC721V2 custom contract source
+  const HolographDropERC721V2InitCode = generateInitCode(
+    ['tuple(address,address,uint64,uint16,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)'],
     [
       [
-        zeroAddress, // holographERC721TransferHelper
-        zeroAddress, // marketFilterAddress (opensea)
         deployerAddress, // initialOwner
         deployerAddress, // fundsRecipient
         0, // 1000 editions
         1000, // 10% royalty
-        false, // enableOpenSeaRoyaltyRegistry
         [0, 0, 0, 0, 0, 0, '0x' + '00'.repeat(32)], // salesConfig
         futureEditionsMetadataRendererProxyAddress, // metadataRenderer
         generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
       ],
     ]
   );
-  const futureHolographDropERC721Address = await genesisDeriveFutureAddress(
+  const futureHolographDropERC721V2Address = await genesisDeriveFutureAddress(
     hre,
     salt,
-    'HolographDropERC721',
-    HolographDropERC721InitCode
+    'HolographDropERC721V2',
+    HolographDropERC721V2InitCode
   );
-  hre.deployments.log('the future "HolographDropERC721" address is', futureHolographDropERC721Address);
+  hre.deployments.log('the future "HolographDropERC721V2" address is', futureHolographDropERC721V2Address);
 
-  let HolographDropERC721DeployedCode: string = await hre.provider.send('eth_getCode', [
-    futureHolographDropERC721Address,
+  let HolographDropERC721V2DeployedCode: string = await hre.provider.send('eth_getCode', [
+    futureHolographDropERC721V2Address,
     'latest',
   ]);
 
-  if (HolographDropERC721DeployedCode == '0x' || HolographDropERC721DeployedCode == '') {
-    hre.deployments.log('"HolographDropERC721" bytecode not found, need to deploy"');
-    let HolographDropERC721 = await genesisDeployHelper(
+  if (HolographDropERC721V2DeployedCode == '0x' || HolographDropERC721V2DeployedCode == '') {
+    hre.deployments.log('"HolographDropERC721V2" bytecode not found, need to deploy"');
+    let HolographDropERC721V2 = await genesisDeployHelper(
       hre,
       salt,
-      'HolographDropERC721',
-      HolographDropERC721InitCode,
-      futureHolographDropERC721Address
+      'HolographDropERC721V2',
+      HolographDropERC721V2InitCode,
+      futureHolographDropERC721V2Address
     );
   } else {
-    hre.deployments.log('"HolographDropERC721" is already deployed.');
+    hre.deployments.log('"HolographDropERC721V2" is already deployed.');
   }
 
   console.log(`Exiting script: ${__filename} ✅\n`);
 };
 
 export default func;
-func.tags = ['DropsMetadataRenderer', 'EditionsMetadataRenderer', 'HolographDropERC721'];
+func.tags = ['DropsMetadataRenderer', 'EditionsMetadataRenderer', 'HolographDropERC721V2'];
 func.dependencies = ['HolographGenesis', 'DeploySources'];

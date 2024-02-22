@@ -1,6 +1,105 @@
-/*HOLOGRAPH_LICENSE_HEADER*/
+// SPDX-License-Identifier: UNLICENSED
+/*
 
-/*SOLIDITY_COMPILER_VERSION*/
+                         ┌───────────┐
+                         │ HOLOGRAPH │
+                         └───────────┘
+╔═════════════════════════════════════════════════════════════╗
+║                                                             ║
+║                            / ^ \                            ║
+║                            ~~*~~            ¸               ║
+║                         [ '<>:<>' ]         │░░░            ║
+║               ╔╗           _/"\_           ╔╣               ║
+║             ┌─╬╬─┐          """          ┌─╬╬─┐             ║
+║          ┌─┬┘ ╠╣ └┬─┐       \_/       ┌─┬┘ ╠╣ └┬─┐          ║
+║       ┌─┬┘ │  ╠╣  │ └┬─┐           ┌─┬┘ │  ╠╣  │ └┬─┐       ║
+║    ┌─┬┘ │  │  ╠╣  │  │ └┬─┐     ┌─┬┘ │  │  ╠╣  │  │ └┬─┐    ║
+║ ┌─┬┘ │  │  │  ╠╣  │  │  │ └┬┐ ┌┬┘ │  │  │  ╠╣  │  │  │ └┬─┐ ║
+╠┬┘ │  │  │  │  ╠╣  │  │  │  │└¤┘│  │  │  │  ╠╣  │  │  │  │ └┬╣
+║│  │  │  │  │  ╠╣  │  │  │  │   │  │  │  │  ╠╣  │  │  │  │  │║
+╠╩══╩══╩══╩══╩══╬╬══╩══╩══╩══╩═══╩══╩══╩══╩══╬╬══╩══╩══╩══╩══╩╣
+╠┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╬╬┴┴┴┴┴┴┴┴┴┴┴┴┴┴┴╣
+║               ╠╣                           ╠╣               ║
+║               ╠╣                           ╠╣               ║
+║    ,          ╠╣     ,        ,'      *    ╠╣               ║
+║~~~~~^~~~~~~~~┌╬╬┐~~~^~~~~~~~~^^~~~~~~~~^~~┌╬╬┐~~~~~~~^~~~~~~║
+╚══════════════╩╩╩╩═════════════════════════╩╩╩╩══════════════╝
+     - one protocol, one bridge = infinite possibilities -
+
+
+ ***************************************************************
+
+ DISCLAIMER: U.S Patent Pending
+
+ LICENSE: Holograph Limited Public License (H-LPL)
+
+ https://holograph.xyz/licenses/h-lpl/1.0.0
+
+ This license governs use of the accompanying software. If you
+ use the software, you accept this license. If you do not accept
+ the license, you are not permitted to use the software.
+
+ 1. Definitions
+
+ The terms "reproduce," "reproduction," "derivative works," and
+ "distribution" have the same meaning here as under U.S.
+ copyright law. A "contribution" is the original software, or
+ any additions or changes to the software. A "contributor" is
+ any person that distributes its contribution under this
+ license. "Licensed patents" are a contributor’s patent claims
+ that read directly on its contribution.
+
+ 2. Grant of Rights
+
+ A) Copyright Grant- Subject to the terms of this license,
+ including the license conditions and limitations in sections 3
+ and 4, each contributor grants you a non-exclusive, worldwide,
+ royalty-free copyright license to reproduce its contribution,
+ prepare derivative works of its contribution, and distribute
+ its contribution or any derivative works that you create.
+ B) Patent Grant- Subject to the terms of this license,
+ including the license conditions and limitations in section 3,
+ each contributor grants you a non-exclusive, worldwide,
+ royalty-free license under its licensed patents to make, have
+ made, use, sell, offer for sale, import, and/or otherwise
+ dispose of its contribution in the software or derivative works
+ of the contribution in the software.
+
+ 3. Conditions and Limitations
+
+ A) No Trademark License- This license does not grant you rights
+ to use any contributors’ name, logo, or trademarks.
+ B) If you bring a patent claim against any contributor over
+ patents that you claim are infringed by the software, your
+ patent license from such contributor is terminated with
+ immediate effect.
+ C) If you distribute any portion of the software, you must
+ retain all copyright, patent, trademark, and attribution
+ notices that are present in the software.
+ D) If you distribute any portion of the software in source code
+ form, you may do so only under this license by including a
+ complete copy of this license with your distribution. If you
+ distribute any portion of the software in compiled or object
+ code form, you may only do so under a license that complies
+ with this license.
+ E) The software is licensed “as-is.” You bear all risks of
+ using it. The contributors give no express warranties,
+ guarantees, or conditions. You may have additional consumer
+ rights under your local laws which this license cannot change.
+ To the extent permitted under your local laws, the contributors
+ exclude all implied warranties, including those of
+ merchantability, fitness for a particular purpose and
+ non-infringement.
+
+ 4. (F) Platform Limitation- The licenses granted in sections
+ 2.A & 2.B extend only to the software or derivative works that
+ you create that run on a Holograph system product.
+
+ ***************************************************************
+
+*/
+
+pragma solidity 0.8.13;
 
 import {ERC721H} from "../../abstract/ERC721H.sol";
 import {NonReentrant} from "../../abstract/NonReentrant.sol";
@@ -8,47 +107,31 @@ import {NonReentrant} from "../../abstract/NonReentrant.sol";
 import {HolographERC721Interface} from "../../interface/HolographERC721Interface.sol";
 import {HolographerInterface} from "../../interface/HolographerInterface.sol";
 import {HolographInterface} from "../../interface/HolographInterface.sol";
+import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
+import {IHolographDropERC721V2} from "../interface/IHolographDropERC721V2.sol";
+import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
+import {HolographTreasuryInterface} from "../../interface/HolographTreasuryInterface.sol";
 
 import {AddressMintDetails} from "../struct/AddressMintDetails.sol";
 import {Configuration} from "../struct/Configuration.sol";
-import {DropsInitializer} from "../struct/DropsInitializer.sol";
+import {DropsInitializerV2} from "../struct/DropsInitializerV2.sol";
 import {SaleDetails} from "../struct/SaleDetails.sol";
 import {SalesConfiguration} from "../struct/SalesConfiguration.sol";
 
 import {Address} from "../library/Address.sol";
 import {MerkleProof} from "../library/MerkleProof.sol";
 
-import {IMetadataRenderer} from "../interface/IMetadataRenderer.sol";
-import {IOperatorFilterRegistry} from "../interface/IOperatorFilterRegistry.sol";
-import {IHolographDropERC721} from "../interface/IHolographDropERC721.sol";
-
-import {IDropsPriceOracle} from "../interface/IDropsPriceOracle.sol";
-
 /**
  * @dev This contract subscribes to the following HolographERC721 events:
- *       - beforeSafeTransfer
- *       - beforeTransfer
- *       - onIsApprovedForAll
  *       - customContractURI
  *
- *       Do not enable or subscribe to any other events unless you modified your source code for them.
+ *       Do not enable or subscribe to any other events unless you modified the source code for them.
  */
-contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
+contract HolographDropERC721V2 is NonReentrant, ERC721H, IHolographDropERC721V2 {
   /**
    * CONTRACT VARIABLES
    * all variables, without custom storage slots, are defined here
    */
-
-  /**
-   * @dev bytes32(uint256(keccak256('eip1967.Holograph.osRegistryEnabled')) - 1)
-   */
-  bytes32 constant _osRegistryEnabledSlot = precomputeslot("eip1967.Holograph.osRegistryEnabled");
-
-  /**
-   * @dev Address of the operator filter registry
-   */
-  IOperatorFilterRegistry public constant openseaOperatorFilterRegistry =
-    IOperatorFilterRegistry(0x000000000000AAeB6D7670E522A718067333cd4E);
 
   /**
    * @dev Address of the price oracle proxy
@@ -59,19 +142,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * @dev Internal reference used for minting incremental token ids.
    */
   uint224 private _currentTokenId;
-
-  /**
-   * @dev HOLOGRAPH transfer helper address for auto-approval
-   */
-  address public erc721TransferHelper;
-
-  /**
-   * @dev Address of the market filter registry
-   */
-  address public marketFilterAddress;
-
-  /// @notice Holograph Mint Fee
-  uint256 public constant HOLOGRAPH_MINT_FEE = 1000000; // $1.00 USD (6 decimal places)
 
   /// @dev Gas limit for transferring funds
   uint256 private constant STATIC_GAS_LIMIT = 210_000;
@@ -99,12 +169,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   /**
    * CUSTOM ERRORS
    */
-
-  /**
-   * @notice Thrown when there is no active market filter address supported for the current chain
-   * @dev Used for enabling and disabling filter for the given chain.
-   */
-  error MarketFilterAddressNotSupportedForChain();
 
   /**
    * MODIFIERS
@@ -161,12 +225,7 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   function init(bytes memory initPayload) external override returns (bytes4) {
     require(!_isInitialized(), "HOLOGRAPH: already initialized");
 
-    DropsInitializer memory initializer = abi.decode(initPayload, (DropsInitializer));
-
-    erc721TransferHelper = initializer.erc721TransferHelper;
-    if (initializer.marketFilterAddress != address(0)) {
-      marketFilterAddress = initializer.marketFilterAddress;
-    }
+    DropsInitializerV2 memory initializer = abi.decode(initPayload, (DropsInitializerV2));
 
     // Setup the owner role
     _setOwner(initializer.initialOwner);
@@ -186,34 +245,9 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
 
     salesConfig = initializer.salesConfiguration;
 
-    // TODO: Need to make sure to initialize the metadata renderer
+    // Initialize metadata renderer
     if (initializer.metadataRenderer != address(0)) {
       IMetadataRenderer(initializer.metadataRenderer).initializeWithData(initializer.metadataRendererInit);
-    }
-
-    if (initializer.enableOpenSeaRoyaltyRegistry && Address.isContract(address(openseaOperatorFilterRegistry))) {
-      if (marketFilterAddress == address(0)) {
-        // this is a default filter that can be used for OS royalty filtering
-        // marketFilterAddress = 0x3cc6CddA760b79bAfa08dF41ECFA224f810dCeB6;
-        // we just register to OS royalties and let OS handle it for us with their default filter contract
-        HolographERC721Interface(holographer()).sourceExternalCall(
-          address(openseaOperatorFilterRegistry),
-          abi.encodeWithSelector(IOperatorFilterRegistry.register.selector, holographer())
-        );
-      } else {
-        // allow user to specify custom filtering contract address
-        HolographERC721Interface(holographer()).sourceExternalCall(
-          address(openseaOperatorFilterRegistry),
-          abi.encodeWithSelector(
-            IOperatorFilterRegistry.registerAndSubscribe.selector,
-            holographer(),
-            marketFilterAddress
-          )
-        );
-      }
-      assembly {
-        sstore(_osRegistryEnabledSlot, true)
-      }
     }
 
     setStatus(1);
@@ -229,14 +263,14 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
   /**
    * @notice Returns the version of the contract
    * @dev Used for contract versioning and validation
-   * @return version string representing the version of the contract
+   * @return version of the contract
    */
-  function version() external pure returns (string memory) {
-    return "1.0.0";
+  function version() external pure returns (uint32) {
+    return 2;
   }
 
   function supportsInterface(bytes4 interfaceId) external pure override returns (bool) {
-    return interfaceId == type(IHolographDropERC721).interfaceId;
+    return interfaceId == type(IHolographDropERC721V2).interfaceId;
   }
 
   /**
@@ -244,66 +278,12 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * dynamic
    */
 
-  function owner() external view override(ERC721H, IHolographDropERC721) returns (address) {
+  function owner() external view override(ERC721H, IHolographDropERC721V2) returns (address) {
     return _getOwner();
   }
 
   function isAdmin(address user) external view returns (bool) {
     return (_getOwner() == user);
-  }
-
-  function beforeSafeTransfer(
-    address _from,
-    address /* _to*/,
-    uint256 /* _tokenId*/,
-    bytes calldata /* _data*/
-  ) external view returns (bool) {
-    if (
-      _from != address(0) && // skip on mints
-      _from != msgSender() // skip on transfers from sender
-    ) {
-      bool osRegistryEnabled;
-      assembly {
-        osRegistryEnabled := sload(_osRegistryEnabledSlot)
-      }
-      if (osRegistryEnabled) {
-        try openseaOperatorFilterRegistry.isOperatorAllowed(address(this), msgSender()) returns (bool allowed) {
-          return allowed;
-        } catch {
-          revert OperatorNotAllowed(msgSender());
-        }
-      }
-    }
-    return true;
-  }
-
-  function beforeTransfer(
-    address _from,
-    address /* _to*/,
-    uint256 /* _tokenId*/,
-    bytes calldata /* _data*/
-  ) external view returns (bool) {
-    if (
-      _from != address(0) && // skip on mints
-      _from != msgSender() // skip on transfers from sender
-    ) {
-      bool osRegistryEnabled;
-      assembly {
-        osRegistryEnabled := sload(_osRegistryEnabledSlot)
-      }
-      if (osRegistryEnabled) {
-        try openseaOperatorFilterRegistry.isOperatorAllowed(address(this), msgSender()) returns (bool allowed) {
-          return allowed;
-        } catch {
-          revert OperatorNotAllowed(msgSender());
-        }
-      }
-    }
-    return true;
-  }
-
-  function onIsApprovedForAll(address /* _wallet*/, address _operator) external view returns (bool approved) {
-    approved = (erc721TransferHelper != address(0) && _operator == erc721TransferHelper);
   }
 
   /**
@@ -327,16 +307,27 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       });
   }
 
+  /// @notice The Holograph fee is a flat fee for each mint in USD and is controlled by the treasury
+  /// @dev Gets the flat Holograph protocol fee for a single mint in USD
+  function getHolographFeeFromTreasury() public view returns (uint256) {
+    address payable treasuryProxyAddress = payable(
+      HolographInterface(HolographerInterface(holographer()).getHolograph()).getTreasury()
+    );
+
+    HolographTreasuryInterface treasury = HolographTreasuryInterface(treasuryProxyAddress);
+    return treasury.getHolographMintFee();
+  }
+
   /// @notice The Holograph fee is a flat fee for each mint in USD
   /// @dev Gets the Holograph protocol fee for amount of mints in USD
   function getHolographFeeUsd(uint256 quantity) public view returns (uint256 fee) {
-    fee = HOLOGRAPH_MINT_FEE * quantity;
+    fee = getHolographFeeFromTreasury() * quantity;
   }
 
   /// @notice The Holograph fee is a flat fee for each mint in wei after conversion
   /// @dev Gets the Holograph protocol fee for amount of mints in wei
   function getHolographFeeWei(uint256 quantity) public view returns (uint256) {
-    return _usdToWei(HOLOGRAPH_MINT_FEE * quantity);
+    return _usdToWei(getHolographFeeFromTreasury() * quantity);
   }
 
   /**
@@ -412,11 +403,12 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
     uint256 quantity
   ) external payable nonReentrant canMintTokens(quantity) onlyPublicSaleActive returns (uint256) {
     uint256 salePrice = _usdToWei(salesConfig.publicSalePrice);
-    uint256 holographMintFeeInWei = _usdToWei(HOLOGRAPH_MINT_FEE);
+    uint256 holographMintFeeUsd = getHolographFeeFromTreasury();
+    uint256 holographMintFeeWei = _usdToWei(holographMintFeeUsd);
 
-    if (msg.value < (salePrice + holographMintFeeInWei) * quantity) {
-      // The error will display the wrong price that was sent in USD
-      revert Purchase_WrongPrice((salesConfig.publicSalePrice + HOLOGRAPH_MINT_FEE) * quantity);
+    if (msg.value < (salePrice + holographMintFeeWei) * quantity) {
+      // The error will display what the correct price should be
+      revert Purchase_WrongPrice((salesConfig.publicSalePrice + holographMintFeeUsd) * quantity);
     }
     uint256 remainder = msg.value - (salePrice * quantity);
 
@@ -521,58 +513,6 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
    * PUBLIC STATE CHANGING FUNCTIONS
    * admin only
    */
-
-  /**
-   * @notice Proxy to update market filter settings in the main registry contracts
-   * @notice Requires admin permissions
-   * @param args Calldata args to pass to the registry
-   */
-  function updateMarketFilterSettings(bytes calldata args) external onlyOwner {
-    HolographERC721Interface(holographer()).sourceExternalCall(address(openseaOperatorFilterRegistry), args);
-    bool osRegistryEnabled = openseaOperatorFilterRegistry.isRegistered(holographer());
-    assembly {
-      sstore(_osRegistryEnabledSlot, osRegistryEnabled)
-    }
-  }
-
-  /**
-   * @notice Manage subscription for marketplace filtering based off royalty payouts.
-   * @param enable Enable filtering to non-royalty payout marketplaces
-   */
-  function manageMarketFilterSubscription(bool enable) external onlyOwner {
-    address self = holographer();
-    if (marketFilterAddress == address(0)) {
-      revert MarketFilterAddressNotSupportedForChain();
-    }
-    if (!openseaOperatorFilterRegistry.isRegistered(self) && enable) {
-      HolographERC721Interface(self).sourceExternalCall(
-        address(openseaOperatorFilterRegistry),
-        abi.encodeWithSelector(IOperatorFilterRegistry.registerAndSubscribe.selector, self, marketFilterAddress)
-      );
-    } else if (enable) {
-      HolographERC721Interface(self).sourceExternalCall(
-        address(openseaOperatorFilterRegistry),
-        abi.encodeWithSelector(IOperatorFilterRegistry.subscribe.selector, self, marketFilterAddress)
-      );
-    } else {
-      HolographERC721Interface(self).sourceExternalCall(
-        address(openseaOperatorFilterRegistry),
-        abi.encodeWithSelector(IOperatorFilterRegistry.unsubscribe.selector, self, false)
-      );
-      HolographERC721Interface(self).sourceExternalCall(
-        address(openseaOperatorFilterRegistry),
-        abi.encodeWithSelector(IOperatorFilterRegistry.unregister.selector, self)
-      );
-    }
-    bool osRegistryEnabled = openseaOperatorFilterRegistry.isRegistered(self);
-    assembly {
-      sstore(_osRegistryEnabledSlot, osRegistryEnabled)
-    }
-  }
-
-  function modifyMarketFilterAddress(address newMarketFilterAddress) external onlyOwner {
-    marketFilterAddress = newMarketFilterAddress;
-  }
 
   /**
    * @notice Admin mint tokens to a recipient for free
@@ -735,7 +675,9 @@ contract HolographDropERC721 is NonReentrant, ERC721H, IHolographDropERC721 {
       }
       tokenId = _currentTokenId;
       H721.sourceMint(recipient, tokenId);
-      // uint256 id = chainPrepend + uint256(tokenId);
+
+      uint256 id = chainPrepend + uint256(tokenId);
+      emit NFTMinted(recipient, tokenId, id);
     }
   }
 

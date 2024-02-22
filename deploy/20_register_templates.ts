@@ -331,13 +331,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // Register HolographDropERC721
   const HolographDropERC721InitCode = generateInitCode(
-    ['tuple(address,address,uint64,uint16,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)'],
+    [
+      'tuple(address,address,address,address,uint64,uint16,bool,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)',
+    ],
     [
       [
+        '0x0000000000000000000000000000000000000000', // holographERC721TransferHelper
+        '0x0000000000000000000000000000000000000000', // marketFilterAddress (opensea)
         deployerAddress, // initialOwner
         deployerAddress, // fundsRecipient
         0, // 1000 editions
         1000, // 10% royalty
+        false, // enableOpenSeaRoyaltyRegistry
         [0, 0, 0, 0, 0, 0, '0x' + '00'.repeat(32)], // salesConfig
         futureEditionsMetadataRendererProxyAddress, // metadataRenderer
         generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
@@ -380,6 +385,63 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
   } else {
     hre.deployments.log('"HolographDropERC721" is already registered');
+  }
+
+  // Register HolographDropERC721V2
+  const HolographDropERC721V2InitCode = generateInitCode(
+    ['tuple(address,address,uint64,uint16,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)'],
+    [
+      [
+        deployerAddress, // initialOwner
+        deployerAddress, // fundsRecipient
+        0, // 1000 editions
+        1000, // 10% royalty
+        [0, 0, 0, 0, 0, 0, '0x' + '00'.repeat(32)], // salesConfig
+        futureEditionsMetadataRendererProxyAddress, // metadataRenderer
+        generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
+      ],
+    ]
+  );
+  const futureHolographDropERC721V2Address = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'HolographDropERC721V2',
+    HolographDropERC721V2InitCode
+  );
+  hre.deployments.log('the future "HolographDropERC721V2" address is', futureHolographDropERC721V2Address);
+  const HolographDropERC721V2Hash = '0x' + web3.utils.asciiToHex('HolographDropERC721').substring(2).padStart(64, '0');
+  if (
+    (await holographRegistry.getContractTypeAddress(HolographDropERC721V2Hash)) != futureHolographDropERC721V2Address
+  ) {
+    const erc721DropTx = await MultisigAwareTx(
+      hre,
+      'HolographRegistry',
+      holographRegistry,
+      await holographRegistry.populateTransaction.setContractTypeAddress(
+        HolographDropERC721V2Hash,
+        futureHolographDropERC721V2Address,
+        {
+          ...(await txParams({
+            hre,
+            from: deployerAddress,
+            to: holographRegistry,
+            data: holographRegistry.populateTransaction.setContractTypeAddress(
+              HolographDropERC721V2Hash,
+              futureHolographDropERC721V2Address
+            ),
+          })),
+        }
+      )
+    );
+    hre.deployments.log('Transaction hash:', erc721DropTx.hash);
+    await erc721DropTx.wait();
+    hre.deployments.log(
+      `Registered "HolographDropERC721V2" to: ${await holographRegistry.getContractTypeAddress(
+        HolographDropERC721Hash
+      )}`
+    );
+  } else {
+    hre.deployments.log('"HolographDropERC721V2" is already registered');
   }
 
   // Register CxipERC721
@@ -534,5 +596,6 @@ func.dependencies = [
   'DeployERC20',
   'DeployERC721',
   'HolographDropERC721',
+  'HolographDropERC721V2',
   'DeployERC1155',
 ];

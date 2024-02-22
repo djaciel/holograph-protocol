@@ -25,6 +25,18 @@ interface IHolographDropERC721 {
   /// @notice Call to external metadata renderer failed.
   error ExternalMetadataRenderer_CallFailed();
 
+  /// @notice Thrown when the operator for the contract is not allowed
+  /// @dev Used when strict enforcement of marketplaces for creator royalties is desired.
+  error OperatorNotAllowed(address operator);
+
+  /// @notice Thrown when there is no active market filter DAO address supported for the current chain
+  /// @dev Used for enabling and disabling filter for the given chain.
+  error MarketFilterDAOAddressNotSupportedForChain();
+
+  /// @notice Used when the operator filter registry external call fails
+  /// @dev Used for bubbling error up to clients.
+  error RemoteOperatorFilterRegistryCallFailed();
+
   // Sale/Purchase errors
   /// @notice Sale is inactive
   error Sale_Inactive();
@@ -94,12 +106,6 @@ interface IHolographDropERC721 {
   /// @param sender address of the updater
   /// @param renderer new metadata renderer address
   event UpdatedMetadataRenderer(address sender, IMetadataRenderer renderer);
-
-  /// @notice Event emitted when an nfs is minted
-  /// @param recipient address that the nft was minted to
-  /// @param tokenId id of the minted nft
-  /// @param id id of the minted nft with chain id prefix
-  event NFTMinted(address indexed recipient, uint256 indexed tokenId, uint256 id);
 
   /// @notice Admin function to update the sales configuration settings
   /// @param publicSalePrice public sale price in ether
