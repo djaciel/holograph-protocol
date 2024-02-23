@@ -39,43 +39,59 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // Logic for checking if all reserved namespaces are actually reserved
   // if some are missing, they will automatically be marked for reservation
+  // Defines a fixed storage slot that is used to store the mapping of reserved namespaces
+  // using Solidity's storage layout. The number 3 represents a specific slot in storage.
   const _reservedMappingSlot = web3.eth.abi.encodeParameters(['uint256'], [3]);
+
+  // A function that calculates the storage slot for a given namespace key. This is done by
+  // hashing the combination of the namespace key and the reserved mapping slot. The result
+  // is the actual storage slot where the reservation status of the namespace is stored.
   const _getReservedStorageSlot = function (mappingKey: string): string {
     return web3.utils.keccak256(
       web3.eth.abi.encodeParameters(['bytes32', 'bytes32'], [mappingKey, _reservedMappingSlot])
     );
   };
+
   hre.deployments.log('Checking the HolographRegistry reserved namespaces');
+
+  // Initializes an array to keep track of namespaces that need to be reserved.
   let toReserve: number[] = [];
+
+  // Iterates through the list of reserved namespaces to check their reservation status.
   for (let i: number = 0, l: number = reservedNamespaces.length; i < l; i++) {
     let name: string = reservedNamespaces[i];
     let hash: string = reservedNamespaceHashes[i];
+    // Requests the current value stored at the calculated storage slot for the namespace.
+    // This is done to check if the namespace is already marked as reserved.
     let reserved: string = await hre.ethers.provider.send('eth_getStorageAt', [
       holographRegistry.address,
       _getReservedStorageSlot(hash),
       'latest',
     ]);
+    // If the storage slot is empty (indicated by '0x' followed by 64 zeros or '0x0'), it
+    // means the namespace is not reserved, so it's added to the `toReserve` list.
     if (reserved === '0x' + '00'.repeat(32) || reserved === '0x0') {
       toReserve.push(i);
     }
   }
+
+  // Checks if there are any namespaces to reserve. If not, logs a message indicating that
+  // all namespaces are in order.
   if (toReserve.length == 0) {
     hre.deployments.log('All HolographRegistry reserved namespaces are in order');
   } else {
+    // If there are namespaces to reserve, logs the missing namespaces.
     hre.deployments.log(
       'Missing the following namespaces:',
-      (
-        toReserve.map((index: number) => {
-          return reservedNamespaces[index];
-        }) as string[]
-      ).join(', ')
+      toReserve.map((index: number) => reservedNamespaces[index]).join(', ')
     );
-    let hashArray: string[] = toReserve.map((index: number) => {
-      return reservedNamespaceHashes[index];
-    }) as string[];
-    let reserveArray: bool[] = toReserve.map((index: number) => {
-      return true;
-    }) as bool[];
+
+    // Prepares the arrays of namespace hashes and reservation statuses for the transaction.
+    let hashArray: string[] = toReserve.map((index: number) => reservedNamespaceHashes[index]);
+    let reserveArray: bool[] = toReserve.map(() => true);
+
+    // Creates and sends a transaction to reserve the missing namespaces.
+    // `populateTransaction` prepares transaction data for the `setReservedContractTypeAddresses` method.
     const setReservedContractTypeAddressesTx = await MultisigAwareTx(
       hre,
       'HolographRegistry',
@@ -89,12 +105,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         })),
       })
     );
+
     hre.deployments.log('Transaction hash:', setReservedContractTypeAddressesTx.hash);
     await setReservedContractTypeAddressesTx.wait();
     hre.deployments.log('Missing namespaces have been reserved for HolographRegistry');
   }
-  // at this point all reserved namespaces should be registered in protocol
 
+  // At this point all reserved namespaces should be registered in protocol so we can proceed with registering the templates
   // Register DropsPriceOracleProxy
   const futureDropsPriceOracleProxyAddress = await genesisDeriveFutureAddress(
     hre,
