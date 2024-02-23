@@ -20,6 +20,7 @@ import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { reservedNamespaces, reservedNamespaceHashes } from '../scripts/utils/reserved-namespaces';
 import { ConfigureEvents } from '../scripts/utils/events';
 
+// NOTE: IF YOU WANT TO REGISTER A NEW CONTRACT TYPE (NAMESPACE), YOU NEED TO ADD IT TO THE reservedNamespaces ARRAY IN reserved-namespaces.ts
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
 
