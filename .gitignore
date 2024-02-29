@@ -27,3 +27,7 @@ yarn-error.log
 tenderly.yaml
 
 .vscode
+
+## envs
+.env*
+!.env.sample
