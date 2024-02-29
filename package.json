@@ -29,9 +29,9 @@
     "init": "(ls .env >> /dev/null 2>&1 && cp .env ignore.original.env) ; cp sample.env .env",
     "abi": "hardhat abi",
     "build": "hardhat holograph-build-contracts",
-    "clean-compile": "hardhat clean ; hardhat compile ; hardhat deploymentsPrettier",
+    "clean-compile": "hardhat clean ; hardhat compile",
     "clean": "hardhat clean",
-    "compile": "hardhat compile ; hardhat deploymentsPrettier",
+    "compile": "hardhat compile",
     "deploy": "hardhat deploy",
     "deploy-x2": "yarn deploy:localhost; yarn deploy:localhost2",
     "deploy:localhost": "hardhat deploy --network localhost",
@@ -61,8 +61,9 @@
     "@holographxyz/environment": "0.1.10",
     "@holographxyz/hardhat-deploy-holographed": "^0.0.6",
     "@holographxyz/hardhat-holograph-contract-builder": "^0.0.4",
-    "@holographxyz/holograph-genesis": "^0.0.7",
+    "@holographxyz/holograph-genesis": "^0.2.0",
     "@holographxyz/networks": "^0.2.0",
+    "@types/yargs": "^17.0.32",
     "chai-ethers": "^0.0.1",
     "ganache": "^7.8.0",
     "hardhat-preprocessor": "^0.1.5",
@@ -111,6 +112,7 @@
     "solhint-plugin-prettier": "^0.0.5",
     "ts-node": "^10.9.1",
     "typechain": "^8.1.1",
-    "typescript": "^4.3.5"
+    "typescript": "^4.3.5",
+    "yargs": "^17.7.2"
   }
 }

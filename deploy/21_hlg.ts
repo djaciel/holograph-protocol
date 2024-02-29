@@ -85,9 +85,21 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     throw new Error('cannot identity current NetworkType');
   }
 
+  // NOTICE: At the moment the hToken contract's address is reliant on the deployerAddress which prevents multiple approved deployers from deploying the same address. This is a temporary solution until the hToken contract is upgraded to allow any deployerAddress to be used.
+  // NOTE: Use hardcoded version of deployerAddress from Ledger hardware only for testnet and mainnet envs
+  // If environment is develop use the signers deployerAddress
+  let erc20DeployerAddress = '0xBB566182f35B9E5Ae04dB02a5450CC156d2f89c1'; // Ledger deployerAddress
+  console.log(`Environment: ${environment}`);
+
+  // If environment is develop use the signers deployerAddress (the hardcoded version is only for testnet and mainnet envs)
+  if (environment == Environment.develop) {
+    hre.deployments.log(`Using deployerAddress from signer ${deployerAddress}`);
+    erc20DeployerAddress = deployerAddress;
+  }
+
   let { erc20Config, erc20ConfigHash, erc20ConfigHashBytes } = await generateErc20Config(
     primaryNetwork,
-    deployerAddress,
+    erc20DeployerAddress, // TODO: Upgrade the hToken contract so that any deployerAddress can be used
     'HolographUtilityToken',
     'Holograph Utility Token',
     'HLG',
@@ -97,7 +109,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     ConfigureEvents([]),
     generateInitCode(
       ['address', 'uint256', 'uint256', 'address'],
-      [deployerAddress, tokenAmount.toHexString(), targetChain.toHexString(), tokenRecipient]
+      [erc20DeployerAddress, tokenAmount.toHexString(), targetChain.toHexString(), tokenRecipient] // TODO: Upgrade the hToken contract so that any deployerAddress can be used
     ),
     salt
   );
