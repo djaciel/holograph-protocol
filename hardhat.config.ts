@@ -241,10 +241,7 @@ task('hTokenBalance', 'Calls the extractNativeToken function in the hToken contr
 //     throw new Error('The directory "deployments" was not found.');
 //   }
 
-// task('deploymentsPrettier', 'Adds EOF new line to prevent prettier to change files').setAction(async (args) => {
-//   if (!fs.existsSync('./deployments')) {
-//     throw new Error('The directory "deployments" was not found.');
-//   }
+
 //   function getAllFiles(dirPath: string, arrayOfFiles: string[]) {
 //     const files = fs.readdirSync(dirPath);
 
