@@ -6,6 +6,8 @@ const reservedNamespaces: string[] = [
   'HolographERC20',
   'HolographERC721',
   'HolographDropERC721',
+  'HolographDropERC721V2',
+  'HolographDropERC1155',
   'HolographERC1155',
   'CxipERC721',
   'CxipERC1155',

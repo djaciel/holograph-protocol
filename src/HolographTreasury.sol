@@ -42,6 +42,11 @@ contract HolographTreasury is Admin, Initializable, HolographTreasuryInterface {
   bytes32 constant _registrySlot = precomputeslot("eip1967.Holograph.registry");
 
   /**
+   * @dev Holograph Mint Fee is can be used to charge a flat fee for minting
+   */
+  uint256 public holographMintFee;
+
+  /**
    * @dev Constructor is left empty and init is used instead
    */
   constructor() {}
@@ -65,6 +70,9 @@ contract HolographTreasury is Admin, Initializable, HolographTreasuryInterface {
       sstore(_operatorSlot, operator)
       sstore(_registrySlot, registry)
     }
+
+    holographMintFee = 1000000; // $1.00 USD (6 decimal places)
+
     _setInitialized();
     return InitializableInterface.init.selector;
   }
@@ -171,6 +179,22 @@ contract HolographTreasury is Admin, Initializable, HolographTreasuryInterface {
     assembly {
       registry := sload(_registrySlot)
     }
+  }
+
+  /**
+   * @notice Get the Holograph Mint Fee
+   * @dev This fee is charged to mint holographable assets
+   */
+  function getHolographMintFee() external view returns (uint256) {
+    return holographMintFee;
+  }
+
+  /**
+   * @notice Update the Holograph Mint Fee
+   * @param fee new fee to charge for minting holographable assets
+   */
+  function setHolographMintFee(uint256 fee) external onlyAdmin {
+    holographMintFee = fee;
   }
 
   /**

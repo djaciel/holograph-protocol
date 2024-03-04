@@ -283,7 +283,7 @@ _Submitted by 0xA5DF, also found by cryptphi, Jeiwan, and Picodes_
 During the beaming process the user compensates the operator for the gas he has to pay by sending some source-chain-native-tokens via `hToken`.<br>
 The amount he has to pay is determined according to the `gasPrice` set by the user, which is supposed to be the maximum gas price to be used on dest chain (therefore predicting the max gas fee the operator would pay and paying him the same value in src chain native tokens).<br>
 However, in case the user sets a low price (as low as 1 wei) the operator can't skip the job because he's locked out of the pod till he executes the job.<br>
-The operator would have to choose between loosing money by paying a higher gas fee than he's compensated for or being locked out of the pod - not able to execute additional jobs or get back his bonded amount.<br>
+The operator would have to choose between losing money by paying a higher gas fee than he's compensated for or being locked out of the pod - not able to execute additional jobs or get back his bonded amount.<br>
 
 ### Impact
 
@@ -1084,7 +1084,7 @@ If the following conditions have been met:
 - The selected operator doesn't complete the job, either intentionally (they're sacrificing their bonded amount to harm the token owner) or innocently (hardware failure that caused a loss of access to the wallet)
 - Gas price has spiked, and isn't going down than the `gasPrice` set by the user in the bridge out request
 
-Then the bridging request wouldn't complete and the token owner would loos access to the token till the gas price goes back down again.
+Then the bridging request wouldn't complete and the token owner would lose access to the token till the gas price goes back down again.
 
 ### Proof of Concept
 
@@ -1443,7 +1443,7 @@ The issue is that any user can spam the contract with a large amount of empty op
 
 The above could be wrapped in a flashloan to get virtually any pod tier filled.
 
-The consequence is that when the scheduler chooses pods uniformally, they will very likely choose an empty pod, with the zero address. Therefore, the chosen operator will be 0, which is referred to in the code as "open season". In this occurrance, any operator can perform the executeJob() call. This is of course really bad, because all but one operator continually waste gas for executions that will be reverted after the lucky first transaction goes through. This would be a practical example of a griefing attack on Holograph.
+The consequence is that when the scheduler chooses pods uniformally, they will very likely choose an empty pod, with the zero address. Therefore, the chosen operator will be 0, which is referred to in the code as "open season". In this occurrence, any operator can perform the executeJob() call. This is of course really bad, because all but one operator continually waste gas for executions that will be reverted after the lucky first transaction goes through. This would be a practical example of a griefing attack on Holograph.
 
 ### Impact
 
@@ -1623,7 +1623,7 @@ _Submitted by securerodd_
 
 When new holographable tokens are created, they typically set a state variable that holds the address of the holograph contract. When creation is done through the `HolographFactory`, the holograph contract is [passed in as a parameter](https://github.com/code-423n4/2022-10-holograph/blob/f8c2eae866280a1acfdc8a8352401ed031be1373/contracts/HolographFactory.sol#L252) to the holographable contract's initializer function. Under normal circumstances, this would ensure that the hologrpahable asset stores a trusted holograph contract address in its `_holographSlot`.
 
-However, the initializer is vulnerable to reentrancy and the `_holographSlot` can be set to an untrusted contract address. This occurs because before the initialization is complete, the Holographer makes a [delegate call](https://github.com/code-423n4/2022-10-holograph/blob/f8c2eae866280a1acfdc8a8352401ed031be1373/contracts/enforcer/Holographer.sol#L162-L164) to a corresponding enforcer contract. From here, the enforcer contract makes an [optional call](https://github.com/code-423n4/2022-10-holograph/blob/f8c2eae866280a1acfdc8a8352401ed031be1373/contracts/enforcer/HolographERC20.sol#L241) to the source contract in an attempt to intialize it. This call can be used to reenter into the Holographer contract's initialize function before the first one has been completed and overwrite key variables such as the `_adminslot`, the `_holographSlot` and the `_sourceContractSlot`.
+However, the initializer is vulnerable to reentrancy and the `_holographSlot` can be set to an untrusted contract address. This occurs because before the initialization is complete, the Holographer makes a [delegate call](https://github.com/code-423n4/2022-10-holograph/blob/f8c2eae866280a1acfdc8a8352401ed031be1373/contracts/enforcer/Holographer.sol#L162-L164) to a corresponding enforcer contract. From here, the enforcer contract makes an [optional call](https://github.com/code-423n4/2022-10-holograph/blob/f8c2eae866280a1acfdc8a8352401ed031be1373/contracts/enforcer/HolographERC20.sol#L241) to the source contract in an attempt to initialize it. This call can be used to reenter into the Holographer contract's initialize function before the first one has been completed and overwrite key variables such as the `_adminslot`, the `_holographSlot` and the `_sourceContractSlot`.
 
 One way in which this becomes problematic is because of how holographed ERC20s perform `transferFrom` calls. Holographed ERC20s by default allow two special addresses to [transfer](https://github.com/code-423n4/2022-10-holograph/blob/f8c2eae866280a1acfdc8a8352401ed031be1373/contracts/enforcer/HolographERC20.sol#L527) assets on behalf of other users without an allowance. These addresses are calculated by calling `_holograph().getBridge()` and `_holograph().getOperator()` respectively. With the above described reentrancy issue, `_holograph().getBridge()` and `_holograph().getOperator()` can return arbitrary addresses. This means that newly created holographed ERC20 tokens can be prone to unauthorized transfers. These assets will have been deployed by the HolographFactory and may look and feel like a safe holographable token to users but they can come with a built-in rugpull vector.
 
@@ -1870,7 +1870,7 @@ require(_bondedOperators[operator] == 0 &&
 
 Assuming that it is intentional that non-operators can execute jobs (which could make sense, so that a user could finish a bridging process on his own, if none of the operators are doing it): remove the requirement that `_bondedAmounts` need to be 0 prior to bonding and becoming an operator so that non-operators can get access to the slashing reward by unbonding after.
 
-Alternatively (possibly preferrable), just add a method to withdraw any `_bondedAmounts` of non-operators.
+Alternatively (possibly preferable), just add a method to withdraw any `_bondedAmounts` of non-operators.
 
 **[alexanderattar (Holograph) commented](https://github.com/code-423n4/2022-10-holograph-findings/issues/322#issuecomment-1306682172):**
 
@@ -1913,7 +1913,7 @@ _popOperator(_bondedOperators[operator] - 1, _operatorPodIndex[operator]);
 require(_utilityToken().transfer(recipient, amount), "HOLOGRAPH: token transfer failed");
 ```
 
-the logic is clean, but does not conform to the buisness requirement in the documentation, the doc said
+the logic is clean, but does not conform to the business requirement in the documentation, the doc said
 
 <https://docs.holograph.xyz/holograph-protocol/operator-network-specification#operator-job-selection>
 
@@ -1925,7 +1925,7 @@ there are two incentive for bounded operator to stay,
 
 the first is the reward incentive, the second is to avoid penalty with unbonding.
 
-Without chargin the unstaking fee, the second incentive is weak and the operator can unbound or bond whenver they want
+Without chargin the unstaking fee, the second incentive is weak and the operator can unbound or bond whenever they want
 
 ### Proof of Concept
 
@@ -2247,7 +2247,7 @@ Besides operators, there are also approved addresses for a token (for which `app
 
 ### Proof Of Concept
 
-Bob calls `approve` to approve Alice on token ID 42 (that is owned by Bob). One week later, Bob sees that a malicious address was approved for his token ID 42 (e.g., because Alice got phished) and stole his token. Bob wonders how this is possible, because Alice should not have the permission to approve other addresses. However, becaue `HolographERC721` did not follow EIP-721, it was possible.
+Bob calls `approve` to approve Alice on token ID 42 (that is owned by Bob). One week later, Bob sees that a malicious address was approved for his token ID 42 (e.g., because Alice got phished) and stole his token. Bob wonders how this is possible, because Alice should not have the permission to approve other addresses. However, because `HolographERC721` did not follow EIP-721, it was possible.
 
 ### Recommended Mitigation Steps
 
@@ -2342,7 +2342,7 @@ Lack of two-step procedure for critical operations leaves them error-prone. Cons
 The project contracts in scope are using low level calls with solidity version before 0.8.14 which can result in optimizer bug.<br>
 https://medium.com/certora/overly-optimistic-optimizer-certora-bug-disclosure-2101e3f7994d
 
-Simliar findings in Code4rena contests for reference:<br>
+Similar findings in Code4rena contests for reference:<br>
 https://code4rena.com/reports/2022-06-illuminate/#5-low-level-calls-with-solidity-version-0814-can-result-in-optimiser-bug
 
 ### Recommended Mitigation Steps
@@ -2520,7 +2520,7 @@ _The following wardens also submitted reports: [Bnke0x0](https://github.com/code
 
 ## [G-01] Don't Initialize Variables with Default Value
 
-Uninitialized variables are assigned with the types default value. Explicitly initializing a variable with it's default value costs unnecesary gas.
+Uninitialized variables are assigned with the types default value. Explicitly initializing a variable with it's default value costs unnecessary gas.
 
 ```
 2022-10-holograph/contracts/HolographBridge.sol::380 => uint256 fee = 0;

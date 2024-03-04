@@ -567,6 +567,11 @@
     "@ethersproject/properties" "^5.7.0"
     "@ethersproject/strings" "^5.7.0"
 
+"@fastify/busboy@^2.0.0":
+  version "2.1.0"
+  resolved "https://registry.yarnpkg.com/@fastify/busboy/-/busboy-2.1.0.tgz#0709e9f4cb252351c609c6e6d8d6779a8d25edff"
+  integrity sha512-+KpH+QxZU7O4675t3mnkQKcZZg56u+K/Ct2K+N2AZYNVK8kyeo/bI18tI8aPm3tvNNRyTWfj6s5tnGNlcbQRsA==
+
 "@holographxyz/environment@0.1.10":
   version "0.1.10"
   resolved "https://registry.yarnpkg.com/@holographxyz/environment/-/environment-0.1.10.tgz#273d79c1f6461c1848625624b960e0860a888e9b"
@@ -574,27 +579,6 @@
   dependencies:
     dotenv "^10.0.0"
     path "^0.12.7"
-
-"@holographxyz/hardhat-deploy-holographed@^0.0.5":
-  version "0.0.5"
-  resolved "https://registry.yarnpkg.com/@holographxyz/hardhat-deploy-holographed/-/hardhat-deploy-holographed-0.0.5.tgz#04daa61aba38acf85db336aaa7a29d169f1a82a3"
-  integrity sha512-68J2i3jIxC2dI6c9Etq9NHOxloA9W+RBtJiTQyZ3P/eqKj3CKKiWn2fc4CZaBFYnomIj1CczmMFDAA8vSDdJpw==
-  dependencies:
-    "@ethersproject/providers" "^5.7.2"
-    "@types/qs" "^6.9.7"
-    axios "^0.21.1"
-    chalk "^4.1.2"
-    chokidar "^3.5.2"
-    debug "^4.3.2"
-    enquirer "^2.3.6"
-    ethers "^5.5.3"
-    form-data "^4.0.0"
-    fs-extra "^10.0.0"
-    match-all "^1.2.6"
-    murmur-128 "^0.2.1"
-    qs "^6.9.4"
-    super-cold-storage-signer "^0.0.4"
-    zksync-web3 "^0.4.0"
 
 "@holographxyz/hardhat-deploy-holographed@^0.0.6":
   version "0.0.6"
@@ -621,20 +605,21 @@
   resolved "https://registry.yarnpkg.com/@holographxyz/hardhat-holograph-contract-builder/-/hardhat-holograph-contract-builder-0.0.4.tgz#da2eb5abfbe771ce9db217671b653a38f0e7fccf"
   integrity sha512-W/vWgHT6bZWdmJoWJxdWHnUCscrpOXbL1mo2WCDVtjrHQmXivMal7aRZw+ZeDfjTpcvGQ0SBxC+nJZZGCnuVDA==
 
-"@holographxyz/holograph-genesis@^0.0.7":
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/@holographxyz/holograph-genesis/-/holograph-genesis-0.0.7.tgz#afd826c8b99fe05a56b78c9e417130c5ce658038"
-  integrity sha512-ZsGDMOfnXiQF0fbE3Dhuk2mlzbbaRdoQv8KrlWO1K7ypMSnmNVWqRqXqHWRuSLZnDOYo55DO7tUqnxLDe++/vg==
+"@holographxyz/holograph-genesis@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@holographxyz/holograph-genesis/-/holograph-genesis-0.2.0.tgz#b54e35ac83c29c1266bbb48d870592fb96101999"
+  integrity sha512-fMzJrfPiegl8Ha6UBxFDdHhZbVi/SNgGn3fUNJqvTYuchLysWPh+ehkGnuCa9F9C5g+WcomCRKVBANUMCsCgjA==
   dependencies:
+    "@anders-t/ethers-ledger" "^1.0.4"
     "@ethersproject/abstract-provider" "^5.7.0"
     "@ethersproject/bignumber" "^5.7.0"
     "@ethersproject/bytes" "^5.7.0"
     "@ethersproject/providers" "^5.7.2"
     "@ethersproject/units" "^5.7.0"
     "@holographxyz/environment" "0.1.10"
-    "@holographxyz/hardhat-deploy-holographed" "^0.0.5"
+    "@holographxyz/hardhat-deploy-holographed" "^0.0.6"
     "@holographxyz/hardhat-holograph-contract-builder" "^0.0.4"
-    "@holographxyz/networks" "0.1.31"
+    "@holographxyz/networks" "^0.2.0"
     "@typechain/ethers-v5" "^9.0.0"
     "@typechain/hardhat" "^4.0.0"
     "@types/chai" "^4.3.0"
@@ -642,26 +627,15 @@
     "@types/mocha" "^9.1.0"
     "@types/node" "^17.0.21"
     "@typescript-eslint/parser" "^5.42.1"
-    dotenv "^10.0.0"
+    dotenv "^16.4.1"
     ethers "^5.5.4"
     path "^0.12.7"
-    super-cold-storage-signer "^0.0.4"
     truffle-hdwallet-provider "^1.0.17"
     ts-node "^10.1.0"
     typechain "^7.0.0"
     typescript "^4.3.5"
     web3 "^1.7.0"
     zksync-web3 "^0.4.0"
-
-"@holographxyz/networks@0.1.31":
-  version "0.1.31"
-  resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.1.31.tgz#1d53b416ceaba8fd3392a55e297e9e590ecc02d5"
-  integrity sha512-57bhV3fbX7sNp1tH/2dt05EpuHmeUhdWyZsDE7Ll0r/pJ4nhdkwLnWGalF0wM4ArU5sqMuW6uDyJTqFThFUFsw==
-  dependencies:
-    "@ethersproject/bignumber" "^5.7.0"
-    "@holographxyz/environment" "0.1.10"
-    dotenv "^10.0.0"
-    path "^0.12.7"
 
 "@holographxyz/networks@^0.2.0":
   version "0.2.0"
@@ -1655,6 +1629,18 @@
   integrity sha512-4F6szvZP3FM5HvJAmcInXBfrAhvM4tLIc8MO1nXwabG5TZVOLxVmAXRpICqXYd3lBlomSRGmLCopYV+yTocgpQ==
   dependencies:
     "@types/webidl-conversions" "*"
+
+"@types/yargs-parser@*":
+  version "21.0.3"
+  resolved "https://registry.yarnpkg.com/@types/yargs-parser/-/yargs-parser-21.0.3.tgz#815e30b786d2e8f0dcd85fd5bcf5e1a04d008f15"
+  integrity sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==
+
+"@types/yargs@^17.0.32":
+  version "17.0.32"
+  resolved "https://registry.yarnpkg.com/@types/yargs/-/yargs-17.0.32.tgz#030774723a2f7faafebf645f4e5a48371dca6229"
+  integrity sha512-xQ67Yc/laOG5uMfX/093MRlGGCIBzZMarVa+gfNKJxWAIgykYpVGkBdbqEzGDDfCrVUj6Hiff4mTZ5BA6TmAog==
+  dependencies:
+    "@types/yargs-parser" "*"
 
 "@typescript-eslint/parser@^5.42.1":
   version "5.59.0"
@@ -3146,13 +3132,6 @@ bufferutil@^4.0.1:
   dependencies:
     node-gyp-build "^4.3.0"
 
-busboy@^1.6.0:
-  version "1.6.0"
-  resolved "https://registry.yarnpkg.com/busboy/-/busboy-1.6.0.tgz#966ea36a9502e43cdb9146962523b92f531f6893"
-  integrity sha512-8SFQbg/0hQ9xy3UNTB0YEnsNBbWfhf7RtnzpL7TkBiTBRfrQ9Fxcnz7VJsleJpyp6rVLvXiuORqjlHi5q+PYuA==
-  dependencies:
-    streamsearch "^1.1.0"
-
 bytes@3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/bytes/-/bytes-3.1.2.tgz#8b0beeb98605adf1b128fa4386403c009e0221a5"
@@ -3486,6 +3465,15 @@ cliui@^7.0.2:
   dependencies:
     string-width "^4.2.0"
     strip-ansi "^6.0.0"
+    wrap-ansi "^7.0.0"
+
+cliui@^8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/cliui/-/cliui-8.0.1.tgz#0c04b075db02cbfe60dc8e6cf2f5486b1a3608aa"
+  integrity sha512-BSeNnyus75C4//NQ9gQt1/csTXyo/8Sb+afLAkzAptFuMsod9HFokGNudZpi/oQV73hnVK+sR+5PVRMd+Dr7YQ==
+  dependencies:
+    string-width "^4.2.0"
+    strip-ansi "^6.0.1"
     wrap-ansi "^7.0.0"
 
 clone-response@^1.0.2:
@@ -4137,6 +4125,11 @@ dotenv@^16.0.3:
   version "16.0.3"
   resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.0.3.tgz#115aec42bac5053db3c456db30cc243a5a836a07"
   integrity sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==
+
+dotenv@^16.4.1:
+  version "16.4.5"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.4.5.tgz#cdd3b3b604cb327e286b4762e13502f717cb099f"
+  integrity sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==
 
 dotignore@~0.1.2:
   version "0.1.2"
@@ -9974,11 +9967,6 @@ stream-to-pull-stream@^1.7.1:
     looper "^3.0.0"
     pull-stream "^3.2.3"
 
-streamsearch@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/streamsearch/-/streamsearch-1.1.0.tgz#404dd1e2247ca94af554e841a8ef0eaa238da764"
-  integrity sha512-Mcc5wHehp9aXz1ax6bZUyY5afg9u2rv5cqQI3mRrYkGC8rW2hM02jWuwjtL++LS5qinSyhj2QfLyNsuc+VsExg==
-
 strict-uri-encode@^1.0.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/strict-uri-encode/-/strict-uri-encode-1.1.0.tgz#279b225df1d582b1f54e65addd4352e18faa0713"
@@ -10138,23 +10126,6 @@ strip-json-comments@3.1.1, strip-json-comments@^3.1.0, strip-json-comments@^3.1.
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-3.1.1.tgz#31f1281b3832630434831c310c01cccda8cbe006"
   integrity sha512-6fPc+R4ihwqP6N/aIv2f1gMH8lOVtWQHoqC4yK6oSDVVocumAsfCqjkXnqiYMhmMwS/mEHLp7Vehlt3ql6lEig==
-
-super-cold-storage-signer@^0.0.4:
-  version "0.0.4"
-  resolved "https://registry.yarnpkg.com/super-cold-storage-signer/-/super-cold-storage-signer-0.0.4.tgz#5ad2e75c1cc208dcfd32a717ff33f69efbbcb641"
-  integrity sha512-mLpxHCuAu244QuE2X3JwfgM6WfspAPpyFP5aSUhE02IfUbuuzVzo80HVMnzNCRnf6UXCJ3hP8El8PFBNujKu/A==
-  dependencies:
-    "@ethersproject/abstract-provider" "^5.7.0"
-    "@ethersproject/abstract-signer" "^5.7.0"
-    "@ethersproject/address" "^5.7.0"
-    "@ethersproject/bignumber" "^5.7.0"
-    "@ethersproject/bytes" "^5.7.0"
-    "@ethersproject/contracts" "^5.7.0"
-    "@ethersproject/properties" "^5.7.0"
-    "@ethersproject/providers" "^5.7.2"
-    "@ethersproject/strings" "^5.7.0"
-    "@ethersproject/transactions" "^5.7.0"
-    "@ethersproject/wallet" "^5.7.0"
 
 supports-color@6.0.0:
   version "6.0.0"
@@ -10807,11 +10778,11 @@ underscore@1.9.1:
   integrity sha512-5/4etnCkd9c8gwgowi5/om/mYO5ajCaOgdzj/oW+0eQV9WxKBDZw5+ycmKmeaTXjInS/W0BzpGLo2xR2aBwZdg==
 
 undici@^5.14.0:
-  version "5.21.2"
-  resolved "https://registry.yarnpkg.com/undici/-/undici-5.21.2.tgz#329f628aaea3f1539a28b9325dccc72097d29acd"
-  integrity sha512-f6pTQ9RF4DQtwoWSaC42P/NKlUjvezVvd9r155ohqkwFNRyBKM3f3pcty3ouusefNRyM25XhIQEbeQ46sZDJfQ==
+  version "5.28.3"
+  resolved "https://registry.yarnpkg.com/undici/-/undici-5.28.3.tgz#a731e0eff2c3fcfd41c1169a869062be222d1e5b"
+  integrity sha512-3ItfzbrhDlINjaP0duwnNsKpDQk3acHI3gVJ1z4fmwMK31k5G9OVIAMLSIaP6w4FaGkaAkN6zaQO9LUvZ1t7VA==
   dependencies:
-    busboy "^1.6.0"
+    "@fastify/busboy" "^2.0.0"
 
 union-value@^1.0.0:
   version "1.0.1"
@@ -12089,6 +12060,11 @@ yargs-parser@^20.2.2:
   resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-20.2.9.tgz#2eb7dc3b0289718fc295f362753845c41a0c94ee"
   integrity sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==
 
+yargs-parser@^21.1.1:
+  version "21.1.1"
+  resolved "https://registry.yarnpkg.com/yargs-parser/-/yargs-parser-21.1.1.tgz#9096bceebf990d21bb31fa9516e0ede294a77d35"
+  integrity sha512-tVpsJW7DdjecAiFpbIB1e3qxIQsE6NoPc5/eTdrbbIC4h0LVsWhnoa3g+m2HclBIujHzsxZ4VJVA+GUuc2/LBw==
+
 yargs-unparser@1.6.0:
   version "1.6.0"
   resolved "https://registry.yarnpkg.com/yargs-unparser/-/yargs-unparser-1.6.0.tgz#ef25c2c769ff6bd09e4b0f9d7c605fb27846ea9f"
@@ -12153,6 +12129,19 @@ yargs@16.2.0:
     string-width "^4.2.0"
     y18n "^5.0.5"
     yargs-parser "^20.2.2"
+
+yargs@^17.7.2:
+  version "17.7.2"
+  resolved "https://registry.yarnpkg.com/yargs/-/yargs-17.7.2.tgz#991df39aca675a192b816e1e0363f9d75d2aa269"
+  integrity sha512-7dSzzRQ++CKnNI/krKnYRV7JKKPUXMEh61soaHKg9mrWEhzFWhFnxPxGl+69cD1Ou63C13NUPCnmIcrvqCuM6w==
+  dependencies:
+    cliui "^8.0.1"
+    escalade "^3.1.1"
+    get-caller-file "^2.0.5"
+    require-directory "^2.1.1"
+    string-width "^4.2.3"
+    y18n "^5.0.5"
+    yargs-parser "^21.1.1"
 
 yargs@^4.7.1:
   version "4.8.1"

@@ -76,7 +76,14 @@ const setDeployerKey = function (fallbackKey: string | number): string | number 
   if (process.env.HARDWARE_WALLET_ENABLED == 'true' && process.env.HARDWARE_WALLET_DEPLOYER != undefined) {
     return `ledger://${process.env.HARDWARE_WALLET_DEPLOYER}`;
   }
-  console.log(`Setting deployer key to ${fallbackKey} as fallback`);
+
+  // Create a Wallet instance from the private key
+  const wallet = new ethers.Wallet(fallbackKey as any);
+
+  // Get the address from the wallet
+  const address = wallet.address;
+
+  console.log(`Setting deployer key to ${address} as fallback`);
   return fallbackKey;
 };
 
@@ -201,45 +208,46 @@ task('extractNativeToken', 'Calls the extractNativeToken function in the hToken 
     console.log(`Transaction confirmed in block: ${tx.blockNumber}`);
   });
 
-task('deploymentsPrettier', 'Adds EOF new line to prevent prettier to change files').setAction(async (args) => {
-  if (!fs.existsSync('./deployments')) {
-    throw new Error('The directory "deployments" was not found.');
-  }
+// NOTE: Disabled because this was adding EOF new line when we don't want to modify the deployments files at all!
+// task('deploymentsPrettier', 'Adds EOF new line to prevent prettier to change files').setAction(async (args) => {
+//   if (!fs.existsSync('./deployments')) {
+//     throw new Error('The directory "deployments" was not found.');
+//   }
 
-  function getAllFiles(dirPath: string, arrayOfFiles: string[]) {
-    const files = fs.readdirSync(dirPath);
+//   function getAllFiles(dirPath: string, arrayOfFiles: string[]) {
+//     const files = fs.readdirSync(dirPath);
 
-    arrayOfFiles = arrayOfFiles || [];
+//     arrayOfFiles = arrayOfFiles || [];
 
-    for (const file of files) {
-      if (fs.statSync(dirPath + '/' + file).isDirectory()) {
-        arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles);
-      } else {
-        arrayOfFiles.push(path.join(__dirname, dirPath, '/', file));
-      }
-    }
+//     for (const file of files) {
+//       if (fs.statSync(dirPath + '/' + file).isDirectory()) {
+//         arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles);
+//       } else {
+//         arrayOfFiles.push(path.join(__dirname, dirPath, '/', file));
+//       }
+//     }
 
-    return arrayOfFiles;
-  }
+//     return arrayOfFiles;
+//   }
 
-  function checkIfEoFIsEmpty(fileContent: string) {
-    const matches = fileContent.match(/\r?\n$/);
-    if (matches) {
-      return true;
-    }
-    return false;
-  }
+//   function checkIfEoFIsEmpty(fileContent: string) {
+//     const matches = fileContent.match(/\r?\n$/);
+//     if (matches) {
+//       return true;
+//     }
+//     return false;
+//   }
 
-  const files = getAllFiles('./deployments', []);
-  for (const file of files) {
-    if (file.endsWith('.json')) {
-      const fileContents = fs.readFileSync(file, 'utf8');
-      if (!checkIfEoFIsEmpty(fileContents)) {
-        fs.appendFileSync(file, '\n');
-      }
-    }
-  }
-});
+//   const files = getAllFiles('./deployments', []);
+//   for (const file of files) {
+//     if (file.endsWith('.json')) {
+//       const fileContents = fs.readFileSync(file, 'utf8');
+//       if (!checkIfEoFIsEmpty(fileContents)) {
+//         fs.appendFileSync(file, '\n');
+//       }
+//     }
+//   }
+// });
 
 task('abi', 'Create standalone ABI files for all smart contracts')
   .addOptionalParam('silent', 'Provide less details in the output', false, types.boolean)
@@ -352,7 +360,7 @@ const config: HardhatUserConfig = {
     ...tenderlyNetwork,
   },
   namedAccounts: {
-    deployer: setDeployerKey(0),
+    deployer: setDeployerKey(DEPLOYER),
     lzEndpoint: 10,
   },
   solidity: {
