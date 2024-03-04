@@ -1,7 +1,7 @@
 <div align="center">
   <a href="https://holograph.xyz"><img alt="Holograph" src="https://user-images.githubusercontent.com/21043504/188220186-9c7f55e0-143a-41b4-a6b8-90e8bd54bfd9.png" width=600></a>
   <br />
-  <h1>Holograph Protocol</h1>
+  <h1>Holograph Protocol V2</h1>
 </div>
 <p align="center">
 </p>
@@ -20,11 +20,11 @@
 
 ## Description
 
-Holograph provides infrastructure for digital asset tokenization. Holograph enables asset issuers to mint holographic assets, which are fungible and non-fungible tokens that exist natively on any public or private blockchain.
+Holograph is an omnichain tokenization protocol. Issuers use Holograph to mint natively composable tokens that can be transferred across blockchains without wrapping. Holograph works by burning tokens on the source chain, sending a message via a messaging protocol to the destination chain, and then reminting the same number of tokens to the same contract address. This unifies liquidity, eliminates slippage, and reserves fungibility across blockchains.
 
 ## Version
 
-The Holograph Protocol has been upgraded to version 2. For version 1 please see the [v1](https://github.com/holographxyz/holograph-protocol/tree/holograph-v1)
+Holograph Protocol has been upgraded to V2. For V1 please see [Holograph Protocol V1](https://github.com/holographxyz/holograph-protocol/tree/holograph-v1).
 
 ## Specification
 
@@ -232,7 +232,7 @@ Again, files from the `src` directory are automatically transpiled into the `con
 
 There are two sets of tests. The main test suite uses Hardhat. To run them start your local chains that the contracts will be deployed to using:
 
-`yarn run ganache-x2`
+`yarn run ganache-x2` or `yarn anvil`
 
 Keep in mind that two networks are spun up in order to facilitate the multichain tests that bridge from one network to the other.
 Next run the hardhat tests with:
@@ -241,7 +241,7 @@ Next run the hardhat tests with:
 
 The newer tests for Drops use Foundry. Please make sure you have Foundry installed by following the instructions [here](https://github.com/foundry-rs/foundry).
 
-Currently the Foundry tests require "forking" from a local chain that has the rest of the Holograph protocol contracts already deployed. To do this, with the local ganache chains still running from the `ganache-x2` command mentioned above, run deploy with:
+Currently the Foundry tests require "forking" from a local chain that has the rest of the Holograph protocol contracts already deployed. To do this, with the local ganache chains still running from the `ganache-x2` / `anvil` command mentioned above, run deploy with:
 
 `yarn deploy:localhost`
 

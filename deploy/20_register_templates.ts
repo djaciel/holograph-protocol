@@ -20,6 +20,7 @@ import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
 import { reservedNamespaces, reservedNamespaceHashes } from '../scripts/utils/reserved-namespaces';
 import { ConfigureEvents } from '../scripts/utils/events';
 
+// NOTE: IF YOU WANT TO REGISTER A NEW CONTRACT TYPE (NAMESPACE), YOU NEED TO ADD IT TO THE reservedNamespaces ARRAY IN reserved-namespaces.ts
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
 
@@ -38,43 +39,59 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // Logic for checking if all reserved namespaces are actually reserved
   // if some are missing, they will automatically be marked for reservation
+  // Defines a fixed storage slot that is used to store the mapping of reserved namespaces
+  // using Solidity's storage layout. The number 3 represents a specific slot in storage.
   const _reservedMappingSlot = web3.eth.abi.encodeParameters(['uint256'], [3]);
+
+  // A function that calculates the storage slot for a given namespace key. This is done by
+  // hashing the combination of the namespace key and the reserved mapping slot. The result
+  // is the actual storage slot where the reservation status of the namespace is stored.
   const _getReservedStorageSlot = function (mappingKey: string): string {
     return web3.utils.keccak256(
       web3.eth.abi.encodeParameters(['bytes32', 'bytes32'], [mappingKey, _reservedMappingSlot])
     );
   };
+
   hre.deployments.log('Checking the HolographRegistry reserved namespaces');
+
+  // Initializes an array to keep track of namespaces that need to be reserved.
   let toReserve: number[] = [];
+
+  // Iterates through the list of reserved namespaces to check their reservation status.
   for (let i: number = 0, l: number = reservedNamespaces.length; i < l; i++) {
     let name: string = reservedNamespaces[i];
     let hash: string = reservedNamespaceHashes[i];
+    // Requests the current value stored at the calculated storage slot for the namespace.
+    // This is done to check if the namespace is already marked as reserved.
     let reserved: string = await hre.ethers.provider.send('eth_getStorageAt', [
       holographRegistry.address,
       _getReservedStorageSlot(hash),
       'latest',
     ]);
+    // If the storage slot is empty (indicated by '0x' followed by 64 zeros or '0x0'), it
+    // means the namespace is not reserved, so it's added to the `toReserve` list.
     if (reserved === '0x' + '00'.repeat(32) || reserved === '0x0') {
       toReserve.push(i);
     }
   }
+
+  // Checks if there are any namespaces to reserve. If not, logs a message indicating that
+  // all namespaces are in order.
   if (toReserve.length == 0) {
     hre.deployments.log('All HolographRegistry reserved namespaces are in order');
   } else {
+    // If there are namespaces to reserve, logs the missing namespaces.
     hre.deployments.log(
       'Missing the following namespaces:',
-      (
-        toReserve.map((index: number) => {
-          return reservedNamespaces[index];
-        }) as string[]
-      ).join(', ')
+      toReserve.map((index: number) => reservedNamespaces[index]).join(', ')
     );
-    let hashArray: string[] = toReserve.map((index: number) => {
-      return reservedNamespaceHashes[index];
-    }) as string[];
-    let reserveArray: bool[] = toReserve.map((index: number) => {
-      return true;
-    }) as bool[];
+
+    // Prepares the arrays of namespace hashes and reservation statuses for the transaction.
+    let hashArray: string[] = toReserve.map((index: number) => reservedNamespaceHashes[index]);
+    let reserveArray: bool[] = toReserve.map(() => true);
+
+    // Creates and sends a transaction to reserve the missing namespaces.
+    // `populateTransaction` prepares transaction data for the `setReservedContractTypeAddresses` method.
     const setReservedContractTypeAddressesTx = await MultisigAwareTx(
       hre,
       'HolographRegistry',
@@ -88,12 +105,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         })),
       })
     );
+
     hre.deployments.log('Transaction hash:', setReservedContractTypeAddressesTx.hash);
     await setReservedContractTypeAddressesTx.wait();
     hre.deployments.log('Missing namespaces have been reserved for HolographRegistry');
   }
-  // at this point all reserved namespaces should be registered in protocol
 
+  // At this point all reserved namespaces should be registered in protocol so we can proceed with registering the templates
   // Register DropsPriceOracleProxy
   const futureDropsPriceOracleProxyAddress = await genesisDeriveFutureAddress(
     hre,
@@ -105,6 +123,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const dropsPriceOracleProxyHash =
     '0x' + web3.utils.asciiToHex('DropsPriceOracleProxy').substring(2).padStart(64, '0');
+  console.log(`dropsPriceOracleProxyHash: ${dropsPriceOracleProxyHash}`);
   if (
     (await holographRegistry.getContractTypeAddress(dropsPriceOracleProxyHash)) != futureDropsPriceOracleProxyAddress
   ) {
@@ -156,6 +175,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const dropsMetadataRendererProxyHash =
     '0x' + web3.utils.asciiToHex('DropsMetadataRendererProxy').substring(2).padStart(64, '0');
+  console.log(`dropsMetadataRendererProxyHash: ${dropsMetadataRendererProxyHash}`);
   if (
     (await holographRegistry.getContractTypeAddress(dropsMetadataRendererProxyHash)) !=
     futureDropsMetadataRendererProxyAddress
@@ -211,6 +231,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const editionsMetadataRendererProxyHash =
     '0x' + web3.utils.asciiToHex('EditionsMetadataRendererProxy').substring(2).padStart(64, '0');
+  console.log(`editionsMetadataRendererProxyHash: ${editionsMetadataRendererProxyHash}`);
   if (
     (await holographRegistry.getContractTypeAddress(editionsMetadataRendererProxyHash)) !=
     futureEditionsMetadataRendererProxyAddress
@@ -263,6 +284,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   hre.deployments.log('the future "HolographGeneric" address is', futureGenericAddress);
 
   const genericHash = '0x' + web3.utils.asciiToHex('HolographGeneric').substring(2).padStart(64, '0');
+  console.log(`genericHash: ${genericHash}`);
   if ((await holographRegistry.getContractTypeAddress(genericHash)) != futureGenericAddress) {
     const genericTx = await MultisigAwareTx(
       hre,
@@ -306,6 +328,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   hre.deployments.log('the future "HolographERC721" address is', futureErc721Address);
 
   const erc721Hash = '0x' + web3.utils.asciiToHex('HolographERC721').substring(2).padStart(64, '0');
+  console.log(`erc721Hash: ${erc721Hash}`);
   if ((await holographRegistry.getContractTypeAddress(erc721Hash)) != futureErc721Address) {
     const erc721Tx = await MultisigAwareTx(
       hre,
@@ -357,6 +380,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   );
   hre.deployments.log('the future "HolographDropERC721" address is', futureHolographDropERC721Address);
   const HolographDropERC721Hash = '0x' + web3.utils.asciiToHex('HolographDropERC721').substring(2).padStart(64, '0');
+  console.log(`HolographDropERC721Hash: ${HolographDropERC721Hash}`);
   if ((await holographRegistry.getContractTypeAddress(HolographDropERC721Hash)) != futureHolographDropERC721Address) {
     const erc721DropTx = await MultisigAwareTx(
       hre,
@@ -387,6 +411,65 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     hre.deployments.log('"HolographDropERC721" is already registered');
   }
 
+  // Register HolographDropERC721V2
+  const HolographDropERC721V2InitCode = generateInitCode(
+    ['tuple(address,address,uint64,uint16,tuple(uint104,uint32,uint64,uint64,uint64,uint64,bytes32),address,bytes)'],
+    [
+      [
+        deployerAddress, // initialOwner
+        deployerAddress, // fundsRecipient
+        0, // 1000 editions
+        1000, // 10% royalty
+        [0, 0, 0, 0, 0, 0, '0x' + '00'.repeat(32)], // salesConfig
+        futureEditionsMetadataRendererProxyAddress, // metadataRenderer
+        generateInitCode(['string', 'string', 'string'], ['decscription', 'imageURI', 'animationURI']), // metadataRendererInit
+      ],
+    ]
+  );
+  const futureHolographDropERC721V2Address = await genesisDeriveFutureAddress(
+    hre,
+    salt,
+    'HolographDropERC721V2',
+    HolographDropERC721V2InitCode
+  );
+  hre.deployments.log('the future "HolographDropERC721V2" address is', futureHolographDropERC721V2Address);
+  const HolographDropERC721V2Hash =
+    '0x' + web3.utils.asciiToHex('HolographDropERC721V2').substring(2).padStart(64, '0');
+  console.log(`HolographDropERC721V2Hash: ${HolographDropERC721V2Hash}`);
+  if (
+    (await holographRegistry.getContractTypeAddress(HolographDropERC721V2Hash)) != futureHolographDropERC721V2Address
+  ) {
+    const erc721DropTx = await MultisigAwareTx(
+      hre,
+      'HolographRegistry',
+      holographRegistry,
+      await holographRegistry.populateTransaction.setContractTypeAddress(
+        HolographDropERC721V2Hash,
+        futureHolographDropERC721V2Address,
+        {
+          ...(await txParams({
+            hre,
+            from: deployerAddress,
+            to: holographRegistry,
+            data: holographRegistry.populateTransaction.setContractTypeAddress(
+              HolographDropERC721V2Hash,
+              futureHolographDropERC721V2Address
+            ),
+          })),
+        }
+      )
+    );
+    hre.deployments.log('Transaction hash:', erc721DropTx.hash);
+    await erc721DropTx.wait();
+    hre.deployments.log(
+      `Registered "HolographDropERC721V2" to: ${await holographRegistry.getContractTypeAddress(
+        HolographDropERC721Hash
+      )}`
+    );
+  } else {
+    hre.deployments.log('"HolographDropERC721V2" is already registered');
+  }
+
   // Register CxipERC721
   const futureCxipErc721Address = await genesisDeriveFutureAddress(
     hre,
@@ -397,6 +480,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   hre.deployments.log('the future "CxipERC721" address is', futureCxipErc721Address);
 
   const cxipErc721Hash = '0x' + web3.utils.asciiToHex('CxipERC721').substring(2).padStart(64, '0');
+  console.log(`cxipErc721Hash: ${cxipErc721Hash}`);
   if ((await holographRegistry.getContractTypeAddress(cxipErc721Hash)) != futureCxipErc721Address) {
     const cxipErc721Tx = await MultisigAwareTx(
       hre,
@@ -442,6 +526,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   hre.deployments.log('the future "HolographERC20" address is', futureErc20Address);
 
   const erc20Hash = '0x' + web3.utils.asciiToHex('HolographERC20').substring(2).padStart(64, '0');
+  console.log(`erc20Hash: ${erc20Hash}`);
   if ((await holographRegistry.getContractTypeAddress(erc20Hash)) != futureErc20Address) {
     const erc20Tx = await MultisigAwareTx(
       hre,
@@ -472,25 +557,33 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   );
   hre.deployments.log('the future "HolographRoyalties" address is', futureRoyaltiesAddress);
 
-  const pa1dHash = '0x' + web3.utils.asciiToHex('HolographRoyalties').substring(2).padStart(64, '0');
-  if ((await holographRegistry.getContractTypeAddress(pa1dHash)) != futureRoyaltiesAddress) {
-    const pa1dTx = await MultisigAwareTx(
+  const holographRoyaltiesHash = '0x' + web3.utils.asciiToHex('HolographRoyalties').substring(2).padStart(64, '0');
+  console.log(`holographRoyaltiesHash: ${holographRoyaltiesHash}`);
+  if ((await holographRegistry.getContractTypeAddress(holographRoyaltiesHash)) != futureRoyaltiesAddress) {
+    const royaltiesTx = await MultisigAwareTx(
       hre,
       'HolographRegistry',
       holographRegistry,
-      await holographRegistry.populateTransaction.setContractTypeAddress(pa1dHash, futureRoyaltiesAddress, {
-        ...(await txParams({
-          hre,
-          from: deployerAddress,
-          to: holographRegistry,
-          data: holographRegistry.populateTransaction.setContractTypeAddress(pa1dHash, futureRoyaltiesAddress),
-        })),
-      })
+      await holographRegistry.populateTransaction.setContractTypeAddress(
+        holographRoyaltiesHash,
+        futureRoyaltiesAddress,
+        {
+          ...(await txParams({
+            hre,
+            from: deployerAddress,
+            to: holographRegistry,
+            data: holographRegistry.populateTransaction.setContractTypeAddress(
+              holographRoyaltiesHash,
+              futureRoyaltiesAddress
+            ),
+          })),
+        }
+      )
     );
-    hre.deployments.log('Transaction hash:', pa1dTx.hash);
-    await pa1dTx.wait();
+    hre.deployments.log('Transaction hash:', royaltiesTx.hash);
+    await royaltiesTx.wait();
     hre.deployments.log(
-      `Registered "HolographRoyalties" to: ${await holographRegistry.getContractTypeAddress(pa1dHash)}`
+      `Registered "HolographRoyalties" to: ${await holographRegistry.getContractTypeAddress(holographRoyaltiesHash)}`
     );
   } else {
     hre.deployments.log('"HolographRoyalties" is already registered');
@@ -506,6 +599,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   hre.deployments.log('the future "hToken" address is', futureHTokenAddress);
 
   const hTokenHash = '0x' + web3.utils.asciiToHex('hToken').substring(2).padStart(64, '0');
+  console.log(`hTokenHash: ${hTokenHash}`);
   if ((await holographRegistry.getContractTypeAddress(hTokenHash)) != futureHTokenAddress) {
     const hTokenTx = await MultisigAwareTx(
       hre,
@@ -539,5 +633,6 @@ func.dependencies = [
   'DeployERC20',
   'DeployERC721',
   'HolographDropERC721',
+  'HolographDropERC721V2',
   'DeployERC1155',
 ];
