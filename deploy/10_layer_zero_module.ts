@@ -63,7 +63,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      parseUnits('50', 'gwei'), // MIN_GAS_PRICE
+      parseUnits('1', 'gwei'), // MIN_GAS_PRICE
       GAS_LIMIT,
     ],
 
@@ -97,7 +97,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      parseUnits('30', 'gwei'), // MIN_GAS_PRICE, // 30 GWEI
+      parseUnits('1', 'gwei'), // MIN_GAS_PRICE, // 30 GWEI
       GAS_LIMIT,
     ],
 
