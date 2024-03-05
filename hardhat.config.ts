@@ -208,6 +208,39 @@ task('extractNativeToken', 'Calls the extractNativeToken function in the hToken 
     console.log(`Transaction confirmed in block: ${tx.blockNumber}`);
   });
 
+/**
+ * Task to get the hToken Balance
+ * @param contract The address of the hToken contract
+ * @param recipient The address of the recipient
+ *
+ * Run this task with:
+ * npx hardhat hTokenBalance --contract [hTokenContractAddress] --recipient [recipientAddress] --network [networkName]
+ */
+
+task('hTokenBalance', 'Calls the extractNativeToken function in the hToken contract')
+  .addParam('contract', 'The address of the hToken contract')
+  .addParam('recipient', 'The address of the recipient')
+  .setAction(async ({ contract, recipient, amount }, hre: HardhatRuntimeEnvironment) => {
+    const signer = (await hre.ethers.getSigners())[0]; // Get the first signer
+
+    // Get the contract's ABI from the compiled artifacts
+    const hTokenArtifact = await hre.artifacts.readArtifact('hToken');
+    const balanceOfAbi = {
+      inputs: [{ internalType: 'address', name: 'account', type: 'address' }],
+      name: 'balanceOf',
+      outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
+      stateMutability: 'view',
+      type: 'function',
+    };
+    hTokenArtifact.abi.push(balanceOfAbi);
+
+    // singer address does not matter. We are only reading
+    const hTokenContract = new ethers.Contract(contract, hTokenArtifact.abi, signer);
+
+    const balanceOf = await hTokenContract.balanceOf(recipient);
+    console.log(`hTokens available: ${balanceOf.toString()} wei or ${ethers.utils.formatEther(balanceOf)} ETH`);
+  });
+
 // NOTE: Disabled because this was adding EOF new line when we don't want to modify the deployments files at all!
 // task('deploymentsPrettier', 'Adds EOF new line to prevent prettier to change files').setAction(async (args) => {
 //   if (!fs.existsSync('./deployments')) {
