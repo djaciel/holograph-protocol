@@ -18,6 +18,7 @@ import {
   getDeployer,
 } from '../scripts/utils/helpers';
 import { MultisigAwareTx } from '../scripts/utils/multisig-aware-tx';
+import { parseUnits } from '@ethersproject/units';
 
 const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
@@ -54,7 +55,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      subOneWei(gweiToWei(BigNumber.from('40'))), // MIN_GAS_PRICE, // 40 GWEI
+      parseUnits('40', 'gwei'), // MIN_GAS_PRICE,
       GAS_LIMIT,
     ],
     ethereumTestnetSepolia: [
@@ -62,7 +63,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      subOneWei(gweiToWei(BigNumber.from('50'))), // MIN_GAS_PRICE, // 50 GWEI
+      parseUnits('1', 'gwei'), // MIN_GAS_PRICE
       GAS_LIMIT,
     ],
 
@@ -71,7 +72,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       BigNumber.from('180000'),
       BigNumber.from('40'),
-      subOneWei(gweiToWei(BigNumber.from('3'))), // MIN_GAS_PRICE, // 3 GWEI
+      parseUnits('0.1', 'gwei'), // MIN_GAS_PRICE
       GAS_LIMIT,
     ],
     binanceSmartChainTestnet: [
@@ -79,7 +80,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       BigNumber.from('180000'),
       BigNumber.from('40'),
-      subOneWei(gweiToWei(BigNumber.from('1'))), // MIN_GAS_PRICE, // 1 GWEI
+      parseUnits('0.1', 'gwei'), // MIN_GAS_PRICE
       GAS_LIMIT,
     ],
 
@@ -88,7 +89,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      subOneWei(gweiToWei(BigNumber.from('30'))), // MIN_GAS_PRICE, // 30 GWEI
+      parseUnits('30', 'gwei'), // MIN_GAS_PRICE, // 30 GWEI
       GAS_LIMIT,
     ],
     avalancheTestnet: [
@@ -96,7 +97,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      subOneWei(gweiToWei(BigNumber.from('30'))), // MIN_GAS_PRICE, // 30 GWEI
+      parseUnits('1', 'gwei'), // MIN_GAS_PRICE, // 30 GWEI
       GAS_LIMIT,
     ],
 
@@ -105,7 +106,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      subOneWei(gweiToWei(BigNumber.from('200'))), // MIN_GAS_PRICE, // 200 GWEI
+      parseUnits('200', 'gwei'), // MIN_GAS_PRICE, // 200 GWEI
       GAS_LIMIT,
     ],
     polygonTestnet: [
@@ -113,7 +114,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      subOneWei(gweiToWei(BigNumber.from('5'))), // MIN_GAS_PRICE, // 5 GWEI
+      parseUnits('5', 'gwei'), // MIN_GAS_PRICE, // 5 GWEI
       GAS_LIMIT,
     ],
 
@@ -122,7 +123,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      subOneWei(BigNumber.from('10000000')), // MIN_GAS_PRICE, // 0.01 GWEI
+      parseUnits('0.001', 'gwei'), // MIN_GAS_PRICE
       GAS_LIMIT,
     ],
     optimismTestnetSepolia: [
@@ -130,7 +131,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      subOneWei(gweiToWei(BigNumber.from('5'))), // MIN_GAS_PRICE, // 5 GWEI
+      parseUnits('0.001', 'gwei'), // MIN_GAS_PRICE
       GAS_LIMIT,
     ],
 
@@ -139,7 +140,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      subOneWei(BigNumber.from('100000000')), // MIN_GAS_PRICE, // 0.1 GWEI
+      parseUnits('0.1', 'gwei'), // MIN_GAS_PRICE
       GAS_LIMIT,
     ],
     arbitrumTestnetSepolia: [
@@ -147,34 +148,119 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       MSG_GAS_PER_BYTE,
       JOB_BASE_GAS,
       JOB_GAS_PER_BYTE,
-      subOneWei(gweiToWei(BigNumber.from('5'))), // MIN_GAS_PRICE, // 5 GWEI
+      parseUnits('0.1', 'gwei'), // MIN_GAS_PRICE
+      GAS_LIMIT,
+    ],
+
+    mantle: [
+      MSG_BASE_GAS,
+      MSG_GAS_PER_BYTE,
+      JOB_BASE_GAS,
+      JOB_GAS_PER_BYTE,
+      parseUnits('0.001', 'gwei'), // MIN_GAS_PRICE
+      GAS_LIMIT,
+    ],
+    mantleTestnet: [
+      MSG_BASE_GAS,
+      MSG_GAS_PER_BYTE,
+      JOB_BASE_GAS,
+      JOB_GAS_PER_BYTE,
+      parseUnits('0.001', 'gwei'), // MIN_GAS_PRICE
+      GAS_LIMIT,
+    ],
+
+    base: [
+      MSG_BASE_GAS,
+      MSG_GAS_PER_BYTE,
+      JOB_BASE_GAS,
+      JOB_GAS_PER_BYTE,
+      parseUnits('0.001', 'gwei'), // MIN_GAS_PRICE
+      GAS_LIMIT,
+    ],
+    baseTestnet: [
+      MSG_BASE_GAS,
+      MSG_GAS_PER_BYTE,
+      JOB_BASE_GAS,
+      JOB_GAS_PER_BYTE,
+      parseUnits('0.001', 'gwei'), // MIN_GAS_PRICE
+      GAS_LIMIT,
+    ],
+
+    zora: [
+      MSG_BASE_GAS,
+      MSG_GAS_PER_BYTE,
+      JOB_BASE_GAS,
+      JOB_GAS_PER_BYTE,
+      parseUnits('0.001', 'gwei'), // MIN_GAS_PRICE
+      GAS_LIMIT,
+    ],
+    zoraTestnet: [
+      MSG_BASE_GAS,
+      MSG_GAS_PER_BYTE,
+      JOB_BASE_GAS,
+      JOB_GAS_PER_BYTE,
+      parseUnits('0.001', 'gwei'), // MIN_GAS_PRICE
       GAS_LIMIT,
     ],
   };
 
+  // Retrieve the network configuration for the current Hardhat runtime environment (hre) network
   const network: Network = networks[hre.networkName];
+
+  // Extract the type of the current network (e.g., testnet, mainnet)
   const networkType: NetworkType = network.type;
+
+  // Get an array of all network keys (names) defined in the networks object
   const networkKeys: string[] = Object.keys(networks);
+
+  // Initialize an empty array to hold the names of supported networks
   let supportedNetworkNames: string[] = [];
+
+  // Initialize an empty array to hold the supported network objects
   let supportedNetworks: Network[] = [];
+
+  // Initialize an empty array to keep track of chain IDs for supported networks
   let chainIds: number[] = [];
+
+  // Initialize an empty array to hold gas parameter configurations for each supported network
   let gasParameters: BigNumber[][] = [];
+
+  // Loop over all network keys to filter and process supported networks
   for (let i = 0, l = networkKeys.length; i < l; i++) {
+    // Current network key in the iteration
     const key: string = networkKeys[i];
+
+    // Corresponding network object for the current key
     const value: Network = networks[key];
+
+    // Check if the current network is active and of the same type as the current network type
     if (value.active && value.type == networkType) {
+      // If conditions are met, add the network name to the supportedNetworkNames array
       supportedNetworkNames.push(key);
+
+      // Also, add the network object to the supportedNetworks array
       supportedNetworks.push(value);
+
+      // Check if the network has a valid holographId (greater than 0)
       if (value.holographId > 0) {
+        // Special handling if the current network's holographId matches the target network's holographId
         if (value.holographId == network.holographId) {
+          // Add a 0 to the chainIds array to represent the current network specifically
           chainIds.push(0);
+
+          // Check if there are network-specific gas parameters for the current network and add them to the gasParameters array
+          // If not, add the default gas parameters
           if (key in networkSpecificParams) {
             gasParameters.push(networkSpecificParams[key]!);
           } else {
             gasParameters.push(defaultParams);
           }
         }
+
+        // Add the current network's holographId to the chainIds array
         chainIds.push(value.holographId);
+
+        // Again, check for network-specific gas parameters or default to the defaultParams
         if (key in networkSpecificParams) {
           gasParameters.push(networkSpecificParams[key]!);
         } else {
@@ -388,34 +474,63 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   chainIds = [];
   gasParameters = [];
 
+  // Begin checking for gas parameter inconsistencies
   hre.deployments.log(`Checking existing gas parameters`);
+
+  // Iterate over all supported networks
   for (let i = 0, l = supportedNetworks.length; i < l; i++) {
+    // Retrieve the current network in the loop
     let currentNetwork: Network = supportedNetworks[i];
+
+    // Fetch the current gas parameters for the current network using its holograph ID
     let currentGasParameters: BigNumber[] = await lzModule.getGasParameters(currentNetwork.holographId);
+
+    // Iterate 6 times for each gas parameter (MSG_BASE_GAS, MSG_GAS_PER_BYTE, JOB_BASE_GAS, JOB_GAS_PER_BYTE, MIN_GAS_PRICE, GAS_LIMIT)
     for (let i = 0; i < 6; i++) {
+      // Check if the current network's key exists in the networkSpecificParams object
       if (currentNetwork.key in networkSpecificParams) {
+        // If so, check if the specific gas parameter does not equal the corresponding current gas parameter
         if (!networkSpecificParams[currentNetwork.key]![i].eq(currentGasParameters[i])) {
+          // If there's a mismatch, add the network's holograph ID to the chainIds array
           chainIds.push(currentNetwork.holographId);
+          // Also, add the network-specific parameters to the gasParameters array
           gasParameters.push(networkSpecificParams[currentNetwork.key]!);
+
+          // Special case for if the current network is the one being deployed to
           if (currentNetwork.holographId == network.holographId) {
+            // Mark the deployment network specifically by adding 0 to chainIds
             chainIds.push(0);
+            // Add its parameters again to gasParameters
             gasParameters.push(networkSpecificParams[currentNetwork.key]!);
           }
+          // Exit the inner loop early since a mismatch was found
           break;
         }
       } else if (!defaultParams[i].eq(currentGasParameters[i])) {
+        // If the network key does not exist, use default parameters
+        // Add the current network's holograph ID to chainIds for default parameter mismatch
         chainIds.push(currentNetwork.holographId);
+        // Add the default parameters to gasParameters
         gasParameters.push(defaultParams);
+
+        // Special case for the deployment network, similar to above
         if (currentNetwork.holographId == network.holographId) {
-          chainIds.push(0);
-          gasParameters.push(defaultParams);
+          chainIds.push(0); // Mark the deployment network
+          gasParameters.push(defaultParams); // Add default parameters for it
         }
+        // Exit the inner loop early since a mismatch was found
         break;
       }
     }
   }
+
+  // After iterating through all networks, check if any chainIds were added
   if (chainIds.length > 0) {
+    // Log that inconsistencies were found if there are any chainIds
     hre.deployments.log('Found some gas parameter inconsistencies');
+
+    // Prepare and send a transaction to update the gas parameters
+    // This involves calling a specific function on the LayerZero module with the updated parameters
     const lzTx = await MultisigAwareTx(
       hre,
       'LayerZeroModule',
@@ -433,8 +548,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         })),
       })
     );
+
+    // Log the transaction hash for tracking
     hre.deployments.log('Transaction hash:', lzTx.hash);
+
+    // Wait for the transaction to be confirmed
     await lzTx.wait();
+
+    // Log a message indicating the gas parameters have been updated
     hre.deployments.log('Updated LayerZero GasParameters');
   }
 
