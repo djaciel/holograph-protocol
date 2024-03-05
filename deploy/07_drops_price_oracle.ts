@@ -58,7 +58,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if (network.key in definedOracleNames) {
     targetDropsPriceOracle = 'DropsPriceOracle' + definedOracleNames[network.key];
   } else {
-    if (environment == Environment.mainnet || (network.key != 'localhost' && network.key != 'hardhat')) {
+    if (
+      environment == Environment.mainnet ||
+      (network.key != 'localhost' && network.key != 'localhost2' && network.key != 'hardhat')
+    ) {
       throw new Error('Drops price oracle not created for network yet!');
     }
   }
