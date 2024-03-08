@@ -5,12 +5,11 @@ import { task } from 'hardhat/config';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import Web3 from 'web3';
 import { GasPricing, initializeGasPricing } from './utils/gas';
-import { string } from 'yargs';
 const web3 = new Web3();
 
 const TEST_GAS_LIMIT: BigNumber = ethers.BigNumber.from('10000000');
 const IS_GAS_ESTIMATION_LOGS_ENABLED = true;
-const IS_OVERRIDE_MOE_GAS_ENABLED = false;
+const IS_GAS_OVERRIDE_ENABLED = false;
 export const INSUFFICIENT_BALANCE_ERROR = 'Insufficient balance';
 export const MIN_POLYGON_GAS_PRICE = BigNumber.from('400000000000');
 
@@ -19,13 +18,14 @@ task('bridge-htokens', 'Bridge hToken from one network to another')
   .addParam('token', 'The hToken to bridge')
   .addParam('amount', 'The amount of hToken to bridge')
   .addParam('destination', 'The network to bridge to')
-  .addParam('to', 'The network to bridge to', '')
+  .addParam('to', 'The account to bridge tokens to on the destination', '')
   .setAction(async (taskArgs, hre: HardhatRuntimeEnvironment) => {
     let { destination, amount, to } = taskArgs;
 
     const signer = (await hre.ethers.getSigners())[0]; // Get the first signer
     const from = await signer.getAddress();
 
+    // If no address is provided to send the bridged tokens to, use the sender's address
     if (!to || to === '') {
       to = from;
     }
@@ -101,7 +101,7 @@ async function bridgeOut(
   const destinationProvider = getRpcProvider(destinationChain);
   const destinationFrom = getSpecialAddressForChain(destinationChain.chain);
 
-  let estimatedGas = await estimateGas(operatorContract, destinationProvider, payload, destinationFrom);
+  let estimatedGas = await estimateGasOnDestination(operatorContract, destinationProvider, payload, destinationFrom);
 
   const gasPricing: GasPricing = await initializeGasPricing(destinationChain.key, destinationProvider);
   let destinationGasPrice = gasPricing.isEip1559 ? gasPricing.maxFeePerGas : gasPricing.gasPrice;
@@ -125,7 +125,7 @@ async function bridgeOut(
   // Add 25% to the estimated gas limit for the destination network
   estimatedGas = estimatedGas.add(estimatedGas.div(4));
 
-  if (IS_OVERRIDE_MOE_GAS_ENABLED) {
+  if (IS_GAS_OVERRIDE_ENABLED) {
     estimatedGas = ethers.BigNumber.from('1000000'); // set gas limit to 1M wei for override
     destinationGasPrice = ethers.BigNumber.from('1000000000'); // set gas price to 1 Gwei for override
   }
@@ -251,7 +251,11 @@ function getSpecialAddressForChain(chainId: number): string {
   return specialAddresses[chainId] || '0x0000000000000000000000000000000000000000';
 }
 
-async function estimateGas(
+// Helper to estimate gas on the destination network
+// We call jobEstimator on destination
+// by supplying 10 million gas, we get back result of how much gas is left from simulation
+// subtract leftover gas from 10 million to know exactly how much gas is used for tx
+async function estimateGasOnDestination(
   operatorContract: Contract,
   destinationProvider: any,
   payload: BytesLike,
