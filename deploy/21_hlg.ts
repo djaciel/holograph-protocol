@@ -60,12 +60,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const currentNetworkType: NetworkType = network.type;
   let primaryNetwork: Network | undefined; // Initialize primaryNetwork variable
   if (currentNetworkType == NetworkType.local) {
-    // ten billion tokens minted per network on local testnet
+    // ten billion tokens minted per network on local testnet (LOCAL ENV)
     tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
     primaryNetwork = networks.localhost;
   } else if (currentNetworkType == NetworkType.testnet) {
+    if (environment == Environment.develop) {
+      // one hundred million tokens minted on ethereum on testnet sepolia (DEVELOP ENV)
+      primaryNetwork = networks.ethereumTestnetSepolia;
+      tokenAmount = BigNumber.from('100' + '000' + '000' + '000000000000000000');
+      targetChain = BigNumber.from(networks.ethereumTestnetSepolia.chain);
+      tokenRecipient = networks.ethereumTestnetSepolia.protocolMultisig!;
+    }
     if (environment == Environment.testnet) {
-      // ten billion tokens minted on ethereum on testnet sepolia
+      // ten billion tokens minted on ethereum on testnet sepolia (TESTNET ENV)
       primaryNetwork = networks.ethereumTestnetSepolia;
       tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
       targetChain = BigNumber.from(networks.ethereumTestnetSepolia.chain);
