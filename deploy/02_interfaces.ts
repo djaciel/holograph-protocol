@@ -247,168 +247,236 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
     await tx.wait();
   }
-  const supportedInterfaces: { [key: string]: string[] } = {
+  const supportedInterfaces: { [key: string]: { signature: string; hash: string }[] } = {
     // ERC20
     '1': [
       // ERC165
-      functionHash('supportsInterface(bytes4)'),
+      { signature: 'supportsInterface(bytes4)', hash: functionHash('supportsInterface(bytes4)') },
 
       // ERC20
-      functionHash('allowance(address,address)'),
-      functionHash('approve(address,uint256)'),
-      functionHash('balanceOf(address)'),
-      functionHash('totalSupply()'),
-      functionHash('transfer(address,uint256)'),
-      functionHash('transferFrom(address,address,uint256)'),
-      XOR([
-        functionHash('allowance(address,address)'),
-        functionHash('approve(address,uint256)'),
-        functionHash('balanceOf(address)'),
-        functionHash('totalSupply()'),
-        functionHash('transfer(address,uint256)'),
-        functionHash('transferFrom(address,address,uint256)'),
-      ]),
+      { signature: 'allowance(address,address)', hash: functionHash('allowance(address,address)') },
+      { signature: 'approve(address,uint256)', hash: functionHash('approve(address,uint256)') },
+      { signature: 'balanceOf(address)', hash: functionHash('balanceOf(address)') },
+      { signature: 'totalSupply()', hash: functionHash('totalSupply()') },
+      { signature: 'transfer(address,uint256)', hash: functionHash('transfer(address,uint256)') },
+      {
+        signature: 'transferFrom(address,address,uint256)',
+        hash: functionHash('transferFrom(address,address,uint256)'),
+      },
+      // Example XOR, adjust according to your XOR function logic
+      {
+        signature: 'XOR: allowance, approve, balanceOf, totalSupply, transfer, transferFrom',
+        hash: XOR([
+          functionHash('allowance(address,address)'),
+          functionHash('approve(address,uint256)'),
+          functionHash('balanceOf(address)'),
+          functionHash('totalSupply()'),
+          functionHash('transfer(address,uint256)'),
+          functionHash('transferFrom(address,address,uint256)'),
+        ]),
+      },
 
       // ERC20Metadata
-      functionHash('name()'),
-      functionHash('symbol()'),
-      functionHash('decimals()'),
-      XOR([functionHash('name()'), functionHash('symbol()'), functionHash('decimals()')]),
+      { signature: 'name()', hash: functionHash('name()') },
+      { signature: 'symbol()', hash: functionHash('symbol()') },
+      { signature: 'decimals()', hash: functionHash('decimals()') },
+      {
+        signature: 'XOR: name(), symbol(), decimals()',
+        hash: XOR([functionHash('name()'), functionHash('symbol()'), functionHash('decimals()')]),
+      },
 
       // ERC20Burnable
-      functionHash('burn(uint256)'),
-      functionHash('burnFrom(address,uint256)'),
-      XOR([functionHash('burn(uint256)'), functionHash('burnFrom(address,uint256)')]),
+      { signature: 'burn(uint256)', hash: functionHash('burn(uint256)') },
+      { signature: 'burnFrom(address,uint256)', hash: functionHash('burnFrom(address,uint256)') },
+      {
+        signature: 'XOR: burn(uint256), burnFrom(address,uint256)',
+        hash: XOR([functionHash('burn(uint256)'), functionHash('burnFrom(address,uint256)')]),
+      },
 
       // ERC20Safer
-      functionHash('safeTransfer(address,uint256)'),
-      functionHash('safeTransfer(address,uint256,bytes)'),
-      functionHash('safeTransferFrom(address,address,uint256)'),
-      functionHash('safeTransferFrom(address,address,uint256,bytes)'),
-      XOR([
-        functionHash('safeTransfer(address,uint256)'),
-        functionHash('safeTransfer(address,uint256,bytes)'),
-        functionHash('safeTransferFrom(address,address,uint256)'),
-        functionHash('safeTransferFrom(address,address,uint256,bytes)'),
-      ]),
+      { signature: 'safeTransfer(address,uint256)', hash: functionHash('safeTransfer(address,uint256)') },
+      { signature: 'safeTransfer(address,uint256,bytes)', hash: functionHash('safeTransfer(address,uint256,bytes)') },
+      {
+        signature: 'safeTransferFrom(address,address,uint256)',
+        hash: functionHash('safeTransferFrom(address,address,uint256)'),
+      },
+      {
+        signature: 'safeTransferFrom(address,address,uint256,bytes)',
+        hash: functionHash('safeTransferFrom(address,address,uint256,bytes)'),
+      },
+      {
+        signature: 'XOR: safeTransfer, safeTransferFrom',
+        hash: XOR([
+          functionHash('safeTransfer(address,uint256)'),
+          functionHash('safeTransfer(address,uint256,bytes)'),
+          functionHash('safeTransferFrom(address,address,uint256)'),
+          functionHash('safeTransferFrom(address,address,uint256,bytes)'),
+        ]),
+      },
 
       // ERC20Permit
-      functionHash('permit(address,address,uint256,uint256,uint8,bytes32,bytes32)'),
-      functionHash('nonces(address)'),
-      functionHash('DOMAIN_SEPARATOR()'),
-      XOR([
-        functionHash('permit(address,address,uint256,uint256,uint8,bytes32,bytes32)'),
-        functionHash('nonces(address)'),
-        functionHash('DOMAIN_SEPARATOR()'),
-      ]),
+      {
+        signature: 'permit(address,address,uint256,uint256,uint8,bytes32,bytes32)',
+        hash: functionHash('permit(address,address,uint256,uint256,uint8,bytes32,bytes32)'),
+      },
+      { signature: 'nonces(address)', hash: functionHash('nonces(address)') },
+      { signature: 'DOMAIN_SEPARATOR()', hash: functionHash('DOMAIN_SEPARATOR()') },
+      {
+        signature: 'XOR: permit, nonces, DOMAIN_SEPARATOR',
+        hash: XOR([
+          functionHash('permit(address,address,uint256,uint256,uint8,bytes32,bytes32)'),
+          functionHash('nonces(address)'),
+          functionHash('DOMAIN_SEPARATOR()'),
+        ]),
+      },
 
       // Ownable
-      functionHash('owner()'),
-      functionHash('transferOwnership(address)'),
-      XOR([functionHash('owner()'), functionHash('transferOwnership(address)')]),
+      { signature: 'owner()', hash: functionHash('owner()') },
+      { signature: 'transferOwnership(address)', hash: functionHash('transferOwnership(address)') },
+      {
+        signature: 'XOR: owner, transferOwnership',
+        hash: XOR([functionHash('owner()'), functionHash('transferOwnership(address)')]),
+      },
     ],
 
     // ERC721
     '2': [
       // ERC165
-      functionHash('supportsInterface(bytes4)'),
+      { signature: 'supportsInterface(bytes4)', hash: functionHash('supportsInterface(bytes4)') },
 
       // ERC721
-      functionHash('balanceOf(address)'),
-      functionHash('ownerOf(uint256)'),
-      functionHash('safeTransferFrom(address,address,uint256)'),
-      functionHash('safeTransferFrom(address,address,uint256,bytes)'),
-      functionHash('transferFrom(address,address,uint256)'),
-      functionHash('approve(address,uint256)'),
-      functionHash('setApprovalForAll(address,bool)'),
-      functionHash('getApproved(uint256)'),
-      functionHash('isApprovedForAll(address,address)'),
-      XOR([
-        functionHash('balanceOf(address)'),
-        functionHash('ownerOf(uint256)'),
-        functionHash('safeTransferFrom(address,address,uint256)'),
-        functionHash('safeTransferFrom(address,address,uint256,bytes)'),
-        functionHash('transferFrom(address,address,uint256)'),
-        functionHash('approve(address,uint256)'),
-        functionHash('setApprovalForAll(address,bool)'),
-        functionHash('getApproved(uint256)'),
-        functionHash('isApprovedForAll(address,address)'),
-      ]),
+      { signature: 'balanceOf(address)', hash: functionHash('balanceOf(address)') },
+      { signature: 'ownerOf(uint256)', hash: functionHash('ownerOf(uint256)') },
+      {
+        signature: 'safeTransferFrom(address,address,uint256)',
+        hash: functionHash('safeTransferFrom(address,address,uint256)'),
+      },
+      {
+        signature: 'safeTransferFrom(address,address,uint256,bytes)',
+        hash: functionHash('safeTransferFrom(address,address,uint256,bytes)'),
+      },
+      {
+        signature: 'transferFrom(address,address,uint256)',
+        hash: functionHash('transferFrom(address,address,uint256)'),
+      },
+      { signature: 'approve(address,uint256)', hash: functionHash('approve(address,uint256)') },
+      { signature: 'setApprovalForAll(address,bool)', hash: functionHash('setApprovalForAll(address,bool)') },
+      { signature: 'getApproved(uint256)', hash: functionHash('getApproved(uint256)') },
+      { signature: 'isApprovedForAll(address,address)', hash: functionHash('isApprovedForAll(address,address)') },
+      {
+        signature: 'XOR: ERC721 core functions',
+        hash: XOR([
+          functionHash('balanceOf(address)'),
+          functionHash('ownerOf(uint256)'),
+          functionHash('safeTransferFrom(address,address,uint256)'),
+          functionHash('safeTransferFrom(address,address,uint256,bytes)'),
+          functionHash('transferFrom(address,address,uint256)'),
+          functionHash('approve(address,uint256)'),
+          functionHash('setApprovalForAll(address,bool)'),
+          functionHash('getApproved(uint256)'),
+          functionHash('isApprovedForAll(address,address)'),
+        ]),
+      },
 
       // ERC721Enumerable
-      functionHash('totalSupply()'),
-      functionHash('tokenByIndex(uint256)'),
-      functionHash('tokenOfOwnerByIndex(address,uint256)'),
-      XOR([
-        functionHash('totalSupply()'),
-        functionHash('tokenByIndex(uint256)'),
-        functionHash('tokenOfOwnerByIndex(address,uint256)'),
-      ]),
+      { signature: 'totalSupply()', hash: functionHash('totalSupply()') },
+      { signature: 'tokenByIndex(uint256)', hash: functionHash('tokenByIndex(uint256)') },
+      { signature: 'tokenOfOwnerByIndex(address,uint256)', hash: functionHash('tokenOfOwnerByIndex(address,uint256)') },
+      {
+        signature: 'XOR: ERC721Enumerable functions',
+        hash: XOR([
+          functionHash('totalSupply()'),
+          functionHash('tokenByIndex(uint256)'),
+          functionHash('tokenOfOwnerByIndex(address,uint256)'),
+        ]),
+      },
 
       // ERC721Metadata
-      functionHash('name()'),
-      functionHash('symbol()'),
-      functionHash('tokenURI(uint256)'),
-      XOR([functionHash('name()'), functionHash('symbol()'), functionHash('tokenURI(uint256)')]),
+      { signature: 'name()', hash: functionHash('name()') },
+      { signature: 'symbol()', hash: functionHash('symbol()') },
+      { signature: 'tokenURI(uint256)', hash: functionHash('tokenURI(uint256)') },
+      {
+        signature: 'XOR: ERC721Metadata functions',
+        hash: XOR([functionHash('name()'), functionHash('symbol()'), functionHash('tokenURI(uint256)')]),
+      },
 
-      // adding ERC20-like-Metadata support for Etherscan totalSupply fix
-      functionHash('decimals()'),
-      XOR([functionHash('name()'), functionHash('symbol()'), functionHash('decimals()')]),
+      // Adding ERC20-like Metadata support for Etherscan totalSupply fix
+      { signature: 'decimals()', hash: functionHash('decimals()') },
+      {
+        signature: 'XOR: name(), symbol(), decimals()',
+        hash: XOR([functionHash('name()'), functionHash('symbol()'), functionHash('decimals()')]),
+      },
 
       // ERC721TokenReceiver
-      functionHash('onERC721Received(address,address,uint256,bytes)'),
+      {
+        signature: 'onERC721Received(address,address,uint256,bytes)',
+        hash: functionHash('onERC721Received(address,address,uint256,bytes)'),
+      },
 
       // CollectionURI
-      functionHash('contractURI()'),
+      { signature: 'contractURI()', hash: functionHash('contractURI()') },
 
-      // Ownable
-      functionHash('owner()'),
-      functionHash('transferOwnership(address)'),
-      XOR([functionHash('owner()'), functionHash('transferOwnership(address)')]),
+      // Ownable (repeated section, if needed only once, ignore this repetition)
+      { signature: 'owner()', hash: functionHash('owner()') },
+      { signature: 'transferOwnership(address)', hash: functionHash('transferOwnership(address)') },
+      {
+        signature: 'XOR: owner(), transferOwnership(address)',
+        hash: XOR([functionHash('owner()'), functionHash('transferOwnership(address)')]),
+      },
     ],
-    // HolographRoyalties
+
     '4': [
       // HolographRoyalties
-      functionHash('initHolographRoyalties(bytes)'),
-      functionHash('configurePayouts(address[],uint256[])'),
-      functionHash('getPayoutInfo()'),
-      functionHash('getEthPayout()'),
-      functionHash('getTokenPayout(address)'),
-      functionHash('getTokensPayout(address[])'),
-      functionHash('supportsInterface(bytes4)'),
-      functionHash('setRoyalties(uint256,address,uint256)'),
-      functionHash('royaltyInfo(uint256,uint256)'),
-      functionHash('getFeeBps(uint256)'),
-      functionHash('getFeeRecipients(uint256)'),
-      XOR([functionHash('getFeeBps(uint256)'), functionHash('getFeeRecipients(uint256)')]),
-      functionHash('getRoyalties(uint256)'),
-      functionHash('getFees(uint256)'),
-      functionHash('tokenCreator(address,uint256)'),
-      functionHash('calculateRoyaltyFee(address,uint256,uint256)'),
-      functionHash('marketContract()'),
-      functionHash('tokenCreators(uint256)'),
-      functionHash('bidSharesForToken(uint256)'),
-      functionHash('getStorageSlot(string)'),
-      functionHash('getTokenAddress(string)'),
+      { signature: 'initHolographRoyalties(bytes)', hash: functionHash('initHolographRoyalties(bytes)') },
+      {
+        signature: 'configurePayouts(address[],uint256[])',
+        hash: functionHash('configurePayouts(address[],uint256[])'),
+      },
+      { signature: 'getPayoutInfo()', hash: functionHash('getPayoutInfo()') },
+      { signature: 'getEthPayout()', hash: functionHash('getEthPayout()') },
+      { signature: 'getTokenPayout(address)', hash: functionHash('getTokenPayout(address)') },
+      { signature: 'getTokensPayout(address[])', hash: functionHash('getTokensPayout(address[])') },
+      { signature: 'supportsInterface(bytes4)', hash: functionHash('supportsInterface(bytes4)') },
+      {
+        signature: 'setRoyalties(uint256,address,uint256)',
+        hash: functionHash('setRoyalties(uint256,address,uint256)'),
+      },
+      { signature: 'royaltyInfo(uint256,uint256)', hash: functionHash('royaltyInfo(uint256,uint256)') },
+      { signature: 'getFeeBps(uint256)', hash: functionHash('getFeeBps(uint256)') },
+      { signature: 'getFeeRecipients(uint256)', hash: functionHash('getFeeRecipients(uint256)') },
+      {
+        signature: 'XOR: getFeeBps(uint256), getFeeRecipients(uint256)',
+        hash: XOR([functionHash('getFeeBps(uint256)'), functionHash('getFeeRecipients(uint256)')]),
+      },
+      { signature: 'getRoyalties(uint256)', hash: functionHash('getRoyalties(uint256)') },
+      { signature: 'getFees(uint256)', hash: functionHash('getFees(uint256)') },
+      { signature: 'tokenCreator(address,uint256)', hash: functionHash('tokenCreator(address,uint256)') },
+      {
+        signature: 'calculateRoyaltyFee(address,uint256,uint256)',
+        hash: functionHash('calculateRoyaltyFee(address,uint256,uint256)'),
+      },
+      { signature: 'marketContract()', hash: functionHash('marketContract()') },
+      { signature: 'tokenCreators(uint256)', hash: functionHash('tokenCreators(uint256)') },
+      { signature: 'bidSharesForToken(uint256)', hash: functionHash('bidSharesForToken(uint256)') },
+      { signature: 'getStorageSlot(string)', hash: functionHash('getStorageSlot(string)') },
+      { signature: 'getTokenAddress(string)', hash: functionHash('getTokenAddress(string)') },
     ],
   };
+
   if (global.__deployedHolographInterfaces) {
     console.log('HolographInterfaces needs to have all supported interfaces configured');
     for (let key of Object.keys(supportedInterfaces)) {
+      let interfaceHashes = supportedInterfaces[key].map((entry) => entry.hash); // Extract hashes
       let tx = await MultisigAwareTx(
         hre,
         'HolographInterfaces',
         holographInterfaces,
-        await holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), supportedInterfaces[key], true, {
+        await holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), interfaceHashes, true, {
           ...(await txParams({
             hre,
             from: deployerAddress,
             to: holographInterfaces,
-            data: holographInterfaces.populateTransaction.updateInterfaces(
-              parseInt(key),
-              supportedInterfaces[key],
-              true
-            ),
+            data: holographInterfaces.populateTransaction.updateInterfaces(parseInt(key), interfaceHashes, true),
           })),
         } as any)
       );
@@ -417,19 +485,19 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   } else {
     console.log('Checking HolographInterfaces if some supported interfaces need to be configured');
     for (let key of Object.keys(supportedInterfaces)) {
-      let interfaces: string[] = supportedInterfaces[key];
+      let interfaces = supportedInterfaces[key];
       let todo: string[] = [];
-      for (let i of interfaces) {
-        console.log('Checking if HolographInterfaces supports', i);
-        if (!(await holographInterfaces.supportsInterface(parseInt(key), i))) {
+      for (let { signature, hash } of interfaces) {
+        console.log(`Checking if HolographInterfaces supports ${signature} with hash ${hash}`);
+        if (!(await holographInterfaces.supportsInterface(parseInt(key), hash))) {
           // we need to add support
-          todo.push(i);
+          todo.push(hash);
         }
       }
       if (todo.length == 0) {
-        console.log('No missing interfaces in HolographInterfaces for InterfaceType[' + key + ']');
+        console.log(`No missing interfaces in HolographInterfaces for InterfaceType[${key}]`);
       } else {
-        console.log('Found missing interfaces in HolographInterfaces for InterfaceType[' + key + ']');
+        console.log(`Found missing interfaces in HolographInterfaces for InterfaceType[${key}]`);
         let tx = await MultisigAwareTx(
           hre,
           'HolographInterfaces',
