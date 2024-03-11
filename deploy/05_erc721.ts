@@ -41,12 +41,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ]
     )
   );
-  hre.deployments.log('the future "HolographERC721" address is', futureErc721Address);
+  console.log('the future "HolographERC721" address is', futureErc721Address);
 
   // HolographERC721
   let erc721DeployedCode: string = await hre.provider.send('eth_getCode', [futureErc721Address, 'latest']);
   if (erc721DeployedCode == '0x' || erc721DeployedCode == '') {
-    hre.deployments.log('"HolographERC721" bytecode not found, need to deploy"');
+    console.log('"HolographERC721" bytecode not found, need to deploy"');
     let holographErc721 = await genesisDeployHelper(
       hre,
       salt,
@@ -65,7 +65,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureErc721Address
     );
   } else {
-    hre.deployments.log('"HolographERC721" is already deployed.');
+    console.log('"HolographERC721" is already deployed.');
   }
 
   const futureCxipErc721Address = await genesisDeriveFutureAddress(
@@ -74,12 +74,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'CxipERC721',
     generateInitCode(['address'], [deployerAddress])
   );
-  hre.deployments.log('the future "CxipERC721" address is', futureCxipErc721Address);
+  console.log('the future "CxipERC721" address is', futureCxipErc721Address);
 
   // CxipERC721
   let cxipErc721DeployedCode: string = await hre.provider.send('eth_getCode', [futureCxipErc721Address, 'latest']);
   if (cxipErc721DeployedCode == '0x' || cxipErc721DeployedCode == '') {
-    hre.deployments.log('"CxipERC721" bytecode not found, need to deploy"');
+    console.log('"CxipERC721" bytecode not found, need to deploy"');
     let cxipErc721 = await genesisDeployHelper(
       hre,
       salt,
@@ -88,7 +88,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureCxipErc721Address
     );
   } else {
-    hre.deployments.log('"CxipERC721" is already deployed.');
+    console.log('"CxipERC721" is already deployed.');
   }
 
   console.log(`Exiting script: ${__filename} ✅\n`);

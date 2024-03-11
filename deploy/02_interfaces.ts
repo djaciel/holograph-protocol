@@ -76,7 +76,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'HolographInterfaces',
     generateInitCode(['address'], [zeroAddress])
   );
-  hre.deployments.log('the future "HolographInterfaces" address is', futureHolographInterfacesAddress);
+  console.log('the future "HolographInterfaces" address is', futureHolographInterfacesAddress);
 
   const holographInterfaces: HolographInterfaces = (await hre.ethers.getContractAt(
     'HolographInterfaces',
@@ -158,12 +158,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // Check if there are any mappings needed by examining the length of the needToMap array.
   if (needToMap.length == 0) {
     // If no mappings are needed, log a message indicating all networks are currently supported.
-    hre.deployments.log('HolographInterfaces supports all currently configured networks');
+    console.log('HolographInterfaces supports all currently configured networks');
   } else {
     // If mappings are needed, log a message indicating some networks need configuration.
-    hre.deployments.log('HolographInterfaces needs to have some network support configured');
+    console.log('HolographInterfaces needs to have some network support configured');
     // Log the details of the mappings needed in a JSON format for review.
-    hre.deployments.log(JSON.stringify(needToMap));
+    console.log(JSON.stringify(needToMap));
 
     // Initialize arrays to hold the mapping details for the chain types and IDs.
     let fromChainType: number[] = [];
@@ -223,9 +223,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     }
   }
   if (needToMapPrepends.length == 0) {
-    hre.deployments.log('HolographInterfaces has all currently supported URI prepends configured');
+    console.log('HolographInterfaces has all currently supported URI prepends configured');
   } else {
-    hre.deployments.log('HolographInterfaces needs to have some URI prepends configured');
+    console.log('HolographInterfaces needs to have some URI prepends configured');
     let uriTypes: number[] = [];
     let prepends: string[] = [];
     for (let prepend of needToMapPrepends) {
@@ -393,7 +393,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     ],
   };
   if (global.__deployedHolographInterfaces) {
-    hre.deployments.log('HolographInterfaces needs to have all supported interfaces configured');
+    console.log('HolographInterfaces needs to have all supported interfaces configured');
     for (let key of Object.keys(supportedInterfaces)) {
       let tx = await MultisigAwareTx(
         hre,
@@ -415,7 +415,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
   } else {
-    hre.deployments.log('Checking HolographInterfaces if some supported interfaces need to be configured');
+    console.log('Checking HolographInterfaces if some supported interfaces need to be configured');
     for (let key of Object.keys(supportedInterfaces)) {
       let interfaces: string[] = supportedInterfaces[key];
       let todo: string[] = [];
@@ -427,9 +427,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         }
       }
       if (todo.length == 0) {
-        hre.deployments.log('No missing interfaces in HolographInterfaces for InterfaceType[' + key + ']');
+        console.log('No missing interfaces in HolographInterfaces for InterfaceType[' + key + ']');
       } else {
-        hre.deployments.log('Found missing interfaces in HolographInterfaces for InterfaceType[' + key + ']');
+        console.log('Found missing interfaces in HolographInterfaces for InterfaceType[' + key + ']');
         let tx = await MultisigAwareTx(
           hre,
           'HolographInterfaces',

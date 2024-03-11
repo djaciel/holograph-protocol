@@ -18,7 +18,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
   // const currentNetworkType: NetworkType = networks[hre.network.name].type;
   // if (currentNetworkType == NetworkType.local) {
-  //   hre.deployments.log('Not verifying contracts on localhost networks.');
+  //   console.log('Not verifying contracts on localhost networks.');
   //   return;
   // }
   // const accounts = await hre.ethers.getSigners();
@@ -96,7 +96,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // const network = mapFullKeyToShortKey(networks, hre.network.name);
   // tenderly.env.hardhatArguments.network = network;
   // tenderly.env.network.name = network;
-  // hre.deployments.log('Verifying contracts on Tenderly...');
+  // console.log('Verifying contracts on Tenderly...');
   // for (let i: number = 0, l: number = contracts.length; i < l; i++) {
   //   try {
   //     let contract: string = contracts[i];
@@ -107,7 +107,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   //       name: contract,
   //     });
   //   } catch (error) {
-  //     hre.deployments.log(`Failed to run tenderly verify -> ${error}`);
+  //     console.log(`Failed to run tenderly verify -> ${error}`);
   //   }
   // }
   // console.log(`Exiting script: ${__filename} ✅\n`);

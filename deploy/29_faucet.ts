@@ -51,12 +51,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         'Faucet',
         generateInitCode(['address', 'address'], [deployerAddress, hlgTokenAddress])
       );
-      hre.deployments.log('the future "Faucet" address is', futureFaucetAddress);
+      console.log('the future "Faucet" address is', futureFaucetAddress);
 
       // Faucet
       let faucetDeployedCode: string = await hre.provider.send('eth_getCode', [futureFaucetAddress, 'latest']);
       if (faucetDeployedCode == '0x' || faucetDeployedCode == '') {
-        hre.deployments.log('"Faucet" bytecode not found, need to deploy"');
+        console.log('"Faucet" bytecode not found, need to deploy"');
         let faucet = await genesisDeployHelper(
           hre,
           salt,
@@ -90,7 +90,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         );
         await transferTx.wait();
       } else {
-        hre.deployments.log('"Faucet" is already deployed.');
+        console.log('"Faucet" is already deployed.');
       }
 
       console.log(`Checking if HLG reference is updated in Faucet contract`);
@@ -111,8 +111,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })
         );
         await tx.wait();
-        hre.deployments.log('Updated HLG reference');
-        hre.deployments.log('Transferring 5M HLG to faucet');
+        console.log('Updated HLG reference');
+        console.log('Transferring 5M HLG to faucet');
         const transferTx = await hlgContract.transfer(futureFaucetAddress, BigNumber.from(FIVE_MILLION_TOKENS), {
           ...(await txParams({
             hre,
@@ -126,13 +126,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         });
         const receipt = await transferTx.wait();
-        hre.deployments.log(`Transfer tx hash: ${receipt.transactionHash}`);
+        console.log(`Transfer tx hash: ${receipt.transactionHash}`);
       } else {
         console.log('HLG reference already updated in Faucet contract');
       }
     }
   } else {
-    hre.deployments.log(`Skipping faucet deployment on ${currentNetworkType} network`);
+    console.log(`Skipping faucet deployment on ${currentNetworkType} network`);
   }
 
   console.log(`Exiting script: ${__filename} ✅\n`);

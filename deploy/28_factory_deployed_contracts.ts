@@ -34,7 +34,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         log: true,
         waitConfirmations: 1,
       } as any);
-      hre.deployments.log('Deployed a "Holographer" empty contract for block explorer verification purposes.');
+      console.log('Deployed a "Holographer" empty contract for block explorer verification purposes.');
     }
 
     const cxipERC721Proxy: Contract | null = await hre.ethers.getContractOrNull('CxipERC721Proxy', deployerAddress);
@@ -52,7 +52,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         log: true,
         waitConfirmations: 1,
       } as any);
-      hre.deployments.log('Deployed a "CxipERC721Proxy" empty contract for block explorer verification purposes.');
+      console.log('Deployed a "CxipERC721Proxy" empty contract for block explorer verification purposes.');
     }
 
     const holographDropERC721Proxy: Contract | null = await hre.ethers.getContractOrNull(
@@ -73,9 +73,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         log: true,
         waitConfirmations: 1,
       } as any);
-      hre.deployments.log(
-        'Deployed a "HolographDropERC721Proxy" empty contract for block explorer verification purposes.'
-      );
+      console.log('Deployed a "HolographDropERC721Proxy" empty contract for block explorer verification purposes.');
     }
 
     const holographUtilityToken: Contract | null = await hre.ethers.getContractOrNull(
@@ -96,9 +94,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         log: true,
         waitConfirmations: 1,
       } as any);
-      hre.deployments.log(
-        'Deployed a "HolographUtilityToken" empty contract for block explorer verification purposes.'
-      );
+      console.log('Deployed a "HolographUtilityToken" empty contract for block explorer verification purposes.');
     }
 
     const hTokenProxy: Contract | null = await hre.ethers.getContractOrNull('hTokenProxy', deployerAddress);
@@ -116,7 +112,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         log: true,
         waitConfirmations: 1,
       } as any);
-      hre.deployments.log('Deployed a "hTokenProxy" empty contract for block explorer verification purposes.');
+      console.log('Deployed a "hTokenProxy" empty contract for block explorer verification purposes.');
     }
   }
 

@@ -52,7 +52,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
   };
 
-  hre.deployments.log('Checking the HolographRegistry reserved namespaces');
+  console.log('Checking the HolographRegistry reserved namespaces');
 
   // Initializes an array to keep track of namespaces that need to be reserved.
   let toReserve: number[] = [];
@@ -78,10 +78,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // Checks if there are any namespaces to reserve. If not, logs a message indicating that
   // all namespaces are in order.
   if (toReserve.length == 0) {
-    hre.deployments.log('All HolographRegistry reserved namespaces are in order');
+    console.log('All HolographRegistry reserved namespaces are in order');
   } else {
     // If there are namespaces to reserve, logs the missing namespaces.
-    hre.deployments.log(
+    console.log(
       'Missing the following namespaces:',
       toReserve.map((index: number) => reservedNamespaces[index]).join(', ')
     );
@@ -106,9 +106,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       })
     );
 
-    hre.deployments.log('Transaction hash:', setReservedContractTypeAddressesTx.hash);
+    console.log('Transaction hash:', setReservedContractTypeAddressesTx.hash);
     await setReservedContractTypeAddressesTx.wait();
-    hre.deployments.log('Missing namespaces have been reserved for HolographRegistry');
+    console.log('Missing namespaces have been reserved for HolographRegistry');
   }
 
   // At this point all reserved namespaces should be registered in protocol so we can proceed with registering the templates
@@ -119,7 +119,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'DropsPriceOracleProxy',
     generateInitCode([], [])
   );
-  hre.deployments.log('the future "DropsPriceOracleProxy" address is', futureDropsPriceOracleProxyAddress);
+  console.log('the future "DropsPriceOracleProxy" address is', futureDropsPriceOracleProxyAddress);
 
   const dropsPriceOracleProxyHash =
     '0x' + web3.utils.asciiToHex('DropsPriceOracleProxy').substring(2).padStart(64, '0');
@@ -147,15 +147,15 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         }
       )
     );
-    hre.deployments.log('Transaction hash:', dropsPriceOracleProxyTx.hash);
+    console.log('Transaction hash:', dropsPriceOracleProxyTx.hash);
     await dropsPriceOracleProxyTx.wait();
-    hre.deployments.log(
+    console.log(
       `Registered "DropsPriceOracleProxy" to: ${await holographRegistry.getContractTypeAddress(
         dropsPriceOracleProxyHash
       )}`
     );
   } else {
-    hre.deployments.log('"DropsPriceOracleProxy" is already registered');
+    console.log('"DropsPriceOracleProxy" is already registered');
   }
 
   // Register DropsMetadataRendererProxy
@@ -171,7 +171,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'DropsMetadataRendererProxy',
     generateInitCode(['address', 'bytes'], [futureDropsMetadataRendererAddress, generateInitCode([], [])])
   );
-  hre.deployments.log('the future "DropsMetadataRendererProxy" address is', futureDropsMetadataRendererProxyAddress);
+  console.log('the future "DropsMetadataRendererProxy" address is', futureDropsMetadataRendererProxyAddress);
 
   const dropsMetadataRendererProxyHash =
     '0x' + web3.utils.asciiToHex('DropsMetadataRendererProxy').substring(2).padStart(64, '0');
@@ -200,15 +200,15 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         }
       )
     );
-    hre.deployments.log('Transaction hash:', dropsMetadataRendererProxyTx.hash);
+    console.log('Transaction hash:', dropsMetadataRendererProxyTx.hash);
     await dropsMetadataRendererProxyTx.wait();
-    hre.deployments.log(
+    console.log(
       `Registered "DropsMetadataRendererProxy" to: ${await holographRegistry.getContractTypeAddress(
         dropsMetadataRendererProxyHash
       )}`
     );
   } else {
-    hre.deployments.log('"DropsMetadataRendererProxy" is already registered');
+    console.log('"DropsMetadataRendererProxy" is already registered');
   }
 
   // Register EditionsMetadataRendererProxy
@@ -224,10 +224,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'EditionsMetadataRendererProxy',
     generateInitCode(['address', 'bytes'], [futureEditionsMetadataRendererAddress, generateInitCode([], [])])
   );
-  hre.deployments.log(
-    'the future "EditionsMetadataRendererProxy" address is',
-    futureEditionsMetadataRendererProxyAddress
-  );
+  console.log('the future "EditionsMetadataRendererProxy" address is', futureEditionsMetadataRendererProxyAddress);
 
   const editionsMetadataRendererProxyHash =
     '0x' + web3.utils.asciiToHex('EditionsMetadataRendererProxy').substring(2).padStart(64, '0');
@@ -256,15 +253,15 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         }
       )
     );
-    hre.deployments.log('Transaction hash:', editionsMetadataRendererProxyTx.hash);
+    console.log('Transaction hash:', editionsMetadataRendererProxyTx.hash);
     await editionsMetadataRendererProxyTx.wait();
-    hre.deployments.log(
+    console.log(
       `Registered "EditionsMetadataRendererProxy" to: ${await holographRegistry.getContractTypeAddress(
         editionsMetadataRendererProxyHash
       )}`
     );
   } else {
-    hre.deployments.log('"EditionsMetadataRendererProxy" is already registered');
+    console.log('"EditionsMetadataRendererProxy" is already registered');
   }
 
   // Register Generic
@@ -281,7 +278,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ]
     )
   );
-  hre.deployments.log('the future "HolographGeneric" address is', futureGenericAddress);
+  console.log('the future "HolographGeneric" address is', futureGenericAddress);
 
   const genericHash = '0x' + web3.utils.asciiToHex('HolographGeneric').substring(2).padStart(64, '0');
   console.log(`genericHash: ${genericHash}`);
@@ -299,13 +296,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         })),
       })
     );
-    hre.deployments.log('Transaction hash:', genericTx.hash);
+    console.log('Transaction hash:', genericTx.hash);
     await genericTx.wait();
-    hre.deployments.log(
-      `Registered "HolographGeneric" to: ${await holographRegistry.getContractTypeAddress(genericHash)}`
-    );
+    console.log(`Registered "HolographGeneric" to: ${await holographRegistry.getContractTypeAddress(genericHash)}`);
   } else {
-    hre.deployments.log('"HolographGeneric" is already registered');
+    console.log('"HolographGeneric" is already registered');
   }
 
   // Register ERC721
@@ -325,7 +320,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ]
     )
   );
-  hre.deployments.log('the future "HolographERC721" address is', futureErc721Address);
+  console.log('the future "HolographERC721" address is', futureErc721Address);
 
   const erc721Hash = '0x' + web3.utils.asciiToHex('HolographERC721').substring(2).padStart(64, '0');
   console.log(`erc721Hash: ${erc721Hash}`);
@@ -343,13 +338,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         })),
       })
     );
-    hre.deployments.log('Transaction hash:', erc721Tx.hash);
+    console.log('Transaction hash:', erc721Tx.hash);
     await erc721Tx.wait();
-    hre.deployments.log(
-      `Registered "HolographERC721" to: ${await holographRegistry.getContractTypeAddress(erc721Hash)}`
-    );
+    console.log(`Registered "HolographERC721" to: ${await holographRegistry.getContractTypeAddress(erc721Hash)}`);
   } else {
-    hre.deployments.log('"HolographERC721" is already registered');
+    console.log('"HolographERC721" is already registered');
   }
 
   // Register HolographDropERC721
@@ -378,7 +371,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'HolographDropERC721',
     HolographDropERC721InitCode
   );
-  hre.deployments.log('the future "HolographDropERC721" address is', futureHolographDropERC721Address);
+  console.log('the future "HolographDropERC721" address is', futureHolographDropERC721Address);
   const HolographDropERC721Hash = '0x' + web3.utils.asciiToHex('HolographDropERC721').substring(2).padStart(64, '0');
   console.log(`HolographDropERC721Hash: ${HolographDropERC721Hash}`);
   if ((await holographRegistry.getContractTypeAddress(HolographDropERC721Hash)) != futureHolographDropERC721Address) {
@@ -402,13 +395,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         }
       )
     );
-    hre.deployments.log('Transaction hash:', erc721DropTx.hash);
+    console.log('Transaction hash:', erc721DropTx.hash);
     await erc721DropTx.wait();
-    hre.deployments.log(
+    console.log(
       `Registered "HolographDropERC721" to: ${await holographRegistry.getContractTypeAddress(HolographDropERC721Hash)}`
     );
   } else {
-    hre.deployments.log('"HolographDropERC721" is already registered');
+    console.log('"HolographDropERC721" is already registered');
   }
 
   // Register HolographDropERC721V2
@@ -432,7 +425,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'HolographDropERC721V2',
     HolographDropERC721V2InitCode
   );
-  hre.deployments.log('the future "HolographDropERC721V2" address is', futureHolographDropERC721V2Address);
+  console.log('the future "HolographDropERC721V2" address is', futureHolographDropERC721V2Address);
   const HolographDropERC721V2Hash =
     '0x' + web3.utils.asciiToHex('HolographDropERC721V2').substring(2).padStart(64, '0');
   console.log(`HolographDropERC721V2Hash: ${HolographDropERC721V2Hash}`);
@@ -459,15 +452,15 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         }
       )
     );
-    hre.deployments.log('Transaction hash:', erc721DropTx.hash);
+    console.log('Transaction hash:', erc721DropTx.hash);
     await erc721DropTx.wait();
-    hre.deployments.log(
+    console.log(
       `Registered "HolographDropERC721V2" to: ${await holographRegistry.getContractTypeAddress(
         HolographDropERC721Hash
       )}`
     );
   } else {
-    hre.deployments.log('"HolographDropERC721V2" is already registered');
+    console.log('"HolographDropERC721V2" is already registered');
   }
 
   // Register CxipERC721
@@ -477,7 +470,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'CxipERC721',
     generateInitCode(['address'], [zeroAddress])
   );
-  hre.deployments.log('the future "CxipERC721" address is', futureCxipErc721Address);
+  console.log('the future "CxipERC721" address is', futureCxipErc721Address);
 
   const cxipErc721Hash = '0x' + web3.utils.asciiToHex('CxipERC721').substring(2).padStart(64, '0');
   console.log(`cxipErc721Hash: ${cxipErc721Hash}`);
@@ -495,13 +488,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         })),
       })
     );
-    hre.deployments.log('Transaction hash:', cxipErc721Tx.hash);
+    console.log('Transaction hash:', cxipErc721Tx.hash);
     await cxipErc721Tx.wait();
-    hre.deployments.log(
-      `Registered "CxipERC721" to: ${await holographRegistry.getContractTypeAddress(cxipErc721Hash)}`
-    );
+    console.log(`Registered "CxipERC721" to: ${await holographRegistry.getContractTypeAddress(cxipErc721Hash)}`);
   } else {
-    hre.deployments.log('"CxipERC721" is already registered');
+    console.log('"CxipERC721" is already registered');
   }
 
   // Register ERC20
@@ -523,7 +514,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ]
     )
   );
-  hre.deployments.log('the future "HolographERC20" address is', futureErc20Address);
+  console.log('the future "HolographERC20" address is', futureErc20Address);
 
   const erc20Hash = '0x' + web3.utils.asciiToHex('HolographERC20').substring(2).padStart(64, '0');
   console.log(`erc20Hash: ${erc20Hash}`);
@@ -541,11 +532,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         })),
       })
     );
-    hre.deployments.log('Transaction hash:', erc20Tx.hash);
+    console.log('Transaction hash:', erc20Tx.hash);
     await erc20Tx.wait();
-    hre.deployments.log(`Registered "HolographERC20" to: ${await holographRegistry.getContractTypeAddress(erc20Hash)}`);
+    console.log(`Registered "HolographERC20" to: ${await holographRegistry.getContractTypeAddress(erc20Hash)}`);
   } else {
-    hre.deployments.log('"HolographERC20" is already registered');
+    console.log('"HolographERC20" is already registered');
   }
 
   // Register Royalties
@@ -555,7 +546,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'HolographRoyalties',
     generateInitCode(['address', 'uint256'], [zeroAddress, '0x' + '00'.repeat(32)])
   );
-  hre.deployments.log('the future "HolographRoyalties" address is', futureRoyaltiesAddress);
+  console.log('the future "HolographRoyalties" address is', futureRoyaltiesAddress);
 
   const holographRoyaltiesHash = '0x' + web3.utils.asciiToHex('HolographRoyalties').substring(2).padStart(64, '0');
   console.log(`holographRoyaltiesHash: ${holographRoyaltiesHash}`);
@@ -580,13 +571,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         }
       )
     );
-    hre.deployments.log('Transaction hash:', royaltiesTx.hash);
+    console.log('Transaction hash:', royaltiesTx.hash);
     await royaltiesTx.wait();
-    hre.deployments.log(
+    console.log(
       `Registered "HolographRoyalties" to: ${await holographRegistry.getContractTypeAddress(holographRoyaltiesHash)}`
     );
   } else {
-    hre.deployments.log('"HolographRoyalties" is already registered');
+    console.log('"HolographRoyalties" is already registered');
   }
 
   // Register hToken
@@ -596,7 +587,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'hToken',
     generateInitCode(['address', 'uint16'], [deployerAddress, 0])
   );
-  hre.deployments.log('the future "hToken" address is', futureHTokenAddress);
+  console.log('the future "hToken" address is', futureHTokenAddress);
 
   const hTokenHash = '0x' + web3.utils.asciiToHex('hToken').substring(2).padStart(64, '0');
   console.log(`hTokenHash: ${hTokenHash}`);
@@ -614,11 +605,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         })),
       })
     );
-    hre.deployments.log('Transaction hash:', hTokenTx.hash);
+    console.log('Transaction hash:', hTokenTx.hash);
     await hTokenTx.wait();
-    hre.deployments.log(`Registered "hToken" to: ${await holographRegistry.getContractTypeAddress(hTokenHash)}`);
+    console.log(`Registered "hToken" to: ${await holographRegistry.getContractTypeAddress(hTokenHash)}`);
   } else {
-    hre.deployments.log('"hToken" is already registered');
+    console.log('"hToken" is already registered');
   }
 
   console.log(`Exiting script: ${__filename} ✅\n`);

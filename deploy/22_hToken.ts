@@ -49,12 +49,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'hToken',
     generateInitCode(['address', 'uint16'], [deployerAddress, 0])
   );
-  hre.deployments.log('the future "hToken" address is', futureHTokenAddress);
+  console.log('the future "hToken" address is', futureHTokenAddress);
 
   // hToken
   let hTokenDeployedCode: string = await hre.provider.send('eth_getCode', [futureHTokenAddress, 'latest']);
   if (hTokenDeployedCode == '0x' || hTokenDeployedCode == '') {
-    hre.deployments.log('"hToken" bytecode not found, need to deploy"');
+    console.log('"hToken" bytecode not found, need to deploy"');
     let holographErc20 = await genesisDeployHelper(
       hre,
       salt,
@@ -63,7 +63,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureHTokenAddress
     );
   } else {
-    hre.deployments.log('"hToken" is already deployed.');
+    console.log('"hToken" is already deployed.');
   }
 
   const network = networks[hre.networkName];
@@ -85,7 +85,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const holographerBytecode: BytesLike = (await hre.ethers.getContractFactory('Holographer')).bytecode;
 
   const error = function (err: string) {
-    hre.deployments.log(err);
+    console.log(err);
     process.exit();
   };
 
@@ -194,7 +194,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     console.log(`Environment: ${environment}`);
 
     if (environment == Environment.develop) {
-      hre.deployments.log(`Using deployerAddress from signer ${deployerAddress}`);
+      console.log(`Using deployerAddress from signer ${deployerAddress}`);
       erc20DeployerAddress = deployerAddress;
     }
 
@@ -227,11 +227,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       erc20ConfigHash,
       hre.ethers.utils.keccak256(holographerBytecode)
     );
-    hre.deployments.log('the future "hToken ' + data.tokenSymbol + '" address is', futureHTokenAddress);
+    console.log('the future "hToken ' + data.tokenSymbol + '" address is', futureHTokenAddress);
 
     let hTokenDeployedCode: string = await hre.provider.send('eth_getCode', [futureHTokenAddress, 'latest']);
     if (hTokenDeployedCode == '0x' || hTokenDeployedCode == '') {
-      hre.deployments.log('need to deploy "hToken ' + data.tokenSymbol + '"');
+      console.log('need to deploy "hToken ' + data.tokenSymbol + '"');
 
       const sig = await deployer.signer.signMessage(erc20ConfigHashBytes);
       const signature: Signature = StrictECDSA({
@@ -271,16 +271,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           `Seems like hTokenAddress ${hTokenAddress} and futureHTokenAddress ${futureHTokenAddress} do not match!`
         );
       }
-      hre.deployments.log('deployed "hToken ' + data.tokenSymbol + '" at:', hTokenAddress);
+      console.log('deployed "hToken ' + data.tokenSymbol + '" at:', hTokenAddress);
     } else {
-      hre.deployments.log('reusing "hToken ' + data.tokenSymbol + '" at:', futureHTokenAddress);
+      console.log('reusing "hToken ' + data.tokenSymbol + '" at:', futureHTokenAddress);
     }
 
     const hToken = ((await hre.ethers.getContract('hToken', deployerAddress)) as Contract).attach(futureHTokenAddress);
 
     for (let network of data.supportedNetworks) {
       if (!(await hToken.isSupportedChain(network.chain))) {
-        hre.deployments.log('Need to add ' + network.chain.toString() + ' as supported chain');
+        console.log('Need to add ' + network.chain.toString() + ' as supported chain');
         const setSupportedChainTx = await MultisigAwareTx(
           hre,
           'hToken',
@@ -295,11 +295,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })
         );
         await setSupportedChainTx.wait();
-        hre.deployments.log('Set ' + network.chain.toString() + ' as supported chain');
+        console.log('Set ' + network.chain.toString() + ' as supported chain');
       }
       const chain = '0x' + network.holographId.toString(16).padStart(8, '0');
       if ((await registry.getHToken(chain)) != futureHTokenAddress) {
-        hre.deployments.log(
+        console.log(
           'Updated "Registry" with "hToken ' +
             data.tokenSymbol +
             '" for holographChainId #' +

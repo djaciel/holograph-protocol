@@ -39,7 +39,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   global.__holographAddress = holograph.address.toLowerCase();
 
-  hre.deployments.log('holograph', holograph.address, 'global.__holographAddress', global.__holographAddress);
+  console.log('holograph', holograph.address, 'global.__holographAddress', global.__holographAddress);
 
   const holographRegistry = (await hre.ethers.getContractAt(
     'HolographRegistry',
@@ -61,7 +61,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const holographERC20Address = await holographRegistry.getReservedContractTypeAddress(
     reservedNamespaceHashes[erc20SourceNamespaceId]
   );
-  hre.deployments.log('the "HolographERC20" address is', holographERC20Address);
+  console.log('the "HolographERC20" address is', holographERC20Address);
 
   /* future TempHtokenFix */
   const futureTempHtokenFixAddress = await genesisDeriveFutureAddress(
@@ -70,7 +70,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'TempHtokenFix',
     await generateInitCode([], [])
   );
-  hre.deployments.log('the future "TempHtokenFix" address is', futureTempHtokenFixAddress);
+  console.log('the future "TempHtokenFix" address is', futureTempHtokenFixAddress);
 
   /* deploy TempHtokenFix */
   let tempHtokenFixDeployedCode: string = await hre.provider.send('eth_getCode', [
@@ -78,7 +78,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'latest',
   ]);
   if (tempHtokenFixDeployedCode == '0x' || tempHtokenFixDeployedCode == '') {
-    hre.deployments.log('"TempHtokenFix" bytecode not found, need to deploy"');
+    console.log('"TempHtokenFix" bytecode not found, need to deploy"');
     let tempHtokenFix = await genesisDeployHelper(
       hre,
       salt,
@@ -87,7 +87,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureTempHtokenFixAddress
     );
   } else {
-    hre.deployments.log('"TempHtokenFix" is already deployed.');
+    console.log('"TempHtokenFix" is already deployed.');
   }
 
   const tx1 = await MultisigAwareTx(
@@ -121,7 +121,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   )) as Contract;
 
   /* simulate multisig request */
-  hre.deployments.log(`
+  console.log(`
 
 🚨🚨🚨 Multisig Transaction 🚨🚨🚨
 You will need to make a transaction on your Ethereum multisig at address 0x99102e9bf378ae777e16d5f1d2d8ff89b066c5af
@@ -165,7 +165,7 @@ Use the following payload for Data input field:
       constructorArguments: [],
     });
   } catch (error) {
-    hre.deployments.log(`Failed to verify "TempHtokenFix" -> ${error}`);
+    console.log(`Failed to verify "TempHtokenFix" -> ${error}`);
   }
 
   process.exit();

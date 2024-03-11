@@ -62,14 +62,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         })
       );
-      hre.deployments.log('Transaction hash:', lzTx.hash);
+      console.log('Transaction hash:', lzTx.hash);
       await lzTx.wait();
-      hre.deployments.log(`Registered lzEndpoint to: ${await layerZeroModule.getLZEndpoint()}`);
+      console.log(`Registered lzEndpoint to: ${await layerZeroModule.getLZEndpoint()}`);
     } else {
-      hre.deployments.log(`lzEndpoint is already registered to: ${await layerZeroModule.getLZEndpoint()}`);
+      console.log(`lzEndpoint is already registered to: ${await layerZeroModule.getLZEndpoint()}`);
     }
   } else {
-    hre.deployments.log(`Skipping for ${hre1.network.name} network because lzEndpoint is not set`);
+    console.log(`Skipping for ${hre1.network.name} network because lzEndpoint is not set`);
   }
   console.log(`Exiting script: ${__filename} ✅\n`);
 };

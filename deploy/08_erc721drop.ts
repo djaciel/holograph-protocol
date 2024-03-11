@@ -33,13 +33,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'DropsMetadataRenderer',
     generateInitCode([], [])
   );
-  hre.deployments.log('the future "DropsMetadataRenderer" address is', futureDropsMetadataRendererAddress);
+  console.log('the future "DropsMetadataRenderer" address is', futureDropsMetadataRendererAddress);
   let dropsMetadataRendererDeployedCode: string = await hre.provider.send('eth_getCode', [
     futureDropsMetadataRendererAddress,
     'latest',
   ]);
   if (dropsMetadataRendererDeployedCode == '0x' || dropsMetadataRendererDeployedCode == '') {
-    hre.deployments.log('"DropsMetadataRenderer" bytecode not found, need to deploy"');
+    console.log('"DropsMetadataRenderer" bytecode not found, need to deploy"');
     let dropsMetadataRenderer = await genesisDeployHelper(
       hre,
       salt,
@@ -48,7 +48,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureDropsMetadataRendererAddress
     );
   } else {
-    hre.deployments.log('"DropsMetadataRenderer" is already deployed.');
+    console.log('"DropsMetadataRenderer" is already deployed.');
   }
 
   // Deploy DropsMetadataRendererProxy source contract
@@ -63,13 +63,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureDropsMetadataRendererProxyAddress,
     deployerAddress
   )) as Contract;
-  hre.deployments.log('the future "DropsMetadataRendererProxy" address is', futureDropsMetadataRendererProxyAddress);
+  console.log('the future "DropsMetadataRendererProxy" address is', futureDropsMetadataRendererProxyAddress);
   let dropsMetadataRendererProxyDeployedCode: string = await hre.provider.send('eth_getCode', [
     futureDropsMetadataRendererProxyAddress,
     'latest',
   ]);
   if (dropsMetadataRendererProxyDeployedCode == '0x' || dropsMetadataRendererProxyDeployedCode == '') {
-    hre.deployments.log('"DropsMetadataRendererProxy" bytecode not found, need to deploy"');
+    console.log('"DropsMetadataRendererProxy" bytecode not found, need to deploy"');
     dropsMetadataRendererProxy = await genesisDeployHelper(
       hre,
       salt,
@@ -78,13 +78,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureDropsMetadataRendererProxyAddress
     );
   } else {
-    hre.deployments.log('"DropsMetadataRendererProxy" is already deployed.');
-    hre.deployments.log('Checking "DropsMetadataRendererProxy" source.');
+    console.log('"DropsMetadataRendererProxy" is already deployed.');
+    console.log('Checking "DropsMetadataRendererProxy" source.');
     if (
       (await dropsMetadataRendererProxy.getDropsMetadataRenderer()).toLowerCase() !=
       futureDropsMetadataRendererAddress.toLowerCase()
     ) {
-      hre.deployments.log('Need to set "DropsMetadataRendererProxy" source.');
+      console.log('Need to set "DropsMetadataRendererProxy" source.');
       const setDropsMetadataRendererTx = await MultisigAwareTx(
         hre,
         'DropsMetadataRendererProxy',
@@ -103,13 +103,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           }
         )
       );
-      hre.deployments.log('Transaction hash:', setDropsMetadataRendererTx.hash);
+      console.log('Transaction hash:', setDropsMetadataRendererTx.hash);
       await setDropsMetadataRendererTx.wait();
-      hre.deployments.log(
+      console.log(
         `Registered "DropsMetadataRenderer" to: ${await dropsMetadataRendererProxy.getDropsMetadataRenderer()}`
       );
     } else {
-      hre.deployments.log('"DropsMetadataRendererProxy" source is correct.');
+      console.log('"DropsMetadataRendererProxy" source is correct.');
     }
   }
 
@@ -120,13 +120,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'EditionsMetadataRenderer',
     generateInitCode([], [])
   );
-  hre.deployments.log('the future "EditionsMetadataRenderer" address is', futureEditionsMetadataRendererAddress);
+  console.log('the future "EditionsMetadataRenderer" address is', futureEditionsMetadataRendererAddress);
   let editionsMetadataRendererDeployedCode: string = await hre.provider.send('eth_getCode', [
     futureEditionsMetadataRendererAddress,
     'latest',
   ]);
   if (editionsMetadataRendererDeployedCode == '0x' || editionsMetadataRendererDeployedCode == '') {
-    hre.deployments.log('"EditionsMetadataRenderer" bytecode not found, need to deploy"');
+    console.log('"EditionsMetadataRenderer" bytecode not found, need to deploy"');
     let editionsMetadataRenderer = await genesisDeployHelper(
       hre,
       salt,
@@ -135,7 +135,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureEditionsMetadataRendererAddress
     );
   } else {
-    hre.deployments.log('"EditionsMetadataRenderer" is already deployed.');
+    console.log('"EditionsMetadataRenderer" is already deployed.');
   }
 
   // Deploy EditionsMetadataRendererProxy source contract
@@ -150,16 +150,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureEditionsMetadataRendererProxyAddress,
     deployerAddress
   )) as Contract;
-  hre.deployments.log(
-    'the future "EditionsMetadataRendererProxy" address is',
-    futureEditionsMetadataRendererProxyAddress
-  );
+  console.log('the future "EditionsMetadataRendererProxy" address is', futureEditionsMetadataRendererProxyAddress);
   let editionsMetadataRendererProxyDeployedCode: string = await hre.provider.send('eth_getCode', [
     futureEditionsMetadataRendererProxyAddress,
     'latest',
   ]);
   if (editionsMetadataRendererProxyDeployedCode == '0x' || editionsMetadataRendererProxyDeployedCode == '') {
-    hre.deployments.log('"EditionsMetadataRendererProxy" bytecode not found, need to deploy"');
+    console.log('"EditionsMetadataRendererProxy" bytecode not found, need to deploy"');
     editionsMetadataRendererProxy = await genesisDeployHelper(
       hre,
       salt,
@@ -168,13 +165,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureEditionsMetadataRendererProxyAddress
     );
   } else {
-    hre.deployments.log('"EditionsMetadataRendererProxy" is already deployed.');
-    hre.deployments.log('Checking "EditionsMetadataRendererProxy" source.');
+    console.log('"EditionsMetadataRendererProxy" is already deployed.');
+    console.log('Checking "EditionsMetadataRendererProxy" source.');
     if (
       (await editionsMetadataRendererProxy.getEditionsMetadataRenderer()).toLowerCase() !=
       futureEditionsMetadataRendererAddress.toLowerCase()
     ) {
-      hre.deployments.log('Need to set "EditionsMetadataRendererProxy" source.');
+      console.log('Need to set "EditionsMetadataRendererProxy" source.');
       const setEditionsMetadataRendererTx = await MultisigAwareTx(
         hre,
         'EditionsMetadataRendererProxy',
@@ -193,13 +190,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           }
         )
       );
-      hre.deployments.log('Transaction hash:', setEditionsMetadataRendererTx.hash);
+      console.log('Transaction hash:', setEditionsMetadataRendererTx.hash);
       await setEditionsMetadataRendererTx.wait();
-      hre.deployments.log(
+      console.log(
         `Registered "EditionsMetadataRenderer" to: ${await editionsMetadataRendererProxy.getEditionsMetadataRenderer()}`
       );
     } else {
-      hre.deployments.log('"EditionsMetadataRendererProxy" source is correct.');
+      console.log('"EditionsMetadataRendererProxy" source is correct.');
     }
   }
 
@@ -229,7 +226,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'HolographDropERC721',
     HolographDropERC721InitCode
   );
-  hre.deployments.log('the future "HolographDropERC721" address is', futureHolographDropERC721Address);
+  console.log('the future "HolographDropERC721" address is', futureHolographDropERC721Address);
 
   let HolographDropERC721DeployedCode: string = await hre.provider.send('eth_getCode', [
     futureHolographDropERC721Address,
@@ -237,7 +234,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   ]);
 
   if (HolographDropERC721DeployedCode == '0x' || HolographDropERC721DeployedCode == '') {
-    hre.deployments.log('"HolographDropERC721" bytecode not found, need to deploy"');
+    console.log('"HolographDropERC721" bytecode not found, need to deploy"');
     let HolographDropERC721 = await genesisDeployHelper(
       hre,
       salt,
@@ -246,7 +243,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureHolographDropERC721Address
     );
   } else {
-    hre.deployments.log('"HolographDropERC721" is already deployed.');
+    console.log('"HolographDropERC721" is already deployed.');
   }
 
   console.log(`Exiting script: ${__filename} ✅\n`);

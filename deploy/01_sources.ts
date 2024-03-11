@@ -104,7 +104,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ]
     )
   );
-  hre.deployments.log('the future "Holograph" address is', futureHolographAddress);
+  console.log('the future "Holograph" address is', futureHolographAddress);
   global.__holographAddress = futureHolographAddress.toLowerCase();
 
   const futureBridgeAddress = await genesisDeriveFutureAddress(
@@ -113,7 +113,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'HolographBridge',
     generateInitCode(['address', 'address', 'address', 'address'], [zeroAddress, zeroAddress, zeroAddress, zeroAddress])
   );
-  hre.deployments.log('the future "HolographBridge" address is', futureBridgeAddress);
+  console.log('the future "HolographBridge" address is', futureBridgeAddress);
 
   const futureBridgeProxyAddress = await genesisDeriveFutureAddress(
     hre,
@@ -130,7 +130,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ]
     )
   );
-  hre.deployments.log('the future "HolographBridgeProxy" address is', futureBridgeProxyAddress);
+  console.log('the future "HolographBridgeProxy" address is', futureBridgeProxyAddress);
 
   const futureFactoryAddress = await genesisDeriveFutureAddress(
     hre,
@@ -138,7 +138,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'HolographFactory',
     generateInitCode(['address', 'address', 'address'], [zeroAddress, zeroAddress, zeroAddress])
   );
-  hre.deployments.log('the future "HolographFactory" address is', futureFactoryAddress);
+  console.log('the future "HolographFactory" address is', futureFactoryAddress);
 
   const futureFactoryProxyAddress = await genesisDeriveFutureAddress(
     hre,
@@ -149,7 +149,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       [zeroAddress, generateInitCode(['address', 'address', 'address'], [zeroAddress, zeroAddress, zeroAddress])]
     )
   );
-  hre.deployments.log('the future "HolographFactoryProxy" address is', futureFactoryProxyAddress);
+  console.log('the future "HolographFactoryProxy" address is', futureFactoryProxyAddress);
   global.__holographFactoryAddress = futureFactoryProxyAddress.toLowerCase();
 
   const futureOperatorAddress = await genesisDeriveFutureAddress(
@@ -161,7 +161,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       [zeroAddress, zeroAddress, zeroAddress, zeroAddress, zeroAddress, '0x' + '00'.repeat(32)]
     )
   );
-  hre.deployments.log('the future "HolographOperator" address is', futureOperatorAddress);
+  console.log('the future "HolographOperator" address is', futureOperatorAddress);
 
   const futureOperatorProxyAddress = await genesisDeriveFutureAddress(
     hre,
@@ -178,7 +178,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ]
     )
   );
-  hre.deployments.log('the future "HolographOperatorProxy" address is', futureOperatorProxyAddress);
+  console.log('the future "HolographOperatorProxy" address is', futureOperatorProxyAddress);
 
   const futureRegistryAddress = await genesisDeriveFutureAddress(
     hre,
@@ -186,7 +186,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'HolographRegistry',
     generateInitCode(['address', 'bytes32[]'], [zeroAddress, []])
   );
-  hre.deployments.log('the future "HolographRegistry" address is', futureRegistryAddress);
+  console.log('the future "HolographRegistry" address is', futureRegistryAddress);
 
   const futureRegistryProxyAddress = await genesisDeriveFutureAddress(
     hre,
@@ -194,7 +194,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'HolographRegistryProxy',
     generateInitCode(['address', 'bytes'], [zeroAddress, generateInitCode(['address', 'bytes32[]'], [zeroAddress, []])])
   );
-  hre.deployments.log('the future "HolographRegistryProxy" address is', futureRegistryProxyAddress);
+  console.log('the future "HolographRegistryProxy" address is', futureRegistryProxyAddress);
 
   const futureTreasuryAddress = await genesisDeriveFutureAddress(
     hre,
@@ -202,7 +202,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'HolographTreasury',
     generateInitCode(['address', 'address', 'address', 'address'], [zeroAddress, zeroAddress, zeroAddress, zeroAddress])
   );
-  hre.deployments.log('the future "HolographTreasury" address is', futureTreasuryAddress);
+  console.log('the future "HolographTreasury" address is', futureTreasuryAddress);
 
   const futureTreasuryProxyAddress = await genesisDeriveFutureAddress(
     hre,
@@ -219,7 +219,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ]
     )
   );
-  hre.deployments.log('the future "HolographTreasuryProxy" address is', futureTreasuryProxyAddress);
+  console.log('the future "HolographTreasuryProxy" address is', futureTreasuryProxyAddress);
 
   const futureHolographInterfacesAddress = await genesisDeriveFutureAddress(
     hre,
@@ -227,7 +227,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'HolographInterfaces',
     generateInitCode(['address'], [zeroAddress])
   );
-  hre.deployments.log('the future "HolographInterfaces" address is', futureHolographInterfacesAddress);
+  console.log('the future "HolographInterfaces" address is', futureHolographInterfacesAddress);
 
   const futureRoyaltiesAddress = await genesisDeriveFutureAddress(
     hre,
@@ -235,7 +235,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'HolographRoyalties',
     generateInitCode(['uint256'], ['0x' + '00'.repeat(32)])
   );
-  hre.deployments.log('the future "HolographRoyalties" address is', futureRoyaltiesAddress);
+  console.log('the future "HolographRoyalties" address is', futureRoyaltiesAddress);
 
   const network = networks[hre.networkName];
 
@@ -297,18 +297,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     erc20ConfigHash,
     hre.ethers.utils.keccak256(holographerBytecode)
   );
-  hre.deployments.log('the future "HolographUtilityToken" address is', futureHlgAddress);
+  console.log('the future "HolographUtilityToken" address is', futureHlgAddress);
 
   const dryRun = process.env.DRY_RUN;
   if (dryRun && dryRun === 'true') {
-    hre.deployments.log('Dry run complete, exiting.');
+    console.log('Dry run complete, exiting.');
     process.exit();
   }
 
   // Holograph
   let holographDeployedCode: string = await hre.provider.send('eth_getCode', [futureHolographAddress, 'latest']);
   if (holographDeployedCode == '0x' || holographDeployedCode == '') {
-    hre.deployments.log('"Holograph" bytecode not found, need to deploy"');
+    console.log('"Holograph" bytecode not found, need to deploy"');
     let holograph = await genesisDeployHelper(
       hre,
       salt,
@@ -329,10 +329,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureHolographAddress
     );
   } else {
-    hre.deployments.log('"Holograph" is already deployed. Checking configs.');
+    console.log('"Holograph" is already deployed. Checking configs.');
     let holograph = (await hre.ethers.getContractAt('Holograph', futureHolographAddress, deployerAddress)) as Holograph;
     if ((await holograph.getBridge()) != futureBridgeProxyAddress) {
-      hre.deployments.log('Updating Bridge reference');
+      console.log('Updating Bridge reference');
       let tx = await MultisigAwareTx(
         hre,
         'Holograph',
@@ -349,7 +349,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holograph.getFactory()) != futureFactoryProxyAddress) {
-      hre.deployments.log('Updating Factory reference');
+      console.log('Updating Factory reference');
       let tx = await MultisigAwareTx(
         hre,
         'Holograph',
@@ -366,7 +366,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holograph.getInterfaces()) != futureHolographInterfacesAddress) {
-      hre.deployments.log('Updating HolographInterfaces reference');
+      console.log('Updating HolographInterfaces reference');
       let tx = await MultisigAwareTx(
         hre,
         'Holograph',
@@ -383,7 +383,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holograph.getOperator()) != futureOperatorProxyAddress) {
-      hre.deployments.log('Updating Operator reference');
+      console.log('Updating Operator reference');
       let tx = await MultisigAwareTx(
         hre,
         'Holograph',
@@ -400,7 +400,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holograph.getRegistry()) != futureRegistryProxyAddress) {
-      hre.deployments.log('Updating Registry reference');
+      console.log('Updating Registry reference');
       let tx = await MultisigAwareTx(
         hre,
         'Holograph',
@@ -417,7 +417,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holograph.getTreasury()) != futureTreasuryProxyAddress) {
-      hre.deployments.log('Updating Treasury reference');
+      console.log('Updating Treasury reference');
       let tx = await MultisigAwareTx(
         hre,
         'Holograph',
@@ -434,7 +434,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holograph.getUtilityToken()) != futureHlgAddress) {
-      hre.deployments.log('Updating UtilityToken reference');
+      console.log('Updating UtilityToken reference');
       let tx = await MultisigAwareTx(
         hre,
         'Holograph',
@@ -455,7 +455,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // HolographBridge
   let bridgeDeployedCode: string = await hre.provider.send('eth_getCode', [futureBridgeAddress, 'latest']);
   if (bridgeDeployedCode == '0x' || bridgeDeployedCode == '') {
-    hre.deployments.log('"HolographBridge" bytecode not found, need to deploy"');
+    console.log('"HolographBridge" bytecode not found, need to deploy"');
     let holographBridge = await genesisDeployHelper(
       hre,
       salt,
@@ -467,13 +467,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureBridgeAddress
     );
   } else {
-    hre.deployments.log('"HolographBridge" is already deployed.');
+    console.log('"HolographBridge" is already deployed.');
   }
 
   // HolographBridgeProxy
   let bridgeProxyDeployedCode: string = await hre.provider.send('eth_getCode', [futureBridgeProxyAddress, 'latest']);
   if (bridgeProxyDeployedCode == '0x' || bridgeProxyDeployedCode == '') {
-    hre.deployments.log('"HolographBridgeProxy" bytecode not found, need to deploy"');
+    console.log('"HolographBridgeProxy" bytecode not found, need to deploy"');
     let holographBridgeProxy = await genesisDeployHelper(
       hre,
       salt,
@@ -491,7 +491,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureBridgeProxyAddress
     );
   } else {
-    hre.deployments.log('"HolographBridgeProxy" is already deployed. Checking configs.');
+    console.log('"HolographBridgeProxy" is already deployed. Checking configs.');
     let holographBridgeProxy = (await hre.ethers.getContractAt(
       'HolographBridgeProxy',
       futureBridgeProxyAddress,
@@ -503,7 +503,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       deployerAddress
     )) as HolographBridge;
     if ((await holographBridgeProxy.getBridge()) != futureBridgeAddress) {
-      hre.deployments.log('Updating Bridge reference');
+      console.log('Updating Bridge reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographBridgeProxy',
@@ -520,7 +520,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographBridge.getFactory()) != futureFactoryProxyAddress) {
-      hre.deployments.log('Updating Factory reference');
+      console.log('Updating Factory reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographBridge',
@@ -537,7 +537,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographBridge.getHolograph()) != futureHolographAddress) {
-      hre.deployments.log('Updating Holograph reference');
+      console.log('Updating Holograph reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographBridge',
@@ -554,7 +554,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographBridge.getOperator()) != futureOperatorProxyAddress) {
-      hre.deployments.log('Updating Operator reference');
+      console.log('Updating Operator reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographBridge',
@@ -571,7 +571,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographBridge.getRegistry()) != futureRegistryProxyAddress) {
-      hre.deployments.log('Updating Registry reference');
+      console.log('Updating Registry reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographBridge',
@@ -592,7 +592,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // HolographFactory
   let factoryDeployedCode: string = await hre.provider.send('eth_getCode', [futureFactoryAddress, 'latest']);
   if (factoryDeployedCode == '0x' || factoryDeployedCode == '') {
-    hre.deployments.log('"HolographFactory" bytecode not found, need to deploy"');
+    console.log('"HolographFactory" bytecode not found, need to deploy"');
     let holographFactory = await genesisDeployHelper(
       hre,
       salt,
@@ -601,13 +601,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureFactoryAddress
     );
   } else {
-    hre.deployments.log('"HolographFactory" is already deployed.');
+    console.log('"HolographFactory" is already deployed.');
   }
 
   // HolographFactoryProxy
   let factoryProxyDeployedCode: string = await hre.provider.send('eth_getCode', [futureFactoryProxyAddress, 'latest']);
   if (factoryProxyDeployedCode == '0x' || factoryProxyDeployedCode == '') {
-    hre.deployments.log('"HolographFactoryProxy" bytecode not found, need to deploy"');
+    console.log('"HolographFactoryProxy" bytecode not found, need to deploy"');
     let holographFactoryProxy = await genesisDeployHelper(
       hre,
       salt,
@@ -628,7 +628,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureFactoryProxyAddress
     );
   } else {
-    hre.deployments.log('"HolographFactoryProxy" is already deployed. Checking configs.');
+    console.log('"HolographFactoryProxy" is already deployed. Checking configs.');
     let holographFactoryProxy = (await hre.ethers.getContractAt(
       'HolographFactoryProxy',
       futureFactoryProxyAddress,
@@ -640,7 +640,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       deployerAddress
     )) as HolographFactory;
     if ((await holographFactoryProxy.getFactory()) != futureFactoryAddress) {
-      hre.deployments.log('Updating Factory reference');
+      console.log('Updating Factory reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographFactoryProxy',
@@ -657,7 +657,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographFactory.getHolograph()) != futureHolographAddress) {
-      hre.deployments.log('Updating Holograph reference');
+      console.log('Updating Holograph reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographFactory',
@@ -674,7 +674,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographFactory.getRegistry()) != futureRegistryProxyAddress) {
-      hre.deployments.log('Updating Registry reference');
+      console.log('Updating Registry reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographFactory',
@@ -695,7 +695,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // HolographOperator
   let operatorDeployedCode: string = await hre.provider.send('eth_getCode', [futureOperatorAddress, 'latest']);
   if (operatorDeployedCode == '0x' || operatorDeployedCode == '') {
-    hre.deployments.log('"HolographOperator" bytecode not found, need to deploy"');
+    console.log('"HolographOperator" bytecode not found, need to deploy"');
     let holographOperator = await genesisDeployHelper(
       hre,
       salt,
@@ -707,7 +707,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureOperatorAddress
     );
   } else {
-    hre.deployments.log('"HolographOperator" is already deployed.');
+    console.log('"HolographOperator" is already deployed.');
   }
 
   // HolographOperatorProxy
@@ -716,7 +716,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'latest',
   ]);
   if (operatorProxyDeployedCode == '0x' || operatorProxyDeployedCode == '') {
-    hre.deployments.log('"HolographOperatorProxy" bytecode not found, need to deploy"');
+    console.log('"HolographOperatorProxy" bytecode not found, need to deploy"');
     let holographOperatorProxy = await genesisDeployHelper(
       hre,
       salt,
@@ -741,7 +741,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureOperatorProxyAddress
     );
   } else {
-    hre.deployments.log('"HolographOperatorProxy" is already deployed. Checking configs.');
+    console.log('"HolographOperatorProxy" is already deployed. Checking configs.');
     let holographOperatorProxy = (await hre.ethers.getContractAt(
       'HolographOperatorProxy',
       futureOperatorProxyAddress,
@@ -753,7 +753,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       deployerAddress
     )) as HolographOperator;
     if ((await holographOperatorProxy.getOperator()) != futureOperatorAddress) {
-      hre.deployments.log('Updating Operator reference');
+      console.log('Updating Operator reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographOperatorProxy',
@@ -770,7 +770,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographOperator.getBridge()) != futureBridgeProxyAddress) {
-      hre.deployments.log('Updating Bridge reference');
+      console.log('Updating Bridge reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographOperator',
@@ -787,7 +787,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographOperator.getHolograph()) != futureHolographAddress) {
-      hre.deployments.log('Updating Holograph reference');
+      console.log('Updating Holograph reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographOperator',
@@ -804,7 +804,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographOperator.getInterfaces()) != futureHolographInterfacesAddress) {
-      hre.deployments.log('Updating HolographInterfaces reference');
+      console.log('Updating HolographInterfaces reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographOperator',
@@ -821,7 +821,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographOperator.getRegistry()) != futureRegistryProxyAddress) {
-      hre.deployments.log('Updating Registry reference');
+      console.log('Updating Registry reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographOperator',
@@ -838,7 +838,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographOperator.getUtilityToken()) != futureHlgAddress) {
-      hre.deployments.log('Updating UtilityToken reference');
+      console.log('Updating UtilityToken reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographOperator',
@@ -855,7 +855,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if (!BigNumber.from(await holographOperator.getMinGasPrice()).eq(GWEI)) {
-      hre.deployments.log('Updating MinGasPrice reference');
+      console.log('Updating MinGasPrice reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographOperator',
@@ -876,7 +876,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // HolographRegistry
   let registryDeployedCode: string = await hre.provider.send('eth_getCode', [futureRegistryAddress, 'latest']);
   if (registryDeployedCode == '0x' || registryDeployedCode == '') {
-    hre.deployments.log('"HolographRegistry" bytecode not found, need to deploy"');
+    console.log('"HolographRegistry" bytecode not found, need to deploy"');
     let holographRegistry = await genesisDeployHelper(
       hre,
       salt,
@@ -885,7 +885,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureRegistryAddress
     );
   } else {
-    hre.deployments.log('"HolographRegistry" is already deployed.');
+    console.log('"HolographRegistry" is already deployed.');
   }
 
   // HolographRegistryProxy
@@ -894,7 +894,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'latest',
   ]);
   if (registryProxyDeployedCode == '0x' || registryProxyDeployedCode == '') {
-    hre.deployments.log('"HolographRegistryProxy" bytecode not found, need to deploy"');
+    console.log('"HolographRegistryProxy" bytecode not found, need to deploy"');
     let holographRegistryProxy = await genesisDeployHelper(
       hre,
       salt,
@@ -914,7 +914,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       deployerAddress
     )) as HolographRegistry;
     if ((await holographRegistry.getUtilityToken()) != futureHlgAddress) {
-      hre.deployments.log('Updating UtilityToken reference');
+      console.log('Updating UtilityToken reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographRegistry',
@@ -931,7 +931,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
   } else {
-    hre.deployments.log('"HolographRegistryProxy" is already deployed. Checking configs.');
+    console.log('"HolographRegistryProxy" is already deployed. Checking configs.');
     let holographRegistryProxy = (await hre.ethers.getContractAt(
       'HolographRegistryProxy',
       futureRegistryProxyAddress,
@@ -943,7 +943,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       deployerAddress
     )) as HolographRegistry;
     if ((await holographRegistryProxy.getRegistry()) != futureRegistryAddress) {
-      hre.deployments.log('Updating Registry reference');
+      console.log('Updating Registry reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographRegistryProxy',
@@ -960,7 +960,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographRegistry.getHolograph()) != futureHolographAddress) {
-      hre.deployments.log('Updating Holograph reference');
+      console.log('Updating Holograph reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographRegistry',
@@ -977,7 +977,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographRegistry.getUtilityToken()) != futureHlgAddress) {
-      hre.deployments.log('Updating UtilityToken reference');
+      console.log('Updating UtilityToken reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographRegistry',
@@ -998,7 +998,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // HolographTreasury
   let treasuryDeployedCode: string = await hre.provider.send('eth_getCode', [futureTreasuryAddress, 'latest']);
   if (treasuryDeployedCode == '0x' || treasuryDeployedCode == '') {
-    hre.deployments.log('"HolographTreasury" bytecode not found, need to deploy"');
+    console.log('"HolographTreasury" bytecode not found, need to deploy"');
     let holographTreasury = await genesisDeployHelper(
       hre,
       salt,
@@ -1010,7 +1010,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureTreasuryAddress
     );
   } else {
-    hre.deployments.log('"HolographTreasury" is already deployed.');
+    console.log('"HolographTreasury" is already deployed.');
   }
 
   // HolographTreasuryProxy
@@ -1019,7 +1019,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'latest',
   ]);
   if (treasuryProxyDeployedCode == '0x' || treasuryProxyDeployedCode == '') {
-    hre.deployments.log('"HolographTreasuryProxy" bytecode not found, need to deploy"');
+    console.log('"HolographTreasuryProxy" bytecode not found, need to deploy"');
     let holographTreasuryProxy = await genesisDeployHelper(
       hre,
       salt,
@@ -1037,7 +1037,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureTreasuryProxyAddress
     );
   } else {
-    hre.deployments.log('"HolographTreasuryProxy" is already deployed. Checking configs.');
+    console.log('"HolographTreasuryProxy" is already deployed. Checking configs.');
     let holographTreasuryProxy = (await hre.ethers.getContractAt(
       'HolographTreasuryProxy',
       futureTreasuryProxyAddress,
@@ -1049,7 +1049,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       deployerAddress
     )) as HolographTreasury;
     if ((await holographTreasuryProxy.getTreasury()) != futureTreasuryAddress) {
-      hre.deployments.log('Updating Treasury reference');
+      console.log('Updating Treasury reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographTreasuryProxy',
@@ -1066,7 +1066,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographTreasury.getBridge()) != futureBridgeProxyAddress) {
-      hre.deployments.log('Updating Bridge reference');
+      console.log('Updating Bridge reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographTreasury',
@@ -1083,7 +1083,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographTreasury.getOperator()) != futureOperatorProxyAddress) {
-      hre.deployments.log('Updating Operator reference');
+      console.log('Updating Operator reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographTreasury',
@@ -1100,7 +1100,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       await tx.wait();
     }
     if ((await holographTreasury.getRegistry()) != futureRegistryProxyAddress) {
-      hre.deployments.log('Updating Registry reference');
+      console.log('Updating Registry reference');
       let tx = await MultisigAwareTx(
         hre,
         'HolographTreasury',
@@ -1124,7 +1124,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'latest',
   ]);
   if (interfacesDeployedCode == '0x' || interfacesDeployedCode == '') {
-    hre.deployments.log('"HolographInterfaces" bytecode not found, need to deploy"');
+    console.log('"HolographInterfaces" bytecode not found, need to deploy"');
     let interfaces = await genesisDeployHelper(
       hre,
       salt,
@@ -1134,14 +1134,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
     global.__deployedHolographInterfaces = true;
   } else {
-    hre.deployments.log('"HolographInterfaces" is already deployed.');
+    console.log('"HolographInterfaces" is already deployed.');
     global.__deployedHolographInterfaces = false;
   }
 
   // HolographRoyalties
   let royaltiesDeployedCode: string = await hre.provider.send('eth_getCode', [futureRoyaltiesAddress, 'latest']);
   if (royaltiesDeployedCode == '0x' || royaltiesDeployedCode == '') {
-    hre.deployments.log('"HolographRoyalties" bytecode not found, need to deploy"');
+    console.log('"HolographRoyalties" bytecode not found, need to deploy"');
     let royalties = await genesisDeployHelper(
       hre,
       salt,
@@ -1150,7 +1150,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureRoyaltiesAddress
     );
   } else {
-    hre.deployments.log('"HolographRoyalties" is already deployed..');
+    console.log('"HolographRoyalties" is already deployed..');
   }
 
   console.log(`Finished deploying Holograph source contracts`);
