@@ -58,21 +58,23 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // Future Holograph Utility Token
   const currentNetworkType: NetworkType = network.type;
-  let primaryNetwork: Network;
+  let primaryNetwork: Network | undefined; // Initialize primaryNetwork variable
   if (currentNetworkType == NetworkType.local) {
-    // one billion tokens minted per network on local testing
-    tokenAmount = BigNumber.from('1' + '000' + '000' + '000' + '000000000000000000');
+    // ten billion tokens minted per network on local testnet
+    tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
     primaryNetwork = networks.localhost;
   } else if (currentNetworkType == NetworkType.testnet) {
-    // one hundred million tokens minted per network on testnets
-    tokenAmount = BigNumber.from('100' + '000' + '000' + '000000000000000000');
-    primaryNetwork = networks.ethereumTestnetSepolia;
     if (environment == Environment.testnet) {
+      // ten billion tokens minted on ethereum on testnet sepolia
+      primaryNetwork = networks.ethereumTestnetSepolia;
       tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
       targetChain = BigNumber.from(networks.ethereumTestnetSepolia.chain);
-      tokenRecipient = networks.ethereumTestnetSepolia.protocolMultisig;
+      tokenRecipient = networks.ethereumTestnetSepolia.protocolMultisig!;
     }
   } else if (currentNetworkType == NetworkType.mainnet) {
+    /**
+     * 🚨🚨🚨 MAINNET 🚨🚨🚨
+     */
     // ten billion tokens minted on ethereum on mainnet
     tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
     // target chain is restricted to ethereum, to prevent the minting of tokens on other chains
@@ -83,6 +85,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     primaryNetwork = networks.ethereum;
   } else {
     throw new Error('cannot identity current NetworkType');
+  }
+
+  // Extra check to ensure primaryNetwork is set
+  if (primaryNetwork === undefined || !primaryNetwork) {
+    throw new Error('primaryNetwork not set');
   }
 
   // NOTICE: At the moment the hToken contract's address is reliant on the deployerAddress which prevents multiple approved deployers from deploying the same address. This is a temporary solution until the hToken contract is upgraded to allow any deployerAddress to be used.
@@ -224,7 +231,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
               to: hlgContract,
               gasLimit: (
                 await hre.ethers.provider.estimateGas(
-                  hlgContract.populateTransaction.transfer(operatorAddress, BigNumber.from('1000000000000000000000000'))
+                  await hlgContract.populateTransaction.transfer(
+                    operatorAddress,
+                    BigNumber.from('1000000000000000000000000')
+                  )
                 )
               ).mul(BigNumber.from('2')),
             })),
