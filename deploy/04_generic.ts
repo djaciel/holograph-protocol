@@ -35,12 +35,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ]
     )
   );
-  hre.deployments.log('the future "HolographGeneric" address is', futureGenericAddress);
+  console.log('the future "HolographGeneric" address is', futureGenericAddress);
 
   // HolographGeneric
   let genericDeployedCode: string = await hre.provider.send('eth_getCode', [futureGenericAddress, 'latest']);
   if (genericDeployedCode == '0x' || genericDeployedCode == '') {
-    hre.deployments.log('"HolographGeneric" bytecode not found, need to deploy"');
+    console.log('"HolographGeneric" bytecode not found, need to deploy"');
     let holographGeneric = await genesisDeployHelper(
       hre,
       salt,
@@ -56,7 +56,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureGenericAddress
     );
   } else {
-    hre.deployments.log('"HolographGeneric" is already deployed.');
+    console.log('"HolographGeneric" is already deployed.');
   }
 
   console.log(`Exiting script: ${__filename} ✅\n`);

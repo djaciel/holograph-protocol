@@ -278,7 +278,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'OVM_GasPriceOracle',
     generateInitCode(['uint256', 'uint256', 'uint256', 'uint256', 'uint256'], [0, 0, 0, 0, 0])
   );
-  hre.deployments.log('the future "OVM_GasPriceOracle" address is', futureOptimismGasPriceOracleAddress);
+  console.log('the future "OVM_GasPriceOracle" address is', futureOptimismGasPriceOracleAddress);
 
   // OVM_GasPriceOracle
   let optimismGasPriceOracleDeployedCode: string = await hre.provider.send('eth_getCode', [
@@ -286,7 +286,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'latest',
   ]);
   if (optimismGasPriceOracleDeployedCode == '0x' || optimismGasPriceOracleDeployedCode == '') {
-    hre.deployments.log('"OVM_GasPriceOracle" bytecode not found, need to deploy"');
+    console.log('"OVM_GasPriceOracle" bytecode not found, need to deploy"');
     let optimismGasPriceOracle = await genesisDeployHelper(
       hre,
       salt,
@@ -304,7 +304,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureOptimismGasPriceOracleAddress
     );
   } else {
-    hre.deployments.log('"OVM_GasPriceOracle" is already deployed..');
+    console.log('"OVM_GasPriceOracle" is already deployed..');
   }
 
   // LayerZeroModule
@@ -324,14 +324,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       [zeroAddress, zeroAddress, zeroAddress, zeroAddress, [], []]
     )
   );
-  hre.deployments.log('the future "LayerZeroModule" address is', futureLayerZeroModuleAddress);
+  console.log('the future "LayerZeroModule" address is', futureLayerZeroModuleAddress);
 
   let layerZeroModuleDeployedCode: string = await hre.provider.send('eth_getCode', [
     futureLayerZeroModuleAddress,
     'latest',
   ]);
   if (layerZeroModuleDeployedCode == '0x' || layerZeroModuleDeployedCode == '') {
-    hre.deployments.log('"LayerZeroModule" bytecode not found, need to deploy"');
+    console.log('"LayerZeroModule" bytecode not found, need to deploy"');
     let layerZeroModule = await genesisDeployHelper(
       hre,
       salt,
@@ -350,7 +350,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureLayerZeroModuleAddress
     );
   } else {
-    hre.deployments.log('"LayerZeroModule" is already deployed..');
+    console.log('"LayerZeroModule" is already deployed..');
   }
 
   // LayerZeroModuleProxy
@@ -376,14 +376,14 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ]
     )
   );
-  hre.deployments.log('the future "LayerZeroModuleProxy" address is', futureLayerZeroModuleProxyAddress);
+  console.log('the future "LayerZeroModuleProxy" address is', futureLayerZeroModuleProxyAddress);
 
   let layerZeroModuleProxyDeployedCode: string = await hre.provider.send('eth_getCode', [
     futureLayerZeroModuleProxyAddress,
     'latest',
   ]);
   if (layerZeroModuleProxyDeployedCode == '0x' || layerZeroModuleProxyDeployedCode == '') {
-    hre.deployments.log('"LayerZeroModuleProxy" bytecode not found, need to deploy"');
+    console.log('"LayerZeroModuleProxy" bytecode not found, need to deploy"');
     let layerZeroModuleProxy = await genesisDeployHelper(
       hre,
       salt,
@@ -415,7 +415,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureLayerZeroModuleProxyAddress
     );
   } else {
-    hre.deployments.log('"LayerZeroModuleProxy" is already deployed..');
+    console.log('"LayerZeroModuleProxy" is already deployed..');
   }
 
   const holographOperator = ((await hre.ethers.getContract('HolographOperator', deployerAddress)) as Contract).attach(
@@ -436,11 +436,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         })),
       })
     );
-    hre.deployments.log('Transaction hash:', lzTx.hash);
+    console.log('Transaction hash:', lzTx.hash);
     await lzTx.wait();
-    hre.deployments.log(`Registered MessagingModule to: ${await holographOperator.getMessagingModule()}`);
+    console.log(`Registered MessagingModule to: ${await holographOperator.getMessagingModule()}`);
   } else {
-    hre.deployments.log(`MessagingModule is already registered to: ${await holographOperator.getMessagingModule()}`);
+    console.log(`MessagingModule is already registered to: ${await holographOperator.getMessagingModule()}`);
   }
 
   const lzModule = ((await hre.ethers.getContract('LayerZeroModule', deployerAddress)) as Contract).attach(
@@ -462,20 +462,18 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         })),
       })
     );
-    hre.deployments.log('Transaction hash:', lzOpTx.hash);
+    console.log('Transaction hash:', lzOpTx.hash);
     await lzOpTx.wait();
-    hre.deployments.log(`Registered OptimismGasPriceOracle to: ${await lzModule.getOptimismGasPriceOracle()}`);
+    console.log(`Registered OptimismGasPriceOracle to: ${await lzModule.getOptimismGasPriceOracle()}`);
   } else {
-    hre.deployments.log(
-      `OptimismGasPriceOracle is already registered to: ${await lzModule.getOptimismGasPriceOracle()}`
-    );
+    console.log(`OptimismGasPriceOracle is already registered to: ${await lzModule.getOptimismGasPriceOracle()}`);
   }
 
   chainIds = [];
   gasParameters = [];
 
   // Begin checking for gas parameter inconsistencies
-  hre.deployments.log(`Checking existing gas parameters`);
+  console.log(`Checking existing gas parameters`);
 
   // Iterate over all supported networks
   for (let i = 0, l = supportedNetworks.length; i < l; i++) {
@@ -527,7 +525,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // After iterating through all networks, check if any chainIds were added
   if (chainIds.length > 0) {
     // Log that inconsistencies were found if there are any chainIds
-    hre.deployments.log('Found some gas parameter inconsistencies');
+    console.log('Found some gas parameter inconsistencies');
 
     // Prepare and send a transaction to update the gas parameters
     // This involves calling a specific function on the LayerZero module with the updated parameters
@@ -550,13 +548,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     );
 
     // Log the transaction hash for tracking
-    hre.deployments.log('Transaction hash:', lzTx.hash);
+    console.log('Transaction hash:', lzTx.hash);
 
     // Wait for the transaction to be confirmed
     await lzTx.wait();
 
     // Log a message indicating the gas parameters have been updated
-    hre.deployments.log('Updated LayerZero GasParameters');
+    console.log('Updated LayerZero GasParameters');
   }
 
   console.log(`Exiting script: ${__filename} ✅\n`);

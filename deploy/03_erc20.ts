@@ -43,12 +43,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       ]
     )
   );
-  hre.deployments.log('the future "HolographERC20" address is', futureErc20Address);
+  console.log('the future "HolographERC20" address is', futureErc20Address);
 
   // HolographERC20
   let erc20DeployedCode: string = await hre.provider.send('eth_getCode', [futureErc20Address, 'latest']);
   if (erc20DeployedCode == '0x' || erc20DeployedCode == '') {
-    hre.deployments.log('"HolographERC20" bytecode not found, need to deploy"');
+    console.log('"HolographERC20" bytecode not found, need to deploy"');
     let holographErc20 = await genesisDeployHelper(
       hre,
       salt,
@@ -69,7 +69,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       futureErc20Address
     );
   } else {
-    hre.deployments.log('"HolographERC20" is already deployed.');
+    console.log('"HolographERC20" is already deployed.');
   }
 
   console.log(`Exiting script: ${__filename} ✅\n`);

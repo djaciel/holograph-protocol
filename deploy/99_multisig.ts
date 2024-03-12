@@ -79,9 +79,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         })
       );
-      hre.deployments.log(`Changing Holograph Admin tx ${setHolographAdminTx.hash}`);
+      console.log(`Changing Holograph Admin tx ${setHolographAdminTx.hash}`);
       await setHolographAdminTx.wait();
-      hre.deployments.log('Changed Holograph Admin');
+      console.log('Changed Holograph Admin');
     }
 
     for (const contractName of switchToHolograph) {
@@ -104,13 +104,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             })),
           })
         );
-        hre.deployments.log(`Changing ${contractName} Admin to Holograph tx ${setHolographAsAdminTx.hash}`);
+        console.log(`Changing ${contractName} Admin to Holograph tx ${setHolographAsAdminTx.hash}`);
         await setHolographAsAdminTx.wait();
-        hre.deployments.log(`Changed ${contractName} Admin to Holograph`);
+        console.log(`Changed ${contractName} Admin to Holograph`);
       }
     }
   } else {
-    hre.deployments.log(`Skipping multisig setup for ${NetworkType[network.type]}`);
+    console.log(`Skipping multisig setup for ${NetworkType[network.type]}`);
   }
   console.log(`Exiting script: ${__filename} ✅\n`);
 };

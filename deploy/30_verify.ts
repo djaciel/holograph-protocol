@@ -104,11 +104,11 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
 
         await hre.run('verify:verify', options);
       } catch (error) {
-        hre.deployments.log(`Failed to verify "${contract}" -> ${error}`);
+        console.log(`Failed to verify "${contract}" -> ${error}`);
       }
     }
   } else {
-    hre.deployments.log('Not verifying contracts on localhost networks.');
+    console.log('Not verifying contracts on localhost networks.');
   }
 
   console.log(`Exiting script: ${__filename} ✅\n`);
