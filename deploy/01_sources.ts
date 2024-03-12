@@ -1116,6 +1116,29 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       );
       await tx.wait();
     }
+    // NOTE: $1 is the default mint fee for now.
+    //       This can be changed later by the multisig
+    //       If the default changes we will need to update this script
+    console.log(`Checking Holograph mint fee`);
+    if ((await holographTreasury.getHolographMintFee()) != BigNumber.from(1000000)) {
+      hre.deployments.log('Holograph mint fee is not set to 1000000 i.e. $1');
+      console.log(`Setting Holograph mint fee to 1000000 i.e. $1`);
+      let tx = await MultisigAwareTx(
+        hre,
+        'HolographTreasury',
+        holographTreasury,
+        await holographTreasury.populateTransaction.setHolographMintFee(BigNumber.from(1000000), {
+          ...(await txParams({
+            hre,
+            from: deployerAddress,
+            to: holographTreasury,
+            data: holographTreasury.populateTransaction.setHolographMintFee(BigNumber.from(1000000)),
+          })),
+        } as any)
+      );
+      await tx.wait();
+      console.log(`Holograph mint fee has been set to 1000000 i.e. $1 tx hash: ${tx.hash}`);
+    }
   }
 
   // HolographInterfaces

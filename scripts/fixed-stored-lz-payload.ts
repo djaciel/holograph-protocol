@@ -4,6 +4,7 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 task('RETRY_PAYLOAD', 'A description for your task').setAction(async (taskArgs, hre: HardhatRuntimeEnvironment) => {
   let srcChainId = 43113; // the lz chain id of the origin chain
 
+  // This is the address of the LayerZeroModuleProxy contract on source chain and destination chain (same for both chains)
   let trustedRemote = hre.ethers.utils.solidityPack(
     ['address', 'address'],
     ['0xa534C5D756b0b7Cb5dec153FA64351459a28eB98', '0xa534C5D756b0b7Cb5dec153FA64351459a28eB98']

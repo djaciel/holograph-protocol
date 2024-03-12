@@ -12,6 +12,7 @@ import { subtask } from 'hardhat/config';
 import { TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS } from 'hardhat/builtin-tasks/task-names';
 
 import { types, task, HardhatUserConfig } from 'hardhat/config';
+import './scripts/bridge-htokens';
 import '@holographxyz/hardhat-holograph-contract-builder';
 import { BigNumber, ethers } from 'ethers';
 import { Environment, getEnvironment } from '@holographxyz/environment';
@@ -91,7 +92,7 @@ const MNEMONIC = process.env.MNEMONIC || 'test '.repeat(11) + 'junk';
 const DEPLOYER = process.env.DEPLOYER || '0x0';
 
 const dynamicNetworks = function (skipLocalhost: boolean = true): unknown {
-  let output = {};
+  let output: { [key: string]: unknown } = {}; // Add index signature to the type of 'output'
   for (const name of Object.keys(networks)) {
     if (name != 'hardhat' && (!skipLocalhost || (skipLocalhost && name != 'localhost' && name != 'localhost2'))) {
       let envKey = name.replace(/([A-Z]{1})/g, '_$1').toUpperCase();
@@ -106,7 +107,7 @@ const dynamicNetworks = function (skipLocalhost: boolean = true): unknown {
 };
 
 const dynamicExternalDeployments = function (): unknown {
-  let output = {};
+  let output: { [key: string]: unknown } = {}; // Add index signature to the type of 'output'
   for (const name of Object.keys(networks)) {
     if (name != 'hardhat') {
       output[name] = ['node_modules/@holographxyz/holograph-genesis/deployments/' + name];
@@ -155,7 +156,7 @@ global.__DEPLOYMENT_SALT = '0x' + DEPLOYMENT_SALT.toString(16).padStart(64, '0')
 // This task runs before the actual hardhat deploy task
 task('deploy', 'Deploy contracts').setAction(async (args, hre, runSuper) => {
   let network: Network = networks[hre.network.name];
-  if (network.type === NetworkType.localhost) {
+  if (network.type === NetworkType.local) {
     process.env.GAS_LIMIT_MULTIPLIER = '10000';
     process.env.GAS_PRICE_MULTIPLIER = '10000';
     process.env.MAXIMUM_GAS_PRICE = '0';
@@ -241,47 +242,6 @@ task('hTokenBalance', 'Calls the extractNativeToken function in the hToken contr
     console.log(`hTokens available: ${balanceOf.toString()} wei or ${ethers.utils.formatEther(balanceOf)} ETH`);
   });
 
-// NOTE: Disabled because this was adding EOF new line when we don't want to modify the deployments files at all!
-// task('deploymentsPrettier', 'Adds EOF new line to prevent prettier to change files').setAction(async (args) => {
-//   if (!fs.existsSync('./deployments')) {
-//     throw new Error('The directory "deployments" was not found.');
-//   }
-
-//   function getAllFiles(dirPath: string, arrayOfFiles: string[]) {
-//     const files = fs.readdirSync(dirPath);
-
-//     arrayOfFiles = arrayOfFiles || [];
-
-//     for (const file of files) {
-//       if (fs.statSync(dirPath + '/' + file).isDirectory()) {
-//         arrayOfFiles = getAllFiles(dirPath + '/' + file, arrayOfFiles);
-//       } else {
-//         arrayOfFiles.push(path.join(__dirname, dirPath, '/', file));
-//       }
-//     }
-
-//     return arrayOfFiles;
-//   }
-
-//   function checkIfEoFIsEmpty(fileContent: string) {
-//     const matches = fileContent.match(/\r?\n$/);
-//     if (matches) {
-//       return true;
-//     }
-//     return false;
-//   }
-
-//   const files = getAllFiles('./deployments', []);
-//   for (const file of files) {
-//     if (file.endsWith('.json')) {
-//       const fileContents = fs.readFileSync(file, 'utf8');
-//       if (!checkIfEoFIsEmpty(fileContents)) {
-//         fs.appendFileSync(file, '\n');
-//       }
-//     }
-//   }
-// });
-
 task('abi', 'Create standalone ABI files for all smart contracts')
   .addOptionalParam('silent', 'Provide less details in the output', false, types.boolean)
   .setAction(async (args, hre) => {
@@ -332,8 +292,9 @@ task('abi', 'Create standalone ABI files for all smart contracts')
  * @type import('hardhat/config').HardhatUserConfig
  */
 const config: HardhatUserConfig = {
+  // @ts-ignore
   preprocess: {
-    eachLine: (hre) => ({
+    eachLine: (hre: any) => ({
       transform: (line: string) => {
         if (line.match(/^\s*import /i)) {
           for (const [from, to] of getRemappings()) {
@@ -354,7 +315,7 @@ const config: HardhatUserConfig = {
   },
   defaultNetwork: 'localhost',
   external: {
-    deployments: dynamicExternalDeployments(),
+    deployments: dynamicExternalDeployments() as { [networkName: string]: string[] } | undefined,
   },
   networks: {
     localhost: {
@@ -389,7 +350,7 @@ const config: HardhatUserConfig = {
       },
       saveDeployments: false,
     },
-    ...dynamicNetworks(),
+    ...(dynamicNetworks() as any),
     ...tenderlyNetwork,
   },
   namedAccounts: {
