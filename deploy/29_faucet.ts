@@ -40,7 +40,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.local) {
     // Only deploy faucet on develop or testnet environment
-    if (environment != Environment.mainnet && environment) {
+    if (environment !== Environment.mainnet && environment) {
       console.log(`Deploying faucet on ${currentNetworkType} network`);
 
       const hlgContract = (await hre.ethers.getContract('HolographERC20', deployerAddress)).attach(hlgTokenAddress);
@@ -95,7 +95,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
       console.log(`Checking if HLG reference is updated in Faucet contract`);
       const faucetContract = await hre.ethers.getContract('Faucet', deployerAddress);
-      if ((await faucetContract.token()) != hlgTokenAddress) {
+      if ((await faucetContract.token()) !== hlgTokenAddress) {
         console.log('HLG reference not updated in Faucet contract, updating now...');
         const tx = await MultisigAwareTx(
           hre,

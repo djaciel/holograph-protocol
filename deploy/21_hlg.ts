@@ -69,7 +69,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       primaryNetwork = networks.ethereumTestnetSepolia;
       tokenAmount = BigNumber.from('100' + '000' + '000' + '000000000000000000');
       targetChain = BigNumber.from(networks.ethereumTestnetSepolia.chain);
-      tokenRecipient = networks.ethereumTestnetSepolia.protocolMultisig!;
+      tokenRecipient = deployerAddress;
     }
     if (environment == Environment.testnet) {
       // ten billion tokens minted on ethereum on testnet sepolia (TESTNET ENV)
@@ -104,8 +104,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // If environment is develop use the signers deployerAddress
   let erc20DeployerAddress = '0xBB566182f35B9E5Ae04dB02a5450CC156d2f89c1'; // Ledger deployerAddress
 
-  // If environment is develop use the signers deployerAddress (the hardcoded version is only for testnet and mainnet envs)
-  if (environment == Environment.develop) {
+  // If environment is develop or localhost use the signers deployerAddress (the hardcoded version is only for testnet and mainnet envs)
+  if (environment == Environment.develop || environment == Environment.localhost) {
     console.log(`Using deployerAddress from signer ${deployerAddress}`);
     erc20DeployerAddress = deployerAddress;
   }

@@ -61,7 +61,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   } else {
     if (
       environment == Environment.mainnet ||
-      (network.key != 'localhost' && network.key != 'localhost2' && network.key != 'hardhat')
+      (network.key !== 'localhost' && network.key !== 'localhost2' && network.key !== 'hardhat')
     ) {
       throw new Error('Drops price oracle not created for network yet!');
     }
@@ -120,7 +120,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureDropsPriceOracleProxyAddress;
     const dropsPriceOracleProxy = await hre.ethers.getContract('DropsPriceOracleProxy', deployerAddress);
     let priceOracleSource = await dropsPriceOracleProxy.getDropsPriceOracle();
-    if (priceOracleSource != futureDropsPriceOracleAddress) {
+    if (priceOracleSource !== futureDropsPriceOracleAddress) {
       console.log('"DropsPriceOracleProxy" references incorrect version of "' + targetDropsPriceOracle + '".');
       const setDropsPriceOracleTx = await MultisigAwareTx(
         hre,

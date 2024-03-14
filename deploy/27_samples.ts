@@ -97,7 +97,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         }
       );
       const deployResult = await deployTx.wait();
-      if (deployResult.events.length < 1 || deployResult.events[0].event != 'BridgeableContractDeployed') {
+      if (deployResult.events.length < 1 || deployResult.events[0].event !== 'BridgeableContractDeployed') {
         throw new Error('BridgeableContractDeployed event not fired');
       }
       sampleErc20Address = deployResult.events[0].args[0];
@@ -147,7 +147,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         }
       );
       const deployResult = await deployTx.wait();
-      if (deployResult.events.length < 2 || deployResult.events[1].event != 'BridgeableContractDeployed') {
+      if (deployResult.events.length < 2 || deployResult.events[1].event !== 'BridgeableContractDeployed') {
         throw new Error('BridgeableContractDeployed event not fired');
       }
       sampleErc721Address = deployResult.events[1].args[0];
@@ -204,7 +204,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         }
       );
       const deployResult = await deployTx.wait();
-      if (deployResult.events.length < 2 || deployResult.events[1].event != 'BridgeableContractDeployed') {
+      if (deployResult.events.length < 2 || deployResult.events[1].event !== 'BridgeableContractDeployed') {
         throw new Error('BridgeableContractDeployed event not fired');
       }
       cxipErc721Address = deployResult.events[1].args[0];

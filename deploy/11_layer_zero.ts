@@ -48,7 +48,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       deployerAddress
     )) as Contract;
 
-    if ((await layerZeroModule.getLZEndpoint()).toLowerCase() != lzEndpoint) {
+    if ((await layerZeroModule.getLZEndpoint()).toLowerCase() !== lzEndpoint) {
       const lzTx = await MultisigAwareTx(
         hre,
         'LayerZeroModule',

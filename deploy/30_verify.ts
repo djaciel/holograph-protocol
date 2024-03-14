@@ -43,13 +43,13 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   } else {
     if (
       environment == Environment.mainnet ||
-      (network.key != 'localhost' && network.key != 'localhost2' && network.key != 'hardhat')
+      (network.key !== 'localhost' && network.key !== 'localhost2' && network.key !== 'hardhat')
     ) {
       throw new Error('Drops price oracle not created for network yet!');
     }
   }
 
-  if (currentNetworkType != NetworkType.local) {
+  if (currentNetworkType !== NetworkType.local) {
     let contracts: string[] = [
       'HolographUtilityToken',
       'hToken',

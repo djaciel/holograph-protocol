@@ -108,7 +108,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         // Retrieve and convert the chain ID mapping from EVM to Holograph.
         let evm2hlg: number = (await holographInterfaces.getChainId(1, value.chain, 2)).toNumber();
         // Check if the retrieved mapping doesn't match the expected holograph ID.
-        if (evm2hlg != value.holographId) {
+        if (evm2hlg !== value.holographId) {
           // Add mapping details to needToMap array.
           needToMap.push([1, value.chain, 2, value.holographId]);
           // Log this mapping requirement in a human-readable format.
@@ -120,7 +120,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         // Retrieve and convert the chain ID mapping from Holograph to EVM.
         let hlg2evm: number = (await holographInterfaces.getChainId(2, value.holographId, 1)).toNumber();
         // Check if the retrieved mapping doesn't match the expected EVM chain ID.
-        if (hlg2evm != value.chain) {
+        if (hlg2evm !== value.chain) {
           // Add mapping details to needToMap array.
           needToMap.push([2, value.holographId, 1, value.chain]);
           // Log this mapping requirement in a human-readable format.
@@ -134,7 +134,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           // Retrieve and convert the chain ID mapping from LayerZero to Holograph.
           let lz2hlg: number = (await holographInterfaces.getChainId(3, value.lzId, 2)).toNumber();
           // Check if the retrieved mapping doesn't match the expected holograph ID.
-          if (lz2hlg != value.holographId) {
+          if (lz2hlg !== value.holographId) {
             // Add mapping details to needToMap array.
             needToMap.push([3, value.lzId, 2, value.holographId]);
             // Log this mapping requirement in a human-readable format.
@@ -144,7 +144,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           // Retrieve and convert the chain ID mapping from Holograph to LayerZero.
           let hlg2lz: number = (await holographInterfaces.getChainId(2, value.holographId, 3)).toNumber();
           // Check if the retrieved mapping doesn't match the expected LayerZero ID.
-          if (hlg2lz != value.lzId) {
+          if (hlg2lz !== value.lzId) {
             // Add mapping details to needToMap array.
             needToMap.push([2, value.holographId, 3, value.lzId]);
             // Log this mapping requirement in a human-readable format.
@@ -218,7 +218,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let needToMapPrepends: { type: number; prepend: string }[] = [];
   for (let prepend of supportedPrepends) {
     let currentPrepend: string = await holographInterfaces.getUriPrepend(prepend.type);
-    if (currentPrepend != prepend.prepend) {
+    if (currentPrepend !== prepend.prepend) {
       needToMapPrepends.push(prepend);
     }
   }

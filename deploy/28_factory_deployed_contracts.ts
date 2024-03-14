@@ -18,7 +18,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const salt = hre.deploymentSalt;
   const currentNetworkType: NetworkType = networks[hre.networkName].type;
 
-  if (currentNetworkType != NetworkType.local) {
+  if (currentNetworkType !== NetworkType.local) {
     const holographer: Contract | null = await hre.ethers.getContractOrNull('Holographer', deployerAddress);
     if (holographer == null) {
       await hre.deployments.deploy('Holographer', {

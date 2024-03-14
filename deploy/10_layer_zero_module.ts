@@ -422,7 +422,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     await holograph.getOperator()
   );
 
-  if ((await holographOperator.getMessagingModule()).toLowerCase() != futureLayerZeroModuleProxyAddress.toLowerCase()) {
+  if (
+    (await holographOperator.getMessagingModule()).toLowerCase() !== futureLayerZeroModuleProxyAddress.toLowerCase()
+  ) {
     const lzTx = await MultisigAwareTx(
       hre,
       'HolographOperator',
@@ -448,7 +450,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   );
 
   // we check that LayerZeroModule has correct OptimismGasPriceOracle set
-  if ((await lzModule.getOptimismGasPriceOracle()).toLowerCase() != futureOptimismGasPriceOracleAddress.toLowerCase()) {
+  if (
+    (await lzModule.getOptimismGasPriceOracle()).toLowerCase() !== futureOptimismGasPriceOracleAddress.toLowerCase()
+  ) {
     const lzOpTx = await MultisigAwareTx(
       hre,
       'LayerZeroModule',

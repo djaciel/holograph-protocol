@@ -267,7 +267,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         throw new Error('BridgeableContractDeployed event not fired');
       }
       let hTokenAddress = deployResult.events[eventIndex].args[0];
-      if (hTokenAddress != futureHTokenAddress) {
+      if (hTokenAddress !== futureHTokenAddress) {
         throw new Error(
           `Seems like hTokenAddress ${hTokenAddress} and futureHTokenAddress ${futureHTokenAddress} do not match!`
         );
@@ -299,7 +299,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         console.log('Set ' + network.chain.toString() + ' as supported chain');
       }
       const chain = '0x' + network.holographId.toString(16).padStart(8, '0');
-      if ((await registry.getHToken(chain)) != futureHTokenAddress) {
+      if ((await registry.getHToken(chain)) !== futureHTokenAddress) {
         console.log(
           'Updated "Registry" with "hToken ' +
             data.tokenSymbol +
