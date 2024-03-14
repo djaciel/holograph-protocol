@@ -605,10 +605,10 @@
   resolved "https://registry.yarnpkg.com/@holographxyz/hardhat-holograph-contract-builder/-/hardhat-holograph-contract-builder-0.0.4.tgz#da2eb5abfbe771ce9db217671b653a38f0e7fccf"
   integrity sha512-W/vWgHT6bZWdmJoWJxdWHnUCscrpOXbL1mo2WCDVtjrHQmXivMal7aRZw+ZeDfjTpcvGQ0SBxC+nJZZGCnuVDA==
 
-"@holographxyz/holograph-genesis@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@holographxyz/holograph-genesis/-/holograph-genesis-0.2.0.tgz#b54e35ac83c29c1266bbb48d870592fb96101999"
-  integrity sha512-fMzJrfPiegl8Ha6UBxFDdHhZbVi/SNgGn3fUNJqvTYuchLysWPh+ehkGnuCa9F9C5g+WcomCRKVBANUMCsCgjA==
+"@holographxyz/holograph-genesis@0.2.1":
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/@holographxyz/holograph-genesis/-/holograph-genesis-0.2.1.tgz#26e0bdc888ef853a3ce4728f553a213efcb23de3"
+  integrity sha512-6v2i4+YGzxHwNEI1T+KqLy2vXptDGcOEiFdep6rT1cpo5y7yciGH7zgzLtUDy/lmwmk4fkrvHpbDBOOGq9c6GQ==
   dependencies:
     "@anders-t/ethers-ledger" "^1.0.4"
     "@ethersproject/abstract-provider" "^5.7.0"
@@ -619,7 +619,7 @@
     "@holographxyz/environment" "0.1.10"
     "@holographxyz/hardhat-deploy-holographed" "^0.0.6"
     "@holographxyz/hardhat-holograph-contract-builder" "^0.0.4"
-    "@holographxyz/networks" "^0.2.0"
+    "@holographxyz/networks" "^0.2.2"
     "@typechain/ethers-v5" "^9.0.0"
     "@typechain/hardhat" "^4.0.0"
     "@types/chai" "^4.3.0"
@@ -637,20 +637,10 @@
     web3 "^1.7.0"
     zksync-web3 "^0.4.0"
 
-"@holographxyz/networks@0.2.2":
+"@holographxyz/networks@0.2.2", "@holographxyz/networks@^0.2.2":
   version "0.2.2"
   resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.2.2.tgz#647fd5b074df72129f8aeb9829dd6aeced94295d"
   integrity sha512-OoiPhEumqgypDk1P9sKHHJwGl1nsNH41+isT+SwJimEBEXMt+MHaqe07KLCc37EoaewWi4A8FuoY8/016e8E0w==
-  dependencies:
-    "@ethersproject/bignumber" "^5.7.0"
-    "@holographxyz/environment" "0.1.10"
-    dotenv "^10.0.0"
-    path "^0.12.7"
-
-"@holographxyz/networks@^0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.2.0.tgz#e25735b20973b94e626d8cf251f47ceeca16a32a"
-  integrity sha512-FNG/yIY0qPRiN5dYr6iQ9otgiBleR+oNdI8gFiDpuIZXLmQM1yg2evei1/H9o7El2InIKy2uGHwm1Yk5syhmMg==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@holographxyz/environment" "0.1.10"
