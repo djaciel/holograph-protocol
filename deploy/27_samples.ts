@@ -37,7 +37,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const currentNetworkType: NetworkType = networks[hre.networkName].type;
 
-  if (currentNetworkType == NetworkType.local) {
+  if (currentNetworkType === NetworkType.local) {
     const web3 = new Web3();
 
     const salt = hre.deploymentSalt;
@@ -68,7 +68,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       salt
     );
     let sampleErc20Address = await holographRegistry.getHolographedHashAddress(sampleErc20Config.erc20ConfigHash);
-    if (sampleErc20Address == zeroAddress) {
+    if (sampleErc20Address === zeroAddress) {
       console.log('need to deploy "SampleERC20" for chain:', chainId);
       const sig = await deployer.signer.signMessage(sampleErc20Config.erc20ConfigHashBytes);
       const signature: Signature = StrictECDSA({
@@ -121,7 +121,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       salt
     );
     let sampleErc721Address = await holographRegistry.getHolographedHashAddress(sampleErc721Config.erc721ConfigHash);
-    if (sampleErc721Address == zeroAddress) {
+    if (sampleErc721Address === zeroAddress) {
       console.log('need to deploy "SampleERC721" for chain:', chainId);
       const sig = await deployer.signer.signMessage(sampleErc721Config.erc721ConfigHashBytes);
       const signature: Signature = StrictECDSA({
@@ -178,7 +178,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       salt
     );
     let cxipErc721Address = await holographRegistry.getHolographedHashAddress(cxipErc721Config.erc721ConfigHash);
-    if (cxipErc721Address == zeroAddress) {
+    if (cxipErc721Address === zeroAddress) {
       console.log('need to deploy "CxipERC721Proxy" for chain:', chainId);
       const sig = await deployer.signer.signMessage(cxipErc721Config.erc721ConfigHashBytes);
       const signature: Signature = StrictECDSA({

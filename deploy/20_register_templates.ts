@@ -77,7 +77,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // Checks if there are any namespaces to reserve. If not, logs a message indicating that
   // all namespaces are in order.
-  if (toReserve.length == 0) {
+  if (toReserve.length === 0) {
     console.log('All HolographRegistry reserved namespaces are in order');
   } else {
     // If there are namespaces to reserve, logs the missing namespaces.
@@ -313,7 +313,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       [
         'Holograph ERC721 Collection', // contractName
         'hNFT', // contractSymbol
-        1000, // contractBps == 0%
+        1000, // contractBps === 0%
         ConfigureEvents([]), // eventConfig
         true, // skipInit
         generateInitCode(['address'], [deployerAddress]), // initCode

@@ -226,26 +226,26 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // Future Holograph Utility Token
   const currentNetworkType: NetworkType = network.type;
   let primaryNetwork: Network | undefined; // Initialize primaryNetwork variable
-  if (currentNetworkType == NetworkType.local) {
+  if (currentNetworkType === NetworkType.local) {
     // ten billion tokens minted per network on local testnet (LOCAL ENV)
     tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
     primaryNetwork = networks.localhost;
-  } else if (currentNetworkType == NetworkType.testnet) {
-    if (environment == Environment.develop) {
+  } else if (currentNetworkType === NetworkType.testnet) {
+    if (environment === Environment.develop) {
       // one hundred million tokens minted on ethereum on testnet sepolia (DEVELOP ENV)
       primaryNetwork = networks.ethereumTestnetSepolia;
       tokenAmount = BigNumber.from('100' + '000' + '000' + '000000000000000000');
       targetChain = BigNumber.from(networks.ethereumTestnetSepolia.chain);
-      tokenRecipient = networks.ethereumTestnetSepolia.protocolMultisig!;
+      tokenRecipient = deployerAddress;
     }
-    if (environment == Environment.testnet) {
+    if (environment === Environment.testnet) {
       // ten billion tokens minted on ethereum on testnet sepolia (TESTNET ENV)
       primaryNetwork = networks.ethereumTestnetSepolia;
       tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
       targetChain = BigNumber.from(networks.ethereumTestnetSepolia.chain);
       tokenRecipient = networks.ethereumTestnetSepolia.protocolMultisig!;
     }
-  } else if (currentNetworkType == NetworkType.mainnet) {
+  } else if (currentNetworkType === NetworkType.mainnet) {
     /**
      * 🚨🚨🚨 MAINNET 🚨🚨🚨
      */
@@ -272,7 +272,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let erc20DeployerAddress = '0xBB566182f35B9E5Ae04dB02a5450CC156d2f89c1'; // Ledger deployerAddress
 
   // If environment is develop use the signers deployerAddress (the hardcoded version is only for testnet and mainnet envs)
-  if (environment == Environment.develop) {
+  if (environment === Environment.develop) {
     console.log(`Using deployerAddress from signer ${deployerAddress}`);
     erc20DeployerAddress = deployerAddress;
   }
@@ -310,7 +310,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // Holograph
   let holographDeployedCode: string = await hre.provider.send('eth_getCode', [futureHolographAddress, 'latest']);
-  if (holographDeployedCode == '0x' || holographDeployedCode == '') {
+  if (holographDeployedCode === '0x' || holographDeployedCode === '') {
     console.log('"Holograph" bytecode not found, need to deploy"');
     let holograph = await genesisDeployHelper(
       hre,
@@ -473,7 +473,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // HolographBridge
   let bridgeDeployedCode: string = await hre.provider.send('eth_getCode', [futureBridgeAddress, 'latest']);
-  if (bridgeDeployedCode == '0x' || bridgeDeployedCode == '') {
+  if (bridgeDeployedCode === '0x' || bridgeDeployedCode === '') {
     console.log('"HolographBridge" bytecode not found, need to deploy"');
     let holographBridge = await genesisDeployHelper(
       hre,
@@ -491,7 +491,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // HolographBridgeProxy
   let bridgeProxyDeployedCode: string = await hre.provider.send('eth_getCode', [futureBridgeProxyAddress, 'latest']);
-  if (bridgeProxyDeployedCode == '0x' || bridgeProxyDeployedCode == '') {
+  if (bridgeProxyDeployedCode === '0x' || bridgeProxyDeployedCode === '') {
     console.log('"HolographBridgeProxy" bytecode not found, need to deploy"');
     let holographBridgeProxy = await genesisDeployHelper(
       hre,
@@ -615,7 +615,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // HolographFactory
   let factoryDeployedCode: string = await hre.provider.send('eth_getCode', [futureFactoryAddress, 'latest']);
-  if (factoryDeployedCode == '0x' || factoryDeployedCode == '') {
+  if (factoryDeployedCode === '0x' || factoryDeployedCode === '') {
     console.log('"HolographFactory" bytecode not found, need to deploy"');
     let holographFactory = await genesisDeployHelper(
       hre,
@@ -630,7 +630,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // HolographFactoryProxy
   let factoryProxyDeployedCode: string = await hre.provider.send('eth_getCode', [futureFactoryProxyAddress, 'latest']);
-  if (factoryProxyDeployedCode == '0x' || factoryProxyDeployedCode == '') {
+  if (factoryProxyDeployedCode === '0x' || factoryProxyDeployedCode === '') {
     console.log('"HolographFactoryProxy" bytecode not found, need to deploy"');
     let holographFactoryProxy = await genesisDeployHelper(
       hre,
@@ -721,7 +721,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // HolographOperator
   let operatorDeployedCode: string = await hre.provider.send('eth_getCode', [futureOperatorAddress, 'latest']);
-  if (operatorDeployedCode == '0x' || operatorDeployedCode == '') {
+  if (operatorDeployedCode === '0x' || operatorDeployedCode === '') {
     console.log('"HolographOperator" bytecode not found, need to deploy"');
     let holographOperator = await genesisDeployHelper(
       hre,
@@ -742,7 +742,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureOperatorProxyAddress,
     'latest',
   ]);
-  if (operatorProxyDeployedCode == '0x' || operatorProxyDeployedCode == '') {
+  if (operatorProxyDeployedCode === '0x' || operatorProxyDeployedCode === '') {
     console.log('"HolographOperatorProxy" bytecode not found, need to deploy"');
     let holographOperatorProxy = await genesisDeployHelper(
       hre,
@@ -870,7 +870,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographOperator.getUtilityToken()) !== futureHlgAddress) {
-      console.log('Updating UtilityToken reference');
+      console.log('Updating UtilityToken reference for HolographOperator');
       let tx = await MultisigAwareTx(
         hre,
         'HolographOperator',
@@ -909,7 +909,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // HolographRegistry
   let registryDeployedCode: string = await hre.provider.send('eth_getCode', [futureRegistryAddress, 'latest']);
-  if (registryDeployedCode == '0x' || registryDeployedCode == '') {
+  if (registryDeployedCode === '0x' || registryDeployedCode === '') {
     console.log('"HolographRegistry" bytecode not found, need to deploy"');
     let holographRegistry = await genesisDeployHelper(
       hre,
@@ -927,7 +927,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureRegistryProxyAddress,
     'latest',
   ]);
-  if (registryProxyDeployedCode == '0x' || registryProxyDeployedCode == '') {
+  if (registryProxyDeployedCode === '0x' || registryProxyDeployedCode === '') {
     console.log('"HolographRegistryProxy" bytecode not found, need to deploy"');
     let holographRegistryProxy = await genesisDeployHelper(
       hre,
@@ -948,7 +948,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       deployerAddress
     )) as HolographRegistry;
     if ((await holographRegistry.getUtilityToken()) !== futureHlgAddress) {
-      console.log('Updating UtilityToken reference');
+      console.log('Updating UtilityToken reference for HolographRegistry');
       let tx = await MultisigAwareTx(
         hre,
         'HolographRegistry',
@@ -1035,7 +1035,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // HolographTreasury
   let treasuryDeployedCode: string = await hre.provider.send('eth_getCode', [futureTreasuryAddress, 'latest']);
-  if (treasuryDeployedCode == '0x' || treasuryDeployedCode == '') {
+  if (treasuryDeployedCode === '0x' || treasuryDeployedCode === '') {
     console.log('"HolographTreasury" bytecode not found, need to deploy"');
     let holographTreasury = await genesisDeployHelper(
       hre,
@@ -1056,7 +1056,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureTreasuryProxyAddress,
     'latest',
   ]);
-  if (treasuryProxyDeployedCode == '0x' || treasuryProxyDeployedCode == '') {
+  if (treasuryProxyDeployedCode === '0x' || treasuryProxyDeployedCode === '') {
     console.log('"HolographTreasuryProxy" bytecode not found, need to deploy"');
     let holographTreasuryProxy = await genesisDeployHelper(
       hre,
@@ -1192,7 +1192,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureHolographInterfacesAddress,
     'latest',
   ]);
-  if (interfacesDeployedCode == '0x' || interfacesDeployedCode == '') {
+  if (interfacesDeployedCode === '0x' || interfacesDeployedCode === '') {
     console.log('"HolographInterfaces" bytecode not found, need to deploy"');
     let interfaces = await genesisDeployHelper(
       hre,
@@ -1209,7 +1209,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // HolographRoyalties
   let royaltiesDeployedCode: string = await hre.provider.send('eth_getCode', [futureRoyaltiesAddress, 'latest']);
-  if (royaltiesDeployedCode == '0x' || royaltiesDeployedCode == '') {
+  if (royaltiesDeployedCode === '0x' || royaltiesDeployedCode === '') {
     console.log('"HolographRoyalties" bytecode not found, need to deploy"');
     let royalties = await genesisDeployHelper(
       hre,

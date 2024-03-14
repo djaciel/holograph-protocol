@@ -49,7 +49,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         holographGenesisDeployment.address,
         'latest',
       ]);
-      if (deployedCode == '0x' || deployedCode == '') {
+      if (deployedCode === '0x' || deployedCode === '') {
         // Redeploying the contract as code is not present at the address
         console.log(`${contractName} deployment found but no code at address, redeploying...`);
 

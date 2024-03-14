@@ -59,26 +59,26 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // Future Holograph Utility Token
   const currentNetworkType: NetworkType = network.type;
   let primaryNetwork: Network | undefined; // Initialize primaryNetwork variable
-  if (currentNetworkType == NetworkType.local) {
+  if (currentNetworkType === NetworkType.local) {
     // ten billion tokens minted per network on local testnet (LOCAL ENV)
     tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
     primaryNetwork = networks.localhost;
-  } else if (currentNetworkType == NetworkType.testnet) {
-    if (environment == Environment.develop) {
+  } else if (currentNetworkType === NetworkType.testnet) {
+    if (environment === Environment.develop) {
       // one hundred million tokens minted on ethereum on testnet sepolia (DEVELOP ENV)
       primaryNetwork = networks.ethereumTestnetSepolia;
       tokenAmount = BigNumber.from('100' + '000' + '000' + '000000000000000000');
       targetChain = BigNumber.from(networks.ethereumTestnetSepolia.chain);
       tokenRecipient = deployerAddress;
     }
-    if (environment == Environment.testnet) {
+    if (environment === Environment.testnet) {
       // ten billion tokens minted on ethereum on testnet sepolia (TESTNET ENV)
       primaryNetwork = networks.ethereumTestnetSepolia;
       tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
       targetChain = BigNumber.from(networks.ethereumTestnetSepolia.chain);
       tokenRecipient = networks.ethereumTestnetSepolia.protocolMultisig!;
     }
-  } else if (currentNetworkType == NetworkType.mainnet) {
+  } else if (currentNetworkType === NetworkType.mainnet) {
     /**
      * 🚨🚨🚨 MAINNET 🚨🚨🚨
      */
@@ -105,7 +105,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let erc20DeployerAddress = '0xBB566182f35B9E5Ae04dB02a5450CC156d2f89c1'; // Ledger deployerAddress
 
   // If environment is develop or localhost use the signers deployerAddress (the hardcoded version is only for testnet and mainnet envs)
-  if (environment == Environment.develop || environment == Environment.localhost) {
+  if (environment === Environment.develop || environment === Environment.localhost) {
     console.log(`Using deployerAddress from signer ${deployerAddress}`);
     erc20DeployerAddress = deployerAddress;
   }
@@ -138,7 +138,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let hlgDeployedCode: string = await hre.provider.send('eth_getCode', [futureHlgAddress, 'latest']);
   console.log('hlgTokenAddress', hlgTokenAddress);
   console.log('futureHlgAddress', futureHlgAddress);
-  if (hlgDeployedCode == '0x' || hlgDeployedCode == '' || hlgTokenAddress !== futureHlgAddress) {
+  if (hlgDeployedCode === '0x' || hlgDeployedCode === '' || hlgTokenAddress !== futureHlgAddress) {
     console.log(`HLG token not deployed at ${futureHlgAddress} on chain ${chainId}!`);
     console.log(`Need to deploy "HLG" for chain: ${chainId}`);
 
@@ -162,7 +162,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let eventFound: boolean = false;
     for (let i = 0, l = deployResult.events.length; i < l; i++) {
       let e = deployResult.events[i];
-      if (e.event == 'BridgeableContractDeployed') {
+      if (e.event === 'BridgeableContractDeployed') {
         eventFound = true;
         eventIndex = i;
         break;
@@ -237,24 +237,33 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.local) {
     if (environment !== Environment.mainnet && environment !== Environment.testnet) {
       const hlgContract = (await hre.ethers.getContract('HolographERC20', deployerAddress)).attach(hlgTokenAddress);
-      if ((await hlgContract.balanceOf(operatorAddress)).isZero()) {
+      const operatorBalance = await hlgContract.balanceOf(operatorAddress);
+
+      if (operatorBalance.isZero()) {
         console.log('HolographOperator has no HLG');
+
+        // Check the hlgContract's balance before attempting to send
+        const hlgContractBalance = await hlgContract.balanceOf(deployerAddress);
+        const amountToSend = BigNumber.from('1000000000000000000000000'); // 1,000,000 HLG
+
+        if (hlgContractBalance.lt(amountToSend)) {
+          console.log('Deployer has insufficient HLG balance in the hlgContract to send to HolographOperator.');
+          return; // Exit if there's not enough balance
+        }
+
         console.log('Sending 1,000,000 HLG to HolographOperator');
         const transferTx = await MultisigAwareTx(
           hre,
           'HolographUtilityToken',
           hlgContract,
-          await hlgContract.populateTransaction.transfer(operatorAddress, BigNumber.from('1000000000000000000000000'), {
+          await hlgContract.populateTransaction.transfer(operatorAddress, amountToSend, {
             ...(await txParams({
               hre,
               from: deployerAddress,
               to: hlgContract,
               gasLimit: (
                 await hre.ethers.provider.estimateGas(
-                  await hlgContract.populateTransaction.transfer(
-                    operatorAddress,
-                    BigNumber.from('1000000000000000000000000')
-                  )
+                  await hlgContract.populateTransaction.transfer(operatorAddress, amountToSend)
                 )
               ).mul(BigNumber.from('2')),
             })),

@@ -38,7 +38,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const currentNetworkType: NetworkType = network.type;
 
-  if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.local) {
+  if (currentNetworkType === NetworkType.testnet || currentNetworkType === NetworkType.local) {
     // Only deploy faucet on develop or testnet environment
     if (environment !== Environment.mainnet && environment) {
       console.log(`Deploying faucet on ${currentNetworkType} network`);
@@ -55,7 +55,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
       // Faucet
       let faucetDeployedCode: string = await hre.provider.send('eth_getCode', [futureFaucetAddress, 'latest']);
-      if (faucetDeployedCode == '0x' || faucetDeployedCode == '') {
+      if (faucetDeployedCode === '0x' || faucetDeployedCode === '') {
         console.log('"Faucet" bytecode not found, need to deploy"');
         let faucet = await genesisDeployHelper(
           hre,

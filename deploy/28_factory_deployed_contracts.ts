@@ -20,7 +20,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   if (currentNetworkType !== NetworkType.local) {
     const holographer: Contract | null = await hre.ethers.getContractOrNull('Holographer', deployerAddress);
-    if (holographer == null) {
+    if (holographer === null) {
       await hre.deployments.deploy('Holographer', {
         ...(await txParams({
           hre,
@@ -38,7 +38,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     }
 
     const cxipERC721Proxy: Contract | null = await hre.ethers.getContractOrNull('CxipERC721Proxy', deployerAddress);
-    if (cxipERC721Proxy == null) {
+    if (cxipERC721Proxy === null) {
       await hre.deployments.deploy('CxipERC721Proxy', {
         ...(await txParams({
           hre,
@@ -59,7 +59,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       'HolographDropERC721Proxy',
       deployerAddress
     );
-    if (holographDropERC721Proxy == null) {
+    if (holographDropERC721Proxy === null) {
       await hre.deployments.deploy('HolographDropERC721Proxy', {
         ...(await txParams({
           hre,
@@ -80,7 +80,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       'HolographUtilityToken',
       deployerAddress
     );
-    if (holographUtilityToken == null) {
+    if (holographUtilityToken === null) {
       await hre.deployments.deploy('HolographUtilityToken', {
         ...(await txParams({
           hre,
@@ -98,7 +98,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     }
 
     const hTokenProxy: Contract | null = await hre.ethers.getContractOrNull('hTokenProxy', deployerAddress);
-    if (hTokenProxy == null) {
+    if (hTokenProxy === null) {
       await hre.deployments.deploy('hTokenProxy', {
         ...(await txParams({
           hre,

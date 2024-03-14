@@ -17,7 +17,7 @@ function mapFullKeyToShortKey(networks: Networks, fullKey: string) {
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // console.log(`Starting deploy script: ${path.basename(__filename)} 👇`);
   // const currentNetworkType: NetworkType = networks[hre.network.name].type;
-  // if (currentNetworkType == NetworkType.local) {
+  // if (currentNetworkType === NetworkType.local) {
   //   console.log('Not verifying contracts on localhost networks.');
   //   return;
   // }
@@ -49,7 +49,7 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   // if (network.key in definedOracleNames) {
   //   targetDropsPriceOracle = 'DropsPriceOracle' + definedOracleNames[network.key];
   // } else {
-  //   if (environment == Environment.mainnet || (network.key !=='localhost' && network.key !=='localhost2' && network.key !=='hardhat')) {
+  //   if (environment === Environment.mainnet || (network.key !=='localhost' && network.key !=='localhost2' && network.key !=='hardhat')) {
   //     throw new Error('Drops price oracle not created for network yet!');
   //   }
   // }

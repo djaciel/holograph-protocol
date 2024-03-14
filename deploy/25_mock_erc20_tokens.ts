@@ -16,7 +16,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const deployerAddress = await deployer.signer.getAddress();
   const currentNetworkType: NetworkType = networks[hre.networkName].type;
 
-  if (currentNetworkType == NetworkType.local) {
+  if (currentNetworkType === NetworkType.local) {
     const mockErc20Tokens = await hre.deployments.deploy('ERC20Mock', {
       ...(await txParams({
         hre,

@@ -234,7 +234,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const value: Network = networks[key];
 
     // Check if the current network is active and of the same type as the current network type
-    if (value.active && value.type == networkType) {
+    if (value.active && value.type === networkType) {
       // If conditions are met, add the network name to the supportedNetworkNames array
       supportedNetworkNames.push(key);
 
@@ -244,7 +244,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       // Check if the network has a valid holographId (greater than 0)
       if (value.holographId > 0) {
         // Special handling if the current network's holographId matches the target network's holographId
-        if (value.holographId == network.holographId) {
+        if (value.holographId === network.holographId) {
           // Add a 0 to the chainIds array to represent the current network specifically
           chainIds.push(0);
 
@@ -285,7 +285,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureOptimismGasPriceOracleAddress,
     'latest',
   ]);
-  if (optimismGasPriceOracleDeployedCode == '0x' || optimismGasPriceOracleDeployedCode == '') {
+  if (optimismGasPriceOracleDeployedCode === '0x' || optimismGasPriceOracleDeployedCode === '') {
     console.log('"OVM_GasPriceOracle" bytecode not found, need to deploy"');
     let optimismGasPriceOracle = await genesisDeployHelper(
       hre,
@@ -294,8 +294,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       generateInitCode(
         ['uint256', 'uint256', 'uint256', 'uint256', 'uint256'],
         [
-          1000000, // gasPrice == 1 (since scalar is with 6 decimal places)
-          100000000000, // l1BaseFee == 100 GWEI
+          1000000, // gasPrice === 1 (since scalar is with 6 decimal places)
+          100000000000, // l1BaseFee === 100 GWEI
           2100, // overhead
           1000000, // scalar (since division does not work well in non-decimal numbers, we multiply and then divide by scalar after)
           6, // decimals
@@ -330,7 +330,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureLayerZeroModuleAddress,
     'latest',
   ]);
-  if (layerZeroModuleDeployedCode == '0x' || layerZeroModuleDeployedCode == '') {
+  if (layerZeroModuleDeployedCode === '0x' || layerZeroModuleDeployedCode === '') {
     console.log('"LayerZeroModule" bytecode not found, need to deploy"');
     let layerZeroModule = await genesisDeployHelper(
       hre,
@@ -382,7 +382,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureLayerZeroModuleProxyAddress,
     'latest',
   ]);
-  if (layerZeroModuleProxyDeployedCode == '0x' || layerZeroModuleProxyDeployedCode == '') {
+  if (layerZeroModuleProxyDeployedCode === '0x' || layerZeroModuleProxyDeployedCode === '') {
     console.log('"LayerZeroModuleProxy" bytecode not found, need to deploy"');
     let layerZeroModuleProxy = await genesisDeployHelper(
       hre,
@@ -499,7 +499,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           gasParameters.push(networkSpecificParams[currentNetwork.key]!);
 
           // Special case for if the current network is the one being deployed to
-          if (currentNetwork.holographId == network.holographId) {
+          if (currentNetwork.holographId === network.holographId) {
             // Mark the deployment network specifically by adding 0 to chainIds
             chainIds.push(0);
             // Add its parameters again to gasParameters
@@ -516,7 +516,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         gasParameters.push(defaultParams);
 
         // Special case for the deployment network, similar to above
-        if (currentNetwork.holographId == network.holographId) {
+        if (currentNetwork.holographId === network.holographId) {
           chainIds.push(0); // Mark the deployment network
           gasParameters.push(defaultParams); // Add default parameters for it
         }

@@ -22,7 +22,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let lzEndpoint = networks[hre.networkName].lzEndpoint.toLowerCase();
 
   if (lzEndpoint && lzEndpoint !== zeroAddress) {
-    if (currentNetworkType == NetworkType.local && lzEndpoint == zeroAddress) {
+    if (currentNetworkType === NetworkType.local && lzEndpoint === zeroAddress) {
       lzEndpoint = (await hre.getNamedAccounts()).lzEndpoint;
       const mockLZEndpoint = await hre.deployments.deploy('MockLZEndpoint', {
         ...(await txParams({

@@ -39,7 +39,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // HolographGeneric
   let genericDeployedCode: string = await hre.provider.send('eth_getCode', [futureGenericAddress, 'latest']);
-  if (genericDeployedCode == '0x' || genericDeployedCode == '') {
+  if (genericDeployedCode === '0x' || genericDeployedCode === '') {
     console.log('"HolographGeneric" bytecode not found, need to deploy"');
     let holographGeneric = await genesisDeployHelper(
       hre,

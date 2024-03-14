@@ -17,7 +17,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const currentNetworkType: NetworkType = networks[hre.networkName].type;
 
-  if (currentNetworkType == NetworkType.local) {
+  if (currentNetworkType === NetworkType.local) {
     const mockErc721Receiver = await hre.deployments.deploy('MockERC721Receiver', {
       ...(await txParams({
         hre,

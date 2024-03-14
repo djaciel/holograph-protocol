@@ -23,8 +23,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // If we are on a mainnet or testnet, and we are deploying to a mainnet or testnet environment, then we need to set the multisig
   if (
-    (network.type == NetworkType.mainnet || network.type == NetworkType.testnet) &&
-    (environment == Environment.mainnet || environment == Environment.testnet)
+    (network.type === NetworkType.mainnet || network.type === NetworkType.testnet) &&
+    (environment === Environment.mainnet || environment === Environment.testnet)
   ) {
     // If there is no multisig, then we need to use the deployer address
     // Otherwise, we use the multisig address

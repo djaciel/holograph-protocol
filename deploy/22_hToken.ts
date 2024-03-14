@@ -53,7 +53,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // hToken
   let hTokenDeployedCode: string = await hre.provider.send('eth_getCode', [futureHTokenAddress, 'latest']);
-  if (hTokenDeployedCode == '0x' || hTokenDeployedCode == '') {
+  if (hTokenDeployedCode === '0x' || hTokenDeployedCode === '') {
     console.log('"hToken" bytecode not found, need to deploy"');
     let holographErc20 = await genesisDeployHelper(
       hre,
@@ -92,7 +92,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   const currentNetworkType: NetworkType = network.type;
   let hTokens: HTokenData[] = [];
   let primaryNetwork: Network;
-  if (currentNetworkType == NetworkType.local) {
+  if (currentNetworkType === NetworkType.local) {
     primaryNetwork = networks.localhost;
     hTokens = [
       {
@@ -101,7 +101,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         supportedNetworks: [networks.localhost, networks.localhost2],
       },
     ];
-  } else if (currentNetworkType == NetworkType.testnet) {
+  } else if (currentNetworkType === NetworkType.testnet) {
     primaryNetwork = networks.ethereumTestnetSepolia;
     hTokens = [
       {
@@ -137,7 +137,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         supportedNetworks: [networks.polygonTestnet],
       },
     ];
-  } else if (currentNetworkType == NetworkType.mainnet) {
+  } else if (currentNetworkType === NetworkType.mainnet) {
     primaryNetwork = networks.ethereum;
     hTokens = [
       {
@@ -194,7 +194,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const environment: Environment = getEnvironment();
     console.log(`Environment: ${environment}`);
 
-    if (environment == Environment.develop) {
+    if (environment === Environment.develop) {
       console.log(`Using deployerAddress from signer ${deployerAddress}`);
       erc20DeployerAddress = deployerAddress;
     }
@@ -231,7 +231,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     console.log('the future "hToken ' + data.tokenSymbol + '" address is', futureHTokenAddress);
 
     let hTokenDeployedCode: string = await hre.provider.send('eth_getCode', [futureHTokenAddress, 'latest']);
-    if (hTokenDeployedCode == '0x' || hTokenDeployedCode == '') {
+    if (hTokenDeployedCode === '0x' || hTokenDeployedCode === '') {
       console.log('need to deploy "hToken ' + data.tokenSymbol + '"');
 
       const sig = await deployer.signer.signMessage(erc20ConfigHashBytes);
@@ -257,7 +257,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       let eventFound: boolean = false;
       for (let i = 0, l = deployResult.events.length; i < l; i++) {
         let e = deployResult.events[i];
-        if (e.event == 'BridgeableContractDeployed') {
+        if (e.event === 'BridgeableContractDeployed') {
           eventFound = true;
           eventIndex = i;
           break;

@@ -34,7 +34,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       [
         'Holograph ERC721 Collection', // contractName
         'hNFT', // contractSymbol
-        1000, // contractBps == 0%
+        1000, // contractBps === 0%
         ConfigureEvents([]), // eventConfig
         true, // skipInit
         generateInitCode(['address'], [deployerAddress]), // initCode
@@ -45,7 +45,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // HolographERC721
   let erc721DeployedCode: string = await hre.provider.send('eth_getCode', [futureErc721Address, 'latest']);
-  if (erc721DeployedCode == '0x' || erc721DeployedCode == '') {
+  if (erc721DeployedCode === '0x' || erc721DeployedCode === '') {
     console.log('"HolographERC721" bytecode not found, need to deploy"');
     let holographErc721 = await genesisDeployHelper(
       hre,
@@ -56,7 +56,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         [
           'Holograph ERC721 Collection', // contractName
           'hNFT', // contractSymbol
-          1000, // contractBps == 0%
+          1000, // contractBps === 0%
           ConfigureEvents([]), // eventConfig
           true, // skipInit
           generateInitCode(['address'], [deployerAddress]), // initCode
@@ -78,7 +78,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // CxipERC721
   let cxipErc721DeployedCode: string = await hre.provider.send('eth_getCode', [futureCxipErc721Address, 'latest']);
-  if (cxipErc721DeployedCode == '0x' || cxipErc721DeployedCode == '') {
+  if (cxipErc721DeployedCode === '0x' || cxipErc721DeployedCode === '') {
     console.log('"CxipERC721" bytecode not found, need to deploy"');
     let cxipErc721 = await genesisDeployHelper(
       hre,

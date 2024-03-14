@@ -38,7 +38,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureDropsMetadataRendererAddress,
     'latest',
   ]);
-  if (dropsMetadataRendererDeployedCode == '0x' || dropsMetadataRendererDeployedCode == '') {
+  if (dropsMetadataRendererDeployedCode === '0x' || dropsMetadataRendererDeployedCode === '') {
     console.log('"DropsMetadataRenderer" bytecode not found, need to deploy"');
     let dropsMetadataRenderer = await genesisDeployHelper(
       hre,
@@ -68,7 +68,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureDropsMetadataRendererProxyAddress,
     'latest',
   ]);
-  if (dropsMetadataRendererProxyDeployedCode == '0x' || dropsMetadataRendererProxyDeployedCode == '') {
+  if (dropsMetadataRendererProxyDeployedCode === '0x' || dropsMetadataRendererProxyDeployedCode === '') {
     console.log('"DropsMetadataRendererProxy" bytecode not found, need to deploy"');
     dropsMetadataRendererProxy = await genesisDeployHelper(
       hre,
@@ -125,7 +125,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureEditionsMetadataRendererAddress,
     'latest',
   ]);
-  if (editionsMetadataRendererDeployedCode == '0x' || editionsMetadataRendererDeployedCode == '') {
+  if (editionsMetadataRendererDeployedCode === '0x' || editionsMetadataRendererDeployedCode === '') {
     console.log('"EditionsMetadataRenderer" bytecode not found, need to deploy"');
     let editionsMetadataRenderer = await genesisDeployHelper(
       hre,
@@ -155,7 +155,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureEditionsMetadataRendererProxyAddress,
     'latest',
   ]);
-  if (editionsMetadataRendererProxyDeployedCode == '0x' || editionsMetadataRendererProxyDeployedCode == '') {
+  if (editionsMetadataRendererProxyDeployedCode === '0x' || editionsMetadataRendererProxyDeployedCode === '') {
     console.log('"EditionsMetadataRendererProxy" bytecode not found, need to deploy"');
     editionsMetadataRendererProxy = await genesisDeployHelper(
       hre,
@@ -233,7 +233,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     'latest',
   ]);
 
-  if (HolographDropERC721DeployedCode == '0x' || HolographDropERC721DeployedCode == '') {
+  if (HolographDropERC721DeployedCode === '0x' || HolographDropERC721DeployedCode === '') {
     console.log('"HolographDropERC721" bytecode not found, need to deploy"');
     let HolographDropERC721 = await genesisDeployHelper(
       hre,

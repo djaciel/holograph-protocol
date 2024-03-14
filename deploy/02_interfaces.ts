@@ -98,7 +98,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const value: Network = networkValues[i];
 
     // Check if the network type matches the current network type.
-    if (value.type == networkType) {
+    if (value.type === networkType) {
       // Add the network key and value to their respective arrays.
       supportedNetworkNames.push(key);
       supportedNetworks.push(value);
@@ -156,7 +156,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   }
 
   // Check if there are any mappings needed by examining the length of the needToMap array.
-  if (needToMap.length == 0) {
+  if (needToMap.length === 0) {
     // If no mappings are needed, log a message indicating all networks are currently supported.
     console.log('HolographInterfaces supports all currently configured networks');
   } else {
@@ -222,7 +222,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       needToMapPrepends.push(prepend);
     }
   }
-  if (needToMapPrepends.length == 0) {
+  if (needToMapPrepends.length === 0) {
     console.log('HolographInterfaces has all currently supported URI prepends configured');
   } else {
     console.log('HolographInterfaces needs to have some URI prepends configured');
@@ -494,7 +494,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           todo.push(hash);
         }
       }
-      if (todo.length == 0) {
+      if (todo.length === 0) {
         console.log(`No missing interfaces in HolographInterfaces for InterfaceType[${key}]`);
       } else {
         console.log(`Found missing interfaces in HolographInterfaces for InterfaceType[${key}]`);

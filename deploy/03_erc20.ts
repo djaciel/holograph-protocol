@@ -47,7 +47,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // HolographERC20
   let erc20DeployedCode: string = await hre.provider.send('eth_getCode', [futureErc20Address, 'latest']);
-  if (erc20DeployedCode == '0x' || erc20DeployedCode == '') {
+  if (erc20DeployedCode === '0x' || erc20DeployedCode === '') {
     console.log('"HolographERC20" bytecode not found, need to deploy"');
     let holographErc20 = await genesisDeployHelper(
       hre,

@@ -60,7 +60,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     targetDropsPriceOracle = 'DropsPriceOracle' + definedOracleNames[network.key];
   } else {
     if (
-      environment == Environment.mainnet ||
+      environment === Environment.mainnet ||
       (network.key !== 'localhost' && network.key !== 'localhost2' && network.key !== 'hardhat')
     ) {
       throw new Error('Drops price oracle not created for network yet!');
@@ -78,7 +78,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureDropsPriceOracleAddress,
     'latest',
   ]);
-  if (dropsPriceOracleDeployedCode == '0x' || dropsPriceOracleDeployedCode == '') {
+  if (dropsPriceOracleDeployedCode === '0x' || dropsPriceOracleDeployedCode === '') {
     definedOracleNames;
     console.log('"' + targetDropsPriceOracle + '" bytecode not found, need to deploy"');
     let dropsPriceOracle = await genesisDeployHelper(
@@ -104,7 +104,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     futureDropsPriceOracleProxyAddress,
     'latest',
   ]);
-  if (dropsPriceOracleProxyDeployedCode == '0x' || dropsPriceOracleProxyDeployedCode == '') {
+  if (dropsPriceOracleProxyDeployedCode === '0x' || dropsPriceOracleProxyDeployedCode === '') {
     console.log('"DropsPriceOracleProxy" bytecode not found, need to deploy"');
     let dropsPriceOracleProxy = await genesisDeployHelper(
       hre,
@@ -143,7 +143,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     }
   }
 
-  if (network.key == 'mantleTestnet') {
+  if (network.key === 'mantleTestnet') {
     console.log('Checking token price ratio on mantle testnet');
     const priceOracleContract = (
       (await hre.ethers.getContract('DropsPriceOracleMantleTestnet', deployerAddress)) as Contract
