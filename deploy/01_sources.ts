@@ -1,51 +1,29 @@
 declare var global: any;
 import path from 'path';
-import fs from 'fs';
 import Web3 from 'web3';
 import { BigNumber, BytesLike } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DeployFunction } from '@holographxyz/hardhat-deploy-holographed/types';
 import {
-  Admin,
-  CxipERC721,
-  CxipERC721Proxy,
-  ERC20Mock,
   Holograph,
   HolographBridge,
   HolographBridgeProxy,
-  Holographer,
-  HolographERC20,
-  HolographERC721,
   HolographFactory,
   HolographFactoryProxy,
-  HolographGenesis,
   HolographOperator,
   HolographOperatorProxy,
   HolographRegistry,
   HolographRegistryProxy,
   HolographTreasury,
   HolographTreasuryProxy,
-  HToken,
-  HolographInterfaces,
-  MockERC721Receiver,
-  MockLZEndpoint,
-  Owner,
-  HolographRoyalties,
-  SampleERC20,
-  SampleERC721,
 } from '../typechain-types';
 import {
   genesisDeriveFutureAddress,
   genesisDeployHelper,
   generateInitCode,
   zeroAddress,
-  LeanHardhatRuntimeEnvironment,
   hreSplit,
   generateErc20Config,
-  getHolographedContractHash,
-  Signature,
-  StrictECDSA,
   txParams,
   getDeployer,
   askQuestion,
@@ -241,42 +219,67 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   const environment: Environment = getEnvironment();
 
-  let tokenAmount: BigNumber = BigNumber.from('100' + '000' + '000' + '000000000000000000');
+  let tokenAmount: BigNumber = BigNumber.from('100000000');
   let targetChain: BigNumber = BigNumber.from('0');
   let tokenRecipient: string = deployerAddress;
 
   // Future Holograph Utility Token
   const currentNetworkType: NetworkType = network.type;
-  let primaryNetwork: Network;
+  let primaryNetwork: Network | undefined; // Initialize primaryNetwork variable
   if (currentNetworkType == NetworkType.local) {
-    // one billion tokens minted per network on local testing
-    tokenAmount = BigNumber.from('1' + '000' + '000' + '000' + '000000000000000000');
+    // ten billion tokens minted per network on local testnet (LOCAL ENV)
+    tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
     primaryNetwork = networks.localhost;
   } else if (currentNetworkType == NetworkType.testnet) {
-    // one hundred million tokens minted per network on testnets
-    tokenAmount = BigNumber.from('100' + '000' + '000' + '000000000000000000');
-    primaryNetwork = networks.ethereumTestnetSepolia;
+    if (environment == Environment.develop) {
+      // one hundred million tokens minted on ethereum on testnet sepolia (DEVELOP ENV)
+      primaryNetwork = networks.ethereumTestnetSepolia;
+      tokenAmount = BigNumber.from('100' + '000' + '000' + '000000000000000000');
+      targetChain = BigNumber.from(networks.ethereumTestnetSepolia.chain);
+      tokenRecipient = networks.ethereumTestnetSepolia.protocolMultisig!;
+    }
     if (environment == Environment.testnet) {
+      // ten billion tokens minted on ethereum on testnet sepolia (TESTNET ENV)
+      primaryNetwork = networks.ethereumTestnetSepolia;
       tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
       targetChain = BigNumber.from(networks.ethereumTestnetSepolia.chain);
       tokenRecipient = networks.ethereumTestnetSepolia.protocolMultisig!;
     }
   } else if (currentNetworkType == NetworkType.mainnet) {
+    /**
+     * 🚨🚨🚨 MAINNET 🚨🚨🚨
+     */
     // ten billion tokens minted on ethereum on mainnet
     tokenAmount = BigNumber.from('10' + '000' + '000' + '000' + '000000000000000000');
     // target chain is restricted to ethereum, to prevent the minting of tokens on other chains
     targetChain = BigNumber.from(networks.ethereum.chain);
     // protocol multisig is the recipient
     // This is the hardcoded Gnosis Safe address of Holograph Research
-    tokenRecipient = '0x0a7aa3d5855272Df5B2677C7F0E5161ae77D5260'; //networks.ethereum.protocolMultisig;
+    tokenRecipient = '0x0a7aa3d5855272Df5B2677C7F0E5161ae77D5260'; // networks.ethereum.protocolMultisig V2;
     primaryNetwork = networks.ethereum;
   } else {
     throw new Error('cannot identity current NetworkType');
   }
 
+  // Extra check to ensure primaryNetwork is set
+  if (primaryNetwork === undefined || !primaryNetwork) {
+    throw new Error('primaryNetwork not set');
+  }
+
+  // NOTICE: At the moment the HLG contract's address is reliant on the deployerAddress which prevents multiple approved deployers from deploying the same address. This is a temporary solution until the HLG contract is upgraded to allow any deployerAddress to be used.
+  // NOTE: Use hardcoded version of deployerAddress from Ledger hardware only for testnet and mainnet envs
+  // If environment is develop use the signers deployerAddress
+  let erc20DeployerAddress = '0xBB566182f35B9E5Ae04dB02a5450CC156d2f89c1'; // Ledger deployerAddress
+
+  // If environment is develop use the signers deployerAddress (the hardcoded version is only for testnet and mainnet envs)
+  if (environment == Environment.develop) {
+    console.log(`Using deployerAddress from signer ${deployerAddress}`);
+    erc20DeployerAddress = deployerAddress;
+  }
+
   let { erc20Config, erc20ConfigHash, erc20ConfigHashBytes } = await generateErc20Config(
     primaryNetwork,
-    deployerAddress,
+    erc20DeployerAddress, // TODO: Upgrade the HLG contract so that any deployerAddress can be used
     'HolographUtilityToken',
     'Holograph Utility Token',
     'HLG',
@@ -286,7 +289,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     ConfigureEvents([]),
     generateInitCode(
       ['address', 'uint256', 'uint256', 'address'],
-      [deployerAddress, tokenAmount.toHexString(), targetChain.toHexString(), tokenRecipient]
+      [erc20DeployerAddress, tokenAmount.toHexString(), targetChain.toHexString(), tokenRecipient] // TODO: Upgrade the HLG contract so that any deployerAddress can be used
     ),
     salt
   );
@@ -332,7 +335,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     console.log('"Holograph" is already deployed. Checking configs.');
     let holograph = (await hre.ethers.getContractAt('Holograph', futureHolographAddress, deployerAddress)) as Holograph;
     if ((await holograph.getBridge()) != futureBridgeProxyAddress) {
-      console.log('Updating Bridge reference');
+      console.log(`Updating Bridge reference to ${futureBridgeProxyAddress}`);
       let tx = await MultisigAwareTx(
         hre,
         'Holograph',
@@ -346,10 +349,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
+      console.log(`Bridge reference updated to ${futureBridgeProxyAddress} at block ${receipt.transactionHash}`);
     }
     if ((await holograph.getFactory()) != futureFactoryProxyAddress) {
-      console.log('Updating Factory reference');
+      console.log(`Updating Factory reference to ${futureFactoryProxyAddress}`);
       let tx = await MultisigAwareTx(
         hre,
         'Holograph',
@@ -363,7 +368,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holograph.getInterfaces()) != futureHolographInterfacesAddress) {
       console.log('Updating HolographInterfaces reference');
@@ -380,7 +386,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holograph.getOperator()) != futureOperatorProxyAddress) {
       console.log('Updating Operator reference');
@@ -397,7 +404,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holograph.getRegistry()) != futureRegistryProxyAddress) {
       console.log('Updating Registry reference');
@@ -414,7 +422,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holograph.getTreasury()) != futureTreasuryProxyAddress) {
       console.log('Updating Treasury reference');
@@ -431,10 +440,15 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
-    if ((await holograph.getUtilityToken()) != futureHlgAddress) {
-      console.log('Updating UtilityToken reference');
+
+    const holographUtilityTokenAddress = await holograph.getUtilityToken();
+    if (holographUtilityTokenAddress != futureHlgAddress) {
+      console.log(
+        `The current HolographUtilityToken: ${holographUtilityTokenAddress} does not match future HLG: ${futureHlgAddress}`
+      );
       let tx = await MultisigAwareTx(
         hre,
         'Holograph',
@@ -448,7 +462,12 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
+    } else {
+      console.log(
+        `The current HolographUtilityToken: ${holographUtilityTokenAddress} matches future HLG: ${futureHlgAddress}`
+      );
     }
   }
 
@@ -517,7 +536,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographBridge.getFactory()) != futureFactoryProxyAddress) {
       console.log('Updating Factory reference');
@@ -534,7 +554,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographBridge.getHolograph()) != futureHolographAddress) {
       console.log('Updating Holograph reference');
@@ -551,7 +572,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographBridge.getOperator()) != futureOperatorProxyAddress) {
       console.log('Updating Operator reference');
@@ -568,7 +590,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographBridge.getRegistry()) != futureRegistryProxyAddress) {
       console.log('Updating Registry reference');
@@ -585,7 +608,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
   }
 
@@ -654,7 +678,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographFactory.getHolograph()) != futureHolographAddress) {
       console.log('Updating Holograph reference');
@@ -671,7 +696,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographFactory.getRegistry()) != futureRegistryProxyAddress) {
       console.log('Updating Registry reference');
@@ -688,7 +714,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
   }
 
@@ -767,7 +794,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographOperator.getBridge()) != futureBridgeProxyAddress) {
       console.log('Updating Bridge reference');
@@ -784,7 +812,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographOperator.getHolograph()) != futureHolographAddress) {
       console.log('Updating Holograph reference');
@@ -801,7 +830,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographOperator.getInterfaces()) != futureHolographInterfacesAddress) {
       console.log('Updating HolographInterfaces reference');
@@ -818,7 +848,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographOperator.getRegistry()) != futureRegistryProxyAddress) {
       console.log('Updating Registry reference');
@@ -835,7 +866,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographOperator.getUtilityToken()) != futureHlgAddress) {
       console.log('Updating UtilityToken reference');
@@ -852,7 +884,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if (!BigNumber.from(await holographOperator.getMinGasPrice()).eq(GWEI)) {
       console.log('Updating MinGasPrice reference');
@@ -869,7 +902,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
   }
 
@@ -928,7 +962,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
   } else {
     console.log('"HolographRegistryProxy" is already deployed. Checking configs.');
@@ -957,7 +992,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographRegistry.getHolograph()) != futureHolographAddress) {
       console.log('Updating Holograph reference');
@@ -974,7 +1010,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographRegistry.getUtilityToken()) != futureHlgAddress) {
       console.log('Updating UtilityToken reference');
@@ -991,7 +1028,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
   }
 
@@ -1063,7 +1101,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographTreasury.getBridge()) != futureBridgeProxyAddress) {
       console.log('Updating Bridge reference');
@@ -1080,7 +1119,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographTreasury.getOperator()) != futureOperatorProxyAddress) {
       console.log('Updating Operator reference');
@@ -1097,7 +1137,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     if ((await holographTreasury.getRegistry()) != futureRegistryProxyAddress) {
       console.log('Updating Registry reference');
@@ -1114,15 +1155,17 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
     }
     // NOTE: $1 is the default mint fee for now.
     //       This can be changed later by the multisig
     //       If the default changes we will need to update this script
     console.log(`Checking Holograph mint fee`);
-    if ((await holographTreasury.getHolographMintFee()) != BigNumber.from(1000000)) {
-      hre.deployments.log('Holograph mint fee is not set to 1000000 i.e. $1');
-      console.log(`Setting Holograph mint fee to 1000000 i.e. $1`);
+    const holographMintFee = await holographTreasury.getHolographMintFee();
+    console.log(`Current Holograph mint fee is: ${holographMintFee}`);
+    if (!holographMintFee.eq(BigNumber.from(1000000))) {
+      console.log(`Holograph mint fee is not set to 1000000 i.e. $1. Setting Holograph mint fee to 1000000 i.e. $1`);
       let tx = await MultisigAwareTx(
         hre,
         'HolographTreasury',
@@ -1136,8 +1179,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           })),
         } as any)
       );
-      await tx.wait();
-      console.log(`Holograph mint fee has been set to 1000000 i.e. $1 tx hash: ${tx.hash}`);
+      const receipt = await tx.wait();
+      console.log(`Transaction hash ${receipt.transactionHash}`);
+      console.log(`Holograph mint fee is now set to 1000000 i.e. $1 tx hash: ${tx.hash}`);
+    } else {
+      console.log(`Holograph mint fee is already set to 1000000 i.e. $1`);
     }
   }
 

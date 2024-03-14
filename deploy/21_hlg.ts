@@ -99,11 +99,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     throw new Error('primaryNetwork not set');
   }
 
-  // NOTICE: At the moment the hToken contract's address is reliant on the deployerAddress which prevents multiple approved deployers from deploying the same address. This is a temporary solution until the hToken contract is upgraded to allow any deployerAddress to be used.
+  // NOTICE: At the moment the HLG contract's address is reliant on the deployerAddress which prevents multiple approved deployers from deploying the same address. This is a temporary solution until the HLG contract is upgraded to allow any deployerAddress to be used.
   // NOTE: Use hardcoded version of deployerAddress from Ledger hardware only for testnet and mainnet envs
   // If environment is develop use the signers deployerAddress
   let erc20DeployerAddress = '0xBB566182f35B9E5Ae04dB02a5450CC156d2f89c1'; // Ledger deployerAddress
-  console.log(`Environment: ${environment}`);
 
   // If environment is develop use the signers deployerAddress (the hardcoded version is only for testnet and mainnet envs)
   if (environment == Environment.develop) {
@@ -113,7 +112,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   let { erc20Config, erc20ConfigHash, erc20ConfigHashBytes } = await generateErc20Config(
     primaryNetwork,
-    erc20DeployerAddress, // TODO: Upgrade the hToken contract so that any deployerAddress can be used
+    erc20DeployerAddress, // TODO: Upgrade the HLG contract so that any deployerAddress can be used
     'HolographUtilityToken',
     'Holograph Utility Token',
     'HLG',
@@ -123,7 +122,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     ConfigureEvents([]),
     generateInitCode(
       ['address', 'uint256', 'uint256', 'address'],
-      [erc20DeployerAddress, tokenAmount.toHexString(), targetChain.toHexString(), tokenRecipient] // TODO: Upgrade the hToken contract so that any deployerAddress can be used
+      [erc20DeployerAddress, tokenAmount.toHexString(), targetChain.toHexString(), tokenRecipient] // TODO: Upgrade the HLG contract so that any deployerAddress can be used
     ),
     salt
   );
@@ -139,8 +138,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   let hlgDeployedCode: string = await hre.provider.send('eth_getCode', [futureHlgAddress, 'latest']);
   console.log('hlgTokenAddress', hlgTokenAddress);
   console.log('futureHlgAddress', futureHlgAddress);
-  if (hlgDeployedCode == '0x' || hlgDeployedCode == '' || hlgTokenAddress != futureHlgAddress) {
-    console.log('need to deploy "HLG" for chain:', chainId);
+  if (hlgDeployedCode == '0x' || hlgDeployedCode == '' || hlgTokenAddress !== futureHlgAddress) {
+    console.log(`HLG token not deployed at ${futureHlgAddress} on chain ${chainId}!`);
+    console.log(`Need to deploy "HLG" for chain: ${chainId}`);
 
     const sig = await deployer.signer.signMessage(erc20ConfigHashBytes);
     const signature: Signature = StrictECDSA({
@@ -148,9 +148,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       s: '0x' + sig.substring(66, 130),
       v: '0x' + sig.substring(130, 132),
     } as Signature);
-
     const factoryWithSigner = holographFactory.connect(deployer.signer);
-
     const deployTx = await factoryWithSigner.deployHolographableContract(erc20Config, signature, deployerAddress, {
       ...(await txParams({
         hre,
@@ -160,7 +158,6 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       })),
     });
     const deployResult = await deployTx.wait();
-
     let eventIndex: number = 0;
     let eventFound: boolean = false;
     for (let i = 0, l = deployResult.events.length; i < l; i++) {
@@ -175,18 +172,23 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       throw new Error('BridgeableContractDeployed event not fired');
     }
     hlgTokenAddress = deployResult.events[eventIndex].args[0];
-    if (hlgTokenAddress != futureHlgAddress) {
+    if (hlgTokenAddress !== futureHlgAddress) {
       throw new Error(
         `Seems like hlgTokenAddress ${hlgTokenAddress} and futureHlgAddress ${futureHlgAddress} do not match!`
       );
     }
-    console.log('deployed "HLG" at:', await holograph.getUtilityToken());
+    console.log('Deployed "HLG" at:', await holograph.getUtilityToken());
   } else {
-    console.log('reusing "HLG" at:', hlgTokenAddress);
+    console.log('Reusing "HLG" at:', hlgTokenAddress);
   }
 
-  console.log('checking HolographUtilityToken reference');
-  if ((await holograph.getUtilityToken()) != hlgTokenAddress) {
+  const holographUtilityTokenAddress = await holograph.getUtilityToken();
+  console.log(`Checking the Holograph contract reference for HolographUtilityToken `);
+  if ((await holograph.getUtilityToken()) !== hlgTokenAddress) {
+    console.log(
+      `Current HolographUtilityToken: ${holographUtilityTokenAddress} does not match future HLG: ${hlgTokenAddress}`
+    );
+    console.log(`Setting HolographUtilityToken to: ${hlgTokenAddress}`);
     const setHTokenTx = await MultisigAwareTx(
       hre,
       'Holograph',
@@ -200,11 +202,16 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         })),
       })
     );
-    await setHTokenTx.wait();
+    const receipt = await setHTokenTx.wait();
+    console.log(
+      `HolographUtilityToken set to: ${await holograph.getUtilityToken()} at tx hash: ${receipt.transactionHash}`
+    );
+  } else {
+    console.log(`HolographUtilityToken: ${holographUtilityTokenAddress} matches future HLG: ${hlgTokenAddress}`);
   }
 
-  console.log('checking HolographRegistry UtilityToken reference');
-  if ((await holographRegistry.getUtilityToken()) != hlgTokenAddress) {
+  console.log('Checking HolographRegistry UtilityToken reference');
+  if ((await holographRegistry.getUtilityToken()) !== hlgTokenAddress) {
     const setHTokenTx2 = await MultisigAwareTx(
       hre,
       'HolographRegistry',
@@ -218,15 +225,21 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         })),
       })
     );
-    await setHTokenTx2.wait();
+    const receipt = await setHTokenTx2.wait();
+    console.log(
+      `HolographRegistry UtilityToken set to: ${await holographRegistry.getUtilityToken()} at tx hash: ${
+        receipt.transactionHash
+      }`
+    );
   }
 
-  console.log('checking HolographOperator HLG balance');
+  console.log('Checking HolographOperator HLG balance');
   if (currentNetworkType == NetworkType.testnet || currentNetworkType == NetworkType.local) {
-    if (environment != Environment.mainnet && environment != Environment.testnet) {
+    if (environment !== Environment.mainnet && environment !== Environment.testnet) {
       const hlgContract = (await hre.ethers.getContract('HolographERC20', deployerAddress)).attach(hlgTokenAddress);
       if ((await hlgContract.balanceOf(operatorAddress)).isZero()) {
         console.log('HolographOperator has no HLG');
+        console.log('Sending 1,000,000 HLG to HolographOperator');
         const transferTx = await MultisigAwareTx(
           hre,
           'HolographUtilityToken',
@@ -247,7 +260,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
             })),
           })
         );
-        await transferTx.wait();
+        const receipt = await transferTx.wait();
+        console.log(
+          `Sent 1,000,000 HLG to HolographOperator at tx hash: ${receipt.transactionHash} from ${deployerAddress}`
+        );
       }
     }
   }

@@ -637,6 +637,16 @@
     web3 "^1.7.0"
     zksync-web3 "^0.4.0"
 
+"@holographxyz/networks@0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.2.2.tgz#647fd5b074df72129f8aeb9829dd6aeced94295d"
+  integrity sha512-OoiPhEumqgypDk1P9sKHHJwGl1nsNH41+isT+SwJimEBEXMt+MHaqe07KLCc37EoaewWi4A8FuoY8/016e8E0w==
+  dependencies:
+    "@ethersproject/bignumber" "^5.7.0"
+    "@holographxyz/environment" "0.1.10"
+    dotenv "^10.0.0"
+    path "^0.12.7"
+
 "@holographxyz/networks@^0.2.0":
   version "0.2.0"
   resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.2.0.tgz#e25735b20973b94e626d8cf251f47ceeca16a32a"

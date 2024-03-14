@@ -113,6 +113,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           networks.ethereumTestnetSepolia,
           networks.optimismTestnetSepolia,
           networks.zoraTestnetSepolia,
+          networks.lineaTestnetGoerli,
         ],
       },
       {
@@ -271,9 +272,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
           `Seems like hTokenAddress ${hTokenAddress} and futureHTokenAddress ${futureHTokenAddress} do not match!`
         );
       }
-      console.log('deployed "hToken ' + data.tokenSymbol + '" at:', hTokenAddress);
+      console.log('Deployed "hToken ' + data.tokenSymbol + '" at:', hTokenAddress);
     } else {
-      console.log('reusing "hToken ' + data.tokenSymbol + '" at:', futureHTokenAddress);
+      console.log('Reusing "hToken ' + data.tokenSymbol + '" at:', futureHTokenAddress);
     }
 
     const hToken = ((await hre.ethers.getContract('hToken', deployerAddress)) as Contract).attach(futureHTokenAddress);

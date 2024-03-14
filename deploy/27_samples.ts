@@ -102,11 +102,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       }
       sampleErc20Address = deployResult.events[0].args[0];
       console.log(
-        'deployed "SampleERC20" at:',
+        'Deployed "SampleERC20" at:',
         await holographRegistry.getHolographedHashAddress(sampleErc20Config.erc20ConfigHash)
       );
     } else {
-      console.log('reusing "SampleERC20" at:', sampleErc20Address);
+      console.log('Reusing "SampleERC20" at:', sampleErc20Address);
     }
 
     let sampleErc721Config = await generateErc721Config(
@@ -152,11 +152,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       }
       sampleErc721Address = deployResult.events[1].args[0];
       console.log(
-        'deployed "SampleERC721" at:',
+        'Deployed "SampleERC721" at:',
         await holographRegistry.getHolographedHashAddress(sampleErc721Config.erc721ConfigHash)
       );
     } else {
-      console.log('reusing "SampleERC721" at:', sampleErc721Address);
+      console.log('Reusing "SampleERC721" at:', sampleErc721Address);
     }
 
     let cxipErc721Config = await generateErc721Config(
@@ -209,11 +209,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
       }
       cxipErc721Address = deployResult.events[1].args[0];
       console.log(
-        'deployed "CxipERC721Proxy" at:',
+        'Deployed "CxipERC721Proxy" at:',
         await holographRegistry.getHolographedHashAddress(cxipErc721Config.erc721ConfigHash)
       );
     } else {
-      console.log('reusing "CxipERC721Proxy" at:', cxipErc721Address);
+      console.log('Reusing "CxipERC721Proxy" at:', cxipErc721Address);
     }
   }
 

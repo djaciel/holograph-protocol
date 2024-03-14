@@ -409,6 +409,8 @@ const config: HardhatUserConfig = {
       baseTestnetSepolia: process.env.BASESCAN_API_KEY || '',
       zora: process.env.ZORAENERGY_API_KEY || '---', // blank string does not work for blockscout
       zoraTestnetSepolia: process.env.ZORAENERGY_API_KEY || '---', // blank string does not work for blockscout
+      lineaTestnetGoerli: process.env.LINEA_API_KEY || '',
+      linea: process.env.LINEA_API_KEY || '',
     },
     customChains: [
       {
@@ -489,6 +491,22 @@ const config: HardhatUserConfig = {
         urls: {
           apiURL: 'https://api-sepolia.basescan.org/api',
           browserURL: 'https://sepolia.basescan.org',
+        },
+      },
+      {
+        network: 'lineaTestnetGoerli',
+        chainId: 59140,
+        urls: {
+          apiURL: 'https://api-testnet.lineascan.build/api',
+          browserURL: 'https://goerli.lineascan.build/address',
+        },
+      },
+      {
+        network: 'linea',
+        chainId: 59144,
+        urls: {
+          apiURL: 'https://api.lineascan.build/api',
+          browserURL: 'https://lineascan.build',
         },
       },
     ],
