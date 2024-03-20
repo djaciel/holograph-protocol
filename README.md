@@ -104,11 +104,11 @@ Custom contract is any type of smart contract that was developed outside of Holo
 
 ##### Develop
 
-hETH, Address:
-hBNB, Address:
-hAVAX, Address:
-hMATIC: Address:
-hMNT: Mantle, Address:
+hETH: 0xFFab4710eD70C14878D9FAb1d37E9e3C9276e5ef
+hBNB: 0x9BecEaD6FD33AcfE6B096cAf0c619E14e709991B
+hAVAX: 0x39d587b08ea8aE448Cf447dd9fc05C6D8A0A92B8
+hMATIC: 0xd6F1E7272c783E99eE508A0905Ed98a743C72d09
+hMNT: 0x18cc1d7311122561210655c1abae70C1D27466A1
 
 ##### Testnet
 
