@@ -1165,6 +1165,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     const holographMintFee = await holographTreasury.getHolographMintFee();
     console.log(`Current Holograph mint fee is: ${holographMintFee}`);
     if (!holographMintFee.eq(BigNumber.from(1000000))) {
+      console.log(`Holograph mint fee is currently set to: ${holographMintFee}`);
       console.log(`Holograph mint fee is not set to 1000000 i.e. $1. Setting Holograph mint fee to 1000000 i.e. $1`);
       let tx = await MultisigAwareTx(
         hre,
