@@ -62,7 +62,7 @@
     "@holographxyz/hardhat-deploy-holographed": "^0.0.6",
     "@holographxyz/hardhat-holograph-contract-builder": "^0.0.4",
     "@holographxyz/holograph-genesis": "0.2.1",
-    "@holographxyz/networks": "0.2.2",
+    "@holographxyz/networks": "0.2.4",
     "@types/yargs": "^17.0.32",
     "chai-ethers": "^0.0.1",
     "ganache": "^7.8.0",
