@@ -31,7 +31,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   // Salt is used for deterministic address generation
   const salt = hre.deploymentSalt;
 
-  // TODO: Goerli testnet should be deprecated and removed once Sepolia is ready
+  // Define a mapping of blockchain network identifiers to their human-readable names
   const definedOracleNames = {
     avalanche: 'Avalanche',
     avalancheTestnet: 'AvalancheTestnet',
@@ -57,32 +57,41 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     lineaTestnetGoerli: 'LineaTestnetGoerli',
   };
 
-  let targetDropsPriceOracle = 'DummyDropsPriceOracle';
+  // Define known development network keys for easier checking
+  const knownDevNetworks = new Set(['localhost', 'localhost2', 'hardhat']);
+
+  // Determine if the current environment requires a specific Drops Price Oracle
+  let targetDropsPriceOracle;
   if (network.key in definedOracleNames) {
+    // Use the specific oracle name based on the network key
     targetDropsPriceOracle = 'DropsPriceOracle' + definedOracleNames[network.key];
+  } else if (!knownDevNetworks.has(network.key) && environment !== Environment.mainnet) {
+    // If it's an unrecognized network (not in known dev networks and not mainnet), throw an error
+    throw new Error('Drops price oracle not created for network yet!');
   } else {
-    if (
-      environment === Environment.mainnet ||
-      (network.key !== 'localhost' && network.key !== 'localhost2' && network.key !== 'hardhat')
-    ) {
-      throw new Error('Drops price oracle not created for network yet!');
-    }
+    // For known development networks or mainnet without a specific oracle, use the dummy default
+    targetDropsPriceOracle = 'DummyDropsPriceOracle';
   }
-  // Deploy network specific DropsPriceOracle source contract
+
+  // Asynchronously derive a future address for deploying the network-specific DropsPriceOracle
   const futureDropsPriceOracleAddress = await genesisDeriveFutureAddress(
     hre,
     salt,
     targetDropsPriceOracle,
     generateInitCode([], [])
   );
+  // Log the future address of the oracle
   console.log('the future "' + targetDropsPriceOracle + '" address is', futureDropsPriceOracleAddress);
+
+  // Check if the oracle contract is already deployed by getting the code at the future address
   let dropsPriceOracleDeployedCode: string = await hre.provider.send('eth_getCode', [
     futureDropsPriceOracleAddress,
     'latest',
   ]);
+  // If no code is found at the address, it means the contract has not been deployed
   if (dropsPriceOracleDeployedCode === '0x' || dropsPriceOracleDeployedCode === '') {
-    definedOracleNames;
     console.log('"' + targetDropsPriceOracle + '" bytecode not found, need to deploy"');
+    // Deploy the oracle using a helper function with the provided details
     let dropsPriceOracle = await genesisDeployHelper(
       hre,
       salt,
@@ -172,11 +181,11 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     }
   }
 
-  // we manually inject drops price oracle proxy on local deployments
+  // We manually inject drops price oracle proxy on local deployments
   // this is to accomodate the fact that drops price oracle proxy is hardcoded in the contract
   if (network.key in ['localhost', 'localhost2', 'hardhat']) {
     console.log('Injecting DropsPriceOracleProxy on local deployments');
-    // set it at address in VM
+    // Set it at address in VM
     let acountByteCodeSet: boolean = await hre.provider.send('evm_setAccountCode', [
       '0xeA7f4C52cbD4CF1036CdCa8B16AcA11f5b09cF6E',
       [
