@@ -52,6 +52,8 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     baseTestnetSepolia: 'BaseTestnetSepolia',
     zora: 'Zora',
     zoraTestnetSepolia: 'ZoraTestnetSepolia',
+    linea: 'Linea',
+    lineaTestnetSepolia: 'LineaTestnetSepolia',
     lineaTestnetGoerli: 'LineaTestnetGoerli',
   };
 

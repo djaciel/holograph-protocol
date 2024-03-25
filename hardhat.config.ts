@@ -19,11 +19,14 @@ import { Environment, getEnvironment } from '@holographxyz/environment';
 import { NetworkType, Network, Networks, networks } from '@holographxyz/networks';
 import { GasService } from './scripts/utils/gas-service';
 import dotenv from 'dotenv';
-import * as tenderly from '@tenderly/hardhat-tenderly';
+
 import { network } from 'hardhat';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 dotenv.config();
-tenderly.setup();
+
+// TODO: Figure out what the issue is with tenderly
+// import * as tenderly from '@tenderly/hardhat-tenderly';
+// tenderly.setup();
 
 function getRemappings() {
   return fs
