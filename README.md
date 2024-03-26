@@ -228,6 +228,18 @@ At step 5, the wallet sends a transaction to the `exectureJob` method on the `Ho
 
    _"This project uses environment variables that are stored in `.env`"_
 
+### Enironment
+
+Please see the example.env file for the environment variables that need to be configured. There are some notable variables that are important to consider and have set for both local, testnet, and production development and deployments. So make sure these are set:
+
+- `HOLOGRAPH_ENVIRONMENT` should generally be set to `develop` for development and testing. This can be updated to `testnet` for deployment to the live testing environment and finally `mainnet` only for mainnet deployments.
+
+- `LOCALHOST_DEPLOYER_SECRET` make sure this is set to `something` while deploying and testing using your local Anvil chain. See more about [Anvil](https://book.getfoundry.sh/anvil/)
+
+- `DEPLOYER` is required by hardhat deploy so make sure it has a value set. You an use the default first test account that is used by the anvil command in the package.json. Please see sample.env for setting this up.
+
+- `HARDWARE_WALLET_DEPLOYER` this is only used for `testnet` and `mainnet` envs for deployment. This can be set to `0x0` during development.
+
 ### Building
 
 When the project is built, the code in the `src` folder gets written to the `contracts` folder. The files in the `contracts` folder are the "real" files that are used for testing and code verification on all the scanners.
@@ -240,7 +252,7 @@ Again, files from the `src` directory are automatically transpiled into the `con
 
 There are two sets of tests. The main test suite uses Hardhat. To run them start your local chains that the contracts will be deployed to using:
 
-`yarn run ganache-x2` or `yarn anvil`
+`yarn anvil`
 
 Keep in mind that two networks are spun up in order to facilitate the multichain tests that bridge from one network to the other.
 Next run the hardhat tests with:
@@ -249,7 +261,7 @@ Next run the hardhat tests with:
 
 The newer tests for Drops use Foundry. Please make sure you have Foundry installed by following the instructions [here](https://github.com/foundry-rs/foundry).
 
-Currently the Foundry tests require "forking" from a local chain that has the rest of the Holograph protocol contracts already deployed. To do this, with the local ganache chains still running from the `ganache-x2` / `anvil` command mentioned above, run deploy with:
+Currently the Foundry tests require "forking" from a local chain that has the rest of the Holograph protocol contracts already deployed. To do this, with the local anvil chains still running from the `anvil` command mentioned above, run deploy with:
 
 `yarn deploy:localhost`
 
@@ -328,7 +340,7 @@ Our primary experimentation branch is [`experimental`](https://github.com/hologr
    1. Remove temp folders: [node_modules, artifacts, cache, cache_hardhat, dist, typechain-types, ganache]
 4. Run Tests
    1. run `yarn clean-compile`
-   2. run `yarn ganache-x2` - terminal 1
+   2. run `yarn anvil` - terminal 1
    3. run `yarn deploy` - terminal 2
 5. Run Deployments per environment, per supported network
 6. Validate Contracts on each network
