@@ -13,7 +13,7 @@ const IS_GAS_OVERRIDE_ENABLED = false;
 export const INSUFFICIENT_BALANCE_ERROR = 'Insufficient balance';
 export const MIN_POLYGON_GAS_PRICE = BigNumber.from('400000000000');
 
-// npx hardhat bridge-htokens --token [hETh, hMatic, hAvax...] --amount [eth units & optional] --from [network] --to [network]
+// npx hardhat bridge-htokens --token [hETh, hMatic, hAvax...] --amount [eth units] --network [the origin network] --to [account to send tokens to] --destination [network
 task('bridge-htokens', 'Bridge hToken from one network to another')
   .addParam('token', 'The hToken to bridge')
   .addParam('amount', 'The amount of hToken to bridge')

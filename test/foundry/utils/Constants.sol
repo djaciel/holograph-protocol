@@ -6,6 +6,7 @@ pragma solidity 0.8.13;
 //         HOLOGRAPH_ENVIRONMENT="develop"
 //         DEVELOP_DEPLOYMENT_SALT=1000
 //         DEPLOYER=0xff22437ccbedfffafa93a9f1da2e8c19c1711052799acf3b58ae5bebb5c6bd7b
+//         LOCALHOST_DEPLOYER_SECRET=something
 //
 // These addresses are for the develop environment ONLY on localhost and are not meant to be used in production.
 // They are generated from a localhost deployment using the custom HolographGenesisLocal.sol contract that is a
@@ -13,7 +14,7 @@ pragma solidity 0.8.13;
 //
 // The reason we use a custom version of the HolographGenesis.sol contract is because the original contract has
 // dedicated approved deployers that do not include local test accounts. This allows us to test the Holograph Protocol
-//  on localhost without having to modify the original HolographGenesis.sol contract.
+// on localhost without having to modify the original HolographGenesis.sol contract.
 library Constants {
   function getHolographGenesis() internal pure returns (address) {
     return address(0x4c3BA951A7ea09b5BB57230F63a89D36A07B2992);

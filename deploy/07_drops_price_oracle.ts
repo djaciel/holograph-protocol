@@ -1,7 +1,7 @@
 declare var global: any;
 import path from 'path';
 
-import { BigNumber } from 'ethers';
+import { BigNumber, ethers } from 'ethers';
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
 import { DeployFunction, DeployOptions } from '@holographxyz/hardhat-deploy-holographed/types';
@@ -183,10 +183,10 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
 
   // We manually inject drops price oracle proxy on local deployments
   // this is to accomodate the fact that drops price oracle proxy is hardcoded in the contract
-  if (network.key in ['localhost', 'localhost2', 'hardhat']) {
+  if (['localhost', 'localhost2', 'hardhat'].includes(network.key)) {
     console.log('Injecting DropsPriceOracleProxy on local deployments');
     // Set it at address in VM
-    let acountByteCodeSet: boolean = await hre.provider.send('evm_setAccountCode', [
+    let acountByteCodeSet: boolean = await hre.provider.send('anvil_setCode', [
       '0xeA7f4C52cbD4CF1036CdCa8B16AcA11f5b09cF6E',
       [
         '0x',
@@ -283,11 +283,17 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
         '8116811461095457600080fdfea164736f6c634300080d000a',
       ].join(''),
     ]);
-    let acountStorageSet: boolean = await hre.provider.send('evm_setAccountStorageAt', [
+    console.log('DropsPriceOracleProxy code injected successfully');
+
+    console.log(`Setting DropsPriceOracleProxy address in Anvil storage at 0xeA7f4C52cbD4CF1036CdCa8B16AcA11f5b09cF6E`);
+
+    console.log(futureDropsPriceOracleAddress);
+    let acountStorageSet: boolean = await hre.provider.send('anvil_setStorageAt', [
       '0xeA7f4C52cbD4CF1036CdCa8B16AcA11f5b09cF6E',
       '0x26600f0171e5a2b86874be26285c66444b2a6fa5f62114757214d5e732aded36',
-      futureDropsPriceOracleAddress,
+      ethers.utils.hexZeroPad(futureDropsPriceOracleAddress, 32), // must be padded to 32 bytes
     ]);
+    console.log('DropsPriceOracleProxy address set in Anvil storage successfully');
   }
 
   console.log(`Exiting script: ${__filename} ✅\n`);

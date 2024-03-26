@@ -53,6 +53,7 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
   console.log(`Deploying to network: ${hre1.network!.name}`);
   console.log(`The deployment salt is: ${BigNumber.from(salt).toString()}`);
   console.log(`The gas price override is set to: ${process.env.GAS_PRICE_OVERRIDE || 'undefined'} gwei`);
+  console.log(`The deployer secret is set to: ${process.env.DEPLOYER_SECRET || 'undefined'}`);
   console.log(`We are in dry run mode? ${process.env.DRY_RUN === 'true'}`);
 
   const answer = await askQuestion(`Continue? (y/n)\n`);
