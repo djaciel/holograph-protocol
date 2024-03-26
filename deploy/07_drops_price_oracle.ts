@@ -285,15 +285,13 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     ]);
     console.log('DropsPriceOracleProxy code injected successfully');
 
-    console.log(`Setting DropsPriceOracleProxy address in Anvil storage at 0xeA7f4C52cbD4CF1036CdCa8B16AcA11f5b09cF6E`);
-
-    console.log(futureDropsPriceOracleAddress);
+    console.log(`Setting DropsPriceOracleProxy address in anvil storage at 0xeA7f4C52cbD4CF1036CdCa8B16AcA11f5b09cF6E`);
     let acountStorageSet: boolean = await hre.provider.send('anvil_setStorageAt', [
       '0xeA7f4C52cbD4CF1036CdCa8B16AcA11f5b09cF6E',
       '0x26600f0171e5a2b86874be26285c66444b2a6fa5f62114757214d5e732aded36',
       ethers.utils.hexZeroPad(futureDropsPriceOracleAddress, 32), // must be padded to 32 bytes
     ]);
-    console.log('DropsPriceOracleProxy address set in Anvil storage successfully');
+    console.log('DropsPriceOracleProxy address set in anvil storage successfully');
   }
 
   console.log(`Exiting script: ${__filename} ✅\n`);

@@ -60,6 +60,10 @@ library Constants {
     return address(0x655FC5B66322AEF43A01dBc7198e08ab163662c3);
   }
 
+  function getDummyDropsPriceOracle() internal pure returns (address) {
+    return address(0x98E2Ed9849B14E541454Ae6202b4cA06627269C1);
+  }
+
   function getDropsEventConfig() internal pure returns (uint256) {
     return 0x0000000000000000000000000000000000000000000000000000000000040000;
   }

@@ -150,15 +150,18 @@ contract HolographDropERC721Test is Test {
 
     vm.prank(HOLOGRAPH_TREASURY_ADDRESS);
 
-    dummyPriceOracle = new DummyDropsPriceOracle();
-    // we deploy DropsPriceOracleProxy at specific address
-    vm.etch(address(Constants.getDropsPriceOracleProxy()), address(new DropsPriceOracleProxy()).code);
-    // we set storage slot to point to actual drop implementation
-    vm.store(
-      address(Constants.getDropsPriceOracleProxy()),
-      bytes32(uint256(keccak256("eip1967.Holograph.dropsPriceOracle")) - 1),
-      bytes32(abi.encode(address(dummyPriceOracle)))
-    );
+    dummyPriceOracle = DummyDropsPriceOracle(Constants.getDummyDropsPriceOracle());
+
+    // NOTE: This needs to be uncommented to inject the DropsPriceOracleProxy contract into the VM if it isn't done by the deploy script
+    //       At the moment we have hardhat configured to deploy and inject the code approrpriately to match the hardcoded address in the HolographDropERC721V2 contract
+    // We deploy DropsPriceOracleProxy at specific address
+    // vm.etch(address(Constants.getDropsPriceOracleProxy()), address(new DropsPriceOracleProxy()).code);
+    // We set storage slot to point to actual drop implementation
+    // vm.store(
+    //   address(Constants.getDropsPriceOracleProxy()),
+    //   bytes32(uint256(keccak256("eip1967.Holograph.dropsPriceOracle")) - 1),
+    //   bytes32(abi.encode(Constants.getDummyDropsPriceOracle()))
+    // );
 
     dropsMetadataRenderer = new DropsMetadataRenderer();
   }
