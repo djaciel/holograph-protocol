@@ -1049,10 +1049,10 @@ function askQuestion(query: string): Promise<string> {
 }
 
 function generateDeployerSecretHash(networkName: string): string {
-  let secretString = process.env.DEPLOYER_SECRET;
-  if (networkName === 'localhost' || networkName === 'localhost2') {
-    secretString = process.env.LOCALHOST_DEPLOYER_SECRET;
-  }
+  const secretString =
+    networkName === 'localhost' || networkName === 'localhost2'
+      ? process.env.LOCALHOST_DEPLOYER_SECRET
+      : process.env.DEPLOYER_SECRET;
 
   if (!secretString) {
     throw new Error(`Secret is required`);

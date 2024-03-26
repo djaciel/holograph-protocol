@@ -21,43 +21,43 @@ library Constants {
   }
 
   function getHolograph() internal pure returns (address) {
-    return address(0xB437D70130A322754Db56558416355e059f3de27);
+    return address(0x17253175f447ca4B560a87a3F39591DFC7A021e3);
   }
 
   function getHolographBridgeProxy() internal pure returns (address) {
-    return address(0x84bdA3bd21D89cFA5F3419aEdFD83673be5D0840);
+    return address(0x53D2B46b341385bC7e022667Eb1860505073D43a);
   }
 
   function getHolographFactoryProxy() internal pure returns (address) {
-    return address(0x25e262fEB323AcB483D7b238b0F7670391Bc1905);
+    return address(0xcE2cDFDF0b9D45F8Bd2D3CCa4033527301903FDe);
   }
 
   function getHolographOperatorProxy() internal pure returns (address) {
-    return address(0x47D450c263FeC68dc46c4684Ca6A8f76736aa8d8);
+    return address(0xABc5a4C81D3033cf920b982E75D1080b91AA0EF9);
   }
 
   function getHolographRegistryProxy() internal pure returns (address) {
-    return address(0x1d56d0aa75C583F995745437F0E14aF82e5807b7);
+    return address(0xB47C0E0170306583AA979bF30c0407e2bFE234b2);
   }
 
   function getHolographTreasuryProxy() internal pure returns (address) {
-    return address(0x3c26247540919827E6CcfE901F345259a090eCe8);
+    return address(0x65115A3Be2Aa1F267ccD7499e720088060c7ccd2);
   }
 
   function getHolographInterfaces() internal pure returns (address) {
-    return address(0xd7Eb41796aA985ef6E1777cb5f4c613a8a94331B);
+    return address(0x67F6394693bd2B46BBE87627F0E581faD80C7B57);
   }
 
   function getHolographRoyalties() internal pure returns (address) {
-    return address(0xe2A99e15Dcbe380AeD48ea387AFF67b18287deA8);
+    return address(0xbF8f7474D7aCbb87E270FEDA9A5CBB7f766887E3);
   }
 
   function getHolographUtilityToken() internal pure returns (address) {
-    return address(0xe92664b2a60541b4c24512091374FC036d8Cb738);
+    return address(0x56BA455232a82784F17C33c577124EF208D931ED);
   }
 
   function getDropsPriceOracleProxy() internal pure returns (address) {
-    return address(0xeA7f4C52cbD4CF1036CdCa8B16AcA11f5b09cF6E);
+    return address(0x655FC5B66322AEF43A01dBc7198e08ab163662c3);
   }
 
   function getDropsEventConfig() internal pure returns (uint256) {
