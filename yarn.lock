@@ -605,10 +605,10 @@
   resolved "https://registry.yarnpkg.com/@holographxyz/hardhat-holograph-contract-builder/-/hardhat-holograph-contract-builder-0.0.4.tgz#da2eb5abfbe771ce9db217671b653a38f0e7fccf"
   integrity sha512-W/vWgHT6bZWdmJoWJxdWHnUCscrpOXbL1mo2WCDVtjrHQmXivMal7aRZw+ZeDfjTpcvGQ0SBxC+nJZZGCnuVDA==
 
-"@holographxyz/holograph-genesis@0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@holographxyz/holograph-genesis/-/holograph-genesis-0.2.1.tgz#26e0bdc888ef853a3ce4728f553a213efcb23de3"
-  integrity sha512-6v2i4+YGzxHwNEI1T+KqLy2vXptDGcOEiFdep6rT1cpo5y7yciGH7zgzLtUDy/lmwmk4fkrvHpbDBOOGq9c6GQ==
+"@holographxyz/holograph-genesis@0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@holographxyz/holograph-genesis/-/holograph-genesis-0.2.2.tgz#ce6df3d99d994984dd0645afb61e9cba204919a8"
+  integrity sha512-uJm8i/sBeApsAO5Eah9aIOLwPjsUdhdrQAZg1lOF9LooB6YwInSpYryNdiAnoSDsCW6hRv/UMG0rKeNvB44baA==
   dependencies:
     "@anders-t/ethers-ledger" "^1.0.4"
     "@ethersproject/abstract-provider" "^5.7.0"
@@ -637,10 +637,10 @@
     web3 "^1.7.0"
     zksync-web3 "^0.4.0"
 
-"@holographxyz/networks@0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.2.3.tgz#d6128574ad88a99fc4903227ea2d5b10e9bfaf6e"
-  integrity sha512-8nomVIVe65wXaeGRbSVoe5PhZpoxmwf9xBY7Lppet8glz2uidVV71ruUjuJq97qSQ9uKrJLoxlabfGgonfBLKg==
+"@holographxyz/networks@0.2.4":
+  version "0.2.4"
+  resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.2.4.tgz#3ff138bac80590d88d4cb960fd7cc0a7c067ad6c"
+  integrity sha512-JdX6fCT3KojZ8jHhJ1NJBAqIfzUq5wFp3mPgBJVroqU0Eqk1UE58vUdoQn+GLG4BlZDaxNeFfdvesbpOM5NTcA==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@holographxyz/environment" "0.1.10"
