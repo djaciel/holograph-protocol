@@ -35,6 +35,8 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
     zora: 'Zora',
     zoraTestnetSepolia: 'ZoraTestnetSepolia',
     lineaTestnetGoerli: 'LineaTestnetGoerli',
+    lineaTestnetSepolia: 'LineaTestnetSepolia',
+    linea: 'Linea',
   };
 
   let targetDropsPriceOracle = 'DummyDropsPriceOracle';

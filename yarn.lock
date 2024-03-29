@@ -605,10 +605,10 @@
   resolved "https://registry.yarnpkg.com/@holographxyz/hardhat-holograph-contract-builder/-/hardhat-holograph-contract-builder-0.0.4.tgz#da2eb5abfbe771ce9db217671b653a38f0e7fccf"
   integrity sha512-W/vWgHT6bZWdmJoWJxdWHnUCscrpOXbL1mo2WCDVtjrHQmXivMal7aRZw+ZeDfjTpcvGQ0SBxC+nJZZGCnuVDA==
 
-"@holographxyz/holograph-genesis@0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@holographxyz/holograph-genesis/-/holograph-genesis-0.2.1.tgz#26e0bdc888ef853a3ce4728f553a213efcb23de3"
-  integrity sha512-6v2i4+YGzxHwNEI1T+KqLy2vXptDGcOEiFdep6rT1cpo5y7yciGH7zgzLtUDy/lmwmk4fkrvHpbDBOOGq9c6GQ==
+"@holographxyz/holograph-genesis@0.2.2":
+  version "0.2.2"
+  resolved "https://registry.yarnpkg.com/@holographxyz/holograph-genesis/-/holograph-genesis-0.2.2.tgz#ce6df3d99d994984dd0645afb61e9cba204919a8"
+  integrity sha512-uJm8i/sBeApsAO5Eah9aIOLwPjsUdhdrQAZg1lOF9LooB6YwInSpYryNdiAnoSDsCW6hRv/UMG0rKeNvB44baA==
   dependencies:
     "@anders-t/ethers-ledger" "^1.0.4"
     "@ethersproject/abstract-provider" "^5.7.0"
@@ -637,10 +637,10 @@
     web3 "^1.7.0"
     zksync-web3 "^0.4.0"
 
-"@holographxyz/networks@0.2.3":
-  version "0.2.3"
-  resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.2.3.tgz#d6128574ad88a99fc4903227ea2d5b10e9bfaf6e"
-  integrity sha512-8nomVIVe65wXaeGRbSVoe5PhZpoxmwf9xBY7Lppet8glz2uidVV71ruUjuJq97qSQ9uKrJLoxlabfGgonfBLKg==
+"@holographxyz/networks@0.2.7":
+  version "0.2.7"
+  resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.2.7.tgz#fbfad43ef2a6ba8abf4065bbeaaf761d178c5d20"
+  integrity sha512-nJr5PerIqw5YA2rdPxj7CFsH529ZmkizJKRE1u/YgxNycFVsdZZuTyASEJjPJHhSArfB97u33uHpMmKB7c9qBg==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@holographxyz/environment" "0.1.10"
@@ -8121,10 +8121,9 @@ node-gyp-build@^4.5.0:
   resolved "https://registry.yarnpkg.com/node-gyp-build/-/node-gyp-build-4.7.1.tgz#cd7d2eb48e594874053150a9418ac85af83ca8f7"
   integrity sha512-wTSrZ+8lsRRa3I3H8Xr65dLWSgCvY2l4AOnaeKdPA9TB/WYMPaTcrzf3rXvFoVvjKNVnu0CcWSx54qq9GKRUYg==
 
-node-hid@^2.1.2:
+node-hid@^2.1.2, "node-hid@github:holographxyz/node-hid#feature/guard-against-reinstantiating-connection":
   version "2.2.0"
-  resolved "https://registry.yarnpkg.com/node-hid/-/node-hid-2.2.0.tgz#33e039e7530a7bfe2b7a25f0a2f9496af8b02236"
-  integrity sha512-vj48zh9j555DZzUhMc8tk/qw6xPFrDyPBH1ST1Z/hWaA/juBJw7IuSxPeOgpzNFNU36mGYj+THioRMt1xOdm/g==
+  resolved "https://codeload.github.com/holographxyz/node-hid/tar.gz/99e7e3d3c4a8a4190f60332ac191949ccb2a5dd4"
   dependencies:
     bindings "^1.5.0"
     node-addon-api "^3.0.2"
