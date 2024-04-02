@@ -218,33 +218,91 @@ At step 5, the wallet sends a transaction to the `exectureJob` method on the `Ho
 
 ## Development
 
-### Getting Started
+### Installing Dependencies
 
 1. This project uses [asdf](https://asdf-vm.com/) for versions management. Install following plugins
    - Install [asdf Node plugin](https://github.com/asdf-vm/asdf-nodejs): `asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git`
    - Install [asdf yarn plugin](https://github.com/twuni/asdf-yarn): `asdf plugin-add yarn`
-1. Run `asdf install` after to have the correct tool versions.
-1. Install dependencies with `yarn install`.
+2. Run `asdf install` after to have the correct tool versions.
+3. Install dependencies with `yarn install`.
+4. Install Forge globally with `curl -L https://foundry.paradigm.xyz | bash`
 
-   _"This project uses environment variables that are stored in `.env`"_
 
-### Enironment
+### Environment
 
-Please see the example.env file for the environment variables that need to be configured. There are some notable variables that are important to consider and have set for both local, testnet, and production development and deployments. So make sure these are set:
+Please see the sample.env file for the environment variables that need to be configured. There are some notable variables that are important to consider and have set for both local, testnet, and production development and deployments. So make sure these are set:
 
 - `HOLOGRAPH_ENVIRONMENT` should generally be set to `develop` for development and testing. This can be updated to `testnet` for deployment to the live testing environment and finally `mainnet` only for mainnet deployments.
 
 - `LOCALHOST_DEPLOYER_SECRET` make sure this is set to `something` while deploying and testing using your local Anvil chain. See more about [Anvil](https://book.getfoundry.sh/anvil/)
 
-- `DEPLOYER` is required by hardhat deploy so make sure it has a value set. You an use the default first test account that is used by the anvil command in the package.json. Please see sample.env for setting this up.
+- `DEPLOYER` is required by hardhat deploy so make sure it has a value set. You can use the default first test account that is used by the anvil command in the package.json. Please see sample.env for setting this up.
 
 - `HARDWARE_WALLET_DEPLOYER` this is only used for `testnet` and `mainnet` envs for deployment. This can be set to `0x0` during development.
 
-### Building
+### Compiling
+
+To build the code locally, you must run the following. You ony need to run this once. If you make changes to anything in the `src` folder, then we suggest running the command again.
+
+1. Terminal 1: `yarn clean-compile`
 
 When the project is built, the code in the `src` folder gets written to the `contracts` folder. The files in the `contracts` folder are the "real" files that are used for testing and code verification on all the scanners.
 
-Again, files from the `src` directory are automatically transpiled into the `contracts` directory each time that **hardhat** compiles the contracts.
+### Deploying Holograph Protocol
+
+To run the protocol locally, we actually need to run 2 networks `localhost` and `localhost2`. The `yarn anvil` command will run the blockchains locally. Then the second command will deploy the entire Holograph Protocol to each network.
+
+1. Terminal 1: `yarn anvil` - This runs `localhost` and `localhost2` blockchain networks
+2. Terminal 2: `yarn deploy-x2` - Deploys protocol on both networks without compiling. The command will ask you to enter `y` to continue twice. If you get an error, make sure you ran `yarn clean-compile` at least once before!
+
+The expected output is show below. For local development, if addresses are different, please review env variables to make sure you get the correct values.
+```bash
+👉 Environment: develop
+
+Setting deployer key to 0xdf5295149F367b1FBFD595bdA578BAd22e59f504 as fallback
+Starting deploy script: 00_genesis.ts
+Deployer: 0xdf5295149F367b1FBFD595bdA578BAd22e59f504
+HolographGenesisLocal contract found and verified at 0x4c3BA951A7ea09b5BB57230F63a89D36A07B2992
+Exiting script: 00_genesis.ts ✅
+
+Starting deploy script: 01_sources.ts 👇
+
+Deployer address: 0xdf5295149F367b1FBFD595bdA578BAd22e59f504
+Deploying to network: localhost
+The deployment salt is: 1000
+The gas price override is set to: undefined gwei
+We are in dry run mode? false
+Continue? (y/n)
+the future "Holograph" address is 0x17253175f447ca4B560a87a3F39591DFC7A021e3
+the future "HolographBridge" address is 0x0af817Df693A292a4b8b9ACC698199333eB0DD9e
+the future "HolographBridgeProxy" address is 0x53D2B46b341385bC7e022667Eb1860505073D43a
+the future "HolographFactory" address is 0xa574B1A37c9235d19D942DD4393f728d2a646FDe
+the future "HolographFactoryProxy" address is 0xcE2cDFDF0b9D45F8Bd2D3CCa4033527301903FDe
+the future "HolographOperator" address is 0x0d173B3F4Da8e50333734F36E40c5f475874A7b3
+the future "HolographOperatorProxy" address is 0xABc5a4C81D3033cf920b982E75D1080b91AA0EF9
+the future "HolographRegistry" address is 0x1052ae1742fc6878010a31aA53671fEF7D51bf65
+the future "HolographRegistryProxy" address is 0xB47C0E0170306583AA979bF30c0407e2bFE234b2
+the future "HolographTreasury" address is 0x76c4fC0627405741Db0959E66d64c0ECeAceDC94
+the future "HolographTreasuryProxy" address is 0x65115A3Be2Aa1F267ccD7499e720088060c7ccd2
+the future "HolographInterfaces" address is 0x67F6394693bd2B46BBE87627F0E581faD80C7B57
+the future "HolographRoyalties" address is 0xbF8f7474D7aCbb87E270FEDA9A5CBB7f766887E3
+Using deployerAddress from signer 0xdf5295149F367b1FBFD595bdA578BAd22e59f504
+the future "HolographUtilityToken" address is 0x56BA455232a82784F17C33c577124EF208D931ED
+"Holograph" bytecode not found, need to deploy"
+future "Holograph" address is 0x17253175f447ca4B560a87a3F39591DFC7A021e3
+... // more logs
+```
+
+### Quick Environment Commands
+
+You can set up aliases locally to make development smoother. Note, that you will need to update the path to the code to the location on your own computer. 
+
+```shell
+alias protbuild="cd ~/path/to/protocol && yarn install && yarn clean-compile && yarn anvil"
+
+alias protdeploy="cd ~/path/to/protocol && yarn deploy-x2"
+```
+Then you can run `protbuild` and then `protdeploy` to set up the project locally.
 
 ### Running tests
 
@@ -261,7 +319,7 @@ Next run the hardhat tests with:
 
 The newer tests for Drops use Foundry. Please make sure you have Foundry installed by following the instructions [here](https://github.com/foundry-rs/foundry).
 
-Currently the Foundry tests require "forking" from a local chain that has the rest of the Holograph protocol contracts already deployed. To do this, with the local anvil chains still running from the `anvil` command mentioned above, run deploy with:
+Currently, the Foundry tests require "forking" from a local chain that has the rest of the Holograph protocol contracts already deployed. To do this, with the local anvil chains still running from the `anvil` command mentioned above, run deploy with:
 
 `yarn deploy:localhost`
 
