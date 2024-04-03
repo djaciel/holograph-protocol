@@ -24,6 +24,9 @@ const func: DeployFunction = async function (hre1: HardhatRuntimeEnvironment) {
     let holographGenesisContract: Contract | null = await hre.ethers.getContractOrNull(contractName);
     let holographGenesisDeployment: Deployment | null = await hre.deployments.getOrNull(contractName);
 
+    console.log(holographGenesisContract);
+    console.log(holographGenesisDeployment);
+
     if (!holographGenesisDeployment || holographGenesisContract === null) {
       console.log(`${contractName} contract not found or deployment record is missing, attempting to deploy...`);
       // Deploying the contract if not found or if deployment record is missing
