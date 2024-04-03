@@ -637,10 +637,10 @@
     web3 "^1.7.0"
     zksync-web3 "^0.4.0"
 
-"@holographxyz/networks@0.2.7":
-  version "0.2.7"
-  resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.2.7.tgz#fbfad43ef2a6ba8abf4065bbeaaf761d178c5d20"
-  integrity sha512-nJr5PerIqw5YA2rdPxj7CFsH529ZmkizJKRE1u/YgxNycFVsdZZuTyASEJjPJHhSArfB97u33uHpMmKB7c9qBg==
+"@holographxyz/networks@0.2.10":
+  version "0.2.10"
+  resolved "https://registry.yarnpkg.com/@holographxyz/networks/-/networks-0.2.10.tgz#864a3a8148e26386b603b701f2a0e229ef47f7b5"
+  integrity sha512-1nJAGi3Q+jDxzOC5nkniLDLBVRQh8poZNP6wDuzA7spQc19ongBROXbI9X2JgYfUKukzhZSNvrlhnj/ogsUuQw==
   dependencies:
     "@ethersproject/bignumber" "^5.7.0"
     "@holographxyz/environment" "0.1.10"
