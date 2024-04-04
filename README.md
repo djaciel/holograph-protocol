@@ -302,9 +302,12 @@ eip1967.<contract-name>.<storage-variable-name>
 
 Additionally we have a utility script that indentify this within the contracts directory as a pre-commit and auto-hash it into it's proper format prior to pushing updates to the repo. An example of how to add a new storage variable to a contract via a hashed slot is as followed:
 
-1. Add a variable to your contracts storage such as `bytes32 constant _interfacesSlot = precomputeslot("eip1967.Holograph.interfaces");`.
-2. On commit, the pre-commit script will run and update the contents of the `precompute` slot function into the output of the hash that is actually stored in the contract.
-3. These constants provide access to important variables at a unique location in a consistent manner.
+1. Add a variable to your contracts storage such as `bytes32 constant _interfacesSlot = precomputeslot("eip1967.Holograph.interfaces");`. Add slots below existing slots. Never add them in between existing slots.
+2. Run the `npx ts-node scripts/precompute-solidity-hashes.ts` script to update the contents of the `precompute` slot function into the output of the hash that is actually stored in the contract.
+3. Annotate the converted line with a comment so the original value is captured. See existing slot to see how we comment these values. We should be able to see what the string version of the hash is.
+4. These constants provide access to important variables at a unique location in a consistent manner.
+
+Note, that if you do not manually call the `precompute-solidity-hashes.ts` script, we have a git hook that will automatically convert it.
 
 ### Quick Environment Commands
 
