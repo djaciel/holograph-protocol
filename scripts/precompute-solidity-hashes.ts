@@ -17,7 +17,7 @@ const regexes = [
   { regex: /precomputeslot\("([^"]+)"\)/i, process: (match: string) => computeSlot(match) }, // Used for slot calculations
   { regex: /precomputeslothex\("([^"]+)"\)/i, process: (match: string) => computeSlotHex(match) }, // Not used currently
   {
-    regex: /precomputekeccak256\([\s\S]*?"([^"]+)"[\s\S]*?\)/gi,
+    regex: /precomputekeccak256\([\s\S]*?"([^"]*)"[\s\S]*?\)/gi,
     process: (match: string) => computeKeccak256(match),
   }, // Used for event topic calculations
   { regex: /functionsig\("([^"]+)"\)/i, process: (match: string) => computeFunctionSig(match) }, // Not used currently
@@ -42,7 +42,10 @@ const computeSlotHex = (input: string): string => {
   return 'hex"' + hexify(hash.substring(2), false) + '"';
 };
 
-const computeKeccak256 = (input: string): string => web3.utils.keccak256(input) || '0x';
+const computeKeccak256 = (input: string): string => {
+  const keccak = web3.utils.keccak256(input);
+  return keccak === null ? '0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470' : keccak;
+};
 
 const computeFunctionSig = (input: string): string => {
   const hash = web3.utils.keccak256(web3.eth.abi.encodeFunctionSignature(input));
