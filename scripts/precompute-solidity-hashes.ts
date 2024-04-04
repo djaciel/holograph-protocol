@@ -14,11 +14,14 @@ const hexify = (input: string, prepend: boolean = true): string => {
 
 // Define all regexes
 const regexes = [
-  { regex: /precomputeslot\("([^"]+)"\)/i, process: (match: string) => computeSlot(match) },
-  { regex: /precomputeslothex\("([^"]+)"\)/i, process: (match: string) => computeSlotHex(match) },
-  { regex: /precomputekeccak256\("([^"]*)"\)/i, process: (match: string) => computeKeccak256(match) },
-  { regex: /functionsig\("([^"]+)"\)/i, process: (match: string) => computeFunctionSig(match) },
-  { regex: /asciihex\("([^"]+)"\)/i, process: (match: string) => computeAsciiHex(match) },
+  { regex: /precomputeslot\("([^"]+)"\)/i, process: (match: string) => computeSlot(match) }, // Used for slot calculations
+  { regex: /precomputeslothex\("([^"]+)"\)/i, process: (match: string) => computeSlotHex(match) }, // Not used currently
+  {
+    regex: /precomputekeccak256\([\s\S]*?"([^"]+)"[\s\S]*?\)/gi,
+    process: (match: string) => computeKeccak256(match),
+  }, // Used for event topic calculations
+  { regex: /functionsig\("([^"]+)"\)/i, process: (match: string) => computeFunctionSig(match) }, // Not used currently
+  { regex: /asciihex\("([^"]+)"\)/i, process: (match: string) => computeAsciiHex(match) }, // Used for encoding contract type as bytes32
 ];
 
 const computeSlot = (input: string): string => {
@@ -62,37 +65,45 @@ const readDirRecursively = async (dir: string, fileList: string[] = []): Promise
   return fileList;
 };
 
-// Process each file
 const processFile = async (filePath: string): Promise<void> => {
   let content = await fs.readFile(filePath, { encoding: 'utf8' });
-  let lines = content.split(/\r?\n/); // Split content into lines
+  let offset = 0; // Tracks the current offset in content for accurate line number calculation
 
-  for (let index = 0; index < lines.length; index++) {
-    for (let { regex, process } of regexes) {
-      let match;
-      // Ensure regex is prepared to match globally if expecting multiple matches per line
-      regex = new RegExp(regex.source, 'gi');
-      while ((match = regex.exec(lines[index]))) {
-        const lineNumber = index + 1; // Line numbers are usually 1-based
-        const originalText = match[0];
-        const replacement = process(match[1]);
+  for (let { regex, process } of regexes) {
+    let modifiedContent = ''; // Holds the new content as we build it
+    let lastMatchEnd = 0; // Tracks the end of the last match to slice correctly
+    regex = new RegExp(regex.source, 'gi'); // Ensure regex is global
 
-        // Log replacement details
-        console.log(`File: ${filePath}\nLine: ${lineNumber}\nOriginal: ${originalText}\nReplacement: ${replacement}\n`);
+    let match;
+    while ((match = regex.exec(content))) {
+      const beforeMatch = content.slice(lastMatchEnd, match.index);
+      modifiedContent += beforeMatch; // Add content before current match
 
-        // Perform the replacement on the line
-        lines[index] = lines[index].replace(originalText, replacement);
+      const lineNumber = beforeMatch.length > 0 ? beforeMatch.split(/\r?\n/).length + offset : 1 + offset;
+      const originalText = match[0];
+      const replacement = process(match[1]);
 
-        // Reset the regex lastIndex to ensure it doesn't skip matches in the next iteration
-        regex.lastIndex = 0;
-      }
+      console.log(`File: ${filePath}\nLine: ${lineNumber}\nOriginal: ${originalText}\nReplacement: ${replacement}\n`);
+
+      modifiedContent += content.substring(match.index, regex.lastIndex).replace(originalText, replacement); // Add modified match
+
+      lastMatchEnd = regex.lastIndex; // Update lastMatchEnd to the end of the current match
+
+      // Update offset to current line number for next iteration
+      offset += beforeMatch.split(/\r?\n/).length;
     }
+
+    // Add any remaining content after the last match
+    modifiedContent += content.slice(lastMatchEnd);
+
+    // Update content with the modified content for the next regex
+    content = modifiedContent;
   }
 
-  // Re-join lines and write back to the file
-  const newContent = lines.join('\n');
-  await fs.writeFile(filePath, newContent, { encoding: 'utf8' }); // Comment this line to prevent file writes
+  await fs.writeFile(filePath, content, { encoding: 'utf8' });
 };
+
+// Your main function and other logic remains unchanged
 
 // Main function to find and process files
 const main = async () => {
