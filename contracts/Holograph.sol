@@ -118,6 +118,9 @@ contract Holograph is Admin, Initializable, HolographInterface {
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.bridge')) - 1)
    */
   bytes32 constant _bridgeSlot = 0xeb87cbb21687feb327e3d58c6c16d552231d12c7a0e8115042a4165fac8a77f9;
+
+  bytes32 constant asdf = 0xd840a780c26e07edc6e1ee2eaa6f134ed5488dbd762614116653cee8542a3844;
+
   /**
    * @dev bytes32(uint256(keccak256('eip1967.Holograph.chainId')) - 1)
    */
