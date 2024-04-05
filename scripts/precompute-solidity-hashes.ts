@@ -14,11 +14,14 @@ const hexify = (input: string, prepend: boolean = true): string => {
 
 // Define all regexes
 const regexes = [
-  { regex: /precomputeslot\("([^"]+)"\)/i, process: (match: string) => computeSlot(match) },
-  { regex: /precomputeslothex\("([^"]+)"\)/i, process: (match: string) => computeSlotHex(match) },
-  { regex: /precomputekeccak256\("([^"]*)"\)/i, process: (match: string) => computeKeccak256(match) },
-  { regex: /functionsig\("([^"]+)"\)/i, process: (match: string) => computeFunctionSig(match) },
-  { regex: /asciihex\("([^"]+)"\)/i, process: (match: string) => computeAsciiHex(match) },
+  { regex: /precomputeslot\("([^"]+)"\)/i, process: (match: string) => computeSlot(match) }, // Used for slot calculations
+  { regex: /precomputeslothex\("([^"]+)"\)/i, process: (match: string) => computeSlotHex(match) }, // Not used currently
+  {
+    regex: /precomputekeccak256\([\s\S]*?"([^"]*)"[\s\S]*?\)/gi,
+    process: (match: string) => computeKeccak256(match),
+  }, // Used for event topic calculations
+  { regex: /functionsig\("([^"]+)"\)/i, process: (match: string) => computeFunctionSig(match) }, // Not used currently
+  { regex: /asciihex\("([^"]+)"\)/i, process: (match: string) => computeAsciiHex(match) }, // Used for encoding contract type as bytes32
 ];
 
 const computeSlot = (input: string): string => {
@@ -39,7 +42,10 @@ const computeSlotHex = (input: string): string => {
   return 'hex"' + hexify(hash.substring(2), false) + '"';
 };
 
-const computeKeccak256 = (input: string): string => web3.utils.keccak256(input) || '0x';
+const computeKeccak256 = (input: string): string => {
+  const keccak = web3.utils.keccak256(input);
+  return keccak === null ? '0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470' : keccak;
+};
 
 const computeFunctionSig = (input: string): string => {
   const hash = web3.utils.keccak256(web3.eth.abi.encodeFunctionSignature(input));
@@ -62,40 +68,50 @@ const readDirRecursively = async (dir: string, fileList: string[] = []): Promise
   return fileList;
 };
 
-// Process each file
 const processFile = async (filePath: string): Promise<void> => {
   let content = await fs.readFile(filePath, { encoding: 'utf8' });
-  const lines = content.split(/\r?\n/); // Split content into lines
+  let offset = 0; // Tracks the current offset in content for accurate line number calculation
 
-  for (let [index, line] of lines.entries()) {
-    for (let { regex, process } of regexes) {
-      const match = line.match(regex);
-      if (match) {
-        const lineNumber = index + 1; // Line numbers are usually 1-based
-        const originalText = match[0];
-        const replacement = process(match[1]);
-        console.log(`File: ${filePath}\nLine: ${lineNumber}\nOriginal: ${originalText}\nReplacement: ${replacement}\n`);
+  for (let { regex, process } of regexes) {
+    let modifiedContent = ''; // Holds the new content as we build it
+    let lastMatchEnd = 0; // Tracks the end of the last match to slice correctly
+    regex = new RegExp(regex.source, 'gi'); // Ensure regex is global
 
-        // Perform the replacement on the line (if we decide to modify the content directly)
-        // This example modifies the line directly within the array of lines.
-        // lines[index] = line.replace(regex, (_) => replacement);
-      }
+    let match;
+    while ((match = regex.exec(content))) {
+      const beforeMatch = content.slice(lastMatchEnd, match.index);
+      modifiedContent += beforeMatch; // Add content before current match
+
+      const lineNumber = beforeMatch.length > 0 ? beforeMatch.split(/\r?\n/).length + offset : 1 + offset;
+      const originalText = match[0];
+      const replacement = process(match[1]);
+
+      console.log(`File: ${filePath}\nLine: ${lineNumber}\nOriginal: ${originalText}\nReplacement: ${replacement}\n`);
+
+      modifiedContent += content.substring(match.index, regex.lastIndex).replace(originalText, replacement); // Add modified match
+
+      lastMatchEnd = regex.lastIndex; // Update lastMatchEnd to the end of the current match
+
+      // Update offset to current line number for next iteration
+      offset += beforeMatch.split(/\r?\n/).length;
     }
+
+    // Add any remaining content after the last match
+    modifiedContent += content.slice(lastMatchEnd);
+
+    // Update content with the modified content for the next regex
+    content = modifiedContent;
   }
+
+  await fs.writeFile(filePath, content, { encoding: 'utf8' });
 };
 
-// If you want to modify the lines array (e.g., by replacing text within lines),
-// you would rejoin the modified lines back into a single string to reflect changes.
-// This step is necessary if you uncomment the line modification above.
-// content = lines.join('\n');
-
-// If modifications were made and you want to save the changes back to the file:
-// await fs.writeFile(filePath, content, { encoding: 'utf8' })
+// Your main function and other logic remains unchanged
 
 // Main function to find and process files
 const main = async () => {
   console.log('Finding .sol files...');
-  const srcDir = path.join(__dirname, '../src'); // Adjust based on actual path
+  const srcDir = path.join(__dirname, '../contracts');
   const files = await readDirRecursively(srcDir);
   console.log(`Found ${files.length} .sol files`);
 
