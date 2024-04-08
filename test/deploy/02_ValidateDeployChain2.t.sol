@@ -4,8 +4,9 @@ pragma solidity 0.8.13;
 import {Test, Vm, console} from "forge-std/Test.sol";
 // import {HolographInterfaces} from "../../../contracts/HolographInterfaces.sol";
 // import {Holographer} from "../../../contracts/HolographInterfaces.sol";
-import {MyContractTest} from "../TestSetup.t.sol";
-import {Constants} from "../utils/Constants.sol";
+import {MyContractTest} from "../foundry/TestSetup.t.sol";
+import {Constants} from "../foundry/utils/Constants.sol";
+import {Bytecodes} from "../foundry/Bytecodes.sol";
 
 contract ValidateDeployChain2 is Test {
   uint256 localHost2Fork;
@@ -46,7 +47,11 @@ contract ValidateDeployChain2 is Test {
   function testHolograph() public {
     // Holographer holographer = new Holographer();
     bytes memory bytecodeDeployed = vm.getDeployedCode("Holograph.sol:Holograph");
-    assertEq(address(Constants.getHolograph()).code, bytecodeDeployed);
+    console.log("bytecodeDeployed");
+    console.logBytes(bytecodeDeployed);
+    console.log("Bytecodes.getHolograph()");
+    console.logBytes(Bytecodes.getHolograph());
+    assertEq(Bytecodes.getHolograph(), bytecodeDeployed);
   }
 
 }
